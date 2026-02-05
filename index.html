@@ -501,14 +501,14 @@
             const currentHour = now.getHours();
             
             // Mostrar las próximas 6 horas
-            for (let i = 0; i < 6; i++) {
+            for (let i = 0; i < 18; i+=3) {
                 const hour = (currentHour + i) % 24;
                 const hourIndex = hourly.time.findIndex(time => {
                     const date = new Date(time);
                     return date.getHours() === hour && date >= now;
                 });
                 
-                if (hourIndex === 3) continue;
+                if (hourIndex === -1) continue;
                 
                 const hourItem = document.createElement('div');
                 hourItem.className = 'hour-item';
