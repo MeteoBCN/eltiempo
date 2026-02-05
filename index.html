@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiempo Barcelona</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ebebeb;
+            color: #666;
+            padding: 0;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            padding: 20px;
+        }
+        
+        /* LOGO */
+        .logo-container {
+            text-align: center;
+            padding: 30px 20px 10px;
+        }
+        
+        #main-logo {
+            max-width: 280px;
+            width: 80%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        /* TIEMPO ACTUAL */
+        .current-weather {
+            text-align: center;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+        }
+        
+        .location {
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .icon-large {
+            font-size: 100px;
+            margin: 20px 0;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .temperature {
+            font-size: 72px;
+            font-weight: 200;
+            margin-bottom: 10px;
+        }
+        
+        .condition {
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+        
+        .details {
+            display: flex;
+            justify-content: space-around;
+            font-size: 14px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .detail-item {
+            text-align: center;
+            min-width: 80px;
+        }
+        
+        .detail-value {
+            font-size: 18px;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+        
+        /* PREVISIÓN HORARIA */
+        .section-title {
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .hourly-forecast {
+            margin-bottom: 40px;
+        }
+        
+        .hourly-scroll {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #ccc transparent;
+        }
+        
+        .hourly-scroll::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        .hourly-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .hourly-scroll::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+        
+        .hour-item {
+            min-width: 70px;
+            text-align: center;
+            padding: 15px 10px;
+        }
+        
+        .hour-time {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .hour-icon {
+            font-size: 36px;
+            margin: 10px 0;
+        }
+        
+        .hour-temp {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .hour-rain {
+            font-size: 12px;
+            margin-top: 5px;
+            color: #7a9cc6;
+        }
+        
+        /* PREVISIÓN 3 DÍAS */
+        .daily-forecast {
+            margin-bottom: 40px;
+        }
+        
+        .day-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .day-item:last-child {
+            border-bottom: none;
+        }
+        
+        .day-name {
+            flex: 1;
+            font-size: 18px;
+        }
+        
+        .day-icon {
+            font-size: 40px;
+            margin: 0 15px;
+        }
+        
+        .day-temps {
+            display: flex;
+            gap: 10px;
+            font-size: 18px;
+        }
+        
+        .temp-max {
+            font-weight: 500;
+        }
+        
+        .temp-min {
+            color: #999;
+        }
+        
+        /* WEBCAMS */
+        .webcams {
+            margin-bottom: 40px;
+        }
+        
+        .webcam-item {
+            margin-bottom: 20px;
+        }
+        
+        .webcam-label {
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 400;
+        }
+        
+        .webcam-frame {
+            width: 100%;
+            height: 220px;
+            background: #d0d0d0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .webcam-frame iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* RADAR */
+        .radar {
+            margin-bottom: 40px;
+        }
+        
+        .radar-frame {
+            width: 100%;
+            height: 400px;
+            background: #d0d0d0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .radar-frame iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .update-time {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            margin-top: 30px;
+            padding-bottom: 10px;
+        }
+        
+        .divulgacion-link {
+            text-align: center;
+            padding: 20px 0 30px;
+        }
+        
+        .divulgacion-link a {
+            color: #888;
+            text-decoration: none;
+            font-size: 14px;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+        
+        .divulgacion-link a:hover {
+            border-bottom-color: #888;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .error {
+            text-align: center;
+            padding: 20px;
+            color: #c66;
+        }
+
+        @media (max-width: 480px) {
+            .temperature {
+                font-size: 64px;
+            }
+            
+            .icon-large {
+                font-size: 80px;
+            }
+            
+            .radar-frame {
+                height: 300px;
+            }
+            
+            #main-logo {
+                max-width: 220px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- LOGO -->
+        <div class="logo-container">
+            <img src="logo.png" alt="Logo" id="main-logo">
+        </div>
+        
+        <!-- TIEMPO ACTUAL -->
+        <div class="current-weather">
+            <div class="location">Barcelona</div>
+            <div class="icon-large" id="current-icon">☀️</div>
+            <div class="temperature" id="current-temp">--°</div>
+            <div class="condition" id="current-condition">Cargando...</div>
+            <div class="details">
+                <div class="detail-item">
+                    <div>Sensación</div>
+                    <div class="detail-value" id="feels-like">--°</div>
+                </div>
+                <div class="detail-item">
+                    <div>Humedad</div>
+                    <div class="detail-value" id="humidity">--%</div>
+                </div>
+                <div class="detail-item">
+                    <div>Viento</div>
+                    <div class="detail-value" id="wind">-- km/h</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PREVISIÓN HORARIA -->
+        <div class="hourly-forecast">
+            <div class="section-title">Hoy</div>
+            <div class="hourly-scroll" id="hourly-container">
+                <div class="loading">Cargando datos...</div>
+            </div>
+        </div>
+        
+        <!-- PREVISIÓN 3 DÍAS -->
+        <div class="daily-forecast">
+            <div class="section-title">Próximos días</div>
+            <div id="daily-container">
+                <div class="loading">Cargando datos...</div>
+            </div>
+        </div>
+        
+        <!-- WEBCAMS -->
+        <div class="webcams">
+            <div class="section-title">Webcams en directo</div>
+            <div class="webcam-item">
+                <div class="webcam-label">La Barceloneta - Playa</div>
+                <div class="webcam-frame">
+                    <iframe src="https://www.skylinewebcams.com/en/webcam/espana/catalonia/barcelona/barceloneta.html" 
+                            allowfullscreen 
+                            loading="lazy"></iframe>
+                </div>
+            </div>
+            <div class="webcam-item">
+                <div class="webcam-label">Port Vell - Puerto</div>
+                <div class="webcam-frame">
+                    <iframe src="https://www.skylinewebcams.com/en/webcam/espana/catalonia/barcelona/port-vell-barcelona.html" 
+                            allowfullscreen 
+                            loading="lazy"></iframe>
+                </div>
+            </div>
+        </div>
+        
+        <!-- RADAR -->
+        <div class="radar">
+            <div class="section-title">Radar de lluvia</div>
+            <div class="radar-frame">
+                <iframe src="https://www.meteoblue.com/es/tiempo/widget/seeing3/barcelona_espa%c3%b1a_3128760?geoloc=fixed&nocurrent=0&noforecast=0&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&layout=image"
+                        frameborder="0" 
+                        scrolling="NO" 
+                        allowtransparency="true" 
+                        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+                        style="width: 100%; height: 100%"></iframe>
+            </div>
+        </div>
+        
+        <div class="update-time" id="update-time">
+            Actualizado: --:--
+        </div>
+        
+        <div class="divulgacion-link">
+            <a href="divulgacion.html">Aprende meteorología</a>
+        </div>
+    </div>
+
+    <script>
+        // Coordenadas de Barcelona
+        const LAT = 41.3851;
+        const LON = 2.1734;
+        
+        // Iconos del tiempo
+        const weatherIcons = {
+            0: '☀️',   // Despejado
+            1: '🌤️',  // Principalmente despejado
+            2: '⛅',   // Parcialmente nublado
+            3: '☁️',   // Nublado
+            45: '🌫️', // Niebla
+            48: '🌫️', // Niebla con escarcha
+            51: '🌦️', // Llovizna ligera
+            53: '🌦️', // Llovizna moderada
+            55: '🌦️', // Llovizna densa
+            61: '🌧️', // Lluvia ligera
+            63: '🌧️', // Lluvia moderada
+            65: '🌧️', // Lluvia intensa
+            71: '🌨️', // Nevada ligera
+            73: '🌨️', // Nevada moderada
+            75: '🌨️', // Nevada intensa
+            80: '🌦️', // Chubascos ligeros
+            81: '🌧️', // Chubascos moderados
+            82: '⛈️', // Chubascos violentos
+            95: '⛈️', // Tormenta
+            96: '⛈️', // Tormenta con granizo
+            99: '⛈️'  // Tormenta con granizo fuerte
+        };
+        
+        // Descripciones del tiempo
+        const weatherDescriptions = {
+            0: 'Despejado',
+            1: 'Principalmente despejado',
+            2: 'Parcialmente nublado',
+            3: 'Nublado',
+            45: 'Niebla',
+            48: 'Niebla con escarcha',
+            51: 'Llovizna ligera',
+            53: 'Llovizna moderada',
+            55: 'Llovizna densa',
+            61: 'Lluvia ligera',
+            63: 'Lluvia moderada',
+            65: 'Lluvia intensa',
+            71: 'Nevada ligera',
+            73: 'Nevada moderada',
+            75: 'Nevada intensa',
+            80: 'Chubascos ligeros',
+            81: 'Chubascos moderados',
+            82: 'Chubascos violentos',
+            95: 'Tormenta',
+            96: 'Tormenta con granizo',
+            99: 'Tormenta fuerte'
+        };
+        
+        // Función para obtener el icono
+        function getWeatherIcon(code) {
+            return weatherIcons[code] || '☀️';
+        }
+        
+        // Función para obtener la descripción
+        function getWeatherDescription(code) {
+            return weatherDescriptions[code] || 'Desconocido';
+        }
+        
+        // Función para obtener el día de la semana
+        function getDayName(dateString) {
+            const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+            const date = new Date(dateString);
+            return days[date.getDay()];
+        }
+        
+        // Función para formatear hora
+        function formatHour(dateTimeString) {
+            const date = new Date(dateTimeString);
+            return date.getHours().toString().padStart(2, '0') + ':00';
+        }
+        
+        // Función principal para cargar datos
+        async function loadWeatherData() {
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=temperature_2m,precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Europe/Madrid&forecast_days=4`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                // Actualizar tiempo actual
+                updateCurrentWeather(data.current, data.current.weather_code);
+                
+                // Actualizar previsión horaria
+                updateHourlyForecast(data.hourly);
+                
+                // Actualizar previsión de 3 días
+                updateDailyForecast(data.daily);
+                
+                // Actualizar hora de actualización
+                updateTime();
+                
+            } catch (error) {
+                console.error('Error al cargar datos:', error);
+                document.getElementById('current-condition').textContent = 'Error al cargar datos';
+            }
+        }
+        
+        // Actualizar tiempo actual
+        function updateCurrentWeather(current, weatherCode) {
+            document.getElementById('current-temp').textContent = Math.round(current.temperature_2m) + '°';
+            document.getElementById('current-icon').textContent = getWeatherIcon(weatherCode);
+            document.getElementById('current-condition').textContent = getWeatherDescription(weatherCode);
+            document.getElementById('feels-like').textContent = Math.round(current.apparent_temperature) + '°';
+            document.getElementById('humidity').textContent = current.relative_humidity_2m + '%';
+            document.getElementById('wind').textContent = Math.round(current.wind_speed_10m) + ' km/h';
+        }
+        
+        // Actualizar previsión horaria
+        function updateHourlyForecast(hourly) {
+            const container = document.getElementById('hourly-container');
+            container.innerHTML = '';
+            
+            const now = new Date();
+            const currentHour = now.getHours();
+            
+            // Mostrar las próximas 12 horas
+            for (let i = 0; i < 12; i++) {
+                const hour = (currentHour + i) % 24;
+                const hourIndex = hourly.time.findIndex(time => {
+                    const date = new Date(time);
+                    return date.getHours() === hour && date >= now;
+                });
+                
+                if (hourIndex === -1) continue;
+                
+                const hourItem = document.createElement('div');
+                hourItem.className = 'hour-item';
+                
+                const temp = Math.round(hourly.temperature_2m[hourIndex]);
+                const rain = hourly.precipitation_probability[hourIndex] || 0;
+                const icon = getWeatherIcon(hourly.weather_code[hourIndex]);
+                
+                hourItem.innerHTML = `
+                    <div class="hour-time">${formatHour(hourly.time[hourIndex])}</div>
+                    <div class="hour-icon">${icon}</div>
+                    <div class="hour-temp">${temp}°</div>
+                    <div class="hour-rain">${rain}%</div>
+                `;
+                
+                container.appendChild(hourItem);
+            }
+        }
+        
+        // Actualizar previsión de 3 días
+        function updateDailyForecast(daily) {
+            const container = document.getElementById('daily-container');
+            container.innerHTML = '';
+            
+            // Mostrar los próximos 3 días (saltando hoy)
+            for (let i = 1; i <= 3; i++) {
+                const dayItem = document.createElement('div');
+                dayItem.className = 'day-item';
+                
+                const dayName = getDayName(daily.time[i]);
+                const maxTemp = Math.round(daily.temperature_2m_max[i]);
+                const minTemp = Math.round(daily.temperature_2m_min[i]);
+                const icon = getWeatherIcon(daily.weather_code[i]);
+                
+                dayItem.innerHTML = `
+                    <div class="day-name">${dayName}</div>
+                    <div class="day-icon">${icon}</div>
+                    <div class="day-temps">
+                        <span class="temp-max">${maxTemp}°</span>
+                        <span class="temp-min">${minTemp}°</span>
+                    </div>
+                `;
+                
+                container.appendChild(dayItem);
+            }
+        }
+        
+        // Actualizar hora de actualización
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('update-time').textContent = `Actualizado: ${hours}:${minutes}`;
+        }
+        
+        // Cargar datos al iniciar
+        loadWeatherData();
+        
+        // Actualizar cada 10 minutos
+        setInterval(loadWeatherData, 600000);
+    </script>
+</body>
+</html>
