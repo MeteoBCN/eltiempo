@@ -303,6 +303,34 @@
                 </div>
             </div>
         </div>
+
+        <div style="position: relative; width: 640px;">
+        <!-- Video en bucle, silencio inicial y sin controles -->
+        <video id="miVideo" width="100%" autoplay loop muted playsinline>
+       <source src="v01.mp4" type="video/mp4">
+       Tu navegador no soporta vídeos.
+        </video>
+
+         <!-- Botón de altavoz superpuesto -->
+       <button id="botonMuted" onclick="toggleMute()" style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.5); border: none; color: white; cursor: pointer; padding: 10px; border-radius: 50%;">
+      🔇
+     </button>
+       </div>
+
+        <script>
+        function toggleMute() {
+        var video = document.getElementById("miVideo");
+       var btn = document.getElementById("botonMuted");
+    
+        if (video.muted) {
+        video.muted = false;
+       btn.innerHTML = "🔊"; // Icono de sonido activado
+     } else {
+       video.muted = true;
+       btn.innerHTML = "🔇"; // Icono de silencio
+     }
+     }
+      </script>
         
         <!-- PRÓXIMAS HORAS -->
         <div class="hourly-forecast">
