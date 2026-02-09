@@ -97,24 +97,37 @@
         /* JORNADA DE MAÑANA */
         .tomorrow-section {
             margin-bottom: 40px;
-            background: rgba(192, 234, 249, 0.05);
-            border-radius: 12px;
-            padding: 20px;
+            padding: 20px 0;
+        }
+        
+        .tomorrow-title {
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 5px;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #c0eaf9;
+        }
+        
+        .tomorrow-date {
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #a0d0df;
         }
         
         .tomorrow-periods {
             display: flex;
-            justify-content: space-around;
-            gap: 20px;
+            justify-content: center;
+            gap: 40px;
             margin-bottom: 20px;
         }
         
         .period-item {
-            flex: 1;
             text-align: center;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
+            padding: 0;
+            background: transparent;
         }
         
         .period-title {
@@ -141,6 +154,12 @@
             font-size: 13px;
             margin-top: 5px;
             color: #a0d0df;
+        }
+        
+        .period-rain {
+            font-size: 14px;
+            margin-top: 8px;
+            color: #7a9cc6;
         }
         
         .sun-times {
@@ -385,8 +404,8 @@
             <div class="condition" id="current-condition">Cargando...</div>
             <div class="details">
                 <div class="detail-item">
-                    <div>Sensación</div>
-                    <div class="detail-value" id="feels-like">--°</div>
+                    <div>Presión</div>
+                    <div class="detail-value" id="pressure">-- hPa</div>
                 </div>
                 <div class="detail-item">
                     <div>Humedad</div>
@@ -396,28 +415,27 @@
                     <div>Viento</div>
                     <div class="detail-value" id="wind">-- km/h</div>
                 </div>
-                <div class="detail-item">
-                    <div>Precip. hoy</div>
-                    <div class="detail-value" id="precipitation">-- mm</div>
-                </div>
             </div>
         </div>
         
         <!-- JORNADA DE MAÑANA -->
         <div class="tomorrow-section">
-            <div class="section-title" style="color: #c0eaf9; font-size: 16px; text-align: center; margin-bottom: 20px;">MAÑANA</div>
+            <div class="tomorrow-title">MAÑANA</div>
+            <div class="tomorrow-date" id="tomorrow-day">Martes</div>
             <div class="tomorrow-periods">
                 <div class="period-item">
                     <div class="period-title">Mañana</div>
                     <div class="period-icon" id="tomorrow-morning-icon">☀️</div>
                     <div class="period-temp" id="tomorrow-morning-temp">--°</div>
                     <div class="period-condition" id="tomorrow-morning-condition">--</div>
+                    <div class="period-rain" id="tomorrow-morning-rain">--%</div>
                 </div>
                 <div class="period-item">
                     <div class="period-title">Tarde</div>
                     <div class="period-icon" id="tomorrow-afternoon-icon">☀️</div>
                     <div class="period-temp" id="tomorrow-afternoon-temp">--°</div>
                     <div class="period-condition" id="tomorrow-afternoon-condition">--</div>
+                    <div class="period-rain" id="tomorrow-afternoon-rain">--%</div>
                 </div>
             </div>
             <div class="sun-times">
@@ -643,7 +661,7 @@
         // Función principal para cargar datos
         async function loadWeatherData() {
             try {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation&hourly=temperature_2m,precipitation_probability,weather_code,precipitation&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=Europe/Madrid&forecast_days=4`;
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl&hourly=temperature_2m,precipitation_probability,weather_code,precipitation&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=Europe/Madrid&forecast_days=4`;
                 
                 const response = await fetch(url);
                 const data = await response.json();
@@ -681,22 +699,9 @@
             document.getElementById('current-temp').textContent = Math.round(current.temperature_2m) + '°';
             document.getElementById('current-icon').textContent = getWeatherIcon(weatherCode, now);
             document.getElementById('current-condition').textContent = getWeatherDescription(weatherCode);
-            document.getElementById('feels-like').textContent = Math.round(current.apparent_temperature) + '°';
+            document.getElementById('pressure').textContent = Math.round(current.pressure_msl) + ' hPa';
             document.getElementById('humidity').textContent = current.relative_humidity_2m + '%';
             document.getElementById('wind').textContent = Math.round(current.wind_speed_10m) + ' km/h';
-            
-            // Calcular precipitación del día
-            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            let totalPrecipitation = 0;
-            
-            for (let i = 0; i < hourly.time.length; i++) {
-                const hourTime = new Date(hourly.time[i]);
-                if (hourTime >= todayStart && hourTime <= now) {
-                    totalPrecipitation += hourly.precipitation[i] || 0;
-                }
-            }
-            
-            document.getElementById('precipitation').textContent = totalPrecipitation.toFixed(1) + ' mm';
         }
         
         // Actualizar jornada de mañana
@@ -705,6 +710,9 @@
             const tomorrow = new Date(now);
             tomorrow.setDate(tomorrow.getDate() + 1);
             tomorrow.setHours(0, 0, 0, 0);
+            
+            // Actualizar el día de la semana
+            document.getElementById('tomorrow-day').textContent = getDayName(tomorrow.toISOString());
             
             // Buscar índices para mañana (9:00) y tarde (15:00)
             let morningIndex = -1;
@@ -727,9 +735,11 @@
                 const morningTemp = Math.round(hourly.temperature_2m[morningIndex]);
                 const morningCode = hourly.weather_code[morningIndex];
                 const morningTime = new Date(hourly.time[morningIndex]);
+                const morningRain = hourly.precipitation_probability[morningIndex] || 0;
                 document.getElementById('tomorrow-morning-temp').textContent = morningTemp + '°';
                 document.getElementById('tomorrow-morning-icon').textContent = getWeatherIcon(morningCode, morningTime);
                 document.getElementById('tomorrow-morning-condition').textContent = getWeatherDescription(morningCode);
+                document.getElementById('tomorrow-morning-rain').textContent = morningRain + '%';
             }
             
             // Actualizar tarde
@@ -737,9 +747,11 @@
                 const afternoonTemp = Math.round(hourly.temperature_2m[afternoonIndex]);
                 const afternoonCode = hourly.weather_code[afternoonIndex];
                 const afternoonTime = new Date(hourly.time[afternoonIndex]);
+                const afternoonRain = hourly.precipitation_probability[afternoonIndex] || 0;
                 document.getElementById('tomorrow-afternoon-temp').textContent = afternoonTemp + '°';
                 document.getElementById('tomorrow-afternoon-icon').textContent = getWeatherIcon(afternoonCode, afternoonTime);
                 document.getElementById('tomorrow-afternoon-condition').textContent = getWeatherDescription(afternoonCode);
+                document.getElementById('tomorrow-afternoon-rain').textContent = afternoonRain + '%';
             }
             
             // Actualizar salida y puesta de sol (del día de mañana)
