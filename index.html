@@ -452,6 +452,7 @@
                     <div class="period-temp" id="tomorrow-morning-temp">--°</div>
                     <div class="period-condition" id="tomorrow-morning-condition">--</div>
                     <div class="period-rain" id="tomorrow-morning-rain">--%</div>
+                    <div class="period-wind" id="tomorrow-morning-wind">-- km/h</div>
                 </div>
                 <div class="period-item">
                     <div class="period-title">Tarde</div>
@@ -459,6 +460,7 @@
                     <div class="period-temp" id="tomorrow-afternoon-temp">--°</div>
                     <div class="period-condition" id="tomorrow-afternoon-condition">--</div>
                     <div class="period-rain" id="tomorrow-afternoon-rain">--%</div>
+                    <div class="period-wind" id="tomorrow-afternoon-wind">-- km/h</div>
                 </div>
             </div>
             <div class="sun-times">
@@ -474,6 +476,10 @@
                     </div>
                 </div>
             </div>
+                <div class="uv-info" style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(192, 234, 249, 0.2);">
+                <div style="font-size: 12px; color: #a0d0df; margin-bottom: 5px;">Índice UV Máximo</div>
+                <div style="font-size: 24px; font-weight: 500;" id="tomorrow-uv">--</div>
+                </div>
         </div>
 
         <table style="border-collapse: collapse; background-color: transparent;">
@@ -696,7 +702,7 @@
         // Función principal para cargar datos
         async function loadWeatherData() {
             try {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl&hourly=temperature_2m,precipitation_probability,weather_code,precipitation&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=Europe/Madrid&forecast_days=4`;
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl&hourly=temperature_2m,precipitation_probability,weather_code,precipitation,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=4`;
                 
                 const response = await fetch(url);
                 const data = await response.json();
