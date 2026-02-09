@@ -165,6 +165,12 @@
             margin-top: 8px;
             color: #7a9cc6;
         }
+
+        .period-wind {
+           font-size: 14px;
+           margin-top: 5px;
+           color: #9db8d4;
+        }
         
         .sun-times {
             display: flex;
@@ -744,65 +750,90 @@
             document.getElementById('humidity').textContent = current.relative_humidity_2m + '%';
             document.getElementById('wind').textContent = Math.round(current.wind_speed_10m) + ' km/h';
         }
-        
         // Actualizar jornada de mañana
-        function updateTomorrowForecast(hourly, daily) {
-            const now = new Date();
-            const tomorrow = new Date(now);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(0, 0, 0, 0);
-            
-            // Actualizar el día de la semana
-            document.getElementById('tomorrow-day').textContent = getDayName(tomorrow.toISOString());
-            
-            // Buscar índices para mañana (9:00) y tarde (15:00)
-            let morningIndex = -1;
-            let afternoonIndex = -1;
-            
-            for (let i = 0; i < hourly.time.length; i++) {
-                const hourTime = new Date(hourly.time[i]);
-                if (hourTime.getDate() === tomorrow.getDate()) {
-                    if (hourTime.getHours() === 9 && morningIndex === -1) {
-                        morningIndex = i;
-                    }
-                    if (hourTime.getHours() === 15 && afternoonIndex === -1) {
-                        afternoonIndex = i;
-                    }
-                }
+function updateTomorrowForecast(hourly, daily) {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    
+    // Actualizar el día de la semana
+    document.getElementById('tomorrow-day').textContent = getDayName(tomorrow.toISOString());
+    
+    // Buscar índices para mañana (9:00) y tarde (15:00)
+    let morningIndex = -1;
+    let afternoonIndex = -1;
+    
+    for (let i = 0; i < hourly.time.length; i++) {
+        const hourTime = new Date(hourly.time[i]);
+        if (hourTime.getDate() === tomorrow.getDate()) {
+            if (hourTime.getHours() === 9 && morningIndex === -1) {
+                morningIndex = i;
             }
-            
-            // Actualizar mañana
-            if (morningIndex !== -1) {
-                const morningTemp = Math.round(hourly.temperature_2m[morningIndex]);
-                const morningCode = hourly.weather_code[morningIndex];
-                const morningTime = new Date(hourly.time[morningIndex]);
-                const morningRain = hourly.precipitation_probability[morningIndex] || 0;
-                document.getElementById('tomorrow-morning-temp').textContent = morningTemp + '°';
-                document.getElementById('tomorrow-morning-icon').textContent = getWeatherIcon(morningCode, morningTime);
-                document.getElementById('tomorrow-morning-condition').textContent = getWeatherDescription(morningCode);
-                document.getElementById('tomorrow-morning-rain').textContent = morningRain + '%';
-            }
-            
-            // Actualizar tarde
-            if (afternoonIndex !== -1) {
-                const afternoonTemp = Math.round(hourly.temperature_2m[afternoonIndex]);
-                const afternoonCode = hourly.weather_code[afternoonIndex];
-                const afternoonTime = new Date(hourly.time[afternoonIndex]);
-                const afternoonRain = hourly.precipitation_probability[afternoonIndex] || 0;
-                document.getElementById('tomorrow-afternoon-temp').textContent = afternoonTemp + '°';
-                document.getElementById('tomorrow-afternoon-icon').textContent = getWeatherIcon(afternoonCode, afternoonTime);
-                document.getElementById('tomorrow-afternoon-condition').textContent = getWeatherDescription(afternoonCode);
-                document.getElementById('tomorrow-afternoon-rain').textContent = afternoonRain + '%';
-            }
-            
-            // Actualizar salida y puesta de sol (del día de mañana)
-            if (daily.sunrise && daily.sunrise[1]) {
-                document.getElementById('sunrise').textContent = formatSunTime(daily.sunrise[1]);
-            }
-            if (daily.sunset && daily.sunset[1]) {
-                document.getElementById('sunset').textContent = formatSunTime(daily.sunset[1]);
+            if (hourTime.getHours() === 15 && afternoonIndex === -1) {
+                afternoonIndex = i;
             }
         }
+    }
+    
+    // Actualizar mañana
+    if (morningIndex !== -1) {
+        const morningTemp = Math.round(hourly.temperature_2m[morningIndex]);
+        const morningCode = hourly.weather_code[morningIndex];
+        const morningTime = new Date(hourly.time[morningIndex]);
+        const morningRain = hourly.precipitation_probability[morningIndex] || 0;
+        const morningWind = Math.round(hourly.wind_speed_10m[morningIndex]);
+        
+        document.getElementById('tomorrow-morning-temp').textContent = morningTemp + '°';
+        document.getElementById('tomorrow-morning-icon').textContent = getWeatherIcon(morningCode, morningTime);
+        document.getElementById('tomorrow-morning-condition').textContent = getWeatherDescription(morningCode);
+        document.getElementById('tomorrow-morning-rain').textContent = morningRain + '%';
+        document.getElementById('tomorrow-morning-wind').textContent = morningWind + ' km/h';
+    }
+    
+    // Actualizar tarde
+    if (afternoonIndex !== -1) {
+        const afternoonTemp = Math.round(hourly.temperature_2m[afternoonIndex]);
+        const afternoonCode = hourly.weather_code[afternoonIndex];
+        const afternoonTime = new Date(hourly.time[afternoonIndex]);
+        const afternoonRain = hourly.precipitation_probability[afternoonIndex] || 0;
+        const afternoonWind = Math.round(hourly.wind_speed_10m[afternoonIndex]);
+        
+        document.getElementById('tomorrow-afternoon-temp').textContent = afternoonTemp + '°';
+        document.getElementById('tomorrow-afternoon-icon').textContent = getWeatherIcon(afternoonCode, afternoonTime);
+        document.getElementById('tomorrow-afternoon-condition').textContent = getWeatherDescription(afternoonCode);
+        document.getElementById('tomorrow-afternoon-rain').textContent = afternoonRain + '%';
+        document.getElementById('tomorrow-afternoon-wind').textContent = afternoonWind + ' km/h';
+    }
+    
+    // Actualizar salida y puesta de sol (del día de mañana)
+    if (daily.sunrise && daily.sunrise[1]) {
+        document.getElementById('sunrise').textContent = formatSunTime(daily.sunrise[1]);
+    }
+    if (daily.sunset && daily.sunset[1]) {
+        document.getElementById('sunset').textContent = formatSunTime(daily.sunset[1]);
+    }
+    
+    // Actualizar índice UV máximo de mañana
+    if (daily.uv_index_max && daily.uv_index_max[1] !== undefined) {
+        const uvMax = Math.round(daily.uv_index_max[1] * 10) / 10; // Redondear a 1 decimal
+        document.getElementById('tomorrow-uv').textContent = uvMax;
+        
+        // Opcional: añadir color según nivel de UV
+        const uvElement = document.getElementById('tomorrow-uv');
+        if (uvMax < 3) {
+            uvElement.style.color = '#4CAF50'; // Verde - Bajo
+        } else if (uvMax < 6) {
+            uvElement.style.color = '#FFC107'; // Amarillo - Moderado
+        } else if (uvMax < 8) {
+            uvElement.style.color = '#FF9800'; // Naranja - Alto
+        } else if (uvMax < 11) {
+            uvElement.style.color = '#F44336'; // Rojo - Muy alto
+        } else {
+            uvElement.style.color = '#9C27B0'; // Violeta - Extremo
+        }
+     }         
+    
         
         // Actualizar previsión horaria
         function updateHourlyForecast(hourly) {
