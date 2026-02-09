@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tiempo Barcelona</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/weather-icons@1.3.2/css/weather-icons.min.css">
     <style>
         * {
             margin: 0;
@@ -561,55 +562,56 @@
         const LAT = 41.3851;
         const LON = 2.1734;
         
-        // Iconos del tiempo (día)
-        const weatherIcons = {
-            0: '☀️',   // Despejado
-            1: '🌤️',  // Principalmente despejado
-            2: '⛅',   // Parcialmente nublado
-            3: '☁️',   // Nublado
-            45: '🌫️', // Niebla
-            48: '🌫️', // Niebla con escarcha
-            51: '🌦️', // Llovizna ligera
-            53: '🌦️', // Llovizna moderada
-            55: '🌦️', // Llovizna densa
-            61: '🌧️', // Lluvia ligera
-            63: '🌧️', // Lluvia moderada
-            65: '🌧️', // Lluvia intensa
-            71: '🌨️', // Nevada ligera
-            73: '🌨️', // Nevada moderada
-            75: '🌨️', // Nevada intensa
-            80: '🌦️', // Chubascos ligeros
-            81: '🌧️', // Chubascos moderados
-            82: '⛈️', // Chubascos violentos
-            95: '⛈️', // Tormenta
-            96: '⛈️', // Tormenta con granizo
-            99: '⛈️'  // Tormenta con granizo fuerte
-        };
+        // Iconos del tiempo (día) - usando Weather Icons
+const weatherIcons = {
+    0: '<i class="wi wi-day-sunny"></i>',
+    1: '<i class="wi wi-day-sunny-overcast"></i>',
+    2: '<i class="wi wi-day-cloudy"></i>',
+    3: '<i class="wi wi-cloudy"></i>',
+    45: '<i class="wi wi-fog"></i>',
+    48: '<i class="wi wi-fog"></i>',
+    51: '<i class="wi wi-sprinkle"></i>',
+    53: '<i class="wi wi-sprinkle"></i>',
+    55: '<i class="wi wi-sprinkle"></i>',
+    61: '<i class="wi wi-rain"></i>',
+    63: '<i class="wi wi-rain"></i>',
+    65: '<i class="wi wi-rain-wind"></i>',
+    71: '<i class="wi wi-snow"></i>',
+    73: '<i class="wi wi-snow"></i>',
+    75: '<i class="wi wi-snow-wind"></i>',
+    80: '<i class="wi wi-showers"></i>',
+    81: '<i class="wi wi-showers"></i>',
+    82: '<i class="wi wi-storm-showers"></i>',
+    95: '<i class="wi wi-thunderstorm"></i>',
+    96: '<i class="wi wi-thunderstorm"></i>',
+    99: '<i class="wi wi-thunderstorm"></i>'
+};
+
+// Iconos del tiempo (noche)
+const weatherIconsNight = {
+    0: '<i class="wi wi-night-clear"></i>',
+    1: '<i class="wi wi-night-alt-partly-cloudy"></i>',
+    2: '<i class="wi wi-night-alt-cloudy"></i>',
+    3: '<i class="wi wi-cloudy"></i>',
+    45: '<i class="wi wi-night-fog"></i>',
+    48: '<i class="wi wi-night-fog"></i>',
+    51: '<i class="wi wi-night-alt-sprinkle"></i>',
+    53: '<i class="wi wi-night-alt-sprinkle"></i>',
+    55: '<i class="wi wi-night-alt-sprinkle"></i>',
+    61: '<i class="wi wi-night-alt-rain"></i>',
+    63: '<i class="wi wi-night-alt-rain"></i>',
+    65: '<i class="wi wi-night-alt-rain-wind"></i>',
+    71: '<i class="wi wi-night-alt-snow"></i>',
+    73: '<i class="wi wi-night-alt-snow"></i>',
+    75: '<i class="wi wi-night-alt-snow-wind"></i>',
+    80: '<i class="wi wi-night-alt-showers"></i>',
+    81: '<i class="wi wi-night-alt-showers"></i>',
+    82: '<i class="wi wi-night-alt-storm-showers"></i>',
+    95: '<i class="wi wi-night-alt-thunderstorm"></i>',
+    96: '<i class="wi wi-night-alt-thunderstorm"></i>',
+    99: '<i class="wi wi-night-alt-thunderstorm"></i>'
+};
         
-        // Iconos del tiempo (noche)
-        const weatherIconsNight = {
-            0: '🌙',   // Despejado
-            1: '🌙',   // Principalmente despejado
-            2: '☁️',   // Parcialmente nublado
-            3: '☁️',   // Nublado
-            45: '🌫️', // Niebla
-            48: '🌫️', // Niebla con escarcha
-            51: '🌧️', // Llovizna ligera
-            53: '🌧️', // Llovizna moderada
-            55: '🌧️', // Llovizna densa
-            61: '🌧️', // Lluvia ligera
-            63: '🌧️', // Lluvia moderada
-            65: '🌧️', // Lluvia intensa
-            71: '🌨️', // Nevada ligera
-            73: '🌨️', // Nevada moderada
-            75: '🌨️', // Nevada intensa
-            80: '🌧️', // Chubascos ligeros
-            81: '🌧️', // Chubascos moderados
-            82: '⛈️', // Chubascos violentos
-            95: '⛈️', // Tormenta
-            96: '⛈️', // Tormenta con granizo
-            99: '⛈️'  // Tormenta con granizo fuerte
-        };
         
         // Descripciones del tiempo
         const weatherDescriptions = {
@@ -728,7 +730,7 @@
         function updateCurrentWeather(current, weatherCode, hourly) {
             const now = new Date();
             document.getElementById('current-temp').textContent = Math.round(current.temperature_2m) + '°';
-            document.getElementById('current-icon').textContent = getWeatherIcon(weatherCode, now);
+            document.getElementById('current-icon').innerHTML = getWeatherIcon(weatherCode, now);
             document.getElementById('current-condition').textContent = getWeatherDescription(weatherCode);
             document.getElementById('pressure').textContent = Math.round(current.pressure_msl) + ' hPa';
             document.getElementById('humidity').textContent = current.relative_humidity_2m + '%';
