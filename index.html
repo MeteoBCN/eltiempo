@@ -94,6 +94,88 @@
             margin-top: 5px;
         }
         
+        /* JORNADA DE MAÑANA */
+        .tomorrow-section {
+            margin-bottom: 40px;
+            background: rgba(192, 234, 249, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .tomorrow-periods {
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .period-item {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+        }
+        
+        .period-title {
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #a0d0df;
+        }
+        
+        .period-icon {
+            font-size: 48px;
+            margin: 10px 0;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .period-temp {
+            font-size: 24px;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+        
+        .period-condition {
+            font-size: 13px;
+            margin-top: 5px;
+            color: #a0d0df;
+        }
+        
+        .sun-times {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(192, 234, 249, 0.2);
+        }
+        
+        .sun-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sun-icon {
+            font-size: 24px;
+        }
+        
+        .sun-info {
+            text-align: left;
+        }
+        
+        .sun-label {
+            font-size: 12px;
+            color: #a0d0df;
+        }
+        
+        .sun-time {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
         /* PRÓXIMAS HORAS */
         .section-title {
             font-size: 14px;
@@ -273,6 +355,19 @@
             #main-logo {
                 max-width: 220px;
             }
+            
+            .tomorrow-periods {
+                flex-direction: column;
+            }
+            
+            .sun-times {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .sun-item {
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -300,6 +395,45 @@
                 <div class="detail-item">
                     <div>Viento</div>
                     <div class="detail-value" id="wind">-- km/h</div>
+                </div>
+                <div class="detail-item">
+                    <div>Precip. hoy</div>
+                    <div class="detail-value" id="precipitation">-- mm</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- JORNADA DE MAÑANA -->
+        <div class="tomorrow-section">
+            <div class="section-title" style="color: #c0eaf9; font-size: 16px; text-align: center; margin-bottom: 20px;">MAÑANA</div>
+            <div class="tomorrow-periods">
+                <div class="period-item">
+                    <div class="period-title">Mañana</div>
+                    <div class="period-icon" id="tomorrow-morning-icon">☀️</div>
+                    <div class="period-temp" id="tomorrow-morning-temp">--°</div>
+                    <div class="period-condition" id="tomorrow-morning-condition">--</div>
+                </div>
+                <div class="period-item">
+                    <div class="period-title">Tarde</div>
+                    <div class="period-icon" id="tomorrow-afternoon-icon">☀️</div>
+                    <div class="period-temp" id="tomorrow-afternoon-temp">--°</div>
+                    <div class="period-condition" id="tomorrow-afternoon-condition">--</div>
+                </div>
+            </div>
+            <div class="sun-times">
+                <div class="sun-item">
+                    <div class="sun-icon">🌅</div>
+                    <div class="sun-info">
+                        <div class="sun-label">Amanecer</div>
+                        <div class="sun-time" id="sunrise">--:--</div>
+                    </div>
+                </div>
+                <div class="sun-item">
+                    <div class="sun-icon">🌇</div>
+                    <div class="sun-info">
+                        <div class="sun-label">Atardecer</div>
+                        <div class="sun-time" id="sunset">--:--</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -378,7 +512,7 @@
         const LAT = 41.3851;
         const LON = 2.1734;
         
-        // Iconos del tiempo
+        // Iconos del tiempo (día)
         const weatherIcons = {
             0: '☀️',   // Despejado
             1: '🌤️',  // Principalmente despejado
@@ -396,6 +530,31 @@
             73: '🌨️', // Nevada moderada
             75: '🌨️', // Nevada intensa
             80: '🌦️', // Chubascos ligeros
+            81: '🌧️', // Chubascos moderados
+            82: '⛈️', // Chubascos violentos
+            95: '⛈️', // Tormenta
+            96: '⛈️', // Tormenta con granizo
+            99: '⛈️'  // Tormenta con granizo fuerte
+        };
+        
+        // Iconos del tiempo (noche)
+        const weatherIconsNight = {
+            0: '🌙',   // Despejado
+            1: '🌙',   // Principalmente despejado
+            2: '☁️',   // Parcialmente nublado
+            3: '☁️',   // Nublado
+            45: '🌫️', // Niebla
+            48: '🌫️', // Niebla con escarcha
+            51: '🌧️', // Llovizna ligera
+            53: '🌧️', // Llovizna moderada
+            55: '🌧️', // Llovizna densa
+            61: '🌧️', // Lluvia ligera
+            63: '🌧️', // Lluvia moderada
+            65: '🌧️', // Lluvia intensa
+            71: '🌨️', // Nevada ligera
+            73: '🌨️', // Nevada moderada
+            75: '🌨️', // Nevada intensa
+            80: '🌧️', // Chubascos ligeros
             81: '🌧️', // Chubascos moderados
             82: '⛈️', // Chubascos violentos
             95: '⛈️', // Tormenta
@@ -428,8 +587,30 @@
             99: 'Tormenta fuerte'
         };
         
+        // Variable global para almacenar los datos de salida/puesta de sol
+        let sunriseTime = null;
+        let sunsetTime = null;
+        
+        // Función para determinar si es de noche
+        function isNightTime(dateTime) {
+            if (!sunriseTime || !sunsetTime) return false;
+            
+            const time = new Date(dateTime);
+            const sunrise = new Date(sunriseTime);
+            const sunset = new Date(sunsetTime);
+            
+            // Ajustar las fechas al mismo día para comparar solo las horas
+            sunrise.setFullYear(time.getFullYear(), time.getMonth(), time.getDate());
+            sunset.setFullYear(time.getFullYear(), time.getMonth(), time.getDate());
+            
+            return time < sunrise || time > sunset;
+        }
+        
         // Función para obtener el icono
-        function getWeatherIcon(code) {
+        function getWeatherIcon(code, dateTime = null) {
+            if (dateTime && isNightTime(dateTime)) {
+                return weatherIconsNight[code] || '🌙';
+            }
             return weatherIcons[code] || '☀️';
         }
         
@@ -451,16 +632,33 @@
             return date.getHours().toString().padStart(2, '0') + ':00';
         }
         
+        // Función para formatear hora del sol
+        function formatSunTime(dateTimeString) {
+            const date = new Date(dateTimeString);
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+        
         // Función principal para cargar datos
         async function loadWeatherData() {
             try {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=temperature_2m,precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Europe/Madrid&forecast_days=4`;
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation&hourly=temperature_2m,precipitation_probability,weather_code,precipitation&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=Europe/Madrid&forecast_days=4`;
                 
                 const response = await fetch(url);
                 const data = await response.json();
                 
+                // Guardar los datos de salida/puesta de sol de hoy
+                if (data.daily && data.daily.sunrise && data.daily.sunset) {
+                    sunriseTime = data.daily.sunrise[0];
+                    sunsetTime = data.daily.sunset[0];
+                }
+                
                 // Actualizar tiempo actual
-                updateCurrentWeather(data.current, data.current.weather_code);
+                updateCurrentWeather(data.current, data.current.weather_code, data.hourly);
+                
+                // Actualizar jornada de mañana
+                updateTomorrowForecast(data.hourly, data.daily);
                 
                 // Actualizar previsión horaria
                 updateHourlyForecast(data.hourly);
@@ -478,13 +676,79 @@
         }
         
         // Actualizar tiempo actual
-        function updateCurrentWeather(current, weatherCode) {
+        function updateCurrentWeather(current, weatherCode, hourly) {
+            const now = new Date();
             document.getElementById('current-temp').textContent = Math.round(current.temperature_2m) + '°';
-            document.getElementById('current-icon').textContent = getWeatherIcon(weatherCode);
+            document.getElementById('current-icon').textContent = getWeatherIcon(weatherCode, now);
             document.getElementById('current-condition').textContent = getWeatherDescription(weatherCode);
             document.getElementById('feels-like').textContent = Math.round(current.apparent_temperature) + '°';
             document.getElementById('humidity').textContent = current.relative_humidity_2m + '%';
             document.getElementById('wind').textContent = Math.round(current.wind_speed_10m) + ' km/h';
+            
+            // Calcular precipitación del día
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            let totalPrecipitation = 0;
+            
+            for (let i = 0; i < hourly.time.length; i++) {
+                const hourTime = new Date(hourly.time[i]);
+                if (hourTime >= todayStart && hourTime <= now) {
+                    totalPrecipitation += hourly.precipitation[i] || 0;
+                }
+            }
+            
+            document.getElementById('precipitation').textContent = totalPrecipitation.toFixed(1) + ' mm';
+        }
+        
+        // Actualizar jornada de mañana
+        function updateTomorrowForecast(hourly, daily) {
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+            
+            // Buscar índices para mañana (9:00) y tarde (15:00)
+            let morningIndex = -1;
+            let afternoonIndex = -1;
+            
+            for (let i = 0; i < hourly.time.length; i++) {
+                const hourTime = new Date(hourly.time[i]);
+                if (hourTime.getDate() === tomorrow.getDate()) {
+                    if (hourTime.getHours() === 9 && morningIndex === -1) {
+                        morningIndex = i;
+                    }
+                    if (hourTime.getHours() === 15 && afternoonIndex === -1) {
+                        afternoonIndex = i;
+                    }
+                }
+            }
+            
+            // Actualizar mañana
+            if (morningIndex !== -1) {
+                const morningTemp = Math.round(hourly.temperature_2m[morningIndex]);
+                const morningCode = hourly.weather_code[morningIndex];
+                const morningTime = new Date(hourly.time[morningIndex]);
+                document.getElementById('tomorrow-morning-temp').textContent = morningTemp + '°';
+                document.getElementById('tomorrow-morning-icon').textContent = getWeatherIcon(morningCode, morningTime);
+                document.getElementById('tomorrow-morning-condition').textContent = getWeatherDescription(morningCode);
+            }
+            
+            // Actualizar tarde
+            if (afternoonIndex !== -1) {
+                const afternoonTemp = Math.round(hourly.temperature_2m[afternoonIndex]);
+                const afternoonCode = hourly.weather_code[afternoonIndex];
+                const afternoonTime = new Date(hourly.time[afternoonIndex]);
+                document.getElementById('tomorrow-afternoon-temp').textContent = afternoonTemp + '°';
+                document.getElementById('tomorrow-afternoon-icon').textContent = getWeatherIcon(afternoonCode, afternoonTime);
+                document.getElementById('tomorrow-afternoon-condition').textContent = getWeatherDescription(afternoonCode);
+            }
+            
+            // Actualizar salida y puesta de sol (del día de mañana)
+            if (daily.sunrise && daily.sunrise[1]) {
+                document.getElementById('sunrise').textContent = formatSunTime(daily.sunrise[1]);
+            }
+            if (daily.sunset && daily.sunset[1]) {
+                document.getElementById('sunset').textContent = formatSunTime(daily.sunset[1]);
+            }
         }
         
         // Actualizar previsión horaria
@@ -508,9 +772,10 @@
                 const hourItem = document.createElement('div');
                 hourItem.className = 'hour-item';
                 
+                const hourTime = new Date(hourly.time[hourIndex]);
                 const temp = Math.round(hourly.temperature_2m[hourIndex]);
                 const rain = hourly.precipitation_probability[hourIndex] || 0;
-                const icon = getWeatherIcon(hourly.weather_code[hourIndex]);
+                const icon = getWeatherIcon(hourly.weather_code[hourIndex], hourTime);
                 
                 hourItem.innerHTML = `
                     <div class="hour-time">${formatHour(hourly.time[hourIndex])}</div>
@@ -528,8 +793,8 @@
             const container = document.getElementById('daily-container');
             container.innerHTML = '';
             
-            // Mostrar los próximos 3 días (saltando hoy)
-            for (let i = 1; i <= 3; i++) {
+            // Mostrar los próximos 3 días (saltando hoy y mañana)
+            for (let i = 2; i <= 3; i++) {
                 const dayItem = document.createElement('div');
                 dayItem.className = 'day-item';
                 
