@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tiempo Barcelona</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/meteocons/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/weather-icons@1.3.2/css/weather-icons.min.css">
     <style>
         * {
             margin: 0;
@@ -369,6 +369,31 @@
             color: #c66;
         }
 
+        /* Colores para iconos del tiempo */
+        .wi-day-sunny, .wi-night-clear { color: #FDB813; }
+        .wi-day-sunny-overcast, .wi-mostly-clear-day, .wi-night-alt-partly-cloudy { color: #F5A623; }
+        .wi-day-cloudy, .wi-night-alt-cloudy { color: #95A5A6; }
+        .wi-cloudy { color: #7F8C8D; }
+        .wi-fog, .wi-night-fog { color: #BDC3C7; }
+        .wi-sprinkle, .wi-night-alt-sprinkle { color: #5DADE2; }
+        .wi-rain, .wi-night-alt-rain { color: #3498DB; }
+        .wi-rain-wind, .wi-night-alt-rain-wind { color: #2E86C1; }
+        .wi-snow, .wi-night-alt-snow { color: #AED6F1; }
+        .wi-snow-wind, .wi-night-alt-snow-wind { color: #85C1E9; }
+        .wi-showers, .wi-night-alt-showers { color: #5DADE2; }
+        .wi-storm-showers, .wi-night-alt-storm-showers { color: #2874A6; }
+        .wi-thunderstorm, .wi-night-alt-thunderstorm { color: #8E44AD; }
+        
+        /* Animación adicional para tormentas */
+        .wi-thunderstorm, .wi-night-alt-thunderstorm {
+            animation: float 3s ease-in-out infinite, pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
         @media (max-width: 480px) {
             .temperature {
                 font-size: 64px;
@@ -689,54 +714,54 @@
         const LAT = 41.3851;
         const LON = 2.1734;
         
-        // Iconos del tiempo (día) - usando Meteocons
+        // Iconos del tiempo (día) - usando Weather Icons con colores
 const weatherIcons = {
-    0: '<i class="mdi mdi-clear-day"></i>',
-    1: '<i class="mdi mdi-mostly-clear-day"></i>',
-    2: '<i class="mdi mdi-partly-cloudy-day"></i>',
-    3: '<i class="mdi mdi-cloudy"></i>',
-    45: '<i class="mdi mdi-fog"></i>',
-    48: '<i class="mdi mdi-fog"></i>',
-    51: '<i class="mdi mdi-drizzle"></i>',
-    53: '<i class="mdi mdi-drizzle"></i>',
-    55: '<i class="mdi mdi-drizzle"></i>',
-    61: '<i class="mdi mdi-rain"></i>',
-    63: '<i class="mdi mdi-rain"></i>',
-    65: '<i class="mdi mdi-extreme-rain"></i>',
-    71: '<i class="mdi mdi-snow"></i>',
-    73: '<i class="mdi mdi-snow"></i>',
-    75: '<i class="mdi mdi-extreme-snow"></i>',
-    80: '<i class="mdi mdi-showers-day"></i>',
-    81: '<i class="mdi mdi-showers-day"></i>',
-    82: '<i class="mdi mdi-extreme-rain"></i>',
-    95: '<i class="mdi mdi-thunderstorms-day"></i>',
-    96: '<i class="mdi mdi-thunderstorms-day-rain"></i>',
-    99: '<i class="mdi mdi-thunderstorms-day-extreme"></i>'
+    0: '<i class="wi wi-day-sunny"></i>',
+    1: '<i class="wi wi-day-sunny-overcast"></i>',
+    2: '<i class="wi wi-day-cloudy"></i>',
+    3: '<i class="wi wi-cloudy"></i>',
+    45: '<i class="wi wi-fog"></i>',
+    48: '<i class="wi wi-fog"></i>',
+    51: '<i class="wi wi-sprinkle"></i>',
+    53: '<i class="wi wi-sprinkle"></i>',
+    55: '<i class="wi wi-sprinkle"></i>',
+    61: '<i class="wi wi-rain"></i>',
+    63: '<i class="wi wi-rain"></i>',
+    65: '<i class="wi wi-rain-wind"></i>',
+    71: '<i class="wi wi-snow"></i>',
+    73: '<i class="wi wi-snow"></i>',
+    75: '<i class="wi wi-snow-wind"></i>',
+    80: '<i class="wi wi-showers"></i>',
+    81: '<i class="wi wi-showers"></i>',
+    82: '<i class="wi wi-storm-showers"></i>',
+    95: '<i class="wi wi-thunderstorm"></i>',
+    96: '<i class="wi wi-thunderstorm"></i>',
+    99: '<i class="wi wi-thunderstorm"></i>'
 };
 
 // Iconos del tiempo (noche)
 const weatherIconsNight = {
-    0: '<i class="mdi mdi-clear-night"></i>',
-    1: '<i class="mdi mdi-mostly-clear-night"></i>',
-    2: '<i class="mdi mdi-partly-cloudy-night"></i>',
-    3: '<i class="mdi mdi-cloudy"></i>',
-    45: '<i class="mdi mdi-fog-night"></i>',
-    48: '<i class="mdi mdi-fog-night"></i>',
-    51: '<i class="mdi mdi-drizzle"></i>',
-    53: '<i class="mdi mdi-drizzle"></i>',
-    55: '<i class="mdi mdi-drizzle"></i>',
-    61: '<i class="mdi mdi-rain"></i>',
-    63: '<i class="mdi mdi-rain"></i>',
-    65: '<i class="mdi mdi-extreme-rain"></i>',
-    71: '<i class="mdi mdi-snow"></i>',
-    73: '<i class="mdi mdi-snow"></i>',
-    75: '<i class="mdi mdi-extreme-snow"></i>',
-    80: '<i class="mdi mdi-showers-night"></i>',
-    81: '<i class="mdi mdi-showers-night"></i>',
-    82: '<i class="mdi mdi-extreme-rain"></i>',
-    95: '<i class="mdi mdi-thunderstorms-night"></i>',
-    96: '<i class="mdi mdi-thunderstorms-night-rain"></i>',
-    99: '<i class="mdi mdi-thunderstorms-night-extreme"></i>'
+    0: '<i class="wi wi-night-clear"></i>',
+    1: '<i class="wi wi-night-alt-partly-cloudy"></i>',
+    2: '<i class="wi wi-night-alt-cloudy"></i>',
+    3: '<i class="wi wi-cloudy"></i>',
+    45: '<i class="wi wi-night-fog"></i>',
+    48: '<i class="wi wi-night-fog"></i>',
+    51: '<i class="wi wi-night-alt-sprinkle"></i>',
+    53: '<i class="wi wi-night-alt-sprinkle"></i>',
+    55: '<i class="wi wi-night-alt-sprinkle"></i>',
+    61: '<i class="wi wi-night-alt-rain"></i>',
+    63: '<i class="wi wi-night-alt-rain"></i>',
+    65: '<i class="wi wi-night-alt-rain-wind"></i>',
+    71: '<i class="wi wi-night-alt-snow"></i>',
+    73: '<i class="wi wi-night-alt-snow"></i>',
+    75: '<i class="wi wi-night-alt-snow-wind"></i>',
+    80: '<i class="wi wi-night-alt-showers"></i>',
+    81: '<i class="wi wi-night-alt-showers"></i>',
+    82: '<i class="wi wi-night-alt-storm-showers"></i>',
+    95: '<i class="wi wi-night-alt-thunderstorm"></i>',
+    96: '<i class="wi wi-night-alt-thunderstorm"></i>',
+    99: '<i class="wi wi-night-alt-thunderstorm"></i>'
 };
         
         
