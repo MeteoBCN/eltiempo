@@ -753,6 +753,28 @@
             </table>
         </div>
             
+        <!-- TABLA DE PREVISIÓN 4 DÍAS -->
+        <div class="weather-table-container" style="margin-top: 60px;">
+            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;">PREVISIÓN PRÓXIMOS 4 DÍAS</div>
+            <table id="days-table" style="width: 100%; border-collapse: collapse; background-color: rgba(255, 255, 255, 0.6); border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+                <thead>
+                    <tr style="background-color: rgba(39, 211, 245, 0.15);">
+                        <th style="padding: 12px 8px; text-align: center; border-bottom: 2px solid #27D3F5; color: #2C3E50; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Día</th>
+                        <th style="padding: 12px 8px; text-align: center; border-bottom: 2px solid #27D3F5; color: #2C3E50; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Mañana</th>
+                        <th style="padding: 12px 8px; text-align: center; border-bottom: 2px solid #27D3F5; color: #2C3E50; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Tarde</th>
+                        <th style="padding: 12px 8px; text-align: center; border-bottom: 2px solid #27D3F5; color: #2C3E50; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Temp. Max/Min</th>
+                        <th style="padding: 12px 8px; text-align: center; border-bottom: 2px solid #27D3F5; color: #2C3E50; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Lluvia</th>
+                        <th style="padding: 12px 8px; text-align: center; border-bottom: 2px solid #27D3F5; color: #2C3E50; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Viento</th>
+                    </tr>
+                </thead>
+                <tbody id="days-table-body">
+                    <tr>
+                        <td colspan="6" style="padding: 20px; text-align: center; color: #999;">Cargando datos...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
         <!-- PREVISIÓN 3 DÍAS -->
         <div class="daily-forecast">
             <div class="section-title">Próximos días</div>
@@ -960,6 +982,9 @@ const weatherIconsNight = {
                 // Actualizar TABLA de previsión horaria
                 updateWeatherTable(data.hourly);
                 
+                // Actualizar TABLA de previsión de 4 días
+                updateDaysTable(data.hourly, data.daily);
+                
                 // Actualizar previsión de 3 días
                 updateDailyForecast(data.daily);
                 
@@ -1146,6 +1171,92 @@ function updateMultipleDaysForecast(hourly, daily) {
                     <td class="table-temp">${temp}°C</td>
                     <td class="table-rain">${rain}%</td>
                     <td class="table-wind">${wind} km/h</td>
+                `;
+                
+                tableBody.appendChild(row);
+            }
+        }
+        
+        // NUEVA FUNCIÓN: Actualizar tabla de previsión de 4 días
+        function updateDaysTable(hourly, daily) {
+            const tableBody = document.getElementById('days-table-body');
+            tableBody.innerHTML = '';
+            
+            const now = new Date();
+            
+            // Mostrar los próximos 4 días
+            for (let dayOffset = 1; dayOffset <= 4; dayOffset++) {
+                const targetDay = new Date(now);
+                targetDay.setDate(targetDay.getDate() + dayOffset);
+                targetDay.setHours(0, 0, 0, 0);
+                
+                // Buscar índices para mañana (9:00) y tarde (15:00)
+                let morningIndex = -1;
+                let afternoonIndex = -1;
+                
+                for (let i = 0; i < hourly.time.length; i++) {
+                    const hourTime = new Date(hourly.time[i]);
+                    if (hourTime.getDate() === targetDay.getDate() && 
+                        hourTime.getMonth() === targetDay.getMonth()) {
+                        if (hourTime.getHours() === 9 && morningIndex === -1) {
+                            morningIndex = i;
+                        }
+                        if (hourTime.getHours() === 15 && afternoonIndex === -1) {
+                            afternoonIndex = i;
+                        }
+                    }
+                }
+                
+                const dayName = getDayName(targetDay.toISOString());
+                const maxTemp = Math.round(daily.temperature_2m_max[dayOffset]);
+                const minTemp = Math.round(daily.temperature_2m_min[dayOffset]);
+                
+                // Iconos y viento
+                const morningIcon = morningIndex !== -1 ? getWeatherIcon(hourly.weather_code[morningIndex], new Date(hourly.time[morningIndex])) : '—';
+                const afternoonIcon = afternoonIndex !== -1 ? getWeatherIcon(hourly.weather_code[afternoonIndex], new Date(hourly.time[afternoonIndex])) : '—';
+                
+                // Promedio de viento del día (usando datos horarios)
+                let windSum = 0;
+                let windCount = 0;
+                for (let i = 0; i < hourly.time.length; i++) {
+                    const hourTime = new Date(hourly.time[i]);
+                    if (hourTime.getDate() === targetDay.getDate() && 
+                        hourTime.getMonth() === targetDay.getMonth()) {
+                        windSum += hourly.wind_speed_10m[i];
+                        windCount++;
+                    }
+                }
+                const avgWind = windCount > 0 ? Math.round(windSum / windCount) : 0;
+                
+                // Máxima probabilidad de precipitación del día
+                let maxRain = 0;
+                for (let i = 0; i < hourly.time.length; i++) {
+                    const hourTime = new Date(hourly.time[i]);
+                    if (hourTime.getDate() === targetDay.getDate() && 
+                        hourTime.getMonth() === targetDay.getMonth()) {
+                        const rain = hourly.precipitation_probability[i] || 0;
+                        if (rain > maxRain) {
+                            maxRain = rain;
+                        }
+                    }
+                }
+                
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid rgba(192, 234, 249, 0.3)';
+                row.style.transition = 'background-color 0.2s ease';
+                row.onmouseover = function() { this.style.backgroundColor = 'rgba(39, 211, 245, 0.08)'; };
+                row.onmouseout = function() { this.style.backgroundColor = 'transparent'; };
+                
+                row.innerHTML = `
+                    <td style="padding: 14px 8px; text-align: center; color: #27D3F5; font-weight: 600; font-size: 14px;">${dayName}</td>
+                    <td style="padding: 14px 8px; text-align: center; font-size: 28px;">${morningIcon}</td>
+                    <td style="padding: 14px 8px; text-align: center; font-size: 28px;">${afternoonIcon}</td>
+                    <td style="padding: 14px 8px; text-align: center; font-size: 14px;">
+                        <span style="color: #F75260; font-weight: 500;">${maxTemp}°</span> / 
+                        <span style="color: #6EB6FF;">${minTemp}°</span>
+                    </td>
+                    <td style="padding: 14px 8px; text-align: center; color: #3498DB; font-weight: 500; font-size: 14px;">${maxRain}%</td>
+                    <td style="padding: 14px 8px; text-align: center; color: #5A6C7D; font-size: 14px;">${avgWind} km/h</td>
                 `;
                 
                 tableBody.appendChild(row);
