@@ -92,7 +92,7 @@
         /* TIEMPO ACTUAL */
         .current-weather {
             text-align: center;
-            padding: 48px 24px;
+            padding: 48px 24px 32px 24px;
             margin-bottom: 32px;
             background: var(--color-bg-card);
             border-radius: var(--border-radius);
@@ -116,6 +116,14 @@
         .current-weather:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-lg);
+        }
+        
+        /* Separador entre tiempo actual y narrativa */
+        .weather-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--color-text-tertiary) 50%, transparent 100%);
+            opacity: 0.3;
+            margin: 32px 0 24px 0;
         }
         
         .location {
@@ -449,28 +457,143 @@
         }
 
         /* Colores para iconos del tiempo */
-        .wi-day-sunny, .wi-night-clear { color: #FBBF24; }
-        .wi-day-sunny-overcast, .wi-mostly-clear-day, .wi-night-alt-partly-cloudy { color: #F59E0B; }
-        .wi-day-cloudy, .wi-night-alt-cloudy { color: #94A3B8; }
-        .wi-cloudy { color: #64748B; }
-        .wi-fog, .wi-night-fog { color: #CBD5E1; }
-        .wi-sprinkle, .wi-night-alt-sprinkle { color: #60A5FA; }
-        .wi-rain, .wi-night-alt-rain { color: #3B82F6; }
-        .wi-rain-wind, .wi-night-alt-rain-wind { color: #2563EB; }
-        .wi-snow, .wi-night-alt-snow { color: #BAE6FD; }
-        .wi-snow-wind, .wi-night-alt-snow-wind { color: #7DD3FC; }
-        .wi-showers, .wi-night-alt-showers { color: #60A5FA; }
-        .wi-storm-showers, .wi-night-alt-storm-showers { color: #1E40AF; }
-        .wi-thunderstorm, .wi-night-alt-thunderstorm { color: #9333EA; }
-        
-        /* Animación adicional para tormentas */
-        .wi-thunderstorm, .wi-night-alt-thunderstorm {
-            animation: float 3s ease-in-out infinite, pulse 2s ease-in-out infinite;
+        .wi-day-sunny, .wi-night-clear { 
+            color: #FBBF24;
+            animation: rotate 20s linear infinite;
         }
         
-        @keyframes pulse {
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .wi-day-sunny-overcast, .wi-mostly-clear-day, .wi-night-alt-partly-cloudy { 
+            color: #F59E0B;
+            animation: sway 4s ease-in-out infinite;
+        }
+        
+        @keyframes sway {
+            0%, 100% { transform: translateX(0px); }
+            50% { transform: translateX(-3px); }
+        }
+        
+        .wi-day-cloudy, .wi-night-alt-cloudy { 
+            color: #94A3B8;
+            animation: drift 6s ease-in-out infinite;
+        }
+        
+        @keyframes drift {
+            0%, 100% { transform: translateX(0px); }
+            50% { transform: translateX(-5px); }
+        }
+        
+        .wi-cloudy { 
+            color: #64748B;
+            animation: drift 8s ease-in-out infinite;
+        }
+        
+        .wi-fog, .wi-night-fog { 
+            color: #CBD5E1;
+            animation: fadeInOut 3s ease-in-out infinite;
+        }
+        
+        @keyframes fadeInOut {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+            50% { opacity: 0.6; }
+        }
+        
+        .wi-sprinkle, .wi-night-alt-sprinkle { 
+            color: #60A5FA;
+            animation: drizzle 2s ease-in-out infinite;
+        }
+        
+        @keyframes drizzle {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(3px); }
+        }
+        
+        .wi-rain, .wi-night-alt-rain { 
+            color: #3B82F6;
+            animation: rain 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes rain {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(4px); }
+        }
+        
+        .wi-rain-wind, .wi-night-alt-rain-wind { 
+            color: #2563EB;
+            animation: rainWind 1.2s ease-in-out infinite;
+        }
+        
+        @keyframes rainWind {
+            0%, 100% { transform: translate(0px, 0px); }
+            50% { transform: translate(-3px, 4px); }
+        }
+        
+        .wi-snow, .wi-night-alt-snow { 
+            color: #BAE6FD;
+            animation: snowfall 3s ease-in-out infinite;
+        }
+        
+        @keyframes snowfall {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(5px) rotate(5deg); }
+        }
+        
+        .wi-snow-wind, .wi-night-alt-snow-wind { 
+            color: #7DD3FC;
+            animation: snowWind 2s ease-in-out infinite;
+        }
+        
+        @keyframes snowWind {
+            0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+            50% { transform: translate(-4px, 5px) rotate(-10deg); }
+        }
+        
+        .wi-showers, .wi-night-alt-showers { 
+            color: #60A5FA;
+            animation: showers 1s ease-in-out infinite;
+        }
+        
+        @keyframes showers {
+            0%, 100% { transform: scale(1) translateY(0px); }
+            50% { transform: scale(1.05) translateY(2px); }
+        }
+        
+        .wi-storm-showers, .wi-night-alt-storm-showers { 
+            color: #1E40AF;
+            animation: stormShowers 0.8s ease-in-out infinite;
+        }
+        
+        @keyframes stormShowers {
+            0%, 100% { transform: scale(1) translateY(0px); }
+            50% { transform: scale(1.08) translateY(3px); }
+        }
+        
+        .wi-thunderstorm, .wi-night-alt-thunderstorm { 
+            color: #9333EA;
+            animation: thunder 1.5s ease-in-out infinite, flash 3s ease-in-out infinite;
+        }
+        
+        @keyframes thunder {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(2px); }
+        }
+        
+        @keyframes flash {
+            0%, 90%, 100% { opacity: 1; }
+            95% { opacity: 0.6; }
+        }
+        
+        .wi-raindrop {
+            animation: drop 2s ease-in-out infinite;
+        }
+        
+        @keyframes drop {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(2px) scale(1.05); }
         }
         
         @keyframes spin {
@@ -660,24 +783,10 @@
             color: #3B82F6;
         }
         
-        /* Sección de previsión narrativa */
-        .narrative-section {
-            margin: 44px 0;
-            animation: fadeIn 0.6s ease-out 0.8s both;
-        }
-        
+        /* Sección de previsión narrativa DENTRO de current-weather */
         .narrative-container {
-            padding: 24px;
-            background: var(--color-bg-card);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-md);
-            backdrop-filter: blur(10px);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .narrative-container:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
+            padding: 0;
+            margin-top: 24px;
         }
         
         .narrative-title {
@@ -823,10 +932,11 @@
                     <div class="detail-value" id="wind">-- km/h</div>
                 </div>
             </div>
-        </div>
-        
-        <!-- PREVISIÓN NARRATIVA -->
-        <div class="narrative-section">
+            
+            <!-- Separador -->
+            <div class="weather-divider"></div>
+            
+            <!-- PREVISIÓN NARRATIVA DENTRO DE LA MISMA TARJETA -->
             <div class="narrative-container">
                 <div class="narrative-title">Tendencia Próximas Horas</div>
                 <div id="narrative-forecast">Cargando previsión...</div>
