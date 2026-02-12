@@ -5,23 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tiempo Barcelona</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/weather-icons@1.3.2/css/weather-icons.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --color-primary: #3B82F6;
-            --color-bg-card: rgba(255, 255, 255, 0.85);
-            --color-text-primary: #1E293B;
-            --color-text-secondary: #64748B;
-            --color-text-tertiary: #94A3B8;
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --border-radius: 16px;
-            --border-radius-sm: 12px;
-        }
-        
         * {
             margin: 0;
             padding: 0;
@@ -29,51 +13,24 @@
         }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: var(--color-text-primary);
-            background: linear-gradient(to bottom, #F8FAFC 0%, #F1F5F9 50%, #E2E8F0 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #2C3E50;
+            background: linear-gradient(to bottom, #FFFFFF 0%, #F5F7FA 50%, #E8EEF2 100%);
             background-attachment: fixed;
             padding: 0;
             max-width: 600px;
             margin: 0 auto;
             min-height: 100vh;
-            font-weight: 400;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
         
         .container {
-            padding: 24px;
-            animation: fadeIn 0.6s ease-out;
-        }
-        
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            padding: 20px;
         }
     
         /* LOGO */
         .logo-container {
             text-align: center;
-            padding: 32px 20px 16px;
-            animation: slideDown 0.8s ease-out;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            padding: 30px 20px 10px;
         }
         
         #main-logo {
@@ -82,63 +39,25 @@
             height: auto;
             display: block;
             margin: 0 auto;
-            transition: transform 0.3s ease;
-        }
-        
-        #main-logo:hover {
-            transform: scale(1.05);
         }
         
         /* TIEMPO ACTUAL */
         .current-weather {
             text-align: center;
-            padding: 48px 24px 32px 24px;
-            margin-bottom: 32px;
-            background: var(--color-bg-card);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-md);
-            backdrop-filter: blur(10px);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            animation: scaleIn 0.6s ease-out 0.2s both;
-        }
-        
-        @keyframes scaleIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        
-        .current-weather:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        /* Separador entre tiempo actual y narrativa */
-        .weather-divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent 0%, var(--color-text-tertiary) 50%, transparent 100%);
-            opacity: 0.3;
-            margin: 32px 0 24px 0;
+            padding: 40px 20px;
+            margin-bottom: 30px;
         }
         
         .location {
-            font-size: 18px;
-            margin-bottom: 12px;
-            font-weight: 500;
-            color: var(--color-text-secondary);
-            letter-spacing: 0.5px;
+            font-size: 20px;
+            margin-bottom: 10px;
+            font-weight: 300;
         }
         
         .icon-large {
-            font-size: 72px;
-            margin: 24px 0;
+            font-size: 40px;
+            margin: 20px 0;
             animation: float 3s ease-in-out infinite;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
         }
         
         @keyframes float {
@@ -147,82 +66,149 @@
         }
         
         .temperature {
-            font-size: 72px;
-            font-weight: 300;
-            margin-bottom: 12px;
-            color: var(--color-text-primary);
-            letter-spacing: -2px;
-            line-height: 1;
+            font-size: 50px;
+            font-weight: 200;
+            margin-bottom: 10px;
+            color: #2C3E50;
         }
         
         .condition {
-            font-size: 22px;
-            margin-bottom: 28px;
-            font-weight: 400;
-            color: var(--color-text-secondary);
-            letter-spacing: 0.3px;
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-weight: 300;
+            color: #5A6C7D;
         }
         
         .details {
             display: flex;
             justify-content: space-around;
             font-size: 14px;
-            margin-top: 28px;
+            margin-top: 20px;
             flex-wrap: wrap;
-            gap: 24px;
+            gap: 20px;
         }
         
         .detail-item {
             text-align: center;
-            min-width: 90px;
-            transition: transform 0.2s ease;
-        }
-        
-        .detail-item:hover {
-            transform: translateY(-2px);
-        }
-        
-        .detail-item > div:first-child {
-            color: var(--color-text-tertiary);
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            font-weight: 600;
-            margin-bottom: 6px;
+            min-width: 80px;
         }
         
         .detail-value {
-            font-size: 20px;
-            font-weight: 600;
-            margin-top: 6px;
-            color: var(--color-text-primary);
+            font-size: 18px;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+
+        /* ESTILOS PARA TABLA METEOCLIMATIC */
+        .meteoclimatic-stations {
+            margin: 40px 0;
         }
         
-        /* ESTILOS PARA AVISOS METEOROLÓGICOS - BANNER */
+        .meteoclimatic-table-container {
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        #meteoclimatic-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        #meteoclimatic-table thead tr {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        #meteoclimatic-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: white;
+        }
+        
+        #meteoclimatic-table tbody tr {
+            border-bottom: 1px solid rgba(192, 234, 249, 0.3);
+            transition: background-color 0.2s ease;
+        }
+        
+        #meteoclimatic-table tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.08);
+        }
+        
+        #meteoclimatic-table tbody tr:last-child {
+            border-bottom: none;
+        }
+        
+        #meteoclimatic-table td {
+            padding: 15px;
+            text-align: left;
+            color: #2C3E50;
+            font-size: 12px;
+        }
+        
+        #meteoclimatic-table .barrio {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 13px;
+        }
+        
+        #meteoclimatic-table .temp {
+            font-weight: bold;
+            color: #ff6b6b;
+            font-size: 14px;
+        }
+        
+        #meteoclimatic-table .humidity {
+            color: #4ecdc4;
+            font-weight: 500;
+        }
+        
+        #meteoclimatic-table .pressure {
+            color: #95a5a6;
+        }
+        
+        #meteoclimatic-table .wind {
+            color: #74b9ff;
+        }
+        
+        #meteoclimatic-table .precipitation {
+            color: #00b894;
+            font-weight: 500;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            margin-bottom: 15px;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #5A6C7D;
+            text-align: center;
+        }
+        
+        /* ESTILOS PARA AVISOS METEOROLÓGICOS - BANNER - 100% TRANSPARENTE */
         .weather-alerts-banner {
-            margin: 24px 0;
+            margin: 20px 0;
             padding: 0;
-            animation: fadeIn 0.6s ease-out 0.4s both;
         }
         
         .alert-banner-item {
-            padding: 16px 18px;
+            padding: 12px 16px;
             border-left: 4px solid;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 14px;
-            transition: all 0.3s ease;
-            margin-bottom: 10px;
-            background: var(--color-bg-card);
-            border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
-            box-shadow: var(--shadow-sm);
-            backdrop-filter: blur(10px);
+            gap: 12px;
+            transition: transform 0.2s ease;
+            margin-bottom: 8px;
         }
         
         .alert-banner-item:hover {
-            transform: translateX(4px);
-            box-shadow: var(--shadow-md);
+            transform: translateX(2px);
         }
         
         .alert-banner-item:last-child {
@@ -231,32 +217,31 @@
         
         /* Colores de alertas según nivel */
         .alert-banner-green {
-            border-left-color: #10B981;
+            border-left-color: #4CAF50;
         }
         
         .alert-banner-yellow {
-            border-left-color: #F59E0B;
+            border-left-color: #FFC107;
         }
         
         .alert-banner-orange {
-            border-left-color: #F97316;
+            border-left-color: #FF9800;
         }
         
         .alert-banner-red {
-            border-left-color: #EF4444;
+            border-left-color: #F44336;
         }
         
         .alert-banner-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             flex: 1;
         }
         
         .alert-banner-icon {
-            font-size: 24px;
+            font-size: 22px;
             flex-shrink: 0;
-            animation: pulse 2s ease-in-out infinite;
         }
         
         .alert-banner-text {
@@ -264,88 +249,77 @@
         }
         
         .alert-banner-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
-            color: var(--color-text-primary);
-            margin-bottom: 3px;
-            letter-spacing: 0.2px;
+            color: #2C3E50;
+            margin-bottom: 2px;
         }
         
         .alert-banner-desc {
-            font-size: 13px;
-            color: var(--color-text-secondary);
-            line-height: 1.4;
+            font-size: 12px;
+            color: #5A6C7D;
+            line-height: 1.3;
         }
         
         .alert-banner-level {
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.6px;
+            letter-spacing: 0.5px;
             white-space: nowrap;
             flex-shrink: 0;
         }
         
         .banner-level-green {
-            background-color: #10B981;
+            background-color: #4CAF50;
             color: white;
         }
         
         .banner-level-yellow {
-            background-color: #F59E0B;
-            color: white;
+            background-color: #FFC107;
+            color: #2C3E50;
         }
         
         .banner-level-orange {
-            background-color: #F97316;
+            background-color: #FF9800;
             color: white;
         }
         
         .banner-level-red {
-            background-color: #EF4444;
+            background-color: #F44336;
             color: white;
         }
         
         .no-alerts-banner {
-            padding: 16px 18px;
+            padding: 14px 16px;
             text-align: center;
-            color: #10B981;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            background: var(--color-bg-card);
-            border-radius: var(--border-radius-sm);
-            box-shadow: var(--shadow-sm);
-            backdrop-filter: blur(10px);
-            font-weight: 500;
-        }
-        
-        .no-alerts-banner-icon {
-            width: 20px;
-            height: 20px;
-            background-color: #10B981;
-            border-radius: 50%;
-            display: inline-block;
-            animation: pulse 2s ease-in-out infinite;
-        }
-        
-        .alerts-banner-loading {
-            padding: 16px 18px;
-            text-align: center;
-            color: var(--color-text-tertiary);
+            color: #4CAF50;
             font-size: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            background: var(--color-bg-card);
-            border-radius: var(--border-radius-sm);
-            box-shadow: var(--shadow-sm);
-            backdrop-filter: blur(10px);
+            gap: 8px;
+        }
+        
+        .no-alerts-banner-icon {
+            width: 18px;
+            height: 18px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .alerts-banner-loading {
+            padding: 14px 16px;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         
         /* PREVISIÓN 3 DÍAS */
@@ -368,7 +342,7 @@
         .day-name {
             flex: 1;
             font-size: 18px;
-            color: var(--color-text-primary);
+            color: #2C3E50;
         }
         
         .day-icon {
@@ -384,13 +358,12 @@
         }
         
         .temp-max {
-            font-weight: 600;
-            color: #EF4444;
+            font-weight: 500;
+            color: #F75260;
         }
         
         .temp-min {
-            font-weight: 500;
-            color: #3B82F6;
+            color: #6EB6FF;
         }
         
         /* RADAR */
@@ -402,7 +375,7 @@
             width: 100%;
             height: 400px;
             background: #d0d0d0;
-            border-radius: var(--border-radius);
+            border-radius: 8px;
             overflow: hidden;
         }
         
@@ -414,186 +387,65 @@
         
         .update-time {
             text-align: center;
-            font-size: 13px;
-            color: var(--color-text-tertiary);
-            margin-top: 36px;
-            padding-bottom: 12px;
-            font-weight: 500;
-            letter-spacing: 0.3px;
+            font-size: 12px;
+            color: #999;
+            margin-top: 30px;
+            padding-bottom: 10px;
         }
         
         .divulgacion-link {
             text-align: center;
-            padding: 24px 0 36px;
+            padding: 20px 0 30px;
         }
         
         .divulgacion-link a {
-            color: var(--color-text-secondary);
+            color: #888;
             text-decoration: none;
-            font-size: 15px;
-            font-weight: 500;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s ease;
-            letter-spacing: 0.3px;
-            padding-bottom: 2px;
+            font-size: 14px;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s ease;
         }
         
         .divulgacion-link a:hover {
-            border-bottom-color: var(--color-primary);
-            color: var(--color-primary);
+            border-bottom-color: #888;
         }
         
         /* Loading */
         .loading {
             text-align: center;
             padding: 40px;
-            color: var(--color-text-tertiary);
+            color: #999;
         }
         
         .error {
             text-align: center;
             padding: 20px;
-            color: #EF4444;
+            color: #c66;
         }
 
         /* Colores para iconos del tiempo */
-        .wi-day-sunny, .wi-night-clear { 
-            color: #FBBF24;
-            animation: rotate 20s linear infinite;
+        .wi-day-sunny, .wi-night-clear { color: #FDB813; }
+        .wi-day-sunny-overcast, .wi-mostly-clear-day, .wi-night-alt-partly-cloudy { color: #F5A623; }
+        .wi-day-cloudy, .wi-night-alt-cloudy { color: #95A5A6; }
+        .wi-cloudy { color: #7F8C8D; }
+        .wi-fog, .wi-night-fog { color: #BDC3C7; }
+        .wi-sprinkle, .wi-night-alt-sprinkle { color: #5DADE2; }
+        .wi-rain, .wi-night-alt-rain { color: #3498DB; }
+        .wi-rain-wind, .wi-night-alt-rain-wind { color: #2E86C1; }
+        .wi-snow, .wi-night-alt-snow { color: #AED6F1; }
+        .wi-snow-wind, .wi-night-alt-snow-wind { color: #85C1E9; }
+        .wi-showers, .wi-night-alt-showers { color: #5DADE2; }
+        .wi-storm-showers, .wi-night-alt-storm-showers { color: #2874A6; }
+        .wi-thunderstorm, .wi-night-alt-thunderstorm { color: #8E44AD; }
+        
+        /* Animación adicional para tormentas */
+        .wi-thunderstorm, .wi-night-alt-thunderstorm {
+            animation: float 3s ease-in-out infinite, pulse 2s ease-in-out infinite;
         }
         
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        .wi-day-sunny-overcast, .wi-mostly-clear-day, .wi-night-alt-partly-cloudy { 
-            color: #F59E0B;
-            animation: sway 4s ease-in-out infinite;
-        }
-        
-        @keyframes sway {
-            0%, 100% { transform: translateX(0px); }
-            50% { transform: translateX(-3px); }
-        }
-        
-        .wi-day-cloudy, .wi-night-alt-cloudy { 
-            color: #94A3B8;
-            animation: drift 6s ease-in-out infinite;
-        }
-        
-        @keyframes drift {
-            0%, 100% { transform: translateX(0px); }
-            50% { transform: translateX(-5px); }
-        }
-        
-        .wi-cloudy { 
-            color: #64748B;
-            animation: drift 8s ease-in-out infinite;
-        }
-        
-        .wi-fog, .wi-night-fog { 
-            color: #CBD5E1;
-            animation: fadeInOut 3s ease-in-out infinite;
-        }
-        
-        @keyframes fadeInOut {
+        @keyframes pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-        
-        .wi-sprinkle, .wi-night-alt-sprinkle { 
-            color: #60A5FA;
-            animation: drizzle 2s ease-in-out infinite;
-        }
-        
-        @keyframes drizzle {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(3px); }
-        }
-        
-        .wi-rain, .wi-night-alt-rain { 
-            color: #3B82F6;
-            animation: rain 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes rain {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(4px); }
-        }
-        
-        .wi-rain-wind, .wi-night-alt-rain-wind { 
-            color: #2563EB;
-            animation: rainWind 1.2s ease-in-out infinite;
-        }
-        
-        @keyframes rainWind {
-            0%, 100% { transform: translate(0px, 0px); }
-            50% { transform: translate(-3px, 4px); }
-        }
-        
-        .wi-snow, .wi-night-alt-snow { 
-            color: #BAE6FD;
-            animation: snowfall 3s ease-in-out infinite;
-        }
-        
-        @keyframes snowfall {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(5px) rotate(5deg); }
-        }
-        
-        .wi-snow-wind, .wi-night-alt-snow-wind { 
-            color: #7DD3FC;
-            animation: snowWind 2s ease-in-out infinite;
-        }
-        
-        @keyframes snowWind {
-            0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
-            50% { transform: translate(-4px, 5px) rotate(-10deg); }
-        }
-        
-        .wi-showers, .wi-night-alt-showers { 
-            color: #60A5FA;
-            animation: showers 1s ease-in-out infinite;
-        }
-        
-        @keyframes showers {
-            0%, 100% { transform: scale(1) translateY(0px); }
-            50% { transform: scale(1.05) translateY(2px); }
-        }
-        
-        .wi-storm-showers, .wi-night-alt-storm-showers { 
-            color: #1E40AF;
-            animation: stormShowers 0.8s ease-in-out infinite;
-        }
-        
-        @keyframes stormShowers {
-            0%, 100% { transform: scale(1) translateY(0px); }
-            50% { transform: scale(1.08) translateY(3px); }
-        }
-        
-        .wi-thunderstorm, .wi-night-alt-thunderstorm { 
-            color: #9333EA;
-            animation: thunder 1.5s ease-in-out infinite, flash 3s ease-in-out infinite;
-        }
-        
-        @keyframes thunder {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(2px); }
-        }
-        
-        @keyframes flash {
-            0%, 90%, 100% { opacity: 1; }
-            95% { opacity: 0.6; }
-        }
-        
-        .wi-raindrop {
-            animation: drop 2s ease-in-out infinite;
-        }
-        
-        @keyframes drop {
-            0%, 100% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(2px) scale(1.05); }
+            50% { opacity: 0.7; }
         }
         
         @keyframes spin {
@@ -601,55 +453,43 @@
             to { transform: rotate(360deg); }
         }
 
-        /* ESTILOS PARA LA TABLA HORARIA - MEJORADA */
+        /* ESTILOS PARA LA TABLA */
         .weather-table-container {
             margin: 40px 0;
             overflow-x: auto;
-            animation: fadeIn 0.6s ease-out 0.6s both;
         }
         
         #weather-table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--color-bg-card);
-            border-radius: var(--border-radius);
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: var(--shadow-md);
-            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
         
         #weather-table thead tr {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            background-color: rgba(39, 211, 245, 0.15);
         }
         
         #weather-table th {
-            padding: 14px 10px;
+            padding: 12px 8px;
             text-align: center;
-            color: white;
+            border-bottom: 2px solid #27D3F5;
+            color: #2C3E50;
             font-weight: 600;
-            font-size: 12px;
+            font-size: 13px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
         
         #weather-table tbody tr {
-            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
-            transition: all 0.2s ease;
-        }
-        
-        /* Alternancia de colores en las filas */
-        #weather-table tbody tr:nth-child(even) {
-            background-color: rgba(241, 245, 249, 0.5);
-        }
-        
-        #weather-table tbody tr:nth-child(odd) {
-            background-color: rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid rgba(192, 234, 249, 0.3);
+            transition: background-color 0.2s ease;
         }
         
         #weather-table tbody tr:hover {
-            background: linear-gradient(90deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.15) 50%, rgba(59, 130, 246, 0.08) 100%);
-            transform: scale(1.01);
-            box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.2);
+            background-color: rgba(39, 211, 245, 0.08);
         }
         
         #weather-table tbody tr:last-child {
@@ -657,80 +497,64 @@
         }
         
         #weather-table td {
-            padding: 16px 10px;
+            padding: 14px 8px;
             text-align: center;
-            color: var(--color-text-primary);
+            color: #2C3E50;
             font-size: 14px;
-            font-weight: 500;
         }
         
         #weather-table .table-hour {
-            font-weight: 700;
-            color: var(--color-primary);
-            font-size: 15px;
-            letter-spacing: 0.3px;
+            font-weight: 600;
+            color: #27D3F5;
         }
         
         #weather-table .table-icon {
-            font-size: 32px;
-            transition: transform 0.3s ease;
-        }
-        
-        #weather-table tbody tr:hover .table-icon {
-            transform: scale(1.15);
+            font-size: 28px;
         }
         
         #weather-table .table-temp {
-            font-weight: 600;
+            font-weight: 500;
             font-size: 16px;
         }
         
         #weather-table .table-rain {
-            color: #3B82F6;
-            font-weight: 600;
+            color: #3498DB;
+            font-weight: 500;
         }
         
         #weather-table .table-wind {
-            color: var(--color-text-secondary);
-            font-weight: 500;
+            color: #5A6C7D;
         }
 
         /* ESTILOS PARA TABLA DETALLADA DE 4 DÍAS */
         .day-detailed-table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--color-bg-card);
-            border-radius: var(--border-radius);
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: var(--shadow-md);
-            margin-bottom: 24px;
-            backdrop-filter: blur(10px);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .day-detailed-table:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
         }
         
         .day-detailed-table thead tr {
-            background: linear-gradient(135deg, #64748B 0%, #475569 100%);
+            background-color: rgba(220, 220, 220, 0.5);
         }
         
         .day-detailed-table thead th {
-            padding: 16px 10px;
+            padding: 12px 8px;
             text-align: center;
-            color: white;
+            color: #708090;
             font-weight: 700;
-            font-size: 16px;
+            font-size: 15px;
             text-transform: uppercase;
-            letter-spacing: 1.2px;
+            letter-spacing: 1px;
         }
         
         .day-detailed-table tbody td {
-            padding: 14px 10px;
+            padding: 12px 8px;
             text-align: center;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+            border-bottom: 1px solid rgba(192, 234, 249, 0.2);
         }
         
         .day-detailed-table tbody tr:last-child td {
@@ -738,128 +562,51 @@
         }
         
         .day-detailed-table .time-label {
-            font-size: 13px;
-            color: var(--color-text-secondary);
+            font-size: 12px;
+            color: #7B8794;
             font-weight: 600;
-            letter-spacing: 0.3px;
         }
         
         .day-detailed-table .weather-icon-large {
-            font-size: 40px;
-            margin: 8px 0;
-            transition: transform 0.3s ease;
-        }
-        
-        .day-detailed-table tbody tr:hover .weather-icon-large {
-            transform: scale(1.1);
+            font-size: 36px;
+            margin: 5px 0;
         }
         
         .day-detailed-table .rain-value {
-            color: #3B82F6;
-            font-weight: 700;
-            font-size: 15px;
+            color: #3498DB;
+            font-weight: 600;
+            font-size: 14px;
         }
         
         .day-detailed-table .info-label {
             font-size: 11px;
-            color: var(--color-text-tertiary);
+            color: #7B8794;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 4px;
-            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
         }
         
         .day-detailed-table .info-value {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--color-text-primary);
+            font-size: 14px;
+            font-weight: 600;
+            color: #2C3E50;
         }
         
         .day-detailed-table .temp-max {
-            color: #EF4444;
+            color: #F75260;
         }
         
         .day-detailed-table .temp-min {
-            color: #3B82F6;
-        }
-        
-        /* Sección de previsión narrativa DENTRO de current-weather */
-        .narrative-container {
-            padding: 0;
-            margin-top: 24px;
-        }
-        
-        .narrative-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--color-text-secondary);
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-align: center;
-        }
-        
-        #narrative-forecast {
-            text-align: justify;
-            line-height: 1.7;
-            font-size: 15px;
-            color: var(--color-text-primary);
-            font-weight: 400;
-            letter-spacing: 0.2px;
-        }
-        
-        /* Webcam */
-        .webcam-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            margin: 32px 0;
-            animation: fadeIn 0.6s ease-out 1s both;
-        }
-        
-        .webcam-label {
-            margin-bottom: 12px;
-            font-weight: 600;
-            color: var(--color-text-secondary);
-            font-size: 14px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        
-        .webcam-frame {
-            width: 320px;
-            height: 180px;
-            overflow: hidden;
-            border: none;
-            background: #000;
-            border-radius: var(--border-radius-sm);
-            box-shadow: var(--shadow-md);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .webcam-frame:hover {
-            transform: scale(1.02);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .webcam-frame img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+            color: #6EB6FF;
         }
 
         @media (max-width: 480px) {
-            .container {
-                padding: 16px;
-            }
-            
             .temperature {
                 font-size: 64px;
             }
             
             .icon-large {
-                font-size: 64px;
+                font-size: 80px;
             }
             
             .radar-frame {
@@ -872,18 +619,18 @@
             
             #weather-table th,
             #weather-table td {
-                padding: 12px 6px;
+                padding: 10px 4px;
                 font-size: 12px;
             }
             
             #weather-table .table-icon {
-                font-size: 26px;
+                font-size: 24px;
             }
             
             .alert-banner-item {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 10px;
+                gap: 8px;
             }
             
             .alert-banner-left {
@@ -893,21 +640,22 @@
             .alert-banner-level {
                 align-self: flex-start;
             }
+
+            /* Responsive para tabla Meteoclimatic */
+            #meteoclimatic-table th,
+            #meteoclimatic-table td {
+                padding: 10px 8px;
+                font-size: 11px;
+            }
+            
+            #meteoclimatic-table .barrio {
+                font-size: 11px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- BANNER DE AVISOS -->
-        <div class="weather-alerts-banner">
-            <div id="alerts-banner-container">
-                <div class="alerts-banner-loading">
-                    <i class="wi wi-day-sunny" style="animation: spin 2s linear infinite;"></i>
-                    <span>Consultando avisos AEMET...</span>
-                </div>
-            </div>
-        </div>
-
         <!-- LOGO -->
         <div class="logo-container">
             <img src="logo.jpg" alt="Logo" id="main-logo">
@@ -920,6 +668,10 @@
             <div class="condition" id="current-condition">Cargando...</div>
             <div class="details">
                 <div class="detail-item">
+                    <div>Sensación</div>
+                    <div class="detail-value" id="feels-like">--°</div>
+                </div>
+                <div class="detail-item">
                     <div>Presión</div>
                     <div class="detail-value" id="pressure">-- hPa</div>
                 </div>
@@ -931,20 +683,39 @@
                     <div>Viento</div>
                     <div class="detail-value" id="wind">-- km/h</div>
                 </div>
-            </div>
-            
-            <!-- Separador -->
-            <div class="weather-divider"></div>
-            
-            <!-- PREVISIÓN NARRATIVA DENTRO DE LA MISMA TARJETA -->
-            <div class="narrative-container">
-                <div class="narrative-title">Tendencia Próximas Horas</div>
-                <div id="narrative-forecast">Cargando previsión...</div>
+                <div class="detail-item">
+                    <div>Dirección</div>
+                    <div class="detail-value" id="wind-direction">--</div>
+                </div>
             </div>
         </div>
 
+        <!-- BANNER DE AVISOS - 100% TRANSPARENTE -->
+        <div class="weather-alerts-banner">
+            <div id="alerts-banner-container">
+                <div class="alerts-banner-loading">
+                    <i class="wi wi-day-sunny" style="animation: spin 2s linear infinite;"></i>
+                    <span>Consultando avisos AEMET...</span>
+                </div>
+            </div>
+        </div>
+        
+         <!-- PREVISIÓN NARRATIVA -->
+      <div style="margin: 40px 0;">
+            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;"></div>
+               <div style="padding: 20px;">
+             <div style="font-size: 12px; font-weight: bold; color: #2C3E50; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;">
+                Tendencia Próximas 12 Horas
+               </div>
+              <div id="narrative-forecast" style="text-align: justify; line-height: 1.8; font-size: 15px; color: #2C3E50;">
+               Cargando previsión...
+           </div>
+        </div>
+      </div>
+
         <!-- TABLA DE PREVISIÓN HORARIA -->
         <div class="weather-table-container">
+            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;"></div>
             <table id="weather-table">
                 <thead>
                     <tr>
@@ -957,7 +728,7 @@
                 </thead>
                 <tbody id="weather-table-body">
                     <tr>
-                        <td colspan="5" style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</td>
+                        <td colspan="5" style="padding: 20px; text-align: center; color: #999;">Cargando datos...</td>
                     </tr>
                 </tbody>
             </table>
@@ -965,18 +736,21 @@
             
         <!-- TABLA DE PREVISIÓN 4 DÍAS - FORMATO DETALLADO -->
         <div class="weather-table-container" style="margin-top: 60px;">
+            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;">PREVISIÓN PRÓXIMOS 4 DÍAS</div>
             <div id="days-detailed-container">
-                <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
+                <div style="padding: 20px; text-align: center; color: #999;">Cargando datos...</div>
             </div>
         </div>
 
-        <!-- WEBCAM -->
-        <div class="webcam-container">
-            <span class="webcam-label">Barceloneta</span>
-            <div class="webcam-frame">
+        <div style="display: flex; flex-direction: column; align-items: center; width: 100%; font-family: sans-serif;">
+            <!-- Nombre de webcam -->
+            <span style="margin-bottom: 0px; font-weight: bold; color: #c0eaf9;">Barceloneta</span>
+            <!-- Tu contenedor original -->
+            <div style="width: 320px; height: 180px; overflow: hidden; border: 1px solid #ccc; background: #000; border-radius: 0px;">
                 <img 
                     id="webcam-jpg" 
                     src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg" 
+                    style="width: 100%; height: 100%; object-fit: contain;"
                     alt="Barceloneta"
                 />
             </div>
@@ -1097,6 +871,13 @@
         let sunriseTime = null;
         let sunsetTime = null;
         
+        // Función para convertir grados a dirección cardinal
+        function getWindDirection(degrees) {
+            const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSO', 'SO', 'OSO', 'O', 'ONO', 'NO', 'NNO'];
+            const index = Math.round(degrees / 22.5) % 16;
+            return directions[index];
+        }
+        
         // Función para determinar si es de noche
         function isNightTime(dateTime) {
             if (!sunriseTime || !sunsetTime) return false;
@@ -1122,6 +903,12 @@
         // Función para obtener la descripción
         function getWeatherDescription(code) {
             return weatherDescriptions[code] || 'Desconocido';
+        }
+        
+        // Función para formatear hora desde ISO string
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
         }
         
         // Función para obtener avisos meteorológicos en formato banner
@@ -1152,7 +939,7 @@
                 container.innerHTML = `
                     <div class="no-alerts-banner">
                         <span class="no-alerts-banner-icon"></span>
-                        <span>No hay avisos meteorológicos activos</span>
+                        <span>Sin Avisos</span>
                     </div>
                 `;
                 return;
@@ -1203,7 +990,7 @@
                 container.innerHTML = `
                     <div class="no-alerts-banner">
                         <span class="no-alerts-banner-icon"></span>
-                        <span>No hay avisos meteorológicos activos</span>
+                        <span>Sin Avisos</span>
                     </div>
                 `;
                 return;
@@ -1254,7 +1041,7 @@
                 container.innerHTML = `
                     <div class="no-alerts-banner">
                         <span class="no-alerts-banner-icon"></span>
-                        <span>No hay avisos meteorológicos activos</span>
+                        <span>Sin Avisos</span>
                     </div>
                 `;
                 return;
@@ -1380,7 +1167,7 @@
         
         async function loadWeatherData() {
             try {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl&hourly=temperature_2m,precipitation_probability,weather_code,precipitation,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7`;
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,precipitation,pressure_msl&hourly=temperature_2m,precipitation_probability,weather_code,precipitation,wind_speed_10m,wind_direction_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,wind_direction_10m_dominant&timezone=Europe/Madrid&forecast_days=7`;
                 
                 const response = await fetch(url);
                 const data = await response.json();
@@ -1407,9 +1194,11 @@
             document.getElementById('current-temp').textContent = Math.round(current.temperature_2m) + '°';
             document.getElementById('current-icon').innerHTML = getWeatherIcon(weatherCode, now);
             document.getElementById('current-condition').textContent = getWeatherDescription(weatherCode);
+            document.getElementById('feels-like').textContent = Math.round(current.apparent_temperature) + '°';
             document.getElementById('pressure').textContent = Math.round(current.pressure_msl) + ' hPa';
             document.getElementById('humidity').textContent = current.relative_humidity_2m + '%';
             document.getElementById('wind').textContent = Math.round(current.wind_speed_10m) + ' km/h';
+            document.getElementById('wind-direction').textContent = getWindDirection(current.wind_direction_10m);
         }
         
         function updateWeatherTable(hourly) {
@@ -1494,6 +1283,22 @@
                     ? Math.round(daily.uv_index_max[dayOffset] * 10) / 10 
                     : 0;
                 
+                const precipSum = daily.precipitation_sum && daily.precipitation_sum[dayOffset] !== undefined
+                    ? Math.round(daily.precipitation_sum[dayOffset] * 10) / 10
+                    : 0;
+                
+                const windDir = daily.wind_direction_10m_dominant && daily.wind_direction_10m_dominant[dayOffset] !== undefined
+                    ? getWindDirection(daily.wind_direction_10m_dominant[dayOffset])
+                    : '--';
+                
+                const sunrise = daily.sunrise && daily.sunrise[dayOffset] 
+                    ? formatTime(daily.sunrise[dayOffset])
+                    : '--:--';
+                
+                const sunset = daily.sunset && daily.sunset[dayOffset]
+                    ? formatTime(daily.sunset[dayOffset])
+                    : '--:--';
+                
                 let windSum = 0;
                 let windCount = 0;
                 for (let i = 0; i < hourly.time.length; i++) {
@@ -1506,11 +1311,11 @@
                 }
                 const avgWind = windCount > 0 ? Math.round(windSum / windCount) : 0;
                 
-                let uvColor = '#10B981';
-                if (uvMax >= 11) uvColor = '#9333EA';
-                else if (uvMax >= 8) uvColor = '#EF4444';
-                else if (uvMax >= 6) uvColor = '#F97316';
-                else if (uvMax >= 3) uvColor = '#F59E0B';
+                let uvColor = '#4CAF50';
+                if (uvMax >= 11) uvColor = '#9C27B0';
+                else if (uvMax >= 8) uvColor = '#F44336';
+                else if (uvMax >= 6) uvColor = '#FF9800';
+                else if (uvMax >= 3) uvColor = '#FFC107';
                 
                 const dayTable = document.createElement('table');
                 dayTable.className = 'day-detailed-table';
@@ -1534,20 +1339,24 @@
                                 <div class="time-label">19:00</div>
                                 <div class="weather-icon-large">${icon19}</div>
                             </td>
-                            <td style="width: 25%; background-color: rgba(241, 245, 249, 0.3);" rowspan="3">
-                                <div style="margin-bottom: 15px;">
+                            <td style="width: 25%; background-color: rgba(39, 211, 245, 0.05);" rowspan="4">
+                                <div style="margin-bottom: 12px;">
                                     <div class="info-label">Temp. Max/Min</div>
                                     <div class="info-value">
                                         <span class="temp-max">${maxTemp}°</span> / <span class="temp-min">${minTemp}°</span>
                                     </div>
                                 </div>
-                                <div style="margin-bottom: 15px;">
-                                    <div class="info-label">Viento</div>
+                                <div style="margin-bottom: 12px;">
+                                    <div class="info-label">Viento ${windDir}</div>
                                     <div class="info-value">${avgWind} km/h</div>
                                 </div>
-                                <div>
+                                <div style="margin-bottom: 12px;">
                                     <div class="info-label">UV Máximo</div>
                                     <div class="info-value" style="color: ${uvColor};">${uvMax}</div>
+                                </div>
+                                <div>
+                                    <div class="info-label">Lluvia</div>
+                                    <div class="info-value" style="color: #3498DB;">${precipSum} l/m²</div>
                                 </div>
                             </td>
                         </tr>
@@ -1563,14 +1372,45 @@
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="3" style="padding: 8px; font-size: 11px; color: var(--color-text-secondary);">
-                                <i class="wi wi-raindrop" style="color: #3B82F6;"></i> Probabilidad de lluvia
+                            <td colspan="3" style="padding: 8px; font-size: 11px; color: #7B8794;">
+                                <i class="wi wi-raindrop" style="color: #3498DB;"></i> Probabilidad de lluvia
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="padding: 8px; font-size: 11px; color: #7B8794;">
+                                <i class="wi wi-sunrise" style="color: #FDB813;"></i> ${sunrise} &nbsp;&nbsp; <i class="wi wi-sunset" style="color: #FF9800;"></i> ${sunset}
                             </td>
                         </tr>
                     </tbody>
                 `;
                 
                 container.appendChild(dayTable);
+            }
+        }
+        
+        function updateDailyForecast(daily) {
+            const container = document.getElementById('daily-container');
+            container.innerHTML = '';
+            
+            for (let i = 2; i <= 3; i++) {
+                const dayItem = document.createElement('div');
+                dayItem.className = 'day-item';
+                
+                const dayName = getDayName(daily.time[i]);
+                const maxTemp = Math.round(daily.temperature_2m_max[i]);
+                const minTemp = Math.round(daily.temperature_2m_min[i]);
+                const icon = getWeatherIcon(daily.weather_code[i]);
+                
+                dayItem.innerHTML = `
+                    <div class="day-name">${dayName}</div>
+                    <div class="day-icon">${icon}</div>
+                    <div class="day-temps">
+                        <span class="temp-max">${maxTemp}°</span>
+                        <span class="temp-min">${minTemp}°</span>
+                    </div>
+                `;
+                
+                container.appendChild(dayItem);
             }
         }
         
