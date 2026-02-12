@@ -799,16 +799,378 @@
                 </div>
             </div>
         </div>
+           <!-- SECCIÓN DE AVISOS METEOROLÓGICOS - VERSIÓN BANNER COMPACTA -->
+<!-- Insertar justo después de </div> de current-weather -->
 
-        <!-- SECCIÓN DE AVISOS METEOROLÓGICOS -->
-        <div class="weather-alerts">
-            <div class="alerts-title">AVISOS METEOROLÓGICOS OFICIALES</div>
-            <div class="alerts-container" id="alerts-container">
-                <div class="alerts-loading">
-                    <i class="wi wi-day-sunny" style="font-size: 32px; animation: spin 2s linear infinite;"></i>
-                    <div style="margin-top: 10px;">Consultando avisos de AEMET...</div>
+<style>
+    /* ESTILOS PARA AVISOS METEOROLÓGICOS - BANNER */
+    .weather-alerts-banner {
+        margin: 20px 0;
+        padding: 0;
+    }
+    
+    .alerts-banner-container {
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+    
+    .alert-banner-item {
+        padding: 12px 16px;
+        border-left: 4px solid;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background-color: rgba(255, 255, 255, 0.95);
+        transition: transform 0.2s ease;
+        margin-bottom: 1px;
+    }
+    
+    .alert-banner-item:hover {
+        transform: translateX(2px);
+    }
+    
+    .alert-banner-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Colores de alertas según nivel */
+    .alert-banner-green {
+        border-left-color: #4CAF50;
+        background-color: rgba(76, 175, 80, 0.03);
+    }
+    
+    .alert-banner-yellow {
+        border-left-color: #FFC107;
+        background-color: rgba(255, 193, 7, 0.05);
+    }
+    
+    .alert-banner-orange {
+        border-left-color: #FF9800;
+        background-color: rgba(255, 152, 0, 0.05);
+    }
+    
+    .alert-banner-red {
+        border-left-color: #F44336;
+        background-color: rgba(244, 67, 54, 0.05);
+    }
+    
+    .alert-banner-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+    }
+    
+    .alert-banner-icon {
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+    
+    .alert-banner-text {
+        flex: 1;
+    }
+    
+    .alert-banner-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2C3E50;
+        margin-bottom: 2px;
+    }
+    
+    .alert-banner-desc {
+        font-size: 12px;
+        color: #5A6C7D;
+        line-height: 1.3;
+    }
+    
+    .alert-banner-level {
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    
+    .banner-level-green {
+        background-color: #4CAF50;
+        color: white;
+    }
+    
+    .banner-level-yellow {
+        background-color: #FFC107;
+        color: #2C3E50;
+    }
+    
+    .banner-level-orange {
+        background-color: #FF9800;
+        color: white;
+    }
+    
+    .banner-level-red {
+        background-color: #F44336;
+        color: white;
+    }
+    
+    .no-alerts-banner {
+        padding: 14px 16px;
+        text-align: center;
+        color: #4CAF50;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .no-alerts-banner-icon {
+        font-size: 18px;
+    }
+    
+    .alerts-banner-loading {
+        padding: 14px 16px;
+        text-align: center;
+        color: #999;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    @media (max-width: 480px) {
+        .alert-banner-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .alert-banner-left {
+            width: 100%;
+        }
+        
+        .alert-banner-level {
+            align-self: flex-start;
+        }
+    }
+</style>
+
+<!-- BANNER DE AVISOS -->
+<div class="weather-alerts-banner">
+    <div class="alerts-banner-container" id="alerts-banner-container">
+        <div class="alerts-banner-loading">
+            <i class="wi wi-day-sunny" style="animation: spin 2s linear infinite;"></i>
+            <span>Consultando avisos AEMET...</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Configuración para Barcelona
+    const BARCELONA_PROVINCE_CODE = '08';
+    const AEMET_ALERTS_URL = 'https://www.el-tiempo.net/api/json/v2/provincias/08/alertas';
+    
+    // Mapeo de fenómenos meteorológicos
+    const WEATHER_PHENOMENA_BANNER = {
+        'viento': { icon: '💨', name: 'Viento' },
+        'nieve': { icon: '❄️', name: 'Nieve' },
+        'lluvia': { icon: '🌧️', name: 'Lluvia' },
+        'tormenta': { icon: '⛈️', name: 'Tormentas' },
+        'temperatura': { icon: '🌡️', name: 'Temp. extremas' },
+        'calor': { icon: '🔥', name: 'Calor' },
+        'frio': { icon: '🥶', name: 'Frío' },
+        'niebla': { icon: '🌫️', name: 'Niebla' },
+        'fenomeno': { icon: '⚠️', name: 'Fenómeno costero' },
+        'maritimo': { icon: '🌊', name: 'Marítimo' }
+    };
+    
+    // Niveles de alerta
+    const ALERT_LEVELS_BANNER = {
+        'verde': { class: 'green', text: 'Sin riesgo' },
+        'amarillo': { class: 'yellow', text: 'Riesgo' },
+        'naranja': { class: 'orange', text: 'Importante' },
+        'rojo': { class: 'red', text: 'Extremo' }
+    };
+    
+    // Función para obtener avisos meteorológicos en formato banner
+    async function fetchWeatherAlertsBanner() {
+        const container = document.getElementById('alerts-banner-container');
+        
+        try {
+            const response = await fetch(AEMET_ALERTS_URL);
+            
+            if (!response.ok) {
+                throw new Error('Error al obtener datos');
+            }
+            
+            const data = await response.json();
+            displayAlertsBanner(data);
+            
+        } catch (error) {
+            console.error('Error al cargar avisos:', error);
+            displayFallbackAlertsBanner();
+        }
+    }
+    
+    // Mostrar avisos en formato banner
+    function displayAlertsBanner(data) {
+        const container = document.getElementById('alerts-banner-container');
+        
+        if (!data || !data.today || data.today.length === 0) {
+            container.innerHTML = `
+                <div class="no-alerts-banner">
+                    <span class="no-alerts-banner-icon">✅</span>
+                    <span>No hay avisos meteorológicos activos</span>
                 </div>
-            </div>
+            `;
+            return;
+        }
+        
+        let alertsHTML = '';
+        
+        // Mostrar solo los 2 avisos más importantes
+        const topAlerts = data.today.slice(0, 2);
+        
+        topAlerts.forEach(alert => {
+            const level = alert.level.toLowerCase();
+            const levelInfo = ALERT_LEVELS_BANNER[level] || ALERT_LEVELS_BANNER['verde'];
+            
+            const phenomenon = Object.keys(WEATHER_PHENOMENA_BANNER).find(key => 
+                alert.phenomenon.toLowerCase().includes(key)
+            ) || 'fenomeno';
+            const phenoInfo = WEATHER_PHENOMENA_BANNER[phenomenon];
+            
+            // Descripción corta (máximo 50 caracteres)
+            let shortDesc = alert.description || 'Ver AEMET para más info';
+            if (shortDesc.length > 50) {
+                shortDesc = shortDesc.substring(0, 47) + '...';
+            }
+            
+            alertsHTML += `
+                <div class="alert-banner-item alert-banner-${levelInfo.class}">
+                    <div class="alert-banner-left">
+                        <span class="alert-banner-icon">${phenoInfo.icon}</span>
+                        <div class="alert-banner-text">
+                            <div class="alert-banner-title">${phenoInfo.name}</div>
+                            <div class="alert-banner-desc">${shortDesc}</div>
+                        </div>
+                    </div>
+                    <span class="alert-banner-level banner-level-${levelInfo.class}">${levelInfo.text}</span>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = alertsHTML;
+    }
+    
+    // Avisos alternativos si falla la API
+    function displayFallbackAlertsBanner() {
+        const container = document.getElementById('alerts-banner-container');
+        
+        // Obtener datos del tiempo actual
+        const currentTempElement = document.getElementById('current-temp');
+        const currentWindElement = document.getElementById('wind');
+        
+        if (!currentTempElement || !currentWindElement) {
+            // Si aún no hay datos del tiempo, mostrar mensaje temporal
+            container.innerHTML = `
+                <div class="no-alerts-banner">
+                    <span class="no-alerts-banner-icon">✅</span>
+                    <span>No hay avisos meteorológicos activos</span>
+                </div>
+            `;
+            return;
+        }
+        
+        const currentTemp = parseFloat(currentTempElement.textContent);
+        const currentWind = parseFloat(currentWindElement.textContent);
+        
+        let alerts = [];
+        
+        // Generar avisos basados en condiciones
+        if (currentWind > 50) {
+            alerts.push({
+                type: 'viento',
+                level: 'naranja',
+                description: `Rachas de ${Math.round(currentWind)} km/h`
+            });
+        } else if (currentWind > 40) {
+            alerts.push({
+                type: 'viento',
+                level: 'amarillo',
+                description: `Rachas de ${Math.round(currentWind)} km/h`
+            });
+        }
+        
+        if (currentTemp > 35) {
+            alerts.push({
+                type: 'calor',
+                level: 'naranja',
+                description: `${Math.round(currentTemp)}°C - Manténgase hidratado`
+            });
+        } else if (currentTemp > 32) {
+            alerts.push({
+                type: 'calor',
+                level: 'amarillo',
+                description: `${Math.round(currentTemp)}°C - Protéjase del sol`
+            });
+        }
+        
+        if (currentTemp < 0) {
+            alerts.push({
+                type: 'frio',
+                level: 'naranja',
+                description: `${Math.round(currentTemp)}°C - Riesgo de heladas`
+            });
+        }
+        
+        // Si no hay alertas, mostrar mensaje de tranquilidad
+        if (alerts.length === 0) {
+            container.innerHTML = `
+                <div class="no-alerts-banner">
+                    <span class="no-alerts-banner-icon">✅</span>
+                    <span>No hay avisos meteorológicos activos</span>
+                </div>
+            `;
+            return;
+        }
+        
+        // Mostrar solo las 2 primeras alertas
+        let alertsHTML = '';
+        
+        alerts.slice(0, 2).forEach(alert => {
+            const levelInfo = ALERT_LEVELS_BANNER[alert.level];
+            const phenoInfo = WEATHER_PHENOMENA_BANNER[alert.type];
+            
+            alertsHTML += `
+                <div class="alert-banner-item alert-banner-${levelInfo.class}">
+                    <div class="alert-banner-left">
+                        <span class="alert-banner-icon">${phenoInfo.icon}</span>
+                        <div class="alert-banner-text">
+                            <div class="alert-banner-title">${phenoInfo.name}</div>
+                            <div class="alert-banner-desc">${alert.description}</div>
+                        </div>
+                    </div>
+                    <span class="alert-banner-level banner-level-${levelInfo.class}">${levelInfo.text}</span>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = alertsHTML;
+    }
+    
+    // Cargar avisos al iniciar (después de que se carguen los datos del tiempo)
+    setTimeout(fetchWeatherAlertsBanner, 2000);
+    
+    // Actualizar avisos cada 30 minutos
+    setInterval(fetchWeatherAlertsBanner, 1800000);
+</script>
+        
         </div>
        
         <!-- PREVISIÓN NARRATIVA -->
