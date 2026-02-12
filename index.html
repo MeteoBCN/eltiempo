@@ -182,87 +182,6 @@
             margin-top: 5px;
         }
 
-        /* ESTILOS PARA TABLA METEOCLIMATIC */
-        .meteoclimatic-stations {
-            margin: 40px 0;
-        }
-        
-        .meteoclimatic-table-container {
-            background-color: rgba(255, 255, 255, 0.7);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        #meteoclimatic-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        #meteoclimatic-table thead tr {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        #meteoclimatic-table th {
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: white;
-        }
-        
-        #meteoclimatic-table tbody tr {
-            border-bottom: 1px solid rgba(192, 234, 249, 0.3);
-            transition: background-color 0.2s ease;
-        }
-        
-        #meteoclimatic-table tbody tr:hover {
-            background-color: rgba(102, 126, 234, 0.08);
-        }
-        
-        #meteoclimatic-table tbody tr:last-child {
-            border-bottom: none;
-        }
-        
-        #meteoclimatic-table td {
-            padding: 15px;
-            text-align: left;
-            color: #2C3E50;
-            font-size: 12px;
-        }
-        
-        #meteoclimatic-table .barrio {
-            font-weight: 600;
-            color: #667eea;
-            font-size: 13px;
-        }
-        
-        #meteoclimatic-table .temp {
-            font-weight: bold;
-            color: #ff6b6b;
-            font-size: 14px;
-        }
-        
-        #meteoclimatic-table .humidity {
-            color: #4ecdc4;
-            font-weight: 500;
-        }
-        
-        #meteoclimatic-table .pressure {
-            color: #95a5a6;
-        }
-        
-        #meteoclimatic-table .wind {
-            color: #74b9ff;
-        }
-        
-        #meteoclimatic-table .precipitation {
-            color: #00b894;
-            font-weight: 500;
-        }
-        
         .section-title {
             font-size: 14px;
             margin-bottom: 15px;
@@ -446,25 +365,6 @@
         
         .temp-min {
             color: #6EB6FF;
-        }
-        
-        /* RADAR */
-        .radar {
-            margin-bottom: 40px;
-        }
-        
-        .radar-frame {
-            width: 100%;
-            height: 400px;
-            background: #d0d0d0;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .radar-frame iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
         }
         
         .update-time {
@@ -713,16 +613,6 @@
                 align-self: flex-start;
             }
 
-            /* Responsive para tabla Meteoclimatic */
-            #meteoclimatic-table th,
-            #meteoclimatic-table td {
-                padding: 10px 8px;
-                font-size: 11px;
-            }
-            
-            #meteoclimatic-table .barrio {
-                font-size: 11px;
-            }
         }
     </style>
 </head>
@@ -767,7 +657,7 @@
             <div id="alerts-banner-container">
                 <div class="alerts-banner-loading">
                     <i class="wi wi-day-sunny" style="animation: spin 2s linear infinite;"></i>
-                    <span>Consultando avisos AEMET...</span>
+                    <span>Consultando avisos...</span>
                 </div>
             </div>
         </div>
@@ -777,7 +667,7 @@
             <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;"></div>
                <div style="padding: 20px;">
              <div style="font-size: 12px; font-weight: bold; color: #2C3E50; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;">
-                Tendencia Próximas 12 Horas
+                - Tendencia Próximas Horas -
                </div>
               <div id="narrative-forecast" style="text-align: justify; line-height: 1.8; font-size: 15px; color: #2C3E50;">
                Cargando previsión...
@@ -808,7 +698,7 @@
             
         <!-- TABLA DE PREVISIÓN - PRÓXIMOS DÍAS (EMPIEZA HOY) -->
         <div class="weather-table-container" style="margin-top: 60px;">
-            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;">PRONÓSTICO PARA LA JORNADA DE HOY Y PRÓXIMOS DÍAS</div>
+            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;"></div>
             <div id="days-detailed-container">
                 <div style="padding: 20px; text-align: center; color: #999;">Cargando datos...</div>
             </div>
@@ -943,11 +833,11 @@
         function getAirQualityInfo(pm25) {
             if (pm25 === null || pm25 === undefined) return { text: 'N/D', color: '#999' };
             
-            if (pm25 <= 10) return { text: 'Excelente', color: '#00E400' };
-            if (pm25 <= 25) return { text: 'Buena', color: '#92D050' };
+            if (pm25 <= 10) return { text: 'Excelente', color: '#32CD32' };
+            if (pm25 <= 25) return { text: 'Buena', color: '#3CB371' };
             if (pm25 <= 50) return { text: 'Moderada', color: '#FFFF00' };
-            if (pm25 <= 75) return { text: 'Mala', color: '#FF7E00' };
-            return { text: 'Muy Mala', color: '#FF0000' };
+            if (pm25 <= 75) return { text: 'Mala', color: '#B22222' };
+            return { text: 'Muy Mala', color: '#8B0000' };
         }
         
         // Variable global para almacenar los datos de salida/puesta de sol
