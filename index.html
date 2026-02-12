@@ -59,79 +59,93 @@
             margin: 20px 0;
         }
         
-        @keyframes float {
+        /* ANIMACIONES SUTILES */
+        @keyframes float-subtle {
             0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-3px); }
         }
         
-        @keyframes rotate {
+        @keyframes rotate-subtle {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
         
-        @keyframes pulse {
+        @keyframes pulse-subtle {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+            50% { opacity: 0.85; }
         }
         
-        @keyframes rain {
-            0% { transform: translateY(-100%); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(100%); opacity: 0; }
-        }
-        
-        @keyframes snow {
-            0% { transform: translateY(-100%) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(100%) rotate(360deg); opacity: 0; }
-        }
-        
-        @keyframes wind {
-            0% { transform: translateX(-20px); opacity: 0; }
+        @keyframes rain-subtle {
+            0% { transform: translateY(-10%); opacity: 0.7; }
             50% { opacity: 1; }
-            100% { transform: translateX(20px); opacity: 0; }
+            100% { transform: translateY(10%); opacity: 0.7; }
         }
         
-        @keyframes thunder {
-            0%, 45%, 55%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+        @keyframes snow-subtle {
+            0% { transform: translateY(-5%) rotate(0deg); opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { transform: translateY(5%) rotate(20deg); opacity: 0.8; }
         }
         
-        /* Aplicar animaciones a los iconos */
+        @keyframes wind-subtle {
+            0% { transform: translateX(-3px); opacity: 0.9; }
+            50% { opacity: 1; }
+            100% { transform: translateX(3px); opacity: 0.9; }
+        }
+        
+        @keyframes thunder-subtle {
+            0%, 90%, 100% { opacity: 1; }
+            95% { opacity: 0.7; }
+        }
+        
+        @keyframes sway-subtle {
+            0%, 100% { transform: rotate(-2deg); }
+            50% { transform: rotate(2deg); }
+        }
+        
+        /* Aplicar animaciones sutiles a los iconos */
         .wi-day-sunny, .wi-night-clear {
-            animation: rotate 20s linear infinite;
+            animation: rotate-subtle 30s linear infinite;
         }
         
         .wi-day-cloudy, .wi-night-alt-cloudy, .wi-cloudy {
-            animation: float 4s ease-in-out infinite;
+            animation: float-subtle 6s ease-in-out infinite;
         }
         
         .wi-rain, .wi-night-alt-rain, .wi-showers, .wi-night-alt-showers,
         .wi-sprinkle, .wi-night-alt-sprinkle {
-            animation: rain 1.5s linear infinite;
+            animation: rain-subtle 3s ease-in-out infinite;
         }
         
         .wi-snow, .wi-night-alt-snow, .wi-snow-wind, .wi-night-alt-snow-wind {
-            animation: snow 3s linear infinite;
+            animation: snow-subtle 4s ease-in-out infinite;
         }
         
         .wi-rain-wind, .wi-night-alt-rain-wind {
-            animation: rain 1s linear infinite, wind 2s ease-in-out infinite;
+            animation: rain-subtle 2.5s ease-in-out infinite, wind-subtle 4s ease-in-out infinite;
         }
         
         .wi-thunderstorm, .wi-night-alt-thunderstorm,
         .wi-storm-showers, .wi-night-alt-storm-showers {
-            animation: thunder 2s ease-in-out infinite, float 3s ease-in-out infinite;
+            animation: thunder-subtle 4s ease-in-out infinite, float-subtle 5s ease-in-out infinite;
         }
         
         .wi-fog, .wi-night-fog {
-            animation: wind 4s ease-in-out infinite;
+            animation: wind-subtle 5s ease-in-out infinite;
         }
         
         .wi-day-sunny-overcast, .wi-night-alt-partly-cloudy {
-            animation: float 4s ease-in-out infinite, rotate 30s linear infinite;
+            animation: float-subtle 6s ease-in-out infinite, rotate-subtle 40s linear infinite;
+        }
+        
+        /* Iconos de amanecer/atardecer */
+        .wi-sunrise, .wi-sunset {
+            animation: pulse-subtle 3s ease-in-out infinite;
+        }
+        
+        /* Icono de gota */
+        .wi-raindrop {
+            animation: sway-subtle 2s ease-in-out infinite;
         }
         
         .temperature {
@@ -925,9 +939,23 @@
             'rojo': { class: 'red', text: 'Extremo' }
         };
         
+        // Función para obtener calidad del aire y color
+        function getAirQualityInfo(pm25) {
+            if (pm25 === null || pm25 === undefined) return { text: 'N/D', color: '#999' };
+            
+            if (pm25 <= 10) return { text: 'Excelente', color: '#00E400' };
+            if (pm25 <= 25) return { text: 'Buena', color: '#92D050' };
+            if (pm25 <= 50) return { text: 'Moderada', color: '#FFFF00' };
+            if (pm25 <= 75) return { text: 'Mala', color: '#FF7E00' };
+            return { text: 'Muy Mala', color: '#FF0000' };
+        }
+        
         // Variable global para almacenar los datos de salida/puesta de sol
         let sunriseTime = null;
         let sunsetTime = null;
+        
+        // Variable global para calidad del aire
+        let airQualityData = null;
         
         // Función para convertir grados a dirección cardinal
         function getWindDirection(degrees) {
@@ -967,6 +995,19 @@
         function formatTime(isoString) {
             const date = new Date(isoString);
             return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+        }
+        
+        // Función para cargar calidad del aire
+        async function loadAirQuality() {
+            try {
+                const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&hourly=pm2_5&timezone=Europe/Madrid&forecast_days=5`;
+                const response = await fetch(url);
+                const data = await response.json();
+                airQualityData = data;
+            } catch (error) {
+                console.error('Error al cargar calidad del aire:', error);
+                airQualityData = null;
+            }
         }
         
         // Función para obtener avisos meteorológicos en formato banner
@@ -1358,6 +1399,25 @@
                     ? formatTime(daily.sunset[dayOffset])
                     : '--:--';
                 
+                // Calcular calidad del aire promedio del día
+                let airQualityInfo = { text: 'N/D', color: '#999' };
+                if (airQualityData && airQualityData.hourly && airQualityData.hourly.pm2_5) {
+                    let dayPm25Values = [];
+                    for (let i = 0; i < airQualityData.hourly.time.length; i++) {
+                        const airTime = new Date(airQualityData.hourly.time[i]);
+                        if (airTime.getDate() === targetDay.getDate() && 
+                            airTime.getMonth() === targetDay.getMonth()) {
+                            if (airQualityData.hourly.pm2_5[i] !== null) {
+                                dayPm25Values.push(airQualityData.hourly.pm2_5[i]);
+                            }
+                        }
+                    }
+                    if (dayPm25Values.length > 0) {
+                        const avgPm25 = dayPm25Values.reduce((a, b) => a + b, 0) / dayPm25Values.length;
+                        airQualityInfo = getAirQualityInfo(avgPm25);
+                    }
+                }
+                
                 let windSum = 0;
                 let windCount = 0;
                 for (let i = 0; i < hourly.time.length; i++) {
@@ -1399,19 +1459,23 @@
                                 <div class="weather-icon-large">${icon19}</div>
                             </td>
                             <td style="width: 25%; background-color: rgba(39, 211, 245, 0.05);" rowspan="4">
-                                <div style="margin-bottom: 12px;">
+                                <div style="margin-bottom: 10px;">
                                     <div class="info-label">Temp. Max/Min</div>
                                     <div class="info-value">
                                         <span class="temp-max">${maxTemp}°</span> / <span class="temp-min">${minTemp}°</span>
                                     </div>
                                 </div>
-                                <div style="margin-bottom: 12px;">
+                                <div style="margin-bottom: 10px;">
                                     <div class="info-label">Viento ${windDir}</div>
                                     <div class="info-value">${avgWind} km/h</div>
                                 </div>
-                                <div style="margin-bottom: 12px;">
+                                <div style="margin-bottom: 10px;">
                                     <div class="info-label">UV Máximo</div>
                                     <div class="info-value" style="color: ${uvColor};">${uvMax}</div>
+                                </div>
+                                <div style="margin-bottom: 10px;">
+                                    <div class="info-label">Calidad Aire</div>
+                                    <div class="info-value" style="color: ${airQualityInfo.color};">${airQualityInfo.text}</div>
                                 </div>
                                 <div>
                                     <div class="info-label">Lluvia Acumulada</div>
@@ -1481,13 +1545,19 @@
         }
         
         // Cargar datos al iniciar
-        loadWeatherData();
+        loadAirQuality().then(() => {
+            loadWeatherData();
+        });
         
         // Cargar avisos después de que se cargue el tiempo
         setTimeout(fetchWeatherAlertsBanner, 2000);
         
         // Actualizar cada 10 minutos
-        setInterval(loadWeatherData, 600000);
+        setInterval(() => {
+            loadAirQuality().then(() => {
+                loadWeatherData();
+            });
+        }, 600000);
         setInterval(fetchWeatherAlertsBanner, 1800000);
     </script>
 </body>
