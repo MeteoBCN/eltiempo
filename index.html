@@ -98,6 +98,119 @@
             font-weight: 500;
             margin-top: 5px;
         }
+
+        /* ========== NUEVA SECCIÓN: TABLA ESTACIONES METEO.CAT ========== */
+        .meteocat-stations {
+            margin: 40px 0;
+        }
+        
+        .meteocat-stations .section-title {
+            font-size: 14px;
+            margin-bottom: 15px;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #5A6C7D;
+            text-align: center;
+        }
+        
+        .meteocat-table-container {
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        #meteocat-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        #meteocat-table thead tr {
+            background-color: rgba(39, 211, 245, 0.15);
+        }
+        
+        #meteocat-table th {
+            padding: 10px 6px;
+            text-align: center;
+            border-bottom: 2px solid #27D3F5;
+            color: #2C3E50;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        #meteocat-table tbody tr {
+            border-bottom: 1px solid rgba(192, 234, 249, 0.3);
+            transition: background-color 0.2s ease;
+        }
+        
+        #meteocat-table tbody tr:hover {
+            background-color: rgba(39, 211, 245, 0.08);
+        }
+        
+        #meteocat-table tbody tr:last-child {
+            border-bottom: none;
+        }
+        
+        #meteocat-table td {
+            padding: 10px 4px;
+            text-align: center;
+            color: #2C3E50;
+            font-size: 12px;
+        }
+        
+        #meteocat-table .station-name {
+            text-align: left;
+            font-weight: 600;
+            color: #27D3F5;
+            font-size: 11px;
+        }
+        
+        #meteocat-table .value {
+            font-weight: 500;
+        }
+        
+        #meteocat-table .temperature-value {
+            color: #F75260;
+            font-weight: 600;
+        }
+        
+        #meteocat-table .humidity-value {
+            color: #4ecdc4;
+        }
+        
+        #meteocat-table .wind-value {
+            color: #3498DB;
+        }
+        
+        #meteocat-table .precip-value {
+            color: #5DADE2;
+            font-weight: 600;
+        }
+        
+        #meteocat-table .no-data {
+            color: #999;
+            font-style: italic;
+            font-size: 10px;
+        }
+        
+        .meteocat-loading {
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+        }
+        
+        .meteocat-update {
+            text-align: center;
+            font-size: 10px;
+            color: #999;
+            margin-top: 8px;
+            padding: 8px;
+        }
+        /* ========== FIN TABLA ESTACIONES METEO.CAT ========== */
         
         /* ESTILOS PARA AVISOS METEOROLÓGICOS - BANNER */
         .weather-alerts-banner {
@@ -567,6 +680,17 @@
             .alert-banner-level {
                 align-self: flex-start;
             }
+
+            /* Responsive para tabla Meteo.cat */
+            #meteocat-table th,
+            #meteocat-table td {
+                padding: 8px 3px;
+                font-size: 10px;
+            }
+            
+            #meteocat-table .station-name {
+                font-size: 10px;
+            }
         }
     </style>
 </head>
@@ -597,6 +721,31 @@
                 </div>
             </div>
         </div>
+
+        <!-- ========== NUEVA SECCIÓN: TABLA ESTACIONES METEO.CAT ========== -->
+        <div class="meteocat-stations">
+            <div class="section-title">Estaciones Meteo.cat - Barcelona</div>
+            <div class="meteocat-table-container">
+                <table id="meteocat-table">
+                    <thead>
+                        <tr>
+                            <th>Estación</th>
+                            <th>Temp.</th>
+                            <th>Hum.</th>
+                            <th>Viento</th>
+                            <th>Precip.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="meteocat-table-body">
+                        <tr>
+                            <td colspan="5" class="meteocat-loading">Cargando estaciones...</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="meteocat-update" id="meteocat-update"></div>
+            </div>
+        </div>
+        <!-- ========== FIN TABLA ESTACIONES METEO.CAT ========== -->
 
         <!-- BANNER DE AVISOS -->
         <div class="weather-alerts-banner">
@@ -696,6 +845,113 @@
     </div>
 
     <script>
+        // ========== CÓDIGO METEO.CAT - INICIO ==========
+        const API_BASE = 'https://api.meteo.cat/xema/v1';
+        
+        const ESTACIONES_BARCELONA = [
+            'X2', // Barcelona - Zoo
+            'X4', // Barcelona - el Raval
+            'X8', // Barcelona - Zona Universitària
+            'D5', // Barcelona - Observatori Fabra
+            'XG'  // Barcelona - les Planes
+        ];
+
+        const VARIABLES = {
+            temperatura: 32,
+            humedad: 33,
+            viento: 30,
+            precipitacion: 35
+        };
+
+        async function obtenerDatosEstacion(codigoEstacion) {
+            const datos = {};
+            
+            try {
+                const metadataResponse = await fetch(`${API_BASE}/estacions/${codigoEstacion}/metadades`);
+                const metadata = await metadataResponse.json();
+                datos.nombre = metadata.nom || codigoEstacion;
+                
+                for (const [nombre, codigo] of Object.entries(VARIABLES)) {
+                    try {
+                        const response = await fetch(
+                            `${API_BASE}/estacions/${codigoEstacion}/variables/mesurades/${codigo}/últim_registre`
+                        );
+                        const varData = await response.json();
+                        
+                        if (varData.lectures && varData.lectures.length > 0) {
+                            const lectura = varData.lectures[0];
+                            datos[nombre] = {
+                                valor: lectura.valor,
+                                unitat: lectura.unitat,
+                                data: lectura.data
+                            };
+                        }
+                    } catch (err) {
+                        console.log(`Variable ${nombre} no disponible para ${codigoEstacion}`);
+                    }
+                }
+                
+                return datos;
+            } catch (error) {
+                console.error(`Error obteniendo datos de ${codigoEstacion}:`, error);
+                return { nombre: codigoEstacion, error: true };
+            }
+        }
+
+        async function cargarEstacionesMeteocat() {
+            const tbody = document.getElementById('meteocat-table-body');
+            const updateDiv = document.getElementById('meteocat-update');
+            
+            tbody.innerHTML = '<tr><td colspan="5" class="meteocat-loading">Cargando...</td></tr>';
+
+            try {
+                const promesas = ESTACIONES_BARCELONA.map(codigo => obtenerDatosEstacion(codigo));
+                const resultados = await Promise.all(promesas);
+                
+                tbody.innerHTML = '';
+                
+                resultados.forEach(datos => {
+                    const row = document.createElement('tr');
+                    
+                    const temperatura = datos.temperatura 
+                        ? `<span class="value temperature-value">${datos.temperatura.valor.toFixed(1)}°C</span>`
+                        : '<span class="no-data">N/D</span>';
+                        
+                    const humedad = datos.humedad 
+                        ? `<span class="value humidity-value">${datos.humedad.valor.toFixed(0)}%</span>`
+                        : '<span class="no-data">N/D</span>';
+                        
+                    const viento = datos.viento 
+                        ? `<span class="value wind-value">${datos.viento.valor.toFixed(1)} m/s</span>`
+                        : '<span class="no-data">N/D</span>';
+                        
+                    const precipitacion = datos.precipitacion 
+                        ? `<span class="value precip-value">${datos.precipitacion.valor.toFixed(1)} mm</span>`
+                        : '<span class="no-data">N/D</span>';
+
+                    // Nombre más corto para móviles
+                    let nombreCorto = datos.nombre.replace('Barcelona - ', '');
+                    
+                    row.innerHTML = `
+                        <td class="station-name">${nombreCorto}</td>
+                        <td>${temperatura}</td>
+                        <td>${humedad}</td>
+                        <td>${viento}</td>
+                        <td>${precipitacion}</td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+
+                updateDiv.textContent = `Actualizado: ${new Date().toLocaleTimeString('es-ES')}`;
+                
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="5" style="color: #c66; padding: 15px;">Error al cargar datos</td></tr>';
+                console.error('Error:', error);
+            }
+        }
+        // ========== CÓDIGO METEO.CAT - FIN ==========
+
         // Coordenadas de Barcelona
         const LAT = 41.3851;
         const LON = 2.1734;
@@ -1338,6 +1594,7 @@
         
         // Cargar datos al iniciar
         loadWeatherData();
+        cargarEstacionesMeteocat(); // ← LLAMADA A METEO.CAT
         
         // Cargar avisos después de que se cargue el tiempo
         setTimeout(fetchWeatherAlertsBanner, 2000);
@@ -1345,6 +1602,7 @@
         // Actualizar cada 10 minutos
         setInterval(loadWeatherData, 600000);
         setInterval(fetchWeatherAlertsBanner, 1800000);
+        setInterval(cargarEstacionesMeteocat, 300000); // ← ACTUALIZAR METEO.CAT CADA 5 MIN
     </script>
 </body>
 </html>
