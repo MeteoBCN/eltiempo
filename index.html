@@ -718,134 +718,99 @@
     </div>
 
     <script>
+        // ==========================================
+        // CONFIGURACIÓN - AÑADE TU API KEY AQUÍ
+        // ==========================================
+        const OPENWEATHER_API_KEY = 'TU_API_KEY_AQUI'; // ⚠️ REEMPLAZA ESTO CON TU API KEY
+        
         // Coordenadas de Barcelona
         const LAT = 41.3851;
         const LON = 2.1734;
         
-        // Iconos del tiempo (día) - usando Weather Icons con colores
-const weatherIcons = {
-    0: '<i class="wi wi-day-sunny"></i>',
-    1: '<i class="wi wi-day-sunny-overcast"></i>',
-    2: '<i class="wi wi-day-cloudy"></i>',
-    3: '<i class="wi wi-cloudy"></i>',
-    45: '<i class="wi wi-fog"></i>',
-    48: '<i class="wi wi-fog"></i>',
-    51: '<i class="wi wi-sprinkle"></i>',
-    53: '<i class="wi wi-sprinkle"></i>',
-    55: '<i class="wi wi-sprinkle"></i>',
-    61: '<i class="wi wi-rain"></i>',
-    63: '<i class="wi wi-rain"></i>',
-    65: '<i class="wi wi-rain-wind"></i>',
-    71: '<i class="wi wi-snow"></i>',
-    73: '<i class="wi wi-snow"></i>',
-    75: '<i class="wi wi-snow-wind"></i>',
-    80: '<i class="wi wi-showers"></i>',
-    81: '<i class="wi wi-showers"></i>',
-    82: '<i class="wi wi-storm-showers"></i>',
-    95: '<i class="wi wi-thunderstorm"></i>',
-    96: '<i class="wi wi-thunderstorm"></i>',
-    99: '<i class="wi wi-thunderstorm"></i>'
-};
-
-// Iconos del tiempo (noche)
-const weatherIconsNight = {
-    0: '<i class="wi wi-night-clear"></i>',
-    1: '<i class="wi wi-night-alt-partly-cloudy"></i>',
-    2: '<i class="wi wi-night-alt-cloudy"></i>',
-    3: '<i class="wi wi-cloudy"></i>',
-    45: '<i class="wi wi-night-fog"></i>',
-    48: '<i class="wi wi-night-fog"></i>',
-    51: '<i class="wi wi-night-alt-sprinkle"></i>',
-    53: '<i class="wi wi-night-alt-sprinkle"></i>',
-    55: '<i class="wi wi-night-alt-sprinkle"></i>',
-    61: '<i class="wi wi-night-alt-rain"></i>',
-    63: '<i class="wi wi-night-alt-rain"></i>',
-    65: '<i class="wi wi-night-alt-rain-wind"></i>',
-    71: '<i class="wi wi-night-alt-snow"></i>',
-    73: '<i class="wi wi-night-alt-snow"></i>',
-    75: '<i class="wi wi-night-alt-snow-wind"></i>',
-    80: '<i class="wi wi-night-alt-showers"></i>',
-    81: '<i class="wi wi-night-alt-showers"></i>',
-    82: '<i class="wi wi-night-alt-storm-showers"></i>',
-    95: '<i class="wi wi-night-alt-thunderstorm"></i>',
-    96: '<i class="wi wi-night-alt-thunderstorm"></i>',
-    99: '<i class="wi wi-night-alt-thunderstorm"></i>'
-};
-        
-        
-        // Descripciones del tiempo
-        const weatherDescriptions = {
-            0: 'Despejado',
-            1: 'Principalmente despejado',
-            2: 'Parcialmente nublado',
-            3: 'Nublado',
-            45: 'Niebla',
-            48: 'Niebla con escarcha',
-            51: 'Llovizna ligera',
-            53: 'Llovizna moderada',
-            55: 'Llovizna densa',
-            61: 'Lluvia ligera',
-            63: 'Lluvia moderada',
-            65: 'Lluvia intensa',
-            71: 'Nevada ligera',
-            73: 'Nevada moderada',
-            75: 'Nevada intensa',
-            80: 'Chubascos ligeros',
-            81: 'Chubascos moderados',
-            82: 'Chubascos violentos',
-            95: 'Tormenta',
-            96: 'Tormenta con granizo',
-            99: 'Tormenta fuerte'
+        // Mapeo de códigos de OpenWeather a iconos Weather Icons
+        const weatherIcons = {
+            // Clear
+            '01d': '<i class="wi wi-day-sunny"></i>',
+            '01n': '<i class="wi wi-night-clear"></i>',
+            // Few clouds
+            '02d': '<i class="wi wi-day-sunny-overcast"></i>',
+            '02n': '<i class="wi wi-night-alt-partly-cloudy"></i>',
+            // Scattered clouds
+            '03d': '<i class="wi wi-day-cloudy"></i>',
+            '03n': '<i class="wi wi-night-alt-cloudy"></i>',
+            // Broken clouds
+            '04d': '<i class="wi wi-cloudy"></i>',
+            '04n': '<i class="wi wi-cloudy"></i>',
+            // Shower rain
+            '09d': '<i class="wi wi-showers"></i>',
+            '09n': '<i class="wi wi-night-alt-showers"></i>',
+            // Rain
+            '10d': '<i class="wi wi-rain"></i>',
+            '10n': '<i class="wi wi-night-alt-rain"></i>',
+            // Thunderstorm
+            '11d': '<i class="wi wi-thunderstorm"></i>',
+            '11n': '<i class="wi wi-night-alt-thunderstorm"></i>',
+            // Snow
+            '13d': '<i class="wi wi-snow"></i>',
+            '13n': '<i class="wi wi-night-alt-snow"></i>',
+            // Mist/Fog
+            '50d': '<i class="wi wi-fog"></i>',
+            '50n': '<i class="wi wi-night-fog"></i>'
         };
         
-        // Variable global para almacenar los datos de salida/puesta de sol
-        let sunriseTime = null;
-        let sunsetTime = null;
+        // Traducciones de condiciones meteorológicas
+        const weatherDescriptions = {
+            'Clear': 'Despejado',
+            'Clouds': 'Nublado',
+            'Rain': 'Lluvia',
+            'Drizzle': 'Llovizna',
+            'Thunderstorm': 'Tormenta',
+            'Snow': 'Nieve',
+            'Mist': 'Niebla',
+            'Smoke': 'Humo',
+            'Haze': 'Neblina',
+            'Dust': 'Polvo',
+            'Fog': 'Niebla',
+            'Sand': 'Arena',
+            'Ash': 'Ceniza',
+            'Squall': 'Chubasco',
+            'Tornado': 'Tornado'
+        };
         
-        // Función para determinar si es de noche
-        function isNightTime(dateTime) {
-            if (!sunriseTime || !sunsetTime) return false;
-            
-            const time = new Date(dateTime);
-            const sunrise = new Date(sunriseTime);
-            const sunset = new Date(sunsetTime);
-            
-            // Ajustar las fechas al mismo día para comparar solo las horas
-            sunrise.setFullYear(time.getFullYear(), time.getMonth(), time.getDate());
-            sunset.setFullYear(time.getFullYear(), time.getMonth(), time.getDate());
-            
-            return time < sunrise || time > sunset;
-        }
+        // Variable global para almacenar los datos
+        let weatherData = null;
         
         // Función para obtener el icono
-        function getWeatherIcon(code, dateTime = null) {
-            if (dateTime && isNightTime(dateTime)) {
-                return weatherIconsNight[code] || '🌙';
-            }
-            return weatherIcons[code] || '☀️';
+        function getWeatherIcon(iconCode) {
+            return weatherIcons[iconCode] || '☀️';
         }
         
-        // Función para obtener la descripción
-        function getWeatherDescription(code) {
-            return weatherDescriptions[code] || 'Desconocido';
+        // Función para traducir la descripción
+        function getWeatherDescription(main, description) {
+            const translated = weatherDescriptions[main];
+            if (translated) {
+                return translated;
+            }
+            // Fallback a la descripción en español de la API
+            return description.charAt(0).toUpperCase() + description.slice(1);
         }
         
         // Función para obtener el día de la semana
-        function getDayName(dateString) {
+        function getDayName(timestamp) {
             const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-            const date = new Date(dateString);
+            const date = new Date(timestamp * 1000);
             return days[date.getDay()];
         }
         
         // Función para formatear hora
-        function formatHour(dateTimeString) {
-            const date = new Date(dateTimeString);
+        function formatHour(timestamp) {
+            const date = new Date(timestamp * 1000);
             return date.getHours().toString().padStart(2, '0') + ':00';
         }
         
         // Función para formatear hora del sol
-        function formatSunTime(dateTimeString) {
-            const date = new Date(dateTimeString);
+        function formatSunTime(timestamp) {
+            const date = new Date(timestamp * 1000);
             const hours = date.getHours().toString().padStart(2, '0');
             const minutes = date.getMinutes().toString().padStart(2, '0');
             return `${hours}:${minutes}`;
@@ -854,171 +819,154 @@ const weatherIconsNight = {
         // Función principal para cargar datos
         async function loadWeatherData() {
             try {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl&hourly=temperature_2m,precipitation_probability,weather_code,precipitation,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7`;
-                
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                // Guardar los datos de salida/puesta de sol de hoy
-                if (data.daily && data.daily.sunrise && data.daily.sunset) {
-                    sunriseTime = data.daily.sunrise[0];
-                    sunsetTime = data.daily.sunset[0];
+                // Verificar que haya API key
+                if (OPENWEATHER_API_KEY === 'TU_API_KEY_AQUI') {
+                    throw new Error('Por favor, añade tu API Key de OpenWeather en el código');
                 }
                 
-                // Actualizar tiempo actual
-                updateCurrentWeather(data.current, data.current.weather_code, data.hourly);
+                // One Call API 3.0 - incluye current, minutely, hourly, daily y alerts
+                const url = `https://api.openweathermap.org/data/3.0/onecall?lat=${LAT}&lon=${LON}&exclude=minutely,alerts&units=metric&lang=es&appid=${OPENWEATHER_API_KEY}`;
                 
-                // Actualizar jornadas de varios días
-                updateMultipleDaysForecast(data.hourly, data.daily);
+                const response = await fetch(url);
                 
-                // Actualizar previsión horaria
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                weatherData = data;
+                
+                // Actualizar todas las secciones
+                updateCurrentWeather(data.current);
                 updateHourlyForecast(data.hourly);
-                
-                // Actualizar previsión de 3 días
+                updateMultipleDaysForecast(data.daily);
                 updateDailyForecast(data.daily);
-                
-                // Actualizar hora de actualización
                 updateTime();
                 
             } catch (error) {
                 console.error('Error al cargar datos:', error);
-                document.getElementById('current-condition').textContent = 'Error al cargar datos';
+                document.getElementById('current-condition').textContent = error.message;
+                document.getElementById('current-condition').classList.add('error');
             }
         }
         
         // Actualizar tiempo actual
-        function updateCurrentWeather(current, weatherCode, hourly) {
-            const now = new Date();
-            document.getElementById('current-temp').textContent = Math.round(current.temperature_2m) + '°';
-            document.getElementById('current-icon').innerHTML = getWeatherIcon(weatherCode, now);
-            document.getElementById('current-condition').textContent = getWeatherDescription(weatherCode);
-            document.getElementById('pressure').textContent = Math.round(current.pressure_msl) + ' hPa';
-            document.getElementById('humidity').textContent = current.relative_humidity_2m + '%';
-            document.getElementById('wind').textContent = Math.round(current.wind_speed_10m) + ' km/h';
-        }
-       // Actualizar jornada de varios días
-function updateMultipleDaysForecast(hourly, daily) {
-    const now = new Date();
-    
-    // Iterar para los próximos 4 días (día 1 = mañana, día 2 = pasado mañana, etc.)
-    for (let dayOffset = 1; dayOffset <= 4; dayOffset++) {
-        const targetDay = new Date(now);
-        targetDay.setDate(targetDay.getDate() + dayOffset);
-        targetDay.setHours(0, 0, 0, 0);
-        
-        // Prefijo para los IDs (tomorrow, day2, day3, day4)
-        const prefix = dayOffset === 1 ? 'tomorrow' : `day${dayOffset}`;
-        
-        // Actualizar el día de la semana
-        const dayElement = document.getElementById(prefix === 'tomorrow' ? 'tomorrow-day' : `${prefix}-day`);
-        if (dayElement) {
-            dayElement.textContent = getDayName(targetDay.toISOString());
+        function updateCurrentWeather(current) {
+            document.getElementById('current-temp').textContent = Math.round(current.temp) + '°';
+            document.getElementById('current-icon').innerHTML = getWeatherIcon(current.weather[0].icon);
+            document.getElementById('current-condition').textContent = getWeatherDescription(
+                current.weather[0].main,
+                current.weather[0].description
+            );
+            document.getElementById('pressure').textContent = Math.round(current.pressure) + ' hPa';
+            document.getElementById('humidity').textContent = current.humidity + '%';
+            document.getElementById('wind').textContent = Math.round(current.wind_speed * 3.6) + ' km/h'; // m/s a km/h
         }
         
-        // Buscar índices para mañana (9:00) y tarde (15:00)
-        let morningIndex = -1;
-        let afternoonIndex = -1;
-        
-        for (let i = 0; i < hourly.time.length; i++) {
-            const hourTime = new Date(hourly.time[i]);
-            if (hourTime.getDate() === targetDay.getDate() && 
-                hourTime.getMonth() === targetDay.getMonth()) {
-                if (hourTime.getHours() === 9 && morningIndex === -1) {
-                    morningIndex = i;
+        // Actualizar jornada de varios días
+        function updateMultipleDaysForecast(daily) {
+            // Iterar para los próximos 4 días (día 1 = mañana, día 2 = pasado mañana, etc.)
+            for (let dayOffset = 1; dayOffset <= 4; dayOffset++) {
+                const dayData = daily[dayOffset];
+                
+                // Prefijo para los IDs
+                const prefix = dayOffset === 1 ? 'tomorrow' : `day${dayOffset}`;
+                
+                // Actualizar el día de la semana
+                const dayElement = document.getElementById(prefix === 'tomorrow' ? 'tomorrow-day' : `${prefix}-day`);
+                if (dayElement) {
+                    dayElement.textContent = getDayName(dayData.dt);
                 }
-                if (hourTime.getHours() === 15 && afternoonIndex === -1) {
-                    afternoonIndex = i;
+                
+                // Para mañana y tarde, usamos los datos horarios
+                const hourlyData = weatherData.hourly;
+                const targetDayStart = dayData.dt;
+                const targetDayEnd = targetDayStart + 86400; // +24 horas
+                
+                // Encontrar datos de las 9:00 (mañana) y 15:00 (tarde)
+                let morningData = null;
+                let afternoonData = null;
+                
+                for (let hour of hourlyData) {
+                    if (hour.dt >= targetDayStart && hour.dt < targetDayEnd) {
+                        const hourDate = new Date(hour.dt * 1000);
+                        const hourOfDay = hourDate.getHours();
+                        
+                        if (hourOfDay === 9 && !morningData) {
+                            morningData = hour;
+                        }
+                        if (hourOfDay === 15 && !afternoonData) {
+                            afternoonData = hour;
+                        }
+                    }
+                }
+                
+                // Actualizar mañana
+                if (morningData) {
+                    document.getElementById(`${prefix}-morning-temp`).textContent = Math.round(morningData.temp) + '°';
+                    document.getElementById(`${prefix}-morning-icon`).innerHTML = getWeatherIcon(morningData.weather[0].icon);
+                    document.getElementById(`${prefix}-morning-condition`).textContent = getWeatherDescription(
+                        morningData.weather[0].main,
+                        morningData.weather[0].description
+                    );
+                    document.getElementById(`${prefix}-morning-rain`).textContent = Math.round((morningData.pop || 0) * 100) + '%';
+                    document.getElementById(`${prefix}-morning-wind`).textContent = Math.round(morningData.wind_speed * 3.6) + ' km/h';
+                }
+                
+                // Actualizar tarde
+                if (afternoonData) {
+                    document.getElementById(`${prefix}-afternoon-temp`).textContent = Math.round(afternoonData.temp) + '°';
+                    document.getElementById(`${prefix}-afternoon-icon`).innerHTML = getWeatherIcon(afternoonData.weather[0].icon);
+                    document.getElementById(`${prefix}-afternoon-condition`).textContent = getWeatherDescription(
+                        afternoonData.weather[0].main,
+                        afternoonData.weather[0].description
+                    );
+                    document.getElementById(`${prefix}-afternoon-rain`).textContent = Math.round((afternoonData.pop || 0) * 100) + '%';
+                    document.getElementById(`${prefix}-afternoon-wind`).textContent = Math.round(afternoonData.wind_speed * 3.6) + ' km/h';
+                }
+                
+                // Actualizar salida y puesta de sol
+                document.getElementById(`${prefix}-sunrise`).textContent = formatSunTime(dayData.sunrise);
+                document.getElementById(`${prefix}-sunset`).textContent = formatSunTime(dayData.sunset);
+                
+                // Actualizar índice UV máximo
+                const uvMax = Math.round(dayData.uvi * 10) / 10;
+                document.getElementById(`${prefix}-uv`).textContent = uvMax;
+                
+                const uvElement = document.getElementById(`${prefix}-uv`);
+                if (uvMax < 3) {
+                    uvElement.style.color = '#4CAF50';
+                } else if (uvMax < 6) {
+                    uvElement.style.color = '#FFC107';
+                } else if (uvMax < 8) {
+                    uvElement.style.color = '#FF9800';
+                } else if (uvMax < 11) {
+                    uvElement.style.color = '#F44336';
+                } else {
+                    uvElement.style.color = '#9C27B0';
                 }
             }
         }
-        
-        // Actualizar mañana
-        if (morningIndex !== -1) {
-            const morningTemp = Math.round(hourly.temperature_2m[morningIndex]);
-            const morningCode = hourly.weather_code[morningIndex];
-            const morningTime = new Date(hourly.time[morningIndex]);
-            const morningRain = hourly.precipitation_probability[morningIndex] || 0;
-            const morningWind = Math.round(hourly.wind_speed_10m[morningIndex]);
-            
-            document.getElementById(`${prefix}-morning-temp`).textContent = morningTemp + '°';
-            document.getElementById(`${prefix}-morning-icon`).innerHTML = getWeatherIcon(morningCode, morningTime);
-            document.getElementById(`${prefix}-morning-condition`).textContent = getWeatherDescription(morningCode);
-            document.getElementById(`${prefix}-morning-rain`).textContent = morningRain + '%';
-            document.getElementById(`${prefix}-morning-wind`).textContent = morningWind + ' km/h';
-        }
-        
-        // Actualizar tarde
-        if (afternoonIndex !== -1) {
-            const afternoonTemp = Math.round(hourly.temperature_2m[afternoonIndex]);
-            const afternoonCode = hourly.weather_code[afternoonIndex];
-            const afternoonTime = new Date(hourly.time[afternoonIndex]);
-            const afternoonRain = hourly.precipitation_probability[afternoonIndex] || 0;
-            const afternoonWind = Math.round(hourly.wind_speed_10m[afternoonIndex]);
-            
-            document.getElementById(`${prefix}-afternoon-temp`).textContent = afternoonTemp + '°';
-            document.getElementById(`${prefix}-afternoon-icon`).innerHTML = getWeatherIcon(afternoonCode, afternoonTime);
-            document.getElementById(`${prefix}-afternoon-condition`).textContent = getWeatherDescription(afternoonCode);
-            document.getElementById(`${prefix}-afternoon-rain`).textContent = afternoonRain + '%';
-            document.getElementById(`${prefix}-afternoon-wind`).textContent = afternoonWind + ' km/h';
-        }
-        
-        // Actualizar salida y puesta de sol
-        if (daily.sunrise && daily.sunrise[dayOffset]) {
-            document.getElementById(`${prefix}-sunrise`).textContent = formatSunTime(daily.sunrise[dayOffset]);
-        }
-        if (daily.sunset && daily.sunset[dayOffset]) {
-            document.getElementById(`${prefix}-sunset`).textContent = formatSunTime(daily.sunset[dayOffset]);
-        }
-        
-        // Actualizar índice UV máximo
-        if (daily.uv_index_max && daily.uv_index_max[dayOffset] !== undefined) {
-            const uvMax = Math.round(daily.uv_index_max[dayOffset] * 10) / 10;
-            document.getElementById(`${prefix}-uv`).textContent = uvMax;
-            
-            const uvElement = document.getElementById(`${prefix}-uv`);
-            if (uvMax < 3) {
-                uvElement.style.color = '#4CAF50';
-            } else if (uvMax < 6) {
-                uvElement.style.color = '#FFC107';
-            } else if (uvMax < 8) {
-                uvElement.style.color = '#FF9800';
-            } else if (uvMax < 11) {
-                uvElement.style.color = '#F44336';
-            } else {
-                uvElement.style.color = '#9C27B0';
-            }
-        }
-    }
-}
         
         // Actualizar previsión horaria
         function updateHourlyForecast(hourly) {
             const container = document.getElementById('hourly-container');
             container.innerHTML = '';
             
-            const now = new Date();
-            const currentHour = now.getHours();
-            
-            // Mostrar las próximas 15 horas
-            for (let i = 3; i < 15; i+=3) {
-                const hour = (currentHour + i) % 24;
-                const hourIndex = hourly.time.findIndex(time => {
-                    const date = new Date(time);
-                    return date.getHours() === hour && date >= now;
-                });
+            // Mostrar las próximas 15 horas, de 3 en 3
+            for (let i = 3; i < 15; i += 3) {
+                if (i >= hourly.length) break;
                 
-                if (hourIndex === -1) continue;
-                
+                const hour = hourly[i];
                 const hourItem = document.createElement('div');
                 hourItem.className = 'hour-item';
                 
-                const hourTime = new Date(hourly.time[hourIndex]);
-                const temp = Math.round(hourly.temperature_2m[hourIndex]);
-                const rain = hourly.precipitation_probability[hourIndex] || 0;
-                const icon = getWeatherIcon(hourly.weather_code[hourIndex], hourTime);
+                const temp = Math.round(hour.temp);
+                const rain = Math.round((hour.pop || 0) * 100); // Probability of precipitation
+                const icon = getWeatherIcon(hour.weather[0].icon);
                 
                 hourItem.innerHTML = `
-                    <div class="hour-time">${formatHour(hourly.time[hourIndex])}</div>
+                    <div class="hour-time">${formatHour(hour.dt)}</div>
                     <div class="hour-icon">${icon}</div>
                     <div class="hour-temp">${temp}°</div>
                     <div class="hour-rain">${rain}%</div>
@@ -1033,15 +981,16 @@ function updateMultipleDaysForecast(hourly, daily) {
             const container = document.getElementById('daily-container');
             container.innerHTML = '';
             
-            // Mostrar los próximos 3 días (saltando hoy y mañana)
-            for (let i = 2; i <= 3; i++) {
+            // Mostrar los días 5 y 6 (después de los 4 días detallados)
+            for (let i = 5; i <= 6 && i < daily.length; i++) {
+                const day = daily[i];
                 const dayItem = document.createElement('div');
                 dayItem.className = 'day-item';
                 
-                const dayName = getDayName(daily.time[i]);
-                const maxTemp = Math.round(daily.temperature_2m_max[i]);
-                const minTemp = Math.round(daily.temperature_2m_min[i]);
-                const icon = getWeatherIcon(daily.weather_code[i]);
+                const dayName = getDayName(day.dt);
+                const maxTemp = Math.round(day.temp.max);
+                const minTemp = Math.round(day.temp.min);
+                const icon = getWeatherIcon(day.weather[0].icon);
                 
                 dayItem.innerHTML = `
                     <div class="day-name">${dayName}</div>
