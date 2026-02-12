@@ -57,12 +57,81 @@
         .icon-large {
             font-size: 40px;
             margin: 20px 0;
-            animation: float 3s ease-in-out infinite;
         }
         
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @keyframes rain {
+            0% { transform: translateY(-100%); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+        
+        @keyframes snow {
+            0% { transform: translateY(-100%) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100%) rotate(360deg); opacity: 0; }
+        }
+        
+        @keyframes wind {
+            0% { transform: translateX(-20px); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(20px); opacity: 0; }
+        }
+        
+        @keyframes thunder {
+            0%, 45%, 55%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        /* Aplicar animaciones a los iconos */
+        .wi-day-sunny, .wi-night-clear {
+            animation: rotate 20s linear infinite;
+        }
+        
+        .wi-day-cloudy, .wi-night-alt-cloudy, .wi-cloudy {
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .wi-rain, .wi-night-alt-rain, .wi-showers, .wi-night-alt-showers,
+        .wi-sprinkle, .wi-night-alt-sprinkle {
+            animation: rain 1.5s linear infinite;
+        }
+        
+        .wi-snow, .wi-night-alt-snow, .wi-snow-wind, .wi-night-alt-snow-wind {
+            animation: snow 3s linear infinite;
+        }
+        
+        .wi-rain-wind, .wi-night-alt-rain-wind {
+            animation: rain 1s linear infinite, wind 2s ease-in-out infinite;
+        }
+        
+        .wi-thunderstorm, .wi-night-alt-thunderstorm,
+        .wi-storm-showers, .wi-night-alt-storm-showers {
+            animation: thunder 2s ease-in-out infinite, float 3s ease-in-out infinite;
+        }
+        
+        .wi-fog, .wi-night-fog {
+            animation: wind 4s ease-in-out infinite;
+        }
+        
+        .wi-day-sunny-overcast, .wi-night-alt-partly-cloudy {
+            animation: float 4s ease-in-out infinite, rotate 30s linear infinite;
         }
         
         .temperature {
@@ -348,7 +417,6 @@
         .day-icon {
             font-size: 40px;
             margin: 0 15px;
-            animation: float 3s ease-in-out infinite;
         }
         
         .day-temps {
@@ -437,16 +505,6 @@
         .wi-showers, .wi-night-alt-showers { color: #5DADE2; }
         .wi-storm-showers, .wi-night-alt-storm-showers { color: #2874A6; }
         .wi-thunderstorm, .wi-night-alt-thunderstorm { color: #8E44AD; }
-        
-        /* Animación adicional para tormentas */
-        .wi-thunderstorm, .wi-night-alt-thunderstorm {
-            animation: float 3s ease-in-out infinite, pulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
         
         @keyframes spin {
             from { transform: rotate(0deg); }
@@ -734,9 +792,9 @@
             </table>
         </div>
             
-        <!-- TABLA DE PREVISIÓN 4 DÍAS - FORMATO DETALLADO -->
+        <!-- TABLA DE PREVISIÓN - PRÓXIMOS DÍAS (EMPIEZA HOY) -->
         <div class="weather-table-container" style="margin-top: 60px;">
-            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;">PREVISIÓN PRÓXIMOS 4 DÍAS</div>
+            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;">PRONÓSTICO PARA LA JORNADA DE HOY Y PRÓXIMOS DÍAS</div>
             <div id="days-detailed-container">
                 <div style="padding: 20px; text-align: center; color: #999;">Cargando datos...</div>
             </div>
@@ -1242,12 +1300,13 @@
             
             const now = new Date();
             
-            for (let dayOffset = 1; dayOffset <= 4; dayOffset++) {
+            // EMPIEZA DESDE HOY (dayOffset = 0)
+            for (let dayOffset = 0; dayOffset <= 3; dayOffset++) {
                 const targetDay = new Date(now);
                 targetDay.setDate(targetDay.getDate() + dayOffset);
                 targetDay.setHours(0, 0, 0, 0);
                 
-                const dayName = getDayName(targetDay.toISOString());
+                const dayName = dayOffset === 0 ? 'Hoy' : getDayName(targetDay.toISOString());
                 
                 let hour09Index = -1;
                 let hour14Index = -1;
@@ -1355,7 +1414,7 @@
                                     <div class="info-value" style="color: ${uvColor};">${uvMax}</div>
                                 </div>
                                 <div>
-                                    <div class="info-label">Lluvia</div>
+                                    <div class="info-label">Lluvia Acumulada</div>
                                     <div class="info-value" style="color: #3498DB;">${precipSum} l/m²</div>
                                 </div>
                             </td>
@@ -1373,7 +1432,7 @@
                         </tr>
                         <tr>
                             <td colspan="3" style="padding: 8px; font-size: 11px; color: #7B8794;">
-                                <i class="wi wi-raindrop" style="color: #3498DB;"></i> Probabilidad de lluvia
+                                <i class="wi wi-raindrop" style="color: #3498DB;"></i> Lluvia máxima acumulada prevista: <strong style="color: #3498DB;">${precipSum} l/m²</strong>
                             </td>
                         </tr>
                         <tr>
