@@ -99,6 +99,169 @@
             margin-top: 5px;
         }
         
+        /* ESTILOS PARA AVISOS METEOROLÓGICOS */
+        .weather-alerts {
+            margin: 40px 0;
+            padding: 0;
+        }
+        
+        .alerts-title {
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #c0eaf9;
+        }
+        
+        .alerts-container {
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .alert-item {
+            padding: 20px;
+            border-left: 5px solid;
+            margin-bottom: 1px;
+            background-color: rgba(255, 255, 255, 0.9);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .alert-item:hover {
+            transform: translateX(3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .alert-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Colores de alertas según nivel */
+        .alert-green {
+            border-left-color: #4CAF50;
+            background-color: rgba(76, 175, 80, 0.05);
+        }
+        
+        .alert-yellow {
+            border-left-color: #FFC107;
+            background-color: rgba(255, 193, 7, 0.05);
+        }
+        
+        .alert-orange {
+            border-left-color: #FF9800;
+            background-color: rgba(255, 152, 0, 0.05);
+        }
+        
+        .alert-red {
+            border-left-color: #F44336;
+            background-color: rgba(244, 67, 54, 0.05);
+        }
+        
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .alert-type {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2C3E50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .alert-icon {
+            font-size: 24px;
+        }
+        
+        .alert-level {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .level-green {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .level-yellow {
+            background-color: #FFC107;
+            color: #2C3E50;
+        }
+        
+        .level-orange {
+            background-color: #FF9800;
+            color: white;
+        }
+        
+        .level-red {
+            background-color: #F44336;
+            color: white;
+        }
+        
+        .alert-description {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #5A6C7D;
+            margin-bottom: 10px;
+        }
+        
+        .alert-time {
+            font-size: 12px;
+            color: #7B8794;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .no-alerts {
+            padding: 30px;
+            text-align: center;
+            color: #4CAF50;
+            font-size: 16px;
+        }
+        
+        .no-alerts-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .alerts-loading {
+            padding: 30px;
+            text-align: center;
+            color: #999;
+        }
+        
+        .alerts-error {
+            padding: 20px;
+            text-align: center;
+            color: #F44336;
+            background-color: rgba(244, 67, 54, 0.1);
+            border-radius: 4px;
+            margin: 10px;
+        }
+        
+        .alert-footer {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 11px;
+            color: #999;
+            text-align: right;
+        }
+        
         /* JORNADA DE MAÑANA */
         .tomorrow-section {
             margin-bottom: 40px;
@@ -401,6 +564,11 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
         }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
 
         /* ESTILOS PARA LA TABLA */
         .weather-table-container {
@@ -592,6 +760,15 @@
             #weather-table .table-icon {
                 font-size: 24px;
             }
+            
+            .alert-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .alert-type {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -621,422 +798,17 @@
                     <div class="detail-value" id="wind">-- km/h</div>
                 </div>
             </div>
-            !-- SECCIÓN DE AVISOS METEOROLÓGICOS -->
-<!-- Insertar este bloque justo después de la sección "current-weather" -->
-
-<style>
-    /* ESTILOS PARA AVISOS METEOROLÓGICOS */
-    .weather-alerts {
-        margin: 40px 0;
-        padding: 0;
-    }
-    
-    .alerts-title {
-        font-size: 16px;
-        text-align: center;
-        margin-bottom: 20px;
-        font-weight: 400;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: #c0eaf9;
-    }
-    
-    .alerts-container {
-        background-color: rgba(255, 255, 255, 0.6);
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-    
-    .alert-item {
-        padding: 20px;
-        border-left: 5px solid;
-        margin-bottom: 1px;
-        background-color: rgba(255, 255, 255, 0.9);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    
-    .alert-item:hover {
-        transform: translateX(3px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-    
-    .alert-item:last-child {
-        margin-bottom: 0;
-    }
-    
-    /* Colores de alertas según nivel */
-    .alert-green {
-        border-left-color: #4CAF50;
-        background-color: rgba(76, 175, 80, 0.05);
-    }
-    
-    .alert-yellow {
-        border-left-color: #FFC107;
-        background-color: rgba(255, 193, 7, 0.05);
-    }
-    
-    .alert-orange {
-        border-left-color: #FF9800;
-        background-color: rgba(255, 152, 0, 0.05);
-    }
-    
-    .alert-red {
-        border-left-color: #F44336;
-        background-color: rgba(244, 67, 54, 0.05);
-    }
-    
-    .alert-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-    
-    .alert-type {
-        font-size: 16px;
-        font-weight: 600;
-        color: #2C3E50;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .alert-icon {
-        font-size: 24px;
-    }
-    
-    .alert-level {
-        padding: 4px 12px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .level-green {
-        background-color: #4CAF50;
-        color: white;
-    }
-    
-    .level-yellow {
-        background-color: #FFC107;
-        color: #2C3E50;
-    }
-    
-    .level-orange {
-        background-color: #FF9800;
-        color: white;
-    }
-    
-    .level-red {
-        background-color: #F44336;
-        color: white;
-    }
-    
-    .alert-description {
-        font-size: 14px;
-        line-height: 1.6;
-        color: #5A6C7D;
-        margin-bottom: 10px;
-    }
-    
-    .alert-time {
-        font-size: 12px;
-        color: #7B8794;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-    
-    .no-alerts {
-        padding: 30px;
-        text-align: center;
-        color: #4CAF50;
-        font-size: 16px;
-    }
-    
-    .no-alerts-icon {
-        font-size: 48px;
-        margin-bottom: 10px;
-    }
-    
-    .alerts-loading {
-        padding: 30px;
-        text-align: center;
-        color: #999;
-    }
-    
-    .alerts-error {
-        padding: 20px;
-        text-align: center;
-        color: #F44336;
-        background-color: rgba(244, 67, 54, 0.1);
-        border-radius: 4px;
-        margin: 10px;
-    }
-    
-    .alert-footer {
-        margin-top: 15px;
-        padding-top: 15px;
-        border-top: 1px solid rgba(0, 0, 0, 0.1);
-        font-size: 11px;
-        color: #999;
-        text-align: right;
-    }
-    
-    @media (max-width: 480px) {
-        .alert-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        
-        .alert-type {
-            font-size: 14px;
-        }
-    }
-</style>
-
-<!-- SECCIÓN DE AVISOS -->
-<div class="weather-alerts">
-    <div class="alerts-title">AVISOS METEOROLÓGICOS OFICIALES</div>
-    <div class="alerts-container" id="alerts-container">
-        <div class="alerts-loading">
-            <i class="wi wi-day-sunny" style="font-size: 32px; animation: spin 2s linear infinite;"></i>
-            <div style="margin-top: 10px;">Consultando avisos de AEMET...</div>
         </div>
-    </div>
-</div>
 
-<style>
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-</style>
-
-<script>
-    // Configuración para Barcelona
-    const BARCELONA_PROVINCE_CODE = '08'; // Código de provincia de Barcelona
-    const AEMET_ALERTS_URL = 'https://www.el-tiempo.net/api/json/v2/provincias/08/alertas';
-    
-    // Mapeo de fenómenos meteorológicos
-    const WEATHER_PHENOMENA = {
-        'viento': { icon: '💨', name: 'Viento' },
-        'nieve': { icon: '❄️', name: 'Nieve' },
-        'lluvia': { icon: '🌧️', name: 'Lluvia' },
-        'tormenta': { icon: '⛈️', name: 'Tormentas' },
-        'temperatura': { icon: '🌡️', name: 'Temperaturas extremas' },
-        'calor': { icon: '🔥', name: 'Calor extremo' },
-        'frio': { icon: '🥶', name: 'Frío extremo' },
-        'niebla': { icon: '🌫️', name: 'Niebla' },
-        'fenomeno': { icon: '⚠️', name: 'Fenómeno costero' },
-        'maritimo': { icon: '🌊', name: 'Fenómeno marítimo' }
-    };
-    
-    // Niveles de alerta
-    const ALERT_LEVELS = {
-        'verde': { class: 'green', text: 'Sin riesgo' },
-        'amarillo': { class: 'yellow', text: 'Riesgo' },
-        'naranja': { class: 'orange', text: 'Riesgo importante' },
-        'rojo': { class: 'red', text: 'Riesgo extremo' }
-    };
-    
-    // Función para obtener avisos meteorológicos
-    async function fetchWeatherAlerts() {
-        const container = document.getElementById('alerts-container');
-        
-        try {
-            // Intentar obtener datos de AEMET vía API pública
-            const response = await fetch(AEMET_ALERTS_URL);
-            
-            if (!response.ok) {
-                throw new Error('Error al obtener datos');
-            }
-            
-            const data = await response.json();
-            
-            // Procesar y mostrar avisos
-            displayAlerts(data);
-            
-        } catch (error) {
-            console.error('Error al cargar avisos:', error);
-            
-            // Si falla, mostrar avisos simulados basados en el tiempo actual
-            displayFallbackAlerts();
-        }
-    }
-    
-    // Mostrar avisos obtenidos de la API
-    function displayAlerts(data) {
-        const container = document.getElementById('alerts-container');
-        
-        // Verificar si hay alertas activas
-        if (!data || !data.today || data.today.length === 0) {
-            container.innerHTML = `
-                <div class="no-alerts">
-                    <div class="no-alerts-icon">✅</div>
-                    <div>No hay avisos meteorológicos activos para Barcelona</div>
-                    <div style="font-size: 12px; margin-top: 10px; color: #7B8794;">
-                        Condiciones normales previstas
-                    </div>
+        <!-- SECCIÓN DE AVISOS METEOROLÓGICOS -->
+        <div class="weather-alerts">
+            <div class="alerts-title">AVISOS METEOROLÓGICOS OFICIALES</div>
+            <div class="alerts-container" id="alerts-container">
+                <div class="alerts-loading">
+                    <i class="wi wi-day-sunny" style="font-size: 32px; animation: spin 2s linear infinite;"></i>
+                    <div style="margin-top: 10px;">Consultando avisos de AEMET...</div>
                 </div>
-            `;
-            return;
-        }
-        
-        // Construir HTML de avisos
-        let alertsHTML = '';
-        
-        data.today.forEach(alert => {
-            const level = alert.level.toLowerCase();
-            const levelInfo = ALERT_LEVELS[level] || ALERT_LEVELS['verde'];
-            
-            const phenomenon = Object.keys(WEATHER_PHENOMENA).find(key => 
-                alert.phenomenon.toLowerCase().includes(key)
-            ) || 'fenomeno';
-            const phenoInfo = WEATHER_PHENOMENA[phenomenon];
-            
-            alertsHTML += `
-                <div class="alert-item alert-${levelInfo.class}">
-                    <div class="alert-header">
-                        <div class="alert-type">
-                            <span class="alert-icon">${phenoInfo.icon}</span>
-                            ${phenoInfo.name}
-                        </div>
-                        <span class="alert-level level-${levelInfo.class}">${levelInfo.text}</span>
-                    </div>
-                    <div class="alert-description">
-                        ${alert.description || 'Consulte fuentes oficiales para más información'}
-                    </div>
-                    <div class="alert-time">
-                        ⏰ Vigente: ${alert.start} - ${alert.end}
-                    </div>
-                </div>
-            `;
-        });
-        
-        alertsHTML += `
-            <div class="alert-footer">
-                Fuente: Agencia Estatal de Meteorología (AEMET)
             </div>
-        `;
-        
-        container.innerHTML = alertsHTML;
-    }
-    
-    // Avisos alternativos si falla la API principal
-    function displayFallbackAlerts() {
-        const container = document.getElementById('alerts-container');
-        
-        // Obtener datos del tiempo actual para generar avisos inteligentes
-        const currentTemp = parseFloat(document.getElementById('current-temp').textContent);
-        const currentWind = parseFloat(document.getElementById('wind').textContent);
-        
-        let alerts = [];
-        
-        // Generar avisos basados en condiciones
-        if (currentWind > 50) {
-            alerts.push({
-                type: 'viento',
-                level: 'naranja',
-                description: `Vientos fuertes registrados con rachas de ${Math.round(currentWind)} km/h. Se recomienda precaución en zonas expuestas y evitar actividades al aire libre.`,
-                start: 'Ahora',
-                end: 'Próximas 6 horas'
-            });
-        } else if (currentWind > 40) {
-            alerts.push({
-                type: 'viento',
-                level: 'amarillo',
-                description: `Vientos moderados a fuertes con rachas de ${Math.round(currentWind)} km/h. Precaución con objetos que puedan salir volando.`,
-                start: 'Ahora',
-                end: 'Próximas 4 horas'
-            });
-        }
-        
-        if (currentTemp > 35) {
-            alerts.push({
-                type: 'calor',
-                level: 'naranja',
-                description: `Temperaturas excepcionalmente altas de ${Math.round(currentTemp)}°C. Manténgase hidratado y evite la exposición prolongada al sol.`,
-                start: 'Ahora',
-                end: 'Hasta la noche'
-            });
-        } else if (currentTemp > 32) {
-            alerts.push({
-                type: 'calor',
-                level: 'amarillo',
-                description: `Temperaturas elevadas de ${Math.round(currentTemp)}°C. Beba agua regularmente y protéjase del sol.`,
-                start: 'Ahora',
-                end: 'Hasta la tarde'
-            });
-        }
-        
-        if (currentTemp < 0) {
-            alerts.push({
-                type: 'frio',
-                level: 'naranja',
-                description: `Temperaturas bajo cero (${Math.round(currentTemp)}°C). Riesgo de heladas y formación de hielo. Extreme precauciones.`,
-                start: 'Ahora',
-                end: 'Próximas 12 horas'
-            });
-        }
-        
-        // Si no hay alertas, mostrar mensaje de tranquilidad
-        if (alerts.length === 0) {
-            container.innerHTML = `
-                <div class="no-alerts">
-                    <div class="no-alerts-icon">✅</div>
-                    <div>No hay avisos meteorológicos activos para Barcelona</div>
-                    <div style="font-size: 12px; margin-top: 10px; color: #7B8794;">
-                        Condiciones meteorológicas normales
-                    </div>
-                </div>
-            `;
-            return;
-        }
-        
-        // Mostrar alertas generadas
-        let alertsHTML = '';
-        
-        alerts.forEach(alert => {
-            const levelInfo = ALERT_LEVELS[alert.level];
-            const phenoInfo = WEATHER_PHENOMENA[alert.type];
-            
-            alertsHTML += `
-                <div class="alert-item alert-${levelInfo.class}">
-                    <div class="alert-header">
-                        <div class="alert-type">
-                            <span class="alert-icon">${phenoInfo.icon}</span>
-                            ${phenoInfo.name}
-                        </div>
-                        <span class="alert-level level-${levelInfo.class}">${levelInfo.text}</span>
-                    </div>
-                    <div class="alert-description">
-                        ${alert.description}
-                    </div>
-                    <div class="alert-time">
-                        ⏰ Vigente: ${alert.start} - ${alert.end}
-                    </div>
-                </div>
-            `;
-        });
-        
-        alertsHTML += `
-            <div class="alert-footer">
-                Avisos generados automáticamente • Consulte AEMET para información oficial
-            </div>
-        `;
-        
-        container.innerHTML = alertsHTML;
-    }
-    
-    // Cargar avisos al iniciar (después de que se carguen los datos del tiempo)
-    setTimeout(fetchWeatherAlerts, 2000);
-    
         </div>
        
         <!-- PREVISIÓN NARRATIVA -->
@@ -1064,7 +836,7 @@
         <div style="text-align: center;">
             <img src="avi00.jpg" alt="Descripción" 
             style="width: 320px; height: 100%; display: block; margin: 0 auto;">
-            </div>
+        </div>
         <div style="margin-top: 60px;"></div>
 
         
@@ -1091,150 +863,150 @@
                 </div>
             </div>
             <div class="sun-times">
-                    <div class="sun-item">
+                <div class="sun-item">
                     <div class="sun-info">
-                   <div class="sun-label">Amanecer</div>
-                  <div class="sun-time" id="tomorrow-sunrise">--:--</div>
-               </div>
-            </div>
-            <div class="sun-item">
-                  <div class="sun-info">
-                  <div class="sun-label">Atardecer</div>
-                  <div class="sun-time" id="tomorrow-sunset">--:--</div>
+                        <div class="sun-label">Amanecer</div>
+                        <div class="sun-time" id="tomorrow-sunrise">--:--</div>
+                    </div>
                 </div>
-           </div>
-              </div>
-                <div class="uv-info" style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(192, 234, 249, 0.2);">
+                <div class="sun-item">
+                    <div class="sun-info">
+                        <div class="sun-label">Atardecer</div>
+                        <div class="sun-time" id="tomorrow-sunset">--:--</div>
+                    </div>
+                </div>
+            </div>
+            <div class="uv-info" style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(192, 234, 249, 0.2);">
                 <div style="font-size: 12px; color: #a0d0df; margin-bottom: 5px;">Índice UV Máximo</div>
                 <div style="font-size: 24px; font-weight: 500;" id="tomorrow-uv">--</div>
-                </div>
-                </div> <!-- Cierre de tomorrow-section del MARTES -->
+            </div>
+        </div>
                 
-            <!-- MIÉRCOLES -->
-            <div class="tomorrow-section">
-              <div class="tomorrow-title"></div>
-              <div class="tomorrow-date" id="day2-day" style="text-transform: uppercase; color: #27D3F5;">Miércoles</div>
-              <div class="tomorrow-periods">
-            <div class="period-item">
-            <div class="period-title">Mañana</div>
-            <div class="period-icon" id="day2-morning-icon">☀️</div>
-            <div class="period-temp" id="day2-morning-temp">--°</div>
-            <div class="period-condition" id="day2-morning-condition">--</div>
-            <div class="period-rain" id="day2-morning-rain">--%</div>
-            <div class="period-wind" id="day2-morning-wind">-- km/h</div>
-        </div>
-        <div class="period-item">
-            <div class="period-title">Tarde</div>
-            <div class="period-icon" id="day2-afternoon-icon">☀️</div>
-            <div class="period-temp" id="day2-afternoon-temp">--°</div>
-            <div class="period-condition" id="day2-afternoon-condition">--</div>
-            <div class="period-rain" id="day2-afternoon-rain">--%</div>
-            <div class="period-wind" id="day2-afternoon-wind">-- km/h</div>
-        </div>
-    </div>
-    <div class="sun-times">
-        <div class="sun-item">
-            <div class="sun-info">
-                <div class="sun-label">Amanecer</div>
-                <div class="sun-time" id="day2-sunrise">--:--</div>
+        <!-- MIÉRCOLES -->
+        <div class="tomorrow-section">
+            <div class="tomorrow-title"></div>
+            <div class="tomorrow-date" id="day2-day" style="text-transform: uppercase; color: #27D3F5;">Miércoles</div>
+            <div class="tomorrow-periods">
+                <div class="period-item">
+                    <div class="period-title">Mañana</div>
+                    <div class="period-icon" id="day2-morning-icon">☀️</div>
+                    <div class="period-temp" id="day2-morning-temp">--°</div>
+                    <div class="period-condition" id="day2-morning-condition">--</div>
+                    <div class="period-rain" id="day2-morning-rain">--%</div>
+                    <div class="period-wind" id="day2-morning-wind">-- km/h</div>
+                </div>
+                <div class="period-item">
+                    <div class="period-title">Tarde</div>
+                    <div class="period-icon" id="day2-afternoon-icon">☀️</div>
+                    <div class="period-temp" id="day2-afternoon-temp">--°</div>
+                    <div class="period-condition" id="day2-afternoon-condition">--</div>
+                    <div class="period-rain" id="day2-afternoon-rain">--%</div>
+                    <div class="period-wind" id="day2-afternoon-wind">-- km/h</div>
+                </div>
+            </div>
+            <div class="sun-times">
+                <div class="sun-item">
+                    <div class="sun-info">
+                        <div class="sun-label">Amanecer</div>
+                        <div class="sun-time" id="day2-sunrise">--:--</div>
+                    </div>
+                </div>
+                <div class="sun-item">
+                    <div class="sun-info">
+                        <div class="sun-label">Atardecer</div>
+                        <div class="sun-time" id="day2-sunset">--:--</div>
+                    </div>
+                </div>
+            </div>
+            <div class="uv-info" style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(192, 234, 249, 0.2);">
+                <div style="font-size: 12px; color: #a0d0df; margin-bottom: 5px;">Índice UV Máximo</div>
+                <div style="font-size: 24px; font-weight: 500;" id="day2-uv">--</div>
             </div>
         </div>
-        <div class="sun-item">
-            <div class="sun-info">
-                <div class="sun-label">Atardecer</div>
-                <div class="sun-time" id="day2-sunset">--:--</div>
-            </div>
-        </div>
-    </div>
-    <div class="uv-info" style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(192, 234, 249, 0.2);">
-        <div style="font-size: 12px; color: #a0d0df; margin-bottom: 5px;">Índice UV Máximo</div>
-        <div style="font-size: 24px; font-weight: 500;" id="day2-uv">--</div>
-    </div>
-     </div> <!-- Cierre de tomorrow-section del MIERCOLES -->           
 
-<!-- JUEVES -->
-<div class="tomorrow-section">
-    <div class="tomorrow-title"></div>
-    <div class="tomorrow-date" id="day3-day" style="text-transform: uppercase; color: #27D3F5;">Jueves</div>
-    <div class="tomorrow-periods">
-        <div class="period-item">
-            <div class="period-title">Mañana</div>
-            <div class="period-icon" id="day3-morning-icon">☀️</div>
-            <div class="period-temp" id="day3-morning-temp">--°</div>
-            <div class="period-condition" id="day3-morning-condition">--</div>
-            <div class="period-rain" id="day3-morning-rain">--%</div>
-            <div class="period-wind" id="day3-morning-wind">-- km/h</div>
-        </div>
-        <div class="period-item">
-            <div class="period-title">Tarde</div>
-            <div class="period-icon" id="day3-afternoon-icon">☀️</div>
-            <div class="period-temp" id="day3-afternoon-temp">--°</div>
-            <div class="period-condition" id="day3-afternoon-condition">--</div>
-            <div class="period-rain" id="day3-afternoon-rain">--%</div>
-            <div class="period-wind" id="day3-afternoon-wind">-- km/h</div>
-        </div>
-    </div>
-    <div class="sun-times">
-        <div class="sun-item">
-            <div class="sun-info">
-                <div class="sun-label">Amanecer</div>
-                <div class="sun-time" id="day3-sunrise">--:--</div>
+        <!-- JUEVES -->
+        <div class="tomorrow-section">
+            <div class="tomorrow-title"></div>
+            <div class="tomorrow-date" id="day3-day" style="text-transform: uppercase; color: #27D3F5;">Jueves</div>
+            <div class="tomorrow-periods">
+                <div class="period-item">
+                    <div class="period-title">Mañana</div>
+                    <div class="period-icon" id="day3-morning-icon">☀️</div>
+                    <div class="period-temp" id="day3-morning-temp">--°</div>
+                    <div class="period-condition" id="day3-morning-condition">--</div>
+                    <div class="period-rain" id="day3-morning-rain">--%</div>
+                    <div class="period-wind" id="day3-morning-wind">-- km/h</div>
+                </div>
+                <div class="period-item">
+                    <div class="period-title">Tarde</div>
+                    <div class="period-icon" id="day3-afternoon-icon">☀️</div>
+                    <div class="period-temp" id="day3-afternoon-temp">--°</div>
+                    <div class="period-condition" id="day3-afternoon-condition">--</div>
+                    <div class="period-rain" id="day3-afternoon-rain">--%</div>
+                    <div class="period-wind" id="day3-afternoon-wind">-- km/h</div>
+                </div>
+            </div>
+            <div class="sun-times">
+                <div class="sun-item">
+                    <div class="sun-info">
+                        <div class="sun-label">Amanecer</div>
+                        <div class="sun-time" id="day3-sunrise">--:--</div>
+                    </div>
+                </div>
+                <div class="sun-item">
+                    <div class="sun-info">
+                        <div class="sun-label">Atardecer</div>
+                        <div class="sun-time" id="day3-sunset">--:--</div>
+                    </div>
+                </div>
+            </div>
+            <div class="uv-info" style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(192, 234, 249, 0.2);">
+                <div style="font-size: 12px; color: #a0d0df; margin-bottom: 5px;">Índice UV Máximo</div>
+                <div style="font-size: 24px; font-weight: 500;" id="day3-uv">--</div>
             </div>
         </div>
-        <div class="sun-item">
-            <div class="sun-info">
-                <div class="sun-label">Atardecer</div>
-                <div class="sun-time" id="day3-sunset">--:--</div>
-            </div>
-        </div>
-    </div>
-    <div class="uv-info" style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(192, 234, 249, 0.2);">
-        <div style="font-size: 12px; color: #a0d0df; margin-bottom: 5px;">Índice UV Máximo</div>
-        <div style="font-size: 24px; font-weight: 500;" id="day3-uv">--</div>
-    </div>
-    </div> <!-- Cierre de tomorrow-section del JUEVES -->
 
-<!-- VIERNES -->
-<div class="tomorrow-section">
-    <div class="tomorrow-title"></div>
-    <div class="tomorrow-date" id="day4-day" style="text-transform: uppercase; color: #27D3F5;">Viernes</div>
-    <div class="tomorrow-periods">
-        <div class="period-item">
-            <div class="period-title">Mañana</div>
-            <div class="period-icon" id="day4-morning-icon">☀️</div>
-            <div class="period-temp" id="day4-morning-temp">--°</div>
-            <div class="period-condition" id="day4-morning-condition">--</div>
-            <div class="period-rain" id="day4-morning-rain">--%</div>
-            <div class="period-wind" id="day4-morning-wind">-- km/h</div>
-        </div>
-        <div class="period-item">
-            <div class="period-title">Tarde</div>
-            <div class="period-icon" id="day4-afternoon-icon">☀️</div>
-            <div class="period-temp" id="day4-afternoon-temp">--°</div>
-            <div class="period-condition" id="day4-afternoon-condition">--</div>
-            <div class="period-rain" id="day4-afternoon-rain">--%</div>
-            <div class="period-wind" id="day4-afternoon-wind">-- km/h</div>
-        </div>
-    </div>
-    <div class="sun-times">
-        <div class="sun-item">
-            <div class="sun-info">
-                <div class="sun-label">Amanecer</div>
-                <div class="sun-time" id="day4-sunrise">--:--</div>
+        <!-- VIERNES -->
+        <div class="tomorrow-section">
+            <div class="tomorrow-title"></div>
+            <div class="tomorrow-date" id="day4-day" style="text-transform: uppercase; color: #27D3F5;">Viernes</div>
+            <div class="tomorrow-periods">
+                <div class="period-item">
+                    <div class="period-title">Mañana</div>
+                    <div class="period-icon" id="day4-morning-icon">☀️</div>
+                    <div class="period-temp" id="day4-morning-temp">--°</div>
+                    <div class="period-condition" id="day4-morning-condition">--</div>
+                    <div class="period-rain" id="day4-morning-rain">--%</div>
+                    <div class="period-wind" id="day4-morning-wind">-- km/h</div>
+                </div>
+                <div class="period-item">
+                    <div class="period-title">Tarde</div>
+                    <div class="period-icon" id="day4-afternoon-icon">☀️</div>
+                    <div class="period-temp" id="day4-afternoon-temp">--°</div>
+                    <div class="period-condition" id="day4-afternoon-condition">--</div>
+                    <div class="period-rain" id="day4-afternoon-rain">--%</div>
+                    <div class="period-wind" id="day4-afternoon-wind">-- km/h</div>
+                </div>
+            </div>
+            <div class="sun-times">
+                <div class="sun-item">
+                    <div class="sun-info">
+                        <div class="sun-label">Amanecer</div>
+                        <div class="sun-time" id="day4-sunrise">--:--</div>
+                    </div>
+                </div>
+                <div class="sun-item">
+                    <div class="sun-info">
+                        <div class="sun-label">Atardecer</div>
+                        <div class="sun-time" id="day4-sunset">--:--</div>
+                    </div>
+                </div>
+            </div>
+            <div class="uv-info" style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(192, 234, 249, 0.2);">
+                <div style="font-size: 12px; color: #a0d0df; margin-bottom: 5px;">Índice UV Máximo</div>
+                <div style="font-size: 24px; font-weight: 500;" id="day4-uv">--</div>
             </div>
         </div>
-        <div class="sun-item">
-            <div class="sun-info">
-                <div class="sun-label">Atardecer</div>
-                <div class="sun-time" id="day4-sunset">--:--</div>
-            </div>
-        </div>
-    </div>
-    <div class="uv-info" style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(192, 234, 249, 0.2);">
-        <div style="font-size: 12px; color: #a0d0df; margin-bottom: 5px;">Índice UV Máximo</div>
-        <div style="font-size: 24px; font-weight: 500;" id="day4-uv">--</div>
-    </div>
-    </div> <!-- Cierre de tomorrow-section del VIERNES -->
 
         <!-- TABLA DE PREVISIÓN HORARIA -->
         <div class="weather-table-container">
@@ -1273,22 +1045,19 @@
             </div>
         </div>
 
-          <div style="display: flex; flex-direction: column; align-items: center; width: 100%; font-family: sans-serif;">
-    
-                <!-- Nombre de webcam -->
-                <span style="margin-bottom: 0px; font-weight: bold; color: #c0eaf9;">Barceloneta</span>
-    
-                <!-- Tu contenedor original -->
-                <div style="width: 320px; height: 180px; overflow: hidden; border: 1px solid #ccc; background: #000; border-radius: 0px;">
+        <div style="display: flex; flex-direction: column; align-items: center; width: 100%; font-family: sans-serif;">
+            <!-- Nombre de webcam -->
+            <span style="margin-bottom: 0px; font-weight: bold; color: #c0eaf9;">Barceloneta</span>
+            <!-- Tu contenedor original -->
+            <div style="width: 320px; height: 180px; overflow: hidden; border: 1px solid #ccc; background: #000; border-radius: 0px;">
                 <img 
-                id="webcam-jpg" 
-                src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg" 
-                style="width: 100%; height: 100%; object-fit: contain;"
-                alt="Barceloneta"
+                    id="webcam-jpg" 
+                    src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg" 
+                    style="width: 100%; height: 100%; object-fit: contain;"
+                    alt="Barceloneta"
                 />
-               </div>
-            
-           </div>
+            </div>
+        </div>
         
         <!-- RADAR -->
         <div class="radar">
@@ -1317,56 +1086,55 @@
         const LAT = 41.3851;
         const LON = 2.1734;
         
-        // Iconos del tiempo (día) - usando Weather Icons con colores
-const weatherIcons = {
-    0: '<i class="wi wi-day-sunny"></i>',
-    1: '<i class="wi wi-day-sunny-overcast"></i>',
-    2: '<i class="wi wi-day-cloudy"></i>',
-    3: '<i class="wi wi-cloudy"></i>',
-    45: '<i class="wi wi-fog"></i>',
-    48: '<i class="wi wi-fog"></i>',
-    51: '<i class="wi wi-sprinkle"></i>',
-    53: '<i class="wi wi-sprinkle"></i>',
-    55: '<i class="wi wi-sprinkle"></i>',
-    61: '<i class="wi wi-rain"></i>',
-    63: '<i class="wi wi-rain"></i>',
-    65: '<i class="wi wi-rain-wind"></i>',
-    71: '<i class="wi wi-snow"></i>',
-    73: '<i class="wi wi-snow"></i>',
-    75: '<i class="wi wi-snow-wind"></i>',
-    80: '<i class="wi wi-showers"></i>',
-    81: '<i class="wi wi-showers"></i>',
-    82: '<i class="wi wi-storm-showers"></i>',
-    95: '<i class="wi wi-thunderstorm"></i>',
-    96: '<i class="wi wi-thunderstorm"></i>',
-    99: '<i class="wi wi-thunderstorm"></i>'
-};
+        // Iconos del tiempo (día)
+        const weatherIcons = {
+            0: '<i class="wi wi-day-sunny"></i>',
+            1: '<i class="wi wi-day-sunny-overcast"></i>',
+            2: '<i class="wi wi-day-cloudy"></i>',
+            3: '<i class="wi wi-cloudy"></i>',
+            45: '<i class="wi wi-fog"></i>',
+            48: '<i class="wi wi-fog"></i>',
+            51: '<i class="wi wi-sprinkle"></i>',
+            53: '<i class="wi wi-sprinkle"></i>',
+            55: '<i class="wi wi-sprinkle"></i>',
+            61: '<i class="wi wi-rain"></i>',
+            63: '<i class="wi wi-rain"></i>',
+            65: '<i class="wi wi-rain-wind"></i>',
+            71: '<i class="wi wi-snow"></i>',
+            73: '<i class="wi wi-snow"></i>',
+            75: '<i class="wi wi-snow-wind"></i>',
+            80: '<i class="wi wi-showers"></i>',
+            81: '<i class="wi wi-showers"></i>',
+            82: '<i class="wi wi-storm-showers"></i>',
+            95: '<i class="wi wi-thunderstorm"></i>',
+            96: '<i class="wi wi-thunderstorm"></i>',
+            99: '<i class="wi wi-thunderstorm"></i>'
+        };
 
-// Iconos del tiempo (noche)
-const weatherIconsNight = {
-    0: '<i class="wi wi-night-clear"></i>',
-    1: '<i class="wi wi-night-alt-partly-cloudy"></i>',
-    2: '<i class="wi wi-night-alt-cloudy"></i>',
-    3: '<i class="wi wi-cloudy"></i>',
-    45: '<i class="wi wi-night-fog"></i>',
-    48: '<i class="wi wi-night-fog"></i>',
-    51: '<i class="wi wi-night-alt-sprinkle"></i>',
-    53: '<i class="wi wi-night-alt-sprinkle"></i>',
-    55: '<i class="wi wi-night-alt-sprinkle"></i>',
-    61: '<i class="wi wi-night-alt-rain"></i>',
-    63: '<i class="wi wi-night-alt-rain"></i>',
-    65: '<i class="wi wi-night-alt-rain-wind"></i>',
-    71: '<i class="wi wi-night-alt-snow"></i>',
-    73: '<i class="wi wi-night-alt-snow"></i>',
-    75: '<i class="wi wi-night-alt-snow-wind"></i>',
-    80: '<i class="wi wi-night-alt-showers"></i>',
-    81: '<i class="wi wi-night-alt-showers"></i>',
-    82: '<i class="wi wi-night-alt-storm-showers"></i>',
-    95: '<i class="wi wi-night-alt-thunderstorm"></i>',
-    96: '<i class="wi wi-night-alt-thunderstorm"></i>',
-    99: '<i class="wi wi-night-alt-thunderstorm"></i>'
-};
-        
+        // Iconos del tiempo (noche)
+        const weatherIconsNight = {
+            0: '<i class="wi wi-night-clear"></i>',
+            1: '<i class="wi wi-night-alt-partly-cloudy"></i>',
+            2: '<i class="wi wi-night-alt-cloudy"></i>',
+            3: '<i class="wi wi-cloudy"></i>',
+            45: '<i class="wi wi-night-fog"></i>',
+            48: '<i class="wi wi-night-fog"></i>',
+            51: '<i class="wi wi-night-alt-sprinkle"></i>',
+            53: '<i class="wi wi-night-alt-sprinkle"></i>',
+            55: '<i class="wi wi-night-alt-sprinkle"></i>',
+            61: '<i class="wi wi-night-alt-rain"></i>',
+            63: '<i class="wi wi-night-alt-rain"></i>',
+            65: '<i class="wi wi-night-alt-rain-wind"></i>',
+            71: '<i class="wi wi-night-alt-snow"></i>',
+            73: '<i class="wi wi-night-alt-snow"></i>',
+            75: '<i class="wi wi-night-alt-snow-wind"></i>',
+            80: '<i class="wi wi-night-alt-showers"></i>',
+            81: '<i class="wi wi-night-alt-showers"></i>',
+            82: '<i class="wi wi-night-alt-storm-showers"></i>',
+            95: '<i class="wi wi-night-alt-thunderstorm"></i>',
+            96: '<i class="wi wi-night-alt-thunderstorm"></i>',
+            99: '<i class="wi wi-night-alt-thunderstorm"></i>'
+        };
         
         // Descripciones del tiempo
         const weatherDescriptions = {
@@ -1393,6 +1161,28 @@ const weatherIconsNight = {
             99: 'Tormenta fuerte'
         };
         
+        // Mapeo de fenómenos meteorológicos para avisos
+        const WEATHER_PHENOMENA = {
+            'viento': { icon: '💨', name: 'Viento' },
+            'nieve': { icon: '❄️', name: 'Nieve' },
+            'lluvia': { icon: '🌧️', name: 'Lluvia' },
+            'tormenta': { icon: '⛈️', name: 'Tormentas' },
+            'temperatura': { icon: '🌡️', name: 'Temperaturas extremas' },
+            'calor': { icon: '🔥', name: 'Calor extremo' },
+            'frio': { icon: '🥶', name: 'Frío extremo' },
+            'niebla': { icon: '🌫️', name: 'Niebla' },
+            'fenomeno': { icon: '⚠️', name: 'Fenómeno costero' },
+            'maritimo': { icon: '🌊', name: 'Fenómeno marítimo' }
+        };
+        
+        // Niveles de alerta
+        const ALERT_LEVELS = {
+            'verde': { class: 'green', text: 'Sin riesgo' },
+            'amarillo': { class: 'yellow', text: 'Riesgo' },
+            'naranja': { class: 'orange', text: 'Riesgo importante' },
+            'rojo': { class: 'red', text: 'Riesgo extremo' }
+        };
+        
         // Variable global para almacenar los datos de salida/puesta de sol
         let sunriseTime = null;
         let sunsetTime = null;
@@ -1405,7 +1195,6 @@ const weatherIconsNight = {
             const sunrise = new Date(sunriseTime);
             const sunset = new Date(sunsetTime);
             
-            // Ajustar las fechas al mismo día para comparar solo las horas
             sunrise.setFullYear(time.getFullYear(), time.getMonth(), time.getDate());
             sunset.setFullYear(time.getFullYear(), time.getMonth(), time.getDate());
             
@@ -1425,12 +1214,188 @@ const weatherIconsNight = {
             return weatherDescriptions[code] || 'Desconocido';
         }
         
-        // NUEVA FUNCIÓN: Generar previsión narrativa
+        // Función para obtener avisos meteorológicos
+        async function fetchWeatherAlerts() {
+            const container = document.getElementById('alerts-container');
+            
+            try {
+                const response = await fetch('https://www.el-tiempo.net/api/json/v2/provincias/08/alertas');
+                
+                if (!response.ok) {
+                    throw new Error('Error al obtener datos');
+                }
+                
+                const data = await response.json();
+                displayAlerts(data);
+                
+            } catch (error) {
+                console.error('Error al cargar avisos:', error);
+                displayFallbackAlerts();
+            }
+        }
+        
+        // Mostrar avisos obtenidos de la API
+        function displayAlerts(data) {
+            const container = document.getElementById('alerts-container');
+            
+            if (!data || !data.today || data.today.length === 0) {
+                container.innerHTML = `
+                    <div class="no-alerts">
+                        <div class="no-alerts-icon">✅</div>
+                        <div>No hay avisos meteorológicos activos para Barcelona</div>
+                        <div style="font-size: 12px; margin-top: 10px; color: #7B8794;">
+                            Condiciones normales previstas
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let alertsHTML = '';
+            
+            data.today.forEach(alert => {
+                const level = alert.level.toLowerCase();
+                const levelInfo = ALERT_LEVELS[level] || ALERT_LEVELS['verde'];
+                
+                const phenomenon = Object.keys(WEATHER_PHENOMENA).find(key => 
+                    alert.phenomenon.toLowerCase().includes(key)
+                ) || 'fenomeno';
+                const phenoInfo = WEATHER_PHENOMENA[phenomenon];
+                
+                alertsHTML += `
+                    <div class="alert-item alert-${levelInfo.class}">
+                        <div class="alert-header">
+                            <div class="alert-type">
+                                <span class="alert-icon">${phenoInfo.icon}</span>
+                                ${phenoInfo.name}
+                            </div>
+                            <span class="alert-level level-${levelInfo.class}">${levelInfo.text}</span>
+                        </div>
+                        <div class="alert-description">
+                            ${alert.description || 'Consulte fuentes oficiales para más información'}
+                        </div>
+                        <div class="alert-time">
+                            ⏰ Vigente: ${alert.start} - ${alert.end}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            alertsHTML += `
+                <div class="alert-footer">
+                    Fuente: Agencia Estatal de Meteorología (AEMET)
+                </div>
+            `;
+            
+            container.innerHTML = alertsHTML;
+        }
+        
+        // Avisos alternativos si falla la API principal
+        function displayFallbackAlerts() {
+            const container = document.getElementById('alerts-container');
+            const currentTemp = parseFloat(document.getElementById('current-temp').textContent);
+            const currentWind = parseFloat(document.getElementById('wind').textContent);
+            
+            let alerts = [];
+            
+            if (currentWind > 50) {
+                alerts.push({
+                    type: 'viento',
+                    level: 'naranja',
+                    description: `Vientos fuertes registrados con rachas de ${Math.round(currentWind)} km/h. Se recomienda precaución en zonas expuestas y evitar actividades al aire libre.`,
+                    start: 'Ahora',
+                    end: 'Próximas 6 horas'
+                });
+            } else if (currentWind > 40) {
+                alerts.push({
+                    type: 'viento',
+                    level: 'amarillo',
+                    description: `Vientos moderados a fuertes con rachas de ${Math.round(currentWind)} km/h. Precaución con objetos que puedan salir volando.`,
+                    start: 'Ahora',
+                    end: 'Próximas 4 horas'
+                });
+            }
+            
+            if (currentTemp > 35) {
+                alerts.push({
+                    type: 'calor',
+                    level: 'naranja',
+                    description: `Temperaturas excepcionalmente altas de ${Math.round(currentTemp)}°C. Manténgase hidratado y evite la exposición prolongada al sol.`,
+                    start: 'Ahora',
+                    end: 'Hasta la noche'
+                });
+            } else if (currentTemp > 32) {
+                alerts.push({
+                    type: 'calor',
+                    level: 'amarillo',
+                    description: `Temperaturas elevadas de ${Math.round(currentTemp)}°C. Beba agua regularmente y protéjase del sol.`,
+                    start: 'Ahora',
+                    end: 'Hasta la tarde'
+                });
+            }
+            
+            if (currentTemp < 0) {
+                alerts.push({
+                    type: 'frio',
+                    level: 'naranja',
+                    description: `Temperaturas bajo cero (${Math.round(currentTemp)}°C). Riesgo de heladas y formación de hielo. Extreme precauciones.`,
+                    start: 'Ahora',
+                    end: 'Próximas 12 horas'
+                });
+            }
+            
+            if (alerts.length === 0) {
+                container.innerHTML = `
+                    <div class="no-alerts">
+                        <div class="no-alerts-icon">✅</div>
+                        <div>No hay avisos meteorológicos activos para Barcelona</div>
+                        <div style="font-size: 12px; margin-top: 10px; color: #7B8794;">
+                            Condiciones meteorológicas normales
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let alertsHTML = '';
+            
+            alerts.forEach(alert => {
+                const levelInfo = ALERT_LEVELS[alert.level];
+                const phenoInfo = WEATHER_PHENOMENA[alert.type];
+                
+                alertsHTML += `
+                    <div class="alert-item alert-${levelInfo.class}">
+                        <div class="alert-header">
+                            <div class="alert-type">
+                                <span class="alert-icon">${phenoInfo.icon}</span>
+                                ${phenoInfo.name}
+                            </div>
+                            <span class="alert-level level-${levelInfo.class}">${levelInfo.text}</span>
+                        </div>
+                        <div class="alert-description">
+                            ${alert.description}
+                        </div>
+                        <div class="alert-time">
+                            ⏰ Vigente: ${alert.start} - ${alert.end}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            alertsHTML += `
+                <div class="alert-footer">
+                    Avisos generados automáticamente • Consulte AEMET para información oficial
+                </div>
+            `;
+            
+            container.innerHTML = alertsHTML;
+        }
+        
+        // Generar previsión narrativa
         function generateNarrative(hourly) {
             const now = new Date();
             let narrative = '';
             
-            // Analizar próximas 12 horas
             const next12Hours = [];
             for (let i = 0; i < 12; i++) {
                 const targetHour = new Date(now.getTime() + (i + 1) * 60 * 60 * 1000);
@@ -1452,10 +1417,6 @@ const weatherIconsNight = {
             
             if (next12Hours.length === 0) return 'No hay datos disponibles para generar la previsión.';
             
-            // Analizar tendencias
-            const currentHour = now.getHours();
-            
-            // Temperatura
             const tempStart = next12Hours[0].temp;
             const tempEnd = next12Hours[next12Hours.length - 1].temp;
             const tempDiff = tempEnd - tempStart;
@@ -1470,7 +1431,6 @@ const weatherIconsNight = {
                 narrative += `Las temperaturas se mantendrán estables alrededor de los ${Math.round(tempStart)}°C. `;
             }
             
-            // Viento
             const windStart = next12Hours.slice(0, 4).reduce((sum, h) => sum + h.wind, 0) / 4;
             const windEnd = next12Hours.slice(-4).reduce((sum, h) => sum + h.wind, 0) / 4;
             const windMax = Math.max(...next12Hours.map(h => h.wind));
@@ -1483,7 +1443,6 @@ const weatherIconsNight = {
                 narrative += `Se espera un aumento del viento a lo largo del día. `;
             }
             
-            // Lluvia
             const maxRain = Math.max(...next12Hours.map(h => h.rain));
             const rainHours = next12Hours.filter(h => h.rain > 30);
             
@@ -1504,7 +1463,6 @@ const weatherIconsNight = {
                 narrative += `No se esperan precipitaciones. `;
             }
             
-            // Condiciones generales
             const clearHours = next12Hours.filter(h => h.code <= 1).length;
             const cloudyHours = next12Hours.filter(h => h.code >= 2 && h.code <= 3).length;
             
@@ -1514,7 +1472,6 @@ const weatherIconsNight = {
                 narrative += `Cielo mayormente nublado. `;
             }
             
-            // Recomendaciones
             narrative += '<br><br><strong>Recomendaciones:</strong> ';
             const recommendations = [];
             
@@ -1542,20 +1499,17 @@ const weatherIconsNight = {
             return narrative;
         }
         
-        // Función para obtener el día de la semana
         function getDayName(dateString) {
             const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
             const date = new Date(dateString);
             return days[date.getDay()];
         }
         
-        // Función para formatear hora
         function formatHour(dateTimeString) {
             const date = new Date(dateTimeString);
             return date.getHours().toString().padStart(2, '0') + ':00';
         }
         
-        // Función para formatear hora del sol
         function formatSunTime(dateTimeString) {
             const date = new Date(dateTimeString);
             const hours = date.getHours().toString().padStart(2, '0');
@@ -1563,7 +1517,6 @@ const weatherIconsNight = {
             return `${hours}:${minutes}`;
         }
         
-        // Función principal para cargar datos
         async function loadWeatherData() {
             try {
                 const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl&hourly=temperature_2m,precipitation_probability,weather_code,precipitation,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7`;
@@ -1571,34 +1524,18 @@ const weatherIconsNight = {
                 const response = await fetch(url);
                 const data = await response.json();
                 
-                // Guardar los datos de salida/puesta de sol de hoy
                 if (data.daily && data.daily.sunrise && data.daily.sunset) {
                     sunriseTime = data.daily.sunrise[0];
                     sunsetTime = data.daily.sunset[0];
                 }
                 
-                // Actualizar tiempo actual
                 updateCurrentWeather(data.current, data.current.weather_code, data.hourly);
-                
-                // Actualizar previsión narrativa
                 document.getElementById('narrative-forecast').innerHTML = generateNarrative(data.hourly);
-                
-                // Actualizar jornadas de varios días
                 updateMultipleDaysForecast(data.hourly, data.daily);
-                
-                // Actualizar previsión horaria
                 updateHourlyForecast(data.hourly);
-                
-                // Actualizar TABLA de previsión horaria
                 updateWeatherTable(data.hourly);
-                
-                // Actualizar TABLA de previsión de 4 días
                 updateDaysTable(data.hourly, data.daily);
-                
-                // Actualizar previsión de 3 días
                 updateDailyForecast(data.daily);
-                
-                // Actualizar hora de actualización
                 updateTime();
                 
             } catch (error) {
@@ -1607,7 +1544,6 @@ const weatherIconsNight = {
             }
         }
         
-        // Actualizar tiempo actual
         function updateCurrentWeather(current, weatherCode, hourly) {
             const now = new Date();
             document.getElementById('current-temp').textContent = Math.round(current.temperature_2m) + '°';
@@ -1617,102 +1553,93 @@ const weatherIconsNight = {
             document.getElementById('humidity').textContent = current.relative_humidity_2m + '%';
             document.getElementById('wind').textContent = Math.round(current.wind_speed_10m) + ' km/h';
         }
-       // Actualizar jornada de varios días
-function updateMultipleDaysForecast(hourly, daily) {
-    const now = new Date();
-    
-    // Iterar para los próximos 4 días (día 1 = mañana, día 2 = pasado mañana, etc.)
-    for (let dayOffset = 1; dayOffset <= 4; dayOffset++) {
-        const targetDay = new Date(now);
-        targetDay.setDate(targetDay.getDate() + dayOffset);
-        targetDay.setHours(0, 0, 0, 0);
         
-        // Prefijo para los IDs (tomorrow, day2, day3, day4)
-        const prefix = dayOffset === 1 ? 'tomorrow' : `day${dayOffset}`;
-        
-        // Actualizar el día de la semana
-        const dayElement = document.getElementById(prefix === 'tomorrow' ? 'tomorrow-day' : `${prefix}-day`);
-        if (dayElement) {
-            dayElement.textContent = getDayName(targetDay.toISOString());
-        }
-        
-        // Buscar índices para mañana (9:00) y tarde (15:00)
-        let morningIndex = -1;
-        let afternoonIndex = -1;
-        
-        for (let i = 0; i < hourly.time.length; i++) {
-            const hourTime = new Date(hourly.time[i]);
-            if (hourTime.getDate() === targetDay.getDate() && 
-                hourTime.getMonth() === targetDay.getMonth()) {
-                if (hourTime.getHours() === 9 && morningIndex === -1) {
-                    morningIndex = i;
+        function updateMultipleDaysForecast(hourly, daily) {
+            const now = new Date();
+            
+            for (let dayOffset = 1; dayOffset <= 4; dayOffset++) {
+                const targetDay = new Date(now);
+                targetDay.setDate(targetDay.getDate() + dayOffset);
+                targetDay.setHours(0, 0, 0, 0);
+                
+                const prefix = dayOffset === 1 ? 'tomorrow' : `day${dayOffset}`;
+                
+                const dayElement = document.getElementById(prefix === 'tomorrow' ? 'tomorrow-day' : `${prefix}-day`);
+                if (dayElement) {
+                    dayElement.textContent = getDayName(targetDay.toISOString());
                 }
-                if (hourTime.getHours() === 15 && afternoonIndex === -1) {
-                    afternoonIndex = i;
+                
+                let morningIndex = -1;
+                let afternoonIndex = -1;
+                
+                for (let i = 0; i < hourly.time.length; i++) {
+                    const hourTime = new Date(hourly.time[i]);
+                    if (hourTime.getDate() === targetDay.getDate() && 
+                        hourTime.getMonth() === targetDay.getMonth()) {
+                        if (hourTime.getHours() === 9 && morningIndex === -1) {
+                            morningIndex = i;
+                        }
+                        if (hourTime.getHours() === 15 && afternoonIndex === -1) {
+                            afternoonIndex = i;
+                        }
+                    }
+                }
+                
+                if (morningIndex !== -1) {
+                    const morningTemp = Math.round(hourly.temperature_2m[morningIndex]);
+                    const morningCode = hourly.weather_code[morningIndex];
+                    const morningTime = new Date(hourly.time[morningIndex]);
+                    const morningRain = hourly.precipitation_probability[morningIndex] || 0;
+                    const morningWind = Math.round(hourly.wind_speed_10m[morningIndex]);
+                    
+                    document.getElementById(`${prefix}-morning-temp`).textContent = morningTemp + '°';
+                    document.getElementById(`${prefix}-morning-icon`).innerHTML = getWeatherIcon(morningCode, morningTime);
+                    document.getElementById(`${prefix}-morning-condition`).textContent = getWeatherDescription(morningCode);
+                    document.getElementById(`${prefix}-morning-rain`).textContent = morningRain + '%';
+                    document.getElementById(`${prefix}-morning-wind`).textContent = morningWind + ' km/h';
+                }
+                
+                if (afternoonIndex !== -1) {
+                    const afternoonTemp = Math.round(hourly.temperature_2m[afternoonIndex]);
+                    const afternoonCode = hourly.weather_code[afternoonIndex];
+                    const afternoonTime = new Date(hourly.time[afternoonIndex]);
+                    const afternoonRain = hourly.precipitation_probability[afternoonIndex] || 0;
+                    const afternoonWind = Math.round(hourly.wind_speed_10m[afternoonIndex]);
+                    
+                    document.getElementById(`${prefix}-afternoon-temp`).textContent = afternoonTemp + '°';
+                    document.getElementById(`${prefix}-afternoon-icon`).innerHTML = getWeatherIcon(afternoonCode, afternoonTime);
+                    document.getElementById(`${prefix}-afternoon-condition`).textContent = getWeatherDescription(afternoonCode);
+                    document.getElementById(`${prefix}-afternoon-rain`).textContent = afternoonRain + '%';
+                    document.getElementById(`${prefix}-afternoon-wind`).textContent = afternoonWind + ' km/h';
+                }
+                
+                if (daily.sunrise && daily.sunrise[dayOffset]) {
+                    document.getElementById(`${prefix}-sunrise`).textContent = formatSunTime(daily.sunrise[dayOffset]);
+                }
+                if (daily.sunset && daily.sunset[dayOffset]) {
+                    document.getElementById(`${prefix}-sunset`).textContent = formatSunTime(daily.sunset[dayOffset]);
+                }
+                
+                if (daily.uv_index_max && daily.uv_index_max[dayOffset] !== undefined) {
+                    const uvMax = Math.round(daily.uv_index_max[dayOffset] * 10) / 10;
+                    document.getElementById(`${prefix}-uv`).textContent = uvMax;
+                    
+                    const uvElement = document.getElementById(`${prefix}-uv`);
+                    if (uvMax < 3) {
+                        uvElement.style.color = '#4CAF50';
+                    } else if (uvMax < 6) {
+                        uvElement.style.color = '#FFC107';
+                    } else if (uvMax < 8) {
+                        uvElement.style.color = '#FF9800';
+                    } else if (uvMax < 11) {
+                        uvElement.style.color = '#F44336';
+                    } else {
+                        uvElement.style.color = '#9C27B0';
+                    }
                 }
             }
         }
         
-        // Actualizar mañana
-        if (morningIndex !== -1) {
-            const morningTemp = Math.round(hourly.temperature_2m[morningIndex]);
-            const morningCode = hourly.weather_code[morningIndex];
-            const morningTime = new Date(hourly.time[morningIndex]);
-            const morningRain = hourly.precipitation_probability[morningIndex] || 0;
-            const morningWind = Math.round(hourly.wind_speed_10m[morningIndex]);
-            
-            document.getElementById(`${prefix}-morning-temp`).textContent = morningTemp + '°';
-            document.getElementById(`${prefix}-morning-icon`).innerHTML = getWeatherIcon(morningCode, morningTime);
-            document.getElementById(`${prefix}-morning-condition`).textContent = getWeatherDescription(morningCode);
-            document.getElementById(`${prefix}-morning-rain`).textContent = morningRain + '%';
-            document.getElementById(`${prefix}-morning-wind`).textContent = morningWind + ' km/h';
-        }
-        
-        // Actualizar tarde
-        if (afternoonIndex !== -1) {
-            const afternoonTemp = Math.round(hourly.temperature_2m[afternoonIndex]);
-            const afternoonCode = hourly.weather_code[afternoonIndex];
-            const afternoonTime = new Date(hourly.time[afternoonIndex]);
-            const afternoonRain = hourly.precipitation_probability[afternoonIndex] || 0;
-            const afternoonWind = Math.round(hourly.wind_speed_10m[afternoonIndex]);
-            
-            document.getElementById(`${prefix}-afternoon-temp`).textContent = afternoonTemp + '°';
-            document.getElementById(`${prefix}-afternoon-icon`).innerHTML = getWeatherIcon(afternoonCode, afternoonTime);
-            document.getElementById(`${prefix}-afternoon-condition`).textContent = getWeatherDescription(afternoonCode);
-            document.getElementById(`${prefix}-afternoon-rain`).textContent = afternoonRain + '%';
-            document.getElementById(`${prefix}-afternoon-wind`).textContent = afternoonWind + ' km/h';
-        }
-        
-        // Actualizar salida y puesta de sol
-        if (daily.sunrise && daily.sunrise[dayOffset]) {
-            document.getElementById(`${prefix}-sunrise`).textContent = formatSunTime(daily.sunrise[dayOffset]);
-        }
-        if (daily.sunset && daily.sunset[dayOffset]) {
-            document.getElementById(`${prefix}-sunset`).textContent = formatSunTime(daily.sunset[dayOffset]);
-        }
-        
-        // Actualizar índice UV máximo
-        if (daily.uv_index_max && daily.uv_index_max[dayOffset] !== undefined) {
-            const uvMax = Math.round(daily.uv_index_max[dayOffset] * 10) / 10;
-            document.getElementById(`${prefix}-uv`).textContent = uvMax;
-            
-            const uvElement = document.getElementById(`${prefix}-uv`);
-            if (uvMax < 3) {
-                uvElement.style.color = '#4CAF50';
-            } else if (uvMax < 6) {
-                uvElement.style.color = '#FFC107';
-            } else if (uvMax < 8) {
-                uvElement.style.color = '#FF9800';
-            } else if (uvMax < 11) {
-                uvElement.style.color = '#F44336';
-            } else {
-                uvElement.style.color = '#9C27B0';
-            }
-        }
-    }
-}
-        
-        // Actualizar previsión horaria
         function updateHourlyForecast(hourly) {
             const container = document.getElementById('hourly-container');
             container.innerHTML = '';
@@ -1720,7 +1647,6 @@ function updateMultipleDaysForecast(hourly, daily) {
             const now = new Date();
             const currentHour = now.getHours();
             
-            // Mostrar las próximas 15 horas
             for (let i = 3; i < 15; i+=3) {
                 const hour = (currentHour + i) % 24;
                 const hourIndex = hourly.time.findIndex(time => {
@@ -1749,20 +1675,18 @@ function updateMultipleDaysForecast(hourly, daily) {
             }
         }
         
-        // NUEVA FUNCIÓN: Actualizar tabla de previsión horaria
         function updateWeatherTable(hourly) {
             const tableBody = document.getElementById('weather-table-body');
             tableBody.innerHTML = '';
             
             const now = new Date();
             
-            // Mostrar las próximas 12 horas (cada hora)
             for (let i = 1; i <= 12; i++) {
                 const targetHour = new Date(now.getTime() + i * 60 * 60 * 1000);
                 
                 const hourIndex = hourly.time.findIndex(time => {
                     const date = new Date(time);
-                    return Math.abs(date - targetHour) < 30 * 60 * 1000; // Dentro de 30 minutos
+                    return Math.abs(date - targetHour) < 30 * 60 * 1000;
                 });
                 
                 if (hourIndex === -1) continue;
@@ -1772,7 +1696,6 @@ function updateMultipleDaysForecast(hourly, daily) {
                 const rain = hourly.precipitation_probability[hourIndex] || 0;
                 const wind = Math.round(hourly.wind_speed_10m[hourIndex]);
                 const icon = getWeatherIcon(hourly.weather_code[hourIndex], hourTime);
-                const condition = getWeatherDescription(hourly.weather_code[hourIndex]);
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -1787,14 +1710,12 @@ function updateMultipleDaysForecast(hourly, daily) {
             }
         }
         
-        // NUEVA FUNCIÓN: Actualizar tabla de previsión de 4 días - FORMATO DETALLADO
         function updateDaysTable(hourly, daily) {
             const container = document.getElementById('days-detailed-container');
             container.innerHTML = '';
             
             const now = new Date();
             
-            // Mostrar los próximos 4 días
             for (let dayOffset = 1; dayOffset <= 4; dayOffset++) {
                 const targetDay = new Date(now);
                 targetDay.setDate(targetDay.getDate() + dayOffset);
@@ -1802,7 +1723,6 @@ function updateMultipleDaysForecast(hourly, daily) {
                 
                 const dayName = getDayName(targetDay.toISOString());
                 
-                // Buscar índices para 09h, 14h y 19h
                 let hour09Index = -1;
                 let hour14Index = -1;
                 let hour19Index = -1;
@@ -1823,7 +1743,6 @@ function updateMultipleDaysForecast(hourly, daily) {
                     }
                 }
                 
-                // Obtener datos
                 const icon09 = hour09Index !== -1 ? getWeatherIcon(hourly.weather_code[hour09Index], new Date(hourly.time[hour09Index])) : '—';
                 const icon14 = hour14Index !== -1 ? getWeatherIcon(hourly.weather_code[hour14Index], new Date(hourly.time[hour14Index])) : '—';
                 const icon19 = hour19Index !== -1 ? getWeatherIcon(hourly.weather_code[hour19Index], new Date(hourly.time[hour19Index])) : '—';
@@ -1838,7 +1757,6 @@ function updateMultipleDaysForecast(hourly, daily) {
                     ? Math.round(daily.uv_index_max[dayOffset] * 10) / 10 
                     : 0;
                 
-                // Promedio de viento del día
                 let windSum = 0;
                 let windCount = 0;
                 for (let i = 0; i < hourly.time.length; i++) {
@@ -1851,14 +1769,12 @@ function updateMultipleDaysForecast(hourly, daily) {
                 }
                 const avgWind = windCount > 0 ? Math.round(windSum / windCount) : 0;
                 
-                // Color del UV
                 let uvColor = '#4CAF50';
                 if (uvMax >= 11) uvColor = '#9C27B0';
                 else if (uvMax >= 8) uvColor = '#F44336';
                 else if (uvMax >= 6) uvColor = '#FF9800';
                 else if (uvMax >= 3) uvColor = '#FFC107';
                 
-                // Crear tabla para este día
                 const dayTable = document.createElement('table');
                 dayTable.className = 'day-detailed-table';
                 dayTable.innerHTML = `
@@ -1921,12 +1837,10 @@ function updateMultipleDaysForecast(hourly, daily) {
             }
         }
         
-        // Actualizar previsión de 3 días
         function updateDailyForecast(daily) {
             const container = document.getElementById('daily-container');
             container.innerHTML = '';
             
-            // Mostrar los próximos 3 días (saltando hoy y mañana)
             for (let i = 2; i <= 3; i++) {
                 const dayItem = document.createElement('div');
                 dayItem.className = 'day-item';
@@ -1949,7 +1863,6 @@ function updateMultipleDaysForecast(hourly, daily) {
             }
         }
         
-        // Actualizar hora de actualización
         function updateTime() {
             const now = new Date();
             const hours = now.getHours().toString().padStart(2, '0');
@@ -1959,6 +1872,9 @@ function updateMultipleDaysForecast(hourly, daily) {
         
         // Cargar datos al iniciar
         loadWeatherData();
+        
+        // Cargar avisos después de que se cargue el tiempo
+        setTimeout(fetchWeatherAlerts, 2000);
         
         // Actualizar cada 10 minutos
         setInterval(loadWeatherData, 600000);
