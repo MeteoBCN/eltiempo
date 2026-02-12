@@ -5,7 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tiempo Barcelona</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/weather-icons@1.3.2/css/weather-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --color-primary: #3B82F6;
+            --color-bg-card: rgba(255, 255, 255, 0.85);
+            --color-text-primary: #1E293B;
+            --color-text-secondary: #64748B;
+            --color-text-tertiary: #94A3B8;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --border-radius: 16px;
+            --border-radius-sm: 12px;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -13,24 +29,51 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: #2C3E50;
-            background: linear-gradient(to bottom, #FFFFFF 0%, #F5F7FA 50%, #E8EEF2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--color-text-primary);
+            background: linear-gradient(to bottom, #F8FAFC 0%, #F1F5F9 50%, #E2E8F0 100%);
             background-attachment: fixed;
             padding: 0;
             max-width: 600px;
             margin: 0 auto;
             min-height: 100vh;
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
         .container {
-            padding: 20px;
+            padding: 24px;
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     
         /* LOGO */
         .logo-container {
             text-align: center;
-            padding: 30px 20px 10px;
+            padding: 32px 20px 16px;
+            animation: slideDown 0.8s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         #main-logo {
@@ -39,25 +82,55 @@
             height: auto;
             display: block;
             margin: 0 auto;
+            transition: transform 0.3s ease;
+        }
+        
+        #main-logo:hover {
+            transform: scale(1.05);
         }
         
         /* TIEMPO ACTUAL */
         .current-weather {
             text-align: center;
-            padding: 40px 20px;
-            margin-bottom: 30px;
+            padding: 48px 24px;
+            margin-bottom: 32px;
+            background: var(--color-bg-card);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: scaleIn 0.6s ease-out 0.2s both;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .current-weather:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
         
         .location {
-            font-size: 20px;
-            margin-bottom: 10px;
-            font-weight: 300;
+            font-size: 18px;
+            margin-bottom: 12px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            letter-spacing: 0.5px;
         }
         
         .icon-large {
-            font-size: 40px;
-            margin: 20px 0;
+            font-size: 72px;
+            margin: 24px 0;
             animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
         }
         
         @keyframes float {
@@ -66,58 +139,82 @@
         }
         
         .temperature {
-            font-size: 50px;
-            font-weight: 200;
-            margin-bottom: 10px;
-            color: #2C3E50;
+            font-size: 72px;
+            font-weight: 300;
+            margin-bottom: 12px;
+            color: var(--color-text-primary);
+            letter-spacing: -2px;
+            line-height: 1;
         }
         
         .condition {
-            font-size: 20px;
-            margin-bottom: 20px;
-            font-weight: 300;
-            color: #5A6C7D;
+            font-size: 22px;
+            margin-bottom: 28px;
+            font-weight: 400;
+            color: var(--color-text-secondary);
+            letter-spacing: 0.3px;
         }
         
         .details {
             display: flex;
             justify-content: space-around;
             font-size: 14px;
-            margin-top: 20px;
+            margin-top: 28px;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 24px;
         }
         
         .detail-item {
             text-align: center;
-            min-width: 80px;
+            min-width: 90px;
+            transition: transform 0.2s ease;
+        }
+        
+        .detail-item:hover {
+            transform: translateY(-2px);
+        }
+        
+        .detail-item > div:first-child {
+            color: var(--color-text-tertiary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+            margin-bottom: 6px;
         }
         
         .detail-value {
-            font-size: 18px;
-            font-weight: 500;
-            margin-top: 5px;
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 6px;
+            color: var(--color-text-primary);
         }
         
-        /* ESTILOS PARA AVISOS METEOROLÓGICOS - BANNER - 100% TRANSPARENTE */
+        /* ESTILOS PARA AVISOS METEOROLÓGICOS - BANNER */
         .weather-alerts-banner {
-            margin: 20px 0;
+            margin: 24px 0;
             padding: 0;
+            animation: fadeIn 0.6s ease-out 0.4s both;
         }
         
         .alert-banner-item {
-            padding: 12px 16px;
+            padding: 16px 18px;
             border-left: 4px solid;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            transition: transform 0.2s ease;
-            margin-bottom: 8px;
+            gap: 14px;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+            background: var(--color-bg-card);
+            border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(10px);
         }
         
         .alert-banner-item:hover {
-            transform: translateX(2px);
+            transform: translateX(4px);
+            box-shadow: var(--shadow-md);
         }
         
         .alert-banner-item:last-child {
@@ -126,31 +223,32 @@
         
         /* Colores de alertas según nivel */
         .alert-banner-green {
-            border-left-color: #4CAF50;
+            border-left-color: #10B981;
         }
         
         .alert-banner-yellow {
-            border-left-color: #FFC107;
+            border-left-color: #F59E0B;
         }
         
         .alert-banner-orange {
-            border-left-color: #FF9800;
+            border-left-color: #F97316;
         }
         
         .alert-banner-red {
-            border-left-color: #F44336;
+            border-left-color: #EF4444;
         }
         
         .alert-banner-left {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             flex: 1;
         }
         
         .alert-banner-icon {
-            font-size: 22px;
+            font-size: 24px;
             flex-shrink: 0;
+            animation: pulse 2s ease-in-out infinite;
         }
         
         .alert-banner-text {
@@ -158,77 +256,88 @@
         }
         
         .alert-banner-title {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
-            color: #2C3E50;
-            margin-bottom: 2px;
+            color: var(--color-text-primary);
+            margin-bottom: 3px;
+            letter-spacing: 0.2px;
         }
         
         .alert-banner-desc {
-            font-size: 12px;
-            color: #5A6C7D;
-            line-height: 1.3;
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            line-height: 1.4;
         }
         
         .alert-banner-level {
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.6px;
             white-space: nowrap;
             flex-shrink: 0;
         }
         
         .banner-level-green {
-            background-color: #4CAF50;
+            background-color: #10B981;
             color: white;
         }
         
         .banner-level-yellow {
-            background-color: #FFC107;
-            color: #2C3E50;
+            background-color: #F59E0B;
+            color: white;
         }
         
         .banner-level-orange {
-            background-color: #FF9800;
+            background-color: #F97316;
             color: white;
         }
         
         .banner-level-red {
-            background-color: #F44336;
+            background-color: #EF4444;
             color: white;
         }
         
         .no-alerts-banner {
-            padding: 14px 16px;
+            padding: 16px 18px;
             text-align: center;
-            color: #4CAF50;
+            color: #10B981;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--color-bg-card);
+            border-radius: var(--border-radius-sm);
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(10px);
+            font-weight: 500;
+        }
+        
+        .no-alerts-banner-icon {
+            width: 20px;
+            height: 20px;
+            background-color: #10B981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .alerts-banner-loading {
+            padding: 16px 18px;
+            text-align: center;
+            color: var(--color-text-tertiary);
             font-size: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-        }
-        
-        .no-alerts-banner-icon {
-            width: 18px;
-            height: 18px;
-            background-color: #4CAF50;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        
-        .alerts-banner-loading {
-            padding: 14px 16px;
-            text-align: center;
-            color: #999;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            gap: 10px;
+            background: var(--color-bg-card);
+            border-radius: var(--border-radius-sm);
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(10px);
         }
         
         /* PREVISIÓN 3 DÍAS */
@@ -251,7 +360,7 @@
         .day-name {
             flex: 1;
             font-size: 18px;
-            color: #2C3E50;
+            color: var(--color-text-primary);
         }
         
         .day-icon {
@@ -267,12 +376,13 @@
         }
         
         .temp-max {
-            font-weight: 500;
-            color: #F75260;
+            font-weight: 600;
+            color: #EF4444;
         }
         
         .temp-min {
-            color: #6EB6FF;
+            font-weight: 500;
+            color: #3B82F6;
         }
         
         /* RADAR */
@@ -284,7 +394,7 @@
             width: 100%;
             height: 400px;
             background: #d0d0d0;
-            border-radius: 8px;
+            border-radius: var(--border-radius);
             overflow: hidden;
         }
         
@@ -296,56 +406,62 @@
         
         .update-time {
             text-align: center;
-            font-size: 12px;
-            color: #999;
-            margin-top: 30px;
-            padding-bottom: 10px;
+            font-size: 13px;
+            color: var(--color-text-tertiary);
+            margin-top: 36px;
+            padding-bottom: 12px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
         }
         
         .divulgacion-link {
             text-align: center;
-            padding: 20px 0 30px;
+            padding: 24px 0 36px;
         }
         
         .divulgacion-link a {
-            color: #888;
+            color: var(--color-text-secondary);
             text-decoration: none;
-            font-size: 14px;
-            border-bottom: 1px solid transparent;
-            transition: border-color 0.3s ease;
+            font-size: 15px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            letter-spacing: 0.3px;
+            padding-bottom: 2px;
         }
         
         .divulgacion-link a:hover {
-            border-bottom-color: #888;
+            border-bottom-color: var(--color-primary);
+            color: var(--color-primary);
         }
         
         /* Loading */
         .loading {
             text-align: center;
             padding: 40px;
-            color: #999;
+            color: var(--color-text-tertiary);
         }
         
         .error {
             text-align: center;
             padding: 20px;
-            color: #c66;
+            color: #EF4444;
         }
 
         /* Colores para iconos del tiempo */
-        .wi-day-sunny, .wi-night-clear { color: #FDB813; }
-        .wi-day-sunny-overcast, .wi-mostly-clear-day, .wi-night-alt-partly-cloudy { color: #F5A623; }
-        .wi-day-cloudy, .wi-night-alt-cloudy { color: #95A5A6; }
-        .wi-cloudy { color: #7F8C8D; }
-        .wi-fog, .wi-night-fog { color: #BDC3C7; }
-        .wi-sprinkle, .wi-night-alt-sprinkle { color: #5DADE2; }
-        .wi-rain, .wi-night-alt-rain { color: #3498DB; }
-        .wi-rain-wind, .wi-night-alt-rain-wind { color: #2E86C1; }
-        .wi-snow, .wi-night-alt-snow { color: #AED6F1; }
-        .wi-snow-wind, .wi-night-alt-snow-wind { color: #85C1E9; }
-        .wi-showers, .wi-night-alt-showers { color: #5DADE2; }
-        .wi-storm-showers, .wi-night-alt-storm-showers { color: #2874A6; }
-        .wi-thunderstorm, .wi-night-alt-thunderstorm { color: #8E44AD; }
+        .wi-day-sunny, .wi-night-clear { color: #FBBF24; }
+        .wi-day-sunny-overcast, .wi-mostly-clear-day, .wi-night-alt-partly-cloudy { color: #F59E0B; }
+        .wi-day-cloudy, .wi-night-alt-cloudy { color: #94A3B8; }
+        .wi-cloudy { color: #64748B; }
+        .wi-fog, .wi-night-fog { color: #CBD5E1; }
+        .wi-sprinkle, .wi-night-alt-sprinkle { color: #60A5FA; }
+        .wi-rain, .wi-night-alt-rain { color: #3B82F6; }
+        .wi-rain-wind, .wi-night-alt-rain-wind { color: #2563EB; }
+        .wi-snow, .wi-night-alt-snow { color: #BAE6FD; }
+        .wi-snow-wind, .wi-night-alt-snow-wind { color: #7DD3FC; }
+        .wi-showers, .wi-night-alt-showers { color: #60A5FA; }
+        .wi-storm-showers, .wi-night-alt-storm-showers { color: #1E40AF; }
+        .wi-thunderstorm, .wi-night-alt-thunderstorm { color: #9333EA; }
         
         /* Animación adicional para tormentas */
         .wi-thunderstorm, .wi-night-alt-thunderstorm {
@@ -362,43 +478,55 @@
             to { transform: rotate(360deg); }
         }
 
-        /* ESTILOS PARA LA TABLA */
+        /* ESTILOS PARA LA TABLA HORARIA - MEJORADA */
         .weather-table-container {
             margin: 40px 0;
             overflow-x: auto;
+            animation: fadeIn 0.6s ease-out 0.6s both;
         }
         
         #weather-table {
             width: 100%;
             border-collapse: collapse;
-            background-color: rgba(255, 255, 255, 0.6);
-            border-radius: 8px;
+            background: var(--color-bg-card);
+            border-radius: var(--border-radius);
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(10px);
         }
         
         #weather-table thead tr {
-            background-color: rgba(39, 211, 245, 0.15);
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
         }
         
         #weather-table th {
-            padding: 12px 8px;
+            padding: 14px 10px;
             text-align: center;
-            border-bottom: 2px solid #27D3F5;
-            color: #2C3E50;
+            color: white;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
         }
         
         #weather-table tbody tr {
-            border-bottom: 1px solid rgba(192, 234, 249, 0.3);
-            transition: background-color 0.2s ease;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+            transition: all 0.2s ease;
+        }
+        
+        /* Alternancia de colores en las filas */
+        #weather-table tbody tr:nth-child(even) {
+            background-color: rgba(241, 245, 249, 0.5);
+        }
+        
+        #weather-table tbody tr:nth-child(odd) {
+            background-color: rgba(255, 255, 255, 0.3);
         }
         
         #weather-table tbody tr:hover {
-            background-color: rgba(39, 211, 245, 0.08);
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.15) 50%, rgba(59, 130, 246, 0.08) 100%);
+            transform: scale(1.01);
+            box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.2);
         }
         
         #weather-table tbody tr:last-child {
@@ -406,64 +534,80 @@
         }
         
         #weather-table td {
-            padding: 14px 8px;
+            padding: 16px 10px;
             text-align: center;
-            color: #2C3E50;
+            color: var(--color-text-primary);
             font-size: 14px;
+            font-weight: 500;
         }
         
         #weather-table .table-hour {
-            font-weight: 600;
-            color: #27D3F5;
+            font-weight: 700;
+            color: var(--color-primary);
+            font-size: 15px;
+            letter-spacing: 0.3px;
         }
         
         #weather-table .table-icon {
-            font-size: 28px;
+            font-size: 32px;
+            transition: transform 0.3s ease;
+        }
+        
+        #weather-table tbody tr:hover .table-icon {
+            transform: scale(1.15);
         }
         
         #weather-table .table-temp {
-            font-weight: 500;
+            font-weight: 600;
             font-size: 16px;
         }
         
         #weather-table .table-rain {
-            color: #3498DB;
-            font-weight: 500;
+            color: #3B82F6;
+            font-weight: 600;
         }
         
         #weather-table .table-wind {
-            color: #5A6C7D;
+            color: var(--color-text-secondary);
+            font-weight: 500;
         }
 
         /* ESTILOS PARA TABLA DETALLADA DE 4 DÍAS */
         .day-detailed-table {
             width: 100%;
             border-collapse: collapse;
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 8px;
+            background: var(--color-bg-card);
+            border-radius: var(--border-radius);
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .day-detailed-table:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
         
         .day-detailed-table thead tr {
-            background-color: rgba(220, 220, 220, 0.5);
+            background: linear-gradient(135deg, #64748B 0%, #475569 100%);
         }
         
         .day-detailed-table thead th {
-            padding: 12px 8px;
+            padding: 16px 10px;
             text-align: center;
-            color: #708090;
+            color: white;
             font-weight: 700;
-            font-size: 15px;
+            font-size: 16px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.2px;
         }
         
         .day-detailed-table tbody td {
-            padding: 12px 8px;
+            padding: 14px 10px;
             text-align: center;
-            border-bottom: 1px solid rgba(192, 234, 249, 0.2);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
         }
         
         .day-detailed-table tbody tr:last-child td {
@@ -471,51 +615,142 @@
         }
         
         .day-detailed-table .time-label {
-            font-size: 12px;
-            color: #7B8794;
+            font-size: 13px;
+            color: var(--color-text-secondary);
             font-weight: 600;
+            letter-spacing: 0.3px;
         }
         
         .day-detailed-table .weather-icon-large {
-            font-size: 36px;
-            margin: 5px 0;
+            font-size: 40px;
+            margin: 8px 0;
+            transition: transform 0.3s ease;
+        }
+        
+        .day-detailed-table tbody tr:hover .weather-icon-large {
+            transform: scale(1.1);
         }
         
         .day-detailed-table .rain-value {
-            color: #3498DB;
-            font-weight: 600;
-            font-size: 14px;
+            color: #3B82F6;
+            font-weight: 700;
+            font-size: 15px;
         }
         
         .day-detailed-table .info-label {
             font-size: 11px;
-            color: #7B8794;
+            color: var(--color-text-tertiary);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 3px;
+            letter-spacing: 0.8px;
+            margin-bottom: 4px;
+            font-weight: 600;
         }
         
         .day-detailed-table .info-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: #2C3E50;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--color-text-primary);
         }
         
         .day-detailed-table .temp-max {
-            color: #F75260;
+            color: #EF4444;
         }
         
         .day-detailed-table .temp-min {
-            color: #6EB6FF;
+            color: #3B82F6;
+        }
+        
+        /* Sección de previsión narrativa */
+        .narrative-section {
+            margin: 44px 0;
+            animation: fadeIn 0.6s ease-out 0.8s both;
+        }
+        
+        .narrative-container {
+            padding: 24px;
+            background: var(--color-bg-card);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .narrative-container:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .narrative-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-text-secondary);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+        
+        #narrative-forecast {
+            text-align: justify;
+            line-height: 1.7;
+            font-size: 15px;
+            color: var(--color-text-primary);
+            font-weight: 400;
+            letter-spacing: 0.2px;
+        }
+        
+        /* Webcam */
+        .webcam-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            margin: 32px 0;
+            animation: fadeIn 0.6s ease-out 1s both;
+        }
+        
+        .webcam-label {
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .webcam-frame {
+            width: 320px;
+            height: 180px;
+            overflow: hidden;
+            border: none;
+            background: #000;
+            border-radius: var(--border-radius-sm);
+            box-shadow: var(--shadow-md);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .webcam-frame:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .webcam-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
 
         @media (max-width: 480px) {
+            .container {
+                padding: 16px;
+            }
+            
             .temperature {
                 font-size: 64px;
             }
             
             .icon-large {
-                font-size: 80px;
+                font-size: 64px;
             }
             
             .radar-frame {
@@ -528,18 +763,18 @@
             
             #weather-table th,
             #weather-table td {
-                padding: 10px 4px;
+                padding: 12px 6px;
                 font-size: 12px;
             }
             
             #weather-table .table-icon {
-                font-size: 24px;
+                font-size: 26px;
             }
             
             .alert-banner-item {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 8px;
+                gap: 10px;
             }
             
             .alert-banner-left {
@@ -549,23 +784,12 @@
             .alert-banner-level {
                 align-self: flex-start;
             }
-
-            /* Responsive para tabla Meteoclimatic */
-            #meteoclimatic-table th,
-            #meteoclimatic-table td {
-                padding: 10px 8px;
-                font-size: 11px;
-            }
-            
-            #meteoclimatic-table .barrio {
-                font-size: 11px;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- BANNER DE AVISOS - 100% TRANSPARENTE -->
+        <!-- BANNER DE AVISOS -->
         <div class="weather-alerts-banner">
             <div id="alerts-banner-container">
                 <div class="alerts-banner-loading">
@@ -601,22 +825,16 @@
             </div>
         </div>
         
-         <!-- PREVISIÓN NARRATIVA -->
-      <div style="margin: 40px 0;">
-            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;"></div>
-               <div style="padding: 20px;">
-             <div style="font-size: 12px; font-weight: bold; color: #2C3E50; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;">
-                -Tendencia Próximas Horas -
-               </div>
-              <div id="narrative-forecast" style="text-align: justify; line-height: 1.8; font-size: 15px; color: #2C3E50;">
-               Cargando previsión...
-           </div>
+        <!-- PREVISIÓN NARRATIVA -->
+        <div class="narrative-section">
+            <div class="narrative-container">
+                <div class="narrative-title">Tendencia Próximas Horas</div>
+                <div id="narrative-forecast">Cargando previsión...</div>
+            </div>
         </div>
-      </div>
 
         <!-- TABLA DE PREVISIÓN HORARIA -->
         <div class="weather-table-container">
-            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;"></div>
             <table id="weather-table">
                 <thead>
                     <tr>
@@ -629,7 +847,7 @@
                 </thead>
                 <tbody id="weather-table-body">
                     <tr>
-                        <td colspan="5" style="padding: 20px; text-align: center; color: #999;">Cargando datos...</td>
+                        <td colspan="5" style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</td>
                     </tr>
                 </tbody>
             </table>
@@ -637,21 +855,18 @@
             
         <!-- TABLA DE PREVISIÓN 4 DÍAS - FORMATO DETALLADO -->
         <div class="weather-table-container" style="margin-top: 60px;">
-            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;">PREVISIÓN PRÓXIMOS 4 DÍAS</div>
             <div id="days-detailed-container">
-                <div style="padding: 20px; text-align: center; color: #999;">Cargando datos...</div>
+                <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
             </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; align-items: center; width: 100%; font-family: sans-serif;">
-            <!-- Nombre de webcam -->
-            <span style="margin-bottom: 0px; font-weight: bold; color: #c0eaf9;">Barceloneta</span>
-            <!-- Tu contenedor original -->
-            <div style="width: 320px; height: 180px; overflow: hidden; border: 1px solid #ccc; background: #000; border-radius: 0px;">
+        <!-- WEBCAM -->
+        <div class="webcam-container">
+            <span class="webcam-label">Barceloneta</span>
+            <div class="webcam-frame">
                 <img 
                     id="webcam-jpg" 
                     src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg" 
-                    style="width: 100%; height: 100%; object-fit: contain;"
                     alt="Barceloneta"
                 />
             </div>
@@ -1181,11 +1396,11 @@
                 }
                 const avgWind = windCount > 0 ? Math.round(windSum / windCount) : 0;
                 
-                let uvColor = '#4CAF50';
-                if (uvMax >= 11) uvColor = '#9C27B0';
-                else if (uvMax >= 8) uvColor = '#F44336';
-                else if (uvMax >= 6) uvColor = '#FF9800';
-                else if (uvMax >= 3) uvColor = '#FFC107';
+                let uvColor = '#10B981';
+                if (uvMax >= 11) uvColor = '#9333EA';
+                else if (uvMax >= 8) uvColor = '#EF4444';
+                else if (uvMax >= 6) uvColor = '#F97316';
+                else if (uvMax >= 3) uvColor = '#F59E0B';
                 
                 const dayTable = document.createElement('table');
                 dayTable.className = 'day-detailed-table';
@@ -1209,7 +1424,7 @@
                                 <div class="time-label">19:00</div>
                                 <div class="weather-icon-large">${icon19}</div>
                             </td>
-                            <td style="width: 25%; background-color: rgba(39, 211, 245, 0.05);" rowspan="3">
+                            <td style="width: 25%; background-color: rgba(241, 245, 249, 0.3);" rowspan="3">
                                 <div style="margin-bottom: 15px;">
                                     <div class="info-label">Temp. Max/Min</div>
                                     <div class="info-value">
@@ -1238,40 +1453,14 @@
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="3" style="padding: 8px; font-size: 11px; color: #7B8794;">
-                                <i class="wi wi-raindrop" style="color: #3498DB;"></i> Probabilidad de lluvia
+                            <td colspan="3" style="padding: 8px; font-size: 11px; color: var(--color-text-secondary);">
+                                <i class="wi wi-raindrop" style="color: #3B82F6;"></i> Probabilidad de lluvia
                             </td>
                         </tr>
                     </tbody>
                 `;
                 
                 container.appendChild(dayTable);
-            }
-        }
-        
-        function updateDailyForecast(daily) {
-            const container = document.getElementById('daily-container');
-            container.innerHTML = '';
-            
-            for (let i = 2; i <= 3; i++) {
-                const dayItem = document.createElement('div');
-                dayItem.className = 'day-item';
-                
-                const dayName = getDayName(daily.time[i]);
-                const maxTemp = Math.round(daily.temperature_2m_max[i]);
-                const minTemp = Math.round(daily.temperature_2m_min[i]);
-                const icon = getWeatherIcon(daily.weather_code[i]);
-                
-                dayItem.innerHTML = `
-                    <div class="day-name">${dayName}</div>
-                    <div class="day-icon">${icon}</div>
-                    <div class="day-temps">
-                        <span class="temp-max">${maxTemp}°</span>
-                        <span class="temp-min">${minTemp}°</span>
-                    </div>
-                `;
-                
-                container.appendChild(dayItem);
             }
         }
         
