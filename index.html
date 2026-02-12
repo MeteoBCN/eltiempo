@@ -190,17 +190,10 @@
             text-align: center;
         }
         
-        /* ESTILOS PARA AVISOS METEOROLÓGICOS - BANNER */
+        /* ESTILOS PARA AVISOS METEOROLÓGICOS - BANNER - 100% TRANSPARENTE */
         .weather-alerts-banner {
             margin: 20px 0;
             padding: 0;
-        }
-        
-        .alerts-banner-container {
-            background-color: rgba(255, 255, 255, 0.7);
-            border-radius: 6px;
-            overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
         }
         
         .alert-banner-item {
@@ -210,9 +203,8 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            background-color: rgba(255, 255, 255, 0.95);
             transition: transform 0.2s ease;
-            margin-bottom: 1px;
+            margin-bottom: 8px;
         }
         
         .alert-banner-item:hover {
@@ -226,22 +218,18 @@
         /* Colores de alertas según nivel */
         .alert-banner-green {
             border-left-color: #4CAF50;
-            background-color: rgba(76, 175, 80, 0.03);
         }
         
         .alert-banner-yellow {
             border-left-color: #FFC107;
-            background-color: rgba(255, 193, 7, 0.05);
         }
         
         .alert-banner-orange {
             border-left-color: #FF9800;
-            background-color: rgba(255, 152, 0, 0.05);
         }
         
         .alert-banner-red {
             border-left-color: #F44336;
-            background-color: rgba(244, 67, 54, 0.05);
         }
         
         .alert-banner-left {
@@ -316,7 +304,11 @@
         }
         
         .no-alerts-banner-icon {
-            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            display: inline-block;
         }
         
         .alerts-banner-loading {
@@ -664,9 +656,9 @@
 </head>
 <body>
     <div class="container">
-        <!-- BANNER DE AVISOS -->
+        <!-- BANNER DE AVISOS - 100% TRANSPARENTE -->
         <div class="weather-alerts-banner">
-            <div class="alerts-banner-container" id="alerts-banner-container">
+            <div id="alerts-banner-container">
                 <div class="alerts-banner-loading">
                     <i class="wi wi-day-sunny" style="animation: spin 2s linear infinite;"></i>
                     <span>Consultando avisos AEMET...</span>
@@ -925,7 +917,7 @@
             if (!data || !data.today || data.today.length === 0) {
                 container.innerHTML = `
                     <div class="no-alerts-banner">
-                        <span class="no-alerts-banner-icon">✅</span>
+                        <span class="no-alerts-banner-icon"></span>
                         <span>No hay avisos meteorológicos activos</span>
                     </div>
                 `;
@@ -976,7 +968,7 @@
             if (!currentTempElement || !currentWindElement) {
                 container.innerHTML = `
                     <div class="no-alerts-banner">
-                        <span class="no-alerts-banner-icon">✅</span>
+                        <span class="no-alerts-banner-icon"></span>
                         <span>No hay avisos meteorológicos activos</span>
                     </div>
                 `;
@@ -1027,7 +1019,7 @@
             if (alerts.length === 0) {
                 container.innerHTML = `
                     <div class="no-alerts-banner">
-                        <span class="no-alerts-banner-icon">✅</span>
+                        <span class="no-alerts-banner-icon"></span>
                         <span>No hay avisos meteorológicos activos</span>
                     </div>
                 `;
