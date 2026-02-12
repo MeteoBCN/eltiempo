@@ -623,6 +623,20 @@
             </div>
         </div>
        
+        <!-- PREVISIÓN NARRATIVA -->
+        <div style="margin: 40px 0;">
+            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;">PREVISIÓN Y RECOMENDACIONES</div>
+            <table style="width: 100%; border-collapse: collapse; background-color: rgba(255, 255, 255, 0.6); border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+                <tbody>
+                    <tr>
+                        <td id="narrative-forecast" style="padding: 20px; text-align: justify; line-height: 1.8; font-size: 15px; color: #2C3E50;">
+                            Cargando previsión...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+       
         <!-- PRÓXIMAS HORAS -->
         <div class="hourly-forecast">
             <div class="section-title" style="color: #c0eaf9; font-size: 16px; text-align: center;">PRÓXIMAS HORAS</div>
@@ -995,6 +1009,123 @@ const weatherIconsNight = {
             return weatherDescriptions[code] || 'Desconocido';
         }
         
+        // NUEVA FUNCIÓN: Generar previsión narrativa
+        function generateNarrative(hourly) {
+            const now = new Date();
+            let narrative = '';
+            
+            // Analizar próximas 12 horas
+            const next12Hours = [];
+            for (let i = 0; i < 12; i++) {
+                const targetHour = new Date(now.getTime() + (i + 1) * 60 * 60 * 1000);
+                const hourIndex = hourly.time.findIndex(time => {
+                    const date = new Date(time);
+                    return Math.abs(date - targetHour) < 30 * 60 * 1000;
+                });
+                
+                if (hourIndex !== -1) {
+                    next12Hours.push({
+                        hour: new Date(hourly.time[hourIndex]).getHours(),
+                        temp: hourly.temperature_2m[hourIndex],
+                        rain: hourly.precipitation_probability[hourIndex] || 0,
+                        wind: hourly.wind_speed_10m[hourIndex],
+                        code: hourly.weather_code[hourIndex]
+                    });
+                }
+            }
+            
+            if (next12Hours.length === 0) return 'No hay datos disponibles para generar la previsión.';
+            
+            // Analizar tendencias
+            const currentHour = now.getHours();
+            
+            // Temperatura
+            const tempStart = next12Hours[0].temp;
+            const tempEnd = next12Hours[next12Hours.length - 1].temp;
+            const tempDiff = tempEnd - tempStart;
+            
+            if (Math.abs(tempDiff) > 3) {
+                if (tempDiff > 0) {
+                    narrative += `Las temperaturas irán en ascenso a lo largo de las próximas horas, alcanzando los ${Math.round(tempEnd)}°C. `;
+                } else {
+                    narrative += `Se espera un descenso de las temperaturas, llegando a los ${Math.round(tempEnd)}°C. `;
+                }
+            } else {
+                narrative += `Las temperaturas se mantendrán estables alrededor de los ${Math.round(tempStart)}°C. `;
+            }
+            
+            // Viento
+            const windStart = next12Hours.slice(0, 4).reduce((sum, h) => sum + h.wind, 0) / 4;
+            const windEnd = next12Hours.slice(-4).reduce((sum, h) => sum + h.wind, 0) / 4;
+            const windMax = Math.max(...next12Hours.map(h => h.wind));
+            
+            if (windMax > 30) {
+                narrative += `<strong>Vientos fuertes</strong> con rachas de hasta ${Math.round(windMax)} km/h. `;
+            } else if (windEnd < windStart - 5) {
+                narrative += `El viento irá disminuyendo progresivamente. `;
+            } else if (windEnd > windStart + 5) {
+                narrative += `Se espera un aumento del viento a lo largo del día. `;
+            }
+            
+            // Lluvia
+            const maxRain = Math.max(...next12Hours.map(h => h.rain));
+            const rainHours = next12Hours.filter(h => h.rain > 30);
+            
+            if (maxRain > 70) {
+                const whenRain = rainHours[0].hour;
+                let period = 'a lo largo del día';
+                if (whenRain >= 6 && whenRain < 12) period = 'durante la mañana';
+                else if (whenRain >= 12 && whenRain < 18) period = 'por la tarde';
+                else if (whenRain >= 18 && whenRain < 24) period = 'entrada la noche';
+                else period = 'durante la madrugada';
+                
+                narrative += `<strong>Riesgo elevado de precipitaciones</strong> ${period}, con probabilidades de hasta el ${Math.round(maxRain)}%. `;
+            } else if (maxRain > 40) {
+                narrative += `Posibilidad de precipitaciones ocasionales con una probabilidad del ${Math.round(maxRain)}%. `;
+            } else if (maxRain > 20) {
+                narrative += `Cielo parcialmente cubierto con baja probabilidad de lluvia. `;
+            } else {
+                narrative += `No se esperan precipitaciones. `;
+            }
+            
+            // Condiciones generales
+            const clearHours = next12Hours.filter(h => h.code <= 1).length;
+            const cloudyHours = next12Hours.filter(h => h.code >= 2 && h.code <= 3).length;
+            
+            if (clearHours > cloudyHours * 2) {
+                narrative += `Predominará el cielo despejado. `;
+            } else if (cloudyHours > clearHours) {
+                narrative += `Cielo mayormente nublado. `;
+            }
+            
+            // Recomendaciones
+            narrative += '<br><br><strong>Recomendaciones:</strong> ';
+            const recommendations = [];
+            
+            if (maxRain > 50) {
+                recommendations.push('lleva paraguas');
+            }
+            if (windMax > 40) {
+                recommendations.push('precaución con objetos que puedan salir volando');
+            }
+            if (tempEnd < 10) {
+                recommendations.push('abrígate bien');
+            }
+            if (tempEnd > 28) {
+                recommendations.push('mantente hidratado');
+            }
+            if (clearHours > 8 && next12Hours.some(h => h.hour >= 11 && h.hour <= 16)) {
+                recommendations.push('usa protección solar');
+            }
+            if (recommendations.length === 0) {
+                recommendations.push('disfruta del día');
+            }
+            
+            narrative += recommendations.join(', ') + '.';
+            
+            return narrative;
+        }
+        
         // Función para obtener el día de la semana
         function getDayName(dateString) {
             const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -1032,6 +1163,9 @@ const weatherIconsNight = {
                 
                 // Actualizar tiempo actual
                 updateCurrentWeather(data.current, data.current.weather_code, data.hourly);
+                
+                // Actualizar previsión narrativa
+                document.getElementById('narrative-forecast').innerHTML = generateNarrative(data.hourly);
                 
                 // Actualizar jornadas de varios días
                 updateMultipleDaysForecast(data.hourly, data.daily);
