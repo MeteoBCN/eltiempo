@@ -538,7 +538,7 @@
         .day-detailed-table {
             width: 100%;
             border-collapse: collapse;
-            background-color: rgba(255, 255, 255, 1);
+            background-color: rgba(255, 255, 255, 0.9);
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -546,13 +546,13 @@
         }
         
         .day-detailed-table thead tr {
-            background-color: rgba(220, 220, 220, 0.8);
+            background-color: rgba(220, 220, 220, 0.5);
         }
         
         .day-detailed-table thead th {
             padding: 12px 8px;
             text-align: center;
-            color: #87CEEB;
+            color: #708090;
             font-weight: 700;
             font-size: 15px;
             text-transform: uppercase;
@@ -562,7 +562,7 @@
         .day-detailed-table tbody td {
             padding: 12px 8px;
             text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 1);
+            border-bottom: 1px solid rgba(192, 234, 249, 0.2);
         }
         
         .day-detailed-table tbody tr:last-child td {
@@ -664,6 +664,16 @@
 </head>
 <body>
     <div class="container">
+        <!-- BANNER DE AVISOS -->
+        <div class="weather-alerts-banner">
+            <div class="alerts-banner-container" id="alerts-banner-container">
+                <div class="alerts-banner-loading">
+                    <i class="wi wi-day-sunny" style="animation: spin 2s linear infinite;"></i>
+                    <span>Consultando avisos AEMET...</span>
+                </div>
+            </div>
+        </div>
+
         <!-- LOGO -->
         <div class="logo-container">
             <img src="logo.jpg" alt="Logo" id="main-logo">
@@ -690,96 +700,9 @@
             </div>
         </div>
 
-        <!-- TABLA METEOCLIMATIC -->
-        <div class="meteoclimatic-stations">
-            <div class="section-title">Estaciones Meteoclimatic - Barcelona</div>
-            <div class="meteoclimatic-table-container">
-                <table id="meteoclimatic-table">
-                    <thead>
-                        <tr>
-                            <th>Barrio</th>
-                            <th>Temperatura</th>
-                            <th>Humedad</th>
-                            <th>Presión</th>
-                            <th>Viento</th>
-                            <th>Precipitación</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="barrio">Tibidabo</td>
-                            <td class="temp">13.5°C</td>
-                            <td class="humidity">78%</td>
-                            <td class="pressure">1015 hPa</td>
-                            <td class="wind">7 km/h NW</td>
-                            <td class="precipitation">0.0 mm</td>
-                        </tr>
-                        <tr>
-                            <td class="barrio">Sant Martí</td>
-                            <td class="temp">17.3°C</td>
-                            <td class="humidity">68%</td>
-                            <td class="pressure">1012 hPa</td>
-                            <td class="wind">15 km/h E</td>
-                            <td class="precipitation">0.0 mm</td>
-                        </tr>
-                        <tr>
-                            <td class="barrio">Can Bruixa</td>
-                            <td class="temp">16.8°C</td>
-                            <td class="humidity">70%</td>
-                            <td class="pressure">1013 hPa</td>
-                            <td class="wind">11 km/h NE</td>
-                            <td class="precipitation">0.0 mm</td>
-                        </tr>
-                        <tr>
-                            <td class="barrio">Gràcia</td>
-                            <td class="temp">15.9°C</td>
-                            <td class="humidity">71%</td>
-                            <td class="pressure">1014 hPa</td>
-                            <td class="wind">10 km/h N</td>
-                            <td class="precipitation">0.0 mm</td>
-                        </tr>
-                        <tr>
-                            <td class="barrio">Sant Gervasi</td>
-                            <td class="temp">15.2°C</td>
-                            <td class="humidity">73%</td>
-                            <td class="pressure">1014 hPa</td>
-                            <td class="wind">8 km/h NW</td>
-                            <td class="precipitation">0.0 mm</td>
-                        </tr>
-                        <tr>
-                            <td class="barrio">Sants-Montjuïc</td>
-                            <td class="temp">16.5°C</td>
-                            <td class="humidity">69%</td>
-                            <td class="pressure">1013 hPa</td>
-                            <td class="wind">11 km/h NE</td>
-                            <td class="precipitation">0.0 mm</td>
-                        </tr>
-                        <tr>
-                            <td class="barrio">Poblenou</td>
-                            <td class="temp">17.1°C</td>
-                            <td class="humidity">72%</td>
-                            <td class="pressure">1012 hPa</td>
-                            <td class="wind">14 km/h E</td>
-                            <td class="precipitation">0.0 mm</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- BANNER DE AVISOS -->
-        <div class="weather-alerts-banner">
-            <div class="alerts-banner-container" id="alerts-banner-container">
-                <div class="alerts-banner-loading">
-                    <i class="wi wi-day-sunny" style="animation: spin 2s linear infinite;"></i>
-                    <span>Consultando avisos AEMET...</span>
-                </div>
-            </div>
-        </div>
-       
         <!-- PREVISIÓN NARRATIVA -->
         <div style="margin: 40px 0;">
-            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;">PREVISIÓN Y RECOMENDACIONES</div>
+            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;">PREVISIÓN</div>
             <table style="width: 100%; border-collapse: collapse; background-color: rgba(255, 255, 255, 0.6); border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
                 <tbody>
                     <tr>
@@ -793,7 +716,7 @@
 
         <!-- TABLA DE PREVISIÓN HORARIA -->
         <div class="weather-table-container">
-            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #87CEEB; font-size: 16px;">PRÓXIMAS HORAS</div>
+            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;">PREVISIÓN DETALLADA PRÓXIMAS HORAS</div>
             <table id="weather-table">
                 <thead>
                     <tr>
@@ -814,17 +737,9 @@
             
         <!-- TABLA DE PREVISIÓN 4 DÍAS - FORMATO DETALLADO -->
         <div class="weather-table-container" style="margin-top: 60px;">
-            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;"></div>
+            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;">PREVISIÓN PRÓXIMOS 4 DÍAS</div>
             <div id="days-detailed-container">
                 <div style="padding: 20px; text-align: center; color: #999;">Cargando datos...</div>
-            </div>
-        </div>
-
-        <!-- PREVISIÓN 3 DÍAS -->
-        <div class="daily-forecast">
-            <div class="section-title">Próximos días</div>
-            <div id="daily-container">
-                <div class="loading">Cargando datos...</div>
             </div>
         </div>
 
@@ -839,19 +754,6 @@
                     style="width: 100%; height: 100%; object-fit: contain;"
                     alt="Barceloneta"
                 />
-            </div>
-        </div>
-        
-        <!-- RADAR -->
-        <div class="radar">
-            <div class="section-title">Radar de lluvia</div>
-            <div class="radar-frame">
-                <iframe src="https://www.meteoblue.com/es/tiempo/widget/seeing3/barcelona_espa%c3%b1a_3128760?geoloc=fixed&nocurrent=0&noforecast=0&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&layout=image"
-                        frameborder="0" 
-                        scrolling="NO" 
-                        allowtransparency="true" 
-                        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
-                        style="width: 100%; height: 100%"></iframe>
             </div>
         </div>
         
@@ -1237,30 +1139,6 @@
                 narrative += `Cielo mayormente nublado. `;
             }
             
-            narrative += '<br><br><strong>Recomendaciones:</strong> ';
-            const recommendations = [];
-            
-            if (maxRain > 50) {
-                recommendations.push('lleva paraguas');
-            }
-            if (windMax > 40) {
-                recommendations.push('precaución con objetos que puedan salir volando');
-            }
-            if (tempEnd < 10) {
-                recommendations.push('abrígate bien');
-            }
-            if (tempEnd > 28) {
-                recommendations.push('mantente hidratado');
-            }
-            if (clearHours > 8 && next12Hours.some(h => h.hour >= 11 && h.hour <= 16)) {
-                recommendations.push('usa protección solar');
-            }
-            if (recommendations.length === 0) {
-                recommendations.push('disfruta del día');
-            }
-            
-            narrative += recommendations.join(', ') + '.';
-            
             return narrative;
         }
         
@@ -1291,7 +1169,6 @@
                 document.getElementById('narrative-forecast').innerHTML = generateNarrative(data.hourly);
                 updateWeatherTable(data.hourly);
                 updateDaysTable(data.hourly, data.daily);
-                updateDailyForecast(data.daily);
                 updateTime();
                 
             } catch (error) {
@@ -1434,6 +1311,7 @@
                             </td>
                             <td style="width: 25%; background-color: rgba(39, 211, 245, 0.05);" rowspan="3">
                                 <div style="margin-bottom: 15px;">
+                                    <div class="info-label">Temp. Max/Min</div>
                                     <div class="info-value">
                                         <span class="temp-max">${maxTemp}°</span> / <span class="temp-min">${minTemp}°</span>
                                     </div>
