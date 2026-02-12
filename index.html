@@ -402,6 +402,79 @@
             50% { opacity: 0.7; }
         }
 
+        /* ESTILOS PARA LA TABLA */
+        .weather-table-container {
+            margin: 40px 0;
+            overflow-x: auto;
+        }
+        
+        #weather-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        #weather-table thead tr {
+            background-color: rgba(39, 211, 245, 0.15);
+        }
+        
+        #weather-table th {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 2px solid #27D3F5;
+            color: #2C3E50;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        #weather-table tbody tr {
+            border-bottom: 1px solid rgba(192, 234, 249, 0.3);
+            transition: background-color 0.2s ease;
+        }
+        
+        #weather-table tbody tr:hover {
+            background-color: rgba(39, 211, 245, 0.08);
+        }
+        
+        #weather-table tbody tr:last-child {
+            border-bottom: none;
+        }
+        
+        #weather-table td {
+            padding: 14px 8px;
+            text-align: center;
+            color: #2C3E50;
+            font-size: 14px;
+        }
+        
+        #weather-table .table-hour {
+            font-weight: 600;
+            color: #27D3F5;
+        }
+        
+        #weather-table .table-icon {
+            font-size: 28px;
+        }
+        
+        #weather-table .table-temp {
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        #weather-table .table-rain {
+            color: #3498DB;
+            font-weight: 500;
+        }
+        
+        #weather-table .table-wind {
+            color: #5A6C7D;
+        }
+
         @media (max-width: 480px) {
             .temperature {
                 font-size: 64px;
@@ -434,6 +507,16 @@
             
             .sun-item {
                 justify-content: center;
+            }
+            
+            #weather-table th,
+            #weather-table td {
+                padding: 10px 4px;
+                font-size: 12px;
+            }
+            
+            #weather-table .table-icon {
+                font-size: 24px;
             }
         }
     </style>
@@ -649,26 +732,26 @@
     </div>
     </div> <!-- Cierre de tomorrow-section del VIERNES -->
 
-        <table style="border-collapse: collapse; background-color: transparent;">
-         <tr>
-        <td style="padding: 10px; border: none;">Celda 1</td>
-        <td style="padding: 10px; border: none;">Celda 2</td>
-        <td style="padding: 10px; border: none;">Celda 3</td>
-        <td style="padding: 10px; border: none;">Celda 4</td>
-        </tr>
-        <tr>
-        <td style="padding: 10px; border: none;">Celda 1</td>
-        <td style="padding: 10px; border: none;">Celda 2</td>
-        <td style="padding: 10px; border: none;">Celda 3</td>
-        <td style="padding: 10px; border: none;">Celda 4</td>
-        </tr>
-       <tr>
-        <td style="padding: 10px; border: none;">Celda 1</td>
-        <td style="padding: 10px; border: none;">Celda 2</td>
-        <td style="padding: 10px; border: none;">Celda 3</td>
-        <td style="padding: 10px; border: none;">Celda 4</td>
-        </tr>
-       </table>
+        <!-- TABLA DE PREVISIÓN HORARIA -->
+        <div class="weather-table-container">
+            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;">PREVISIÓN DETALLADA PRÓXIMAS HORAS</div>
+            <table id="weather-table">
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Condición</th>
+                        <th>Temp.</th>
+                        <th>Lluvia</th>
+                        <th>Viento</th>
+                    </tr>
+                </thead>
+                <tbody id="weather-table-body">
+                    <tr>
+                        <td colspan="5" style="padding: 20px; text-align: center; color: #999;">Cargando datos...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
             
         <!-- PREVISIÓN 3 DÍAS -->
         <div class="daily-forecast">
@@ -874,6 +957,9 @@ const weatherIconsNight = {
                 // Actualizar previsión horaria
                 updateHourlyForecast(data.hourly);
                 
+                // Actualizar TABLA de previsión horaria
+                updateWeatherTable(data.hourly);
+                
                 // Actualizar previsión de 3 días
                 updateDailyForecast(data.daily);
                 
@@ -1025,6 +1111,44 @@ function updateMultipleDaysForecast(hourly, daily) {
                 `;
                 
                 container.appendChild(hourItem);
+            }
+        }
+        
+        // NUEVA FUNCIÓN: Actualizar tabla de previsión horaria
+        function updateWeatherTable(hourly) {
+            const tableBody = document.getElementById('weather-table-body');
+            tableBody.innerHTML = '';
+            
+            const now = new Date();
+            
+            // Mostrar las próximas 12 horas (cada hora)
+            for (let i = 1; i <= 12; i++) {
+                const targetHour = new Date(now.getTime() + i * 60 * 60 * 1000);
+                
+                const hourIndex = hourly.time.findIndex(time => {
+                    const date = new Date(time);
+                    return Math.abs(date - targetHour) < 30 * 60 * 1000; // Dentro de 30 minutos
+                });
+                
+                if (hourIndex === -1) continue;
+                
+                const hourTime = new Date(hourly.time[hourIndex]);
+                const temp = Math.round(hourly.temperature_2m[hourIndex]);
+                const rain = hourly.precipitation_probability[hourIndex] || 0;
+                const wind = Math.round(hourly.wind_speed_10m[hourIndex]);
+                const icon = getWeatherIcon(hourly.weather_code[hourIndex], hourTime);
+                const condition = getWeatherDescription(hourly.weather_code[hourIndex]);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="table-hour">${formatHour(hourly.time[hourIndex])}</td>
+                    <td class="table-icon">${icon}</td>
+                    <td class="table-temp">${temp}°C</td>
+                    <td class="table-rain">${rain}%</td>
+                    <td class="table-wind">${wind} km/h</td>
+                `;
+                
+                tableBody.appendChild(row);
             }
         }
         
