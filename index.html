@@ -14,8 +14,10 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: #2C3E50;
-            background: linear-gradient(to bottom, #FFFFFF 0%, #F5F7FA 50%, #E8EEF2 100%);
+            color: #52555a;
+            background: linear-gradient(135deg, #69bdc7 0%, #70d1da 25%, #b8e5ea 50%, #70d1da 75%, #69bdc7 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
             background-attachment: fixed;
             padding: 0;
             max-width: 600px;
@@ -23,8 +25,19 @@
             min-height: 100vh;
         }
         
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
         .container {
             padding: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
         }
     
         /* LOGO */
@@ -39,6 +52,7 @@
             height: auto;
             display: block;
             margin: 0 auto;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
         }
         
         /* TIEMPO ACTUAL */
@@ -46,17 +60,23 @@
             text-align: center;
             padding: 40px 20px;
             margin-bottom: 30px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         }
         
         .location {
             font-size: 20px;
             margin-bottom: 10px;
             font-weight: 300;
+            color: #52555a;
         }
         
         .icon-large {
-            font-size: 20px;
+            font-size: 80px;
             margin: 20px 0;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
         }
         
         /* ANIMACIONES SUTILES */
@@ -149,17 +169,18 @@
         }
         
         .temperature {
-            font-size: 50px;
+            font-size: 64px;
             font-weight: 200;
             margin-bottom: 10px;
-            color: #2C3E50;
+            color: #52555a;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .condition {
             font-size: 20px;
             margin-bottom: 20px;
             font-weight: 300;
-            color: #5A6C7D;
+            color: #52555a;
         }
         
         .details {
@@ -174,25 +195,28 @@
         .detail-item {
             text-align: center;
             min-width: 80px;
+            color: #52555a;
         }
         
         .detail-value {
             font-size: 18px;
             font-weight: 500;
             margin-top: 5px;
+            color: #52555a;
         }
 
         .section-title {
             font-size: 14px;
             margin-bottom: 15px;
-            font-weight: 400;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: #5A6C7D;
+            color: #52555a;
             text-align: center;
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.3);
         }
         
-        /* ESTILOS PARA AVISOS METEOROLÓGICOS - BANNER - 100% TRANSPARENTE */
+        /* ESTILOS PARA AVISOS METEOROLÓGICOS - BANNER */
         .weather-alerts-banner {
             margin: 20px 0;
             padding: 0;
@@ -207,10 +231,14 @@
             gap: 12px;
             transition: transform 0.2s ease;
             margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(5px);
+            border-radius: 8px;
         }
         
         .alert-banner-item:hover {
             transform: translateX(2px);
+            background: rgba(255, 255, 255, 0.5);
         }
         
         .alert-banner-item:last-child {
@@ -253,13 +281,13 @@
         .alert-banner-title {
             font-size: 14px;
             font-weight: 600;
-            color: #2C3E50;
+            color: #52555a;
             margin-bottom: 2px;
         }
         
         .alert-banner-desc {
             font-size: 12px;
-            color: #5A6C7D;
+            color: #52555a;
             line-height: 1.3;
         }
         
@@ -281,7 +309,7 @@
         
         .banner-level-yellow {
             background-color: #FFC107;
-            color: #2C3E50;
+            color: #52555a;
         }
         
         .banner-level-orange {
@@ -303,6 +331,9 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+            border-radius: 8px;
         }
         
         .no-alerts-banner-icon {
@@ -316,12 +347,15 @@
         .alerts-banner-loading {
             padding: 14px 16px;
             text-align: center;
-            color: #999;
+            color: #52555a;
             font-size: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+            border-radius: 8px;
         }
         
         /* PREVISIÓN 3 DÍAS */
@@ -334,7 +368,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 20px 0;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
         
         .day-item:last-child {
@@ -344,7 +378,7 @@
         .day-name {
             flex: 1;
             font-size: 18px;
-            color: #2C3E50;
+            color: #52555a;
         }
         
         .day-icon {
@@ -360,19 +394,20 @@
         
         .temp-max {
             font-weight: 500;
-            color: #F75260;
+            color: #ff6b6b;
         }
         
         .temp-min {
-            color: #6EB6FF;
+            color: #69bdc7;
         }
         
         .update-time {
             text-align: center;
             font-size: 12px;
-            color: #999;
+            color: #52555a;
             margin-top: 30px;
             padding-bottom: 10px;
+            opacity: 0.8;
         }
         
         .divulgacion-link {
@@ -381,28 +416,30 @@
         }
         
         .divulgacion-link a {
-            color: #888;
+            color: #52555a;
             text-decoration: none;
             font-size: 14px;
-            border-bottom: 1px solid transparent;
-            transition: border-color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
         }
         
         .divulgacion-link a:hover {
-            border-bottom-color: #888;
+            border-bottom-color: #70d1da;
+            color: #69bdc7;
         }
         
         /* Loading */
         .loading {
             text-align: center;
             padding: 40px;
-            color: #999;
+            color: #52555a;
         }
         
         .error {
             text-align: center;
             padding: 20px;
-            color: #c66;
+            color: #ff6b6b;
         }
 
         /* Colores para iconos del tiempo */
@@ -434,21 +471,22 @@
         #weather-table {
             width: 100%;
             border-collapse: collapse;
-            background-color: rgba(255, 255, 255, 0.6);
-            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.3));
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
         }
         
         #weather-table thead tr {
-            background-color: rgba(39, 211, 245, 0.15);
+            background: linear-gradient(135deg, #69bdc7, #70d1da);
         }
         
         #weather-table th {
             padding: 12px 8px;
             text-align: center;
-            border-bottom: 2px solid #27D3F5;
-            color: #2C3E50;
+            border-bottom: 2px solid #70d1da;
+            color: white;
             font-weight: 600;
             font-size: 13px;
             text-transform: uppercase;
@@ -456,12 +494,12 @@
         }
         
         #weather-table tbody tr {
-            border-bottom: 1px solid rgba(192, 234, 249, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
             transition: background-color 0.2s ease;
         }
         
         #weather-table tbody tr:hover {
-            background-color: rgba(39, 211, 245, 0.08);
+            background: rgba(112, 209, 218, 0.2);
         }
         
         #weather-table tbody tr:last-child {
@@ -471,13 +509,13 @@
         #weather-table td {
             padding: 14px 8px;
             text-align: center;
-            color: #2C3E50;
+            color: #52555a;
             font-size: 14px;
         }
         
         #weather-table .table-hour {
             font-weight: 600;
-            color: #27D3F5;
+            color: #69bdc7;
         }
         
         #weather-table .table-icon {
@@ -495,28 +533,29 @@
         }
         
         #weather-table .table-wind {
-            color: #5A6C7D;
+            color: #52555a;
         }
 
         /* ESTILOS PARA TABLA DETALLADA DE 4 DÍAS */
         .day-detailed-table {
             width: 100%;
             border-collapse: collapse;
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.3));
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
             margin-bottom: 20px;
         }
         
         .day-detailed-table thead tr {
-            background-color: rgba(220, 220, 220, 0.5);
+            background: linear-gradient(135deg, #69bdc7, #70d1da);
         }
         
         .day-detailed-table thead th {
             padding: 12px 8px;
             text-align: center;
-            color: #708090;
+            color: white;
             font-weight: 700;
             font-size: 15px;
             text-transform: uppercase;
@@ -526,7 +565,7 @@
         .day-detailed-table tbody td {
             padding: 12px 8px;
             text-align: center;
-            border-bottom: 1px solid rgba(192, 234, 249, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .day-detailed-table tbody tr:last-child td {
@@ -535,7 +574,7 @@
         
         .day-detailed-table .time-label {
             font-size: 12px;
-            color: #7B8794;
+            color: #52555a;
             font-weight: 600;
         }
         
@@ -552,7 +591,7 @@
         
         .day-detailed-table .info-label {
             font-size: 11px;
-            color: #7B8794;
+            color: #52555a;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 3px;
@@ -561,32 +600,101 @@
         .day-detailed-table .info-value {
             font-size: 14px;
             font-weight: 600;
-            color: #2C3E50;
+            color: #52555a;
         }
         
         .day-detailed-table .temp-max {
-            color: #F75260;
+            color: #ff6b6b;
         }
         
         .day-detailed-table .temp-min {
-            color: #6EB6FF;
+            color: #69bdc7;
+        }
+        
+        /* Estilos para narrativa */
+        .narrative-container {
+            margin: 40px 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.2));
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .narrative-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #69bdc7;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+        
+        #narrative-forecast {
+            text-align: justify;
+            line-height: 1.8;
+            font-size: 15px;
+            color: #52555a;
+        }
+        
+        /* Estilos para webcam y radar */
+        .media-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            font-family: sans-serif;
+            margin: 30px 0;
+            gap: 20px;
+        }
+        
+        .media-item {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.2));
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .media-name {
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #69bdc7;
+            text-align: center;
+        }
+        
+        .media-frame {
+            width: 320px;
+            height: 180px;
+            overflow: hidden;
+            border: 2px solid rgba(105, 189, 199, 0.5);
+            background: #000;
+            border-radius: 8px;
+        }
+        
+        .media-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
 
         @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            
             .temperature {
-                font-size: 64px;
+                font-size: 56px;
             }
             
             .icon-large {
-                font-size: 80px;
-            }
-            
-            .radar-frame {
-                height: 300px;
+                font-size: 70px;
             }
             
             #main-logo {
-                max-width: 220px;
+                max-width: 200px;
             }
             
             #weather-table th,
@@ -612,7 +720,6 @@
             .alert-banner-level {
                 align-self: flex-start;
             }
-
         }
     </style>
 </head>
@@ -652,7 +759,7 @@
             </div>
         </div>
 
-        <!-- BANNER DE AVISOS - 100% TRANSPARENTE -->
+        <!-- BANNER DE AVISOS -->
         <div class="weather-alerts-banner">
             <div id="alerts-banner-container">
                 <div class="alerts-banner-loading">
@@ -662,22 +769,17 @@
             </div>
         </div>
         
-         <!-- PREVISIÓN NARRATIVA -->
-      <div style="margin: 40px 0;">
-            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;"></div>
-               <div style="padding: 20px;">
-             <div style="font-size: 12px; font-weight: bold; color: #2C3E50; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;">
-                - Tendencia Próximas Horas -
-               </div>
-              <div id="narrative-forecast" style="text-align: justify; line-height: 1.8; font-size: 15px; color: #2C3E50;">
-               Cargando previsión...
-           </div>
+        <!-- PREVISIÓN NARRATIVA -->
+        <div class="narrative-container">
+            <div class="narrative-title">Tendencia Próximas Horas</div>
+            <div id="narrative-forecast">
+                Cargando previsión...
+            </div>
         </div>
-      </div>
 
         <!-- TABLA DE PREVISIÓN HORARIA -->
         <div class="weather-table-container">
-            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;"></div>
+            <div class="section-title">Previsión Horaria</div>
             <table id="weather-table">
                 <thead>
                     <tr>
@@ -690,41 +792,43 @@
                 </thead>
                 <tbody id="weather-table-body">
                     <tr>
-                        <td colspan="5" style="padding: 20px; text-align: center; color: #999;">Cargando datos...</td>
+                        <td colspan="5" style="padding: 20px; text-align: center; color: #1a3a52;">Cargando datos...</td>
                     </tr>
                 </tbody>
             </table>
         </div>
             
-        <!-- TABLA DE PREVISIÓN - PRÓXIMOS DÍAS (EMPIEZA HOY) -->
+        <!-- TABLA DE PREVISIÓN - PRÓXIMOS DÍAS -->
         <div class="weather-table-container" style="margin-top: 60px;">
-            <div class="section-title" style="text-align: center; margin-bottom: 20px; color: #c0eaf9; font-size: 16px;"></div>
+            <div class="section-title">Próximos Días</div>
             <div id="days-detailed-container">
-                <div style="padding: 20px; text-align: center; color: #999;">Cargando datos...</div>
+                <div style="padding: 20px; text-align: center; color: #1a3a52;">Cargando datos...</div>
             </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; align-items: center; width: 100%; font-family: sans-serif;">
-            <!-- Nombre de webcam -->
-            <span style="margin-bottom: 0px; font-weight: bold; color: #c0eaf9;">Barceloneta</span>
-            <!-- Tu contenedor original -->
-            <div style="width: 320px; height: 180px; overflow: hidden; border: 1px solid #ccc; background: #000; border-radius: 0px;">
-                <img 
-                    id="webcam-jpg" 
-                    src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg" 
-                    style="width: 100%; height: 100%; object-fit: contain;"
-                    alt="Barceloneta"
-                />
+        <!-- WEBCAM Y RADAR -->
+        <div class="media-container">
+            <div class="media-item">
+                <div class="media-name">Barceloneta</div>
+                <div class="media-frame">
+                    <img 
+                        id="webcam-jpg" 
+                        src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg" 
+                        alt="Barceloneta"
+                    />
+                </div>
+            </div>
+            
+            <div class="media-item">
+                <div class="media-name">Radar Meteo.cat</div>
+                <div class="media-frame">
+                    <img 
+                        src="https://static-m.meteo.cat/content/opendata/imatges/radar_catalunya.gif" 
+                        alt="Radar Meteo.cat"
+                    />
+                </div>
             </div>
         </div>
-          <!-- PEGAS EL CÓDIGO AQUÍ -->
-    <<img 
-      src="https://static-m.meteo.cat/content/opendata/imatges/radar_catalunya.gif" 
-      alt="Radar Meteo.cat"
-      width="320"
-      style="border: 1px solid #ccc;">
-    
-    <p>Más información...</p>
             
         <div class="update-time" id="update-time">
             Actualizado: --:--
@@ -1239,7 +1343,6 @@
             
             const now = new Date();
             
-            // EMPIEZA DESDE HOY (dayOffset = 0)
             for (let dayOffset = 0; dayOffset <= 3; dayOffset++) {
                 const targetDay = new Date(now);
                 targetDay.setDate(targetDay.getDate() + dayOffset);
@@ -1297,7 +1400,6 @@
                     ? formatTime(daily.sunset[dayOffset])
                     : '--:--';
                 
-                // Calcular calidad del aire promedio del día
                 let airQualityInfo = { text: 'N/D', color: '#999' };
                 if (airQualityData && airQualityData.hourly && airQualityData.hourly.pm2_5) {
                     let dayPm25Values = [];
@@ -1356,7 +1458,7 @@
                                 <div class="time-label">19:00</div>
                                 <div class="weather-icon-large">${icon19}</div>
                             </td>
-                            <td style="width: 25%; background-color: rgba(39, 211, 245, 0.05);" rowspan="4">
+                            <td style="width: 25%; background-color: rgba(255, 255, 255, 0.2);" rowspan="4">
                                 <div style="margin-bottom: 10px;">
                                     <div class="info-label"></div>
                                     <div class="info-value">
@@ -1386,77 +1488,4 @@
                                 <div class="rain-value">${rain09}%</div>
                             </td>
                             <td>
-                                <div class="rain-value">${rain14}%</div>
-                            </td>
-                            <td>
-                                <div class="rain-value">${rain19}%</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="3" style="padding: 8px; font-size: 11px; color: #7B8794;">
-                                <i class="wi wi-raindrop" style="color: #3498DB;"></i> Lluvia acumulada prevista: <strong style="color: #3498DB;">${precipSum} l/m²</strong>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="3" style="padding: 8px; font-size: 11px; color: #7B8794;">
-                                <i class="wi wi-sunrise" style="color: #FDB813;"></i> ${sunrise} &nbsp;&nbsp; <i class="wi wi-sunset" style="color: #FF9800;"></i> ${sunset}
-                            </td>
-                        </tr>
-                    </tbody>
-                `;
-                
-                container.appendChild(dayTable);
-            }
-        }
-        
-        function updateDailyForecast(daily) {
-            const container = document.getElementById('daily-container');
-            container.innerHTML = '';
-            
-            for (let i = 2; i <= 3; i++) {
-                const dayItem = document.createElement('div');
-                dayItem.className = 'day-item';
-                
-                const dayName = getDayName(daily.time[i]);
-                const maxTemp = Math.round(daily.temperature_2m_max[i]);
-                const minTemp = Math.round(daily.temperature_2m_min[i]);
-                const icon = getWeatherIcon(daily.weather_code[i]);
-                
-                dayItem.innerHTML = `
-                    <div class="day-name">${dayName}</div>
-                    <div class="day-icon">${icon}</div>
-                    <div class="day-temps">
-                        <span class="temp-max">${maxTemp}°</span>
-                        <span class="temp-min">${minTemp}°</span>
-                    </div>
-                `;
-                
-                container.appendChild(dayItem);
-            }
-        }
-        
-        function updateTime() {
-            const now = new Date();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            document.getElementById('update-time').textContent = `Actualizado: ${hours}:${minutes}`;
-        }
-        
-        // Cargar datos al iniciar
-        loadAirQuality().then(() => {
-            loadWeatherData();
-        });
-        
-        // Cargar avisos después de que se cargue el tiempo
-        setTimeout(fetchWeatherAlertsBanner, 2000);
-        
-        // Actualizar cada 10 minutos
-        setInterval(() => {
-            loadAirQuality().then(() => {
-                loadWeatherData();
-            });
-        }, 600000);
-        setInterval(fetchWeatherAlertsBanner, 1800000);
-    </script>
-</body>
-</html>
+                                <div class="
