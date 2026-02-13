@@ -137,13 +137,7 @@
         .icon-large {
             font-size: 72px;
             margin: 24px 0;
-            animation: float 3s ease-in-out infinite;
             filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
         }
         
         .temperature {
@@ -374,7 +368,6 @@
         .day-icon {
             font-size: 40px;
             margin: 0 15px;
-            animation: float 3s ease-in-out infinite;
         }
         
         .day-temps {
@@ -459,141 +452,58 @@
         /* Colores para iconos del tiempo */
         .wi-day-sunny, .wi-night-clear { 
             color: #FBBF24;
-            animation: rotate 20s linear infinite;
-        }
-        
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
         }
         
         .wi-day-sunny-overcast, .wi-mostly-clear-day, .wi-night-alt-partly-cloudy { 
             color: #F59E0B;
-            animation: sway 4s ease-in-out infinite;
-        }
-        
-        @keyframes sway {
-            0%, 100% { transform: translateX(0px); }
-            50% { transform: translateX(-3px); }
         }
         
         .wi-day-cloudy, .wi-night-alt-cloudy { 
             color: #94A3B8;
-            animation: drift 6s ease-in-out infinite;
-        }
-        
-        @keyframes drift {
-            0%, 100% { transform: translateX(0px); }
-            50% { transform: translateX(-5px); }
         }
         
         .wi-cloudy { 
             color: #64748B;
-            animation: drift 8s ease-in-out infinite;
         }
         
         .wi-fog, .wi-night-fog { 
             color: #CBD5E1;
-            animation: fadeInOut 3s ease-in-out infinite;
-        }
-        
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
         }
         
         .wi-sprinkle, .wi-night-alt-sprinkle { 
             color: #60A5FA;
-            animation: drizzle 2s ease-in-out infinite;
-        }
-        
-        @keyframes drizzle {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(3px); }
         }
         
         .wi-rain, .wi-night-alt-rain { 
             color: #3B82F6;
-            animation: rain 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes rain {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(4px); }
         }
         
         .wi-rain-wind, .wi-night-alt-rain-wind { 
             color: #2563EB;
-            animation: rainWind 1.2s ease-in-out infinite;
-        }
-        
-        @keyframes rainWind {
-            0%, 100% { transform: translate(0px, 0px); }
-            50% { transform: translate(-3px, 4px); }
         }
         
         .wi-snow, .wi-night-alt-snow { 
             color: #BAE6FD;
-            animation: snowfall 3s ease-in-out infinite;
-        }
-        
-        @keyframes snowfall {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(5px) rotate(5deg); }
         }
         
         .wi-snow-wind, .wi-night-alt-snow-wind { 
             color: #7DD3FC;
-            animation: snowWind 2s ease-in-out infinite;
-        }
-        
-        @keyframes snowWind {
-            0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
-            50% { transform: translate(-4px, 5px) rotate(-10deg); }
         }
         
         .wi-showers, .wi-night-alt-showers { 
             color: #60A5FA;
-            animation: showers 1s ease-in-out infinite;
-        }
-        
-        @keyframes showers {
-            0%, 100% { transform: scale(1) translateY(0px); }
-            50% { transform: scale(1.05) translateY(2px); }
         }
         
         .wi-storm-showers, .wi-night-alt-storm-showers { 
             color: #1E40AF;
-            animation: stormShowers 0.8s ease-in-out infinite;
-        }
-        
-        @keyframes stormShowers {
-            0%, 100% { transform: scale(1) translateY(0px); }
-            50% { transform: scale(1.08) translateY(3px); }
         }
         
         .wi-thunderstorm, .wi-night-alt-thunderstorm { 
             color: #9333EA;
-            animation: thunder 1.5s ease-in-out infinite, flash 3s ease-in-out infinite;
-        }
-        
-        @keyframes thunder {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(2px); }
-        }
-        
-        @keyframes flash {
-            0%, 90%, 100% { opacity: 1; }
-            95% { opacity: 0.6; }
         }
         
         .wi-raindrop {
-            animation: drop 2s ease-in-out infinite;
-        }
-        
-        @keyframes drop {
-            0%, 100% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(2px) scale(1.05); }
+            color: #3B82F6;
         }
         
         @keyframes spin {
@@ -1380,7 +1290,7 @@
         
         async function loadWeatherData() {
             try {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl&hourly=temperature_2m,precipitation_probability,weather_code,precipitation,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7`;
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7`;
                 
                 const response = await fetch(url);
                 const data = await response.json();
@@ -1453,6 +1363,13 @@
             
             const now = new Date();
             
+            // Direcciones del viento
+            function getWindDirection(degrees) {
+                const directions = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
+                const index = Math.round(degrees / 45) % 8;
+                return directions[index];
+            }
+            
             // MODIFICADO: Ahora empezamos desde el día 2 hasta el día 5 (próximos 4 días, sin incluir mañana)
             for (let dayOffset = 2; dayOffset <= 5; dayOffset++) {
                 const targetDay = new Date(now);
@@ -1464,7 +1381,7 @@
                 let hour09Index = -1;
                 let hour14Index = -1;
                 let hour19Index = -1;
-                let hour23Index = -1; // AÑADIDO: índice para las 23:00
+                let hour23Index = -1;
                 
                 for (let i = 0; i < hourly.time.length; i++) {
                     const hourTime = new Date(hourly.time[i]);
@@ -1488,16 +1405,53 @@
                 const icon09 = hour09Index !== -1 ? getWeatherIcon(hourly.weather_code[hour09Index], new Date(hourly.time[hour09Index])) : '—';
                 const icon14 = hour14Index !== -1 ? getWeatherIcon(hourly.weather_code[hour14Index], new Date(hourly.time[hour14Index])) : '—';
                 const icon19 = hour19Index !== -1 ? getWeatherIcon(hourly.weather_code[hour19Index], new Date(hourly.time[hour19Index])) : '—';
-                const icon23 = hour23Index !== -1 ? getWeatherIcon(hourly.weather_code[hour23Index], new Date(hourly.time[hour23Index])) : '—'; // AÑADIDO: icono para las 23:00
+                const icon23 = hour23Index !== -1 ? getWeatherIcon(hourly.weather_code[hour23Index], new Date(hourly.time[hour23Index])) : '—';
                 
-                const rain09 = hour09Index !== -1 ? (hourly.precipitation_probability[hour09Index] || 0) : 0;
-                const rain14 = hour14Index !== -1 ? (hourly.precipitation_probability[hour14Index] || 0) : 0;
-                const rain19 = hour19Index !== -1 ? (hourly.precipitation_probability[hour19Index] || 0) : 0;
-                const rain23 = hour23Index !== -1 ? (hourly.precipitation_probability[hour23Index] || 0) : 0; // AÑADIDO: probabilidad de lluvia para las 23:00
+                // Temperaturas
+                const minTemp = Math.round(daily.temperature_2m_min[dayOffset]);
+                const maxTemp = Math.round(daily.temperature_2m_max[dayOffset]);
+                const temp14 = hour14Index !== -1 ? Math.round(hourly.temperature_2m[hour14Index]) : '--';
+                const temp23 = hour23Index !== -1 ? Math.round(hourly.temperature_2m[hour23Index]) : '--';
+                
+                // Precipitación total del día (sumando todas las horas del día)
+                let totalPrecip = 0;
+                for (let i = 0; i < hourly.time.length; i++) {
+                    const hourTime = new Date(hourly.time[i]);
+                    if (hourTime.getDate() === targetDay.getDate() && 
+                        hourTime.getMonth() === targetDay.getMonth()) {
+                        totalPrecip += hourly.precipitation[i] || 0;
+                    }
+                }
+                totalPrecip = Math.round(totalPrecip * 10) / 10;
+                
+                // Viento y dirección para cada hora
+                const wind09 = hour09Index !== -1 ? Math.round(hourly.wind_speed_10m[hour09Index]) : '--';
+                const wind14 = hour14Index !== -1 ? Math.round(hourly.wind_speed_10m[hour14Index]) : '--';
+                const wind19 = hour19Index !== -1 ? Math.round(hourly.wind_speed_10m[hour19Index]) : '--';
+                const wind23 = hour23Index !== -1 ? Math.round(hourly.wind_speed_10m[hour23Index]) : '--';
+                
+                const windDir09 = hour09Index !== -1 && hourly.wind_direction_10m ? getWindDirection(hourly.wind_direction_10m[hour09Index]) : '--';
+                const windDir14 = hour14Index !== -1 && hourly.wind_direction_10m ? getWindDirection(hourly.wind_direction_10m[hour14Index]) : '--';
+                const windDir19 = hour19Index !== -1 && hourly.wind_direction_10m ? getWindDirection(hourly.wind_direction_10m[hour19Index]) : '--';
+                const windDir23 = hour23Index !== -1 && hourly.wind_direction_10m ? getWindDirection(hourly.wind_direction_10m[hour23Index]) : '--';
+                
+                // Salida y puesta de sol
+                const sunrise = daily.sunrise && daily.sunrise[dayOffset] ? new Date(daily.sunrise[dayOffset]).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'}) : '--:--';
+                const sunset = daily.sunset && daily.sunset[dayOffset] ? new Date(daily.sunset[dayOffset]).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'}) : '--:--';
+                
+                // UV máximo
+                const uvMax = daily.uv_index_max && daily.uv_index_max[dayOffset] !== undefined 
+                    ? Math.round(daily.uv_index_max[dayOffset] * 10) / 10 
+                    : 0;
+                
+                let uvColor = '#10B981';
+                if (uvMax >= 11) uvColor = '#9333EA';
+                else if (uvMax >= 8) uvColor = '#EF4444';
+                else if (uvMax >= 6) uvColor = '#F97316';
+                else if (uvMax >= 3) uvColor = '#F59E0B';
                 
                 const dayTable = document.createElement('table');
                 dayTable.className = 'day-detailed-table';
-                // MODIFICADO: Ahora son 4 columnas en lugar de 3 + lateral
                 dayTable.innerHTML = `
                     <thead>
                         <tr>
@@ -1525,21 +1479,52 @@
                         </tr>
                         <tr>
                             <td>
-                                <div class="rain-value">${rain09}%</div>
+                                <div class="rain-value temp-min">${minTemp}°C</div>
+                                <div style="font-size: 10px; color: var(--color-text-tertiary); margin-top: 2px;">Mín. día</div>
                             </td>
                             <td>
-                                <div class="rain-value">${rain14}%</div>
+                                <div class="rain-value">${temp14}°C</div>
+                                <div style="font-size: 10px; color: var(--color-text-tertiary); margin-top: 2px;">Temp. hora</div>
                             </td>
                             <td>
-                                <div class="rain-value">${rain19}%</div>
+                                <div class="rain-value temp-max">${maxTemp}°C</div>
+                                <div style="font-size: 10px; color: var(--color-text-tertiary); margin-top: 2px;">Máx. día</div>
                             </td>
                             <td>
-                                <div class="rain-value">${rain23}%</div>
+                                <div class="rain-value">${temp23}°C</div>
+                                <div style="font-size: 10px; color: var(--color-text-tertiary); margin-top: 2px;">Temp. hora</div>
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="4" style="padding: 8px; font-size: 11px; color: var(--color-text-secondary);">
-                                <i class="wi wi-raindrop" style="color: #3B82F6;"></i> Probabilidad de lluvia
+                            <td colspan="4" style="padding: 10px; font-size: 13px; color: var(--color-text-primary); font-weight: 600;">
+                                <i class="wi wi-raindrop"></i> Precipitación total: <span style="color: #3B82F6;">${totalPrecip} l/m²</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-size: 13px; font-weight: 600; color: var(--color-text-primary);">${wind09} km/h</div>
+                                <div style="font-size: 11px; color: var(--color-text-secondary); margin-top: 2px;">${windDir09}</div>
+                            </td>
+                            <td>
+                                <div style="font-size: 13px; font-weight: 600; color: var(--color-text-primary);">${wind14} km/h</div>
+                                <div style="font-size: 11px; color: var(--color-text-secondary); margin-top: 2px;">${windDir14}</div>
+                            </td>
+                            <td>
+                                <div style="font-size: 13px; font-weight: 600; color: var(--color-text-primary);">${wind19} km/h</div>
+                                <div style="font-size: 11px; color: var(--color-text-secondary); margin-top: 2px;">${windDir19}</div>
+                            </td>
+                            <td>
+                                <div style="font-size: 13px; font-weight: 600; color: var(--color-text-primary);">${wind23} km/h</div>
+                                <div style="font-size: 11px; color: var(--color-text-secondary); margin-top: 2px;">${windDir23}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" style="padding: 10px; font-size: 12px; color: var(--color-text-secondary);">
+                                <i class="wi wi-sunrise" style="color: #F59E0B;"></i> ${sunrise} 
+                                <span style="margin: 0 15px;">|</span>
+                                <i class="wi wi-sunset" style="color: #EF4444;"></i> ${sunset}
+                                <span style="margin: 0 15px;">|</span>
+                                <i class="wi wi-day-sunny" style="color: ${uvColor};"></i> UVI: <strong>${uvMax}</strong>
                             </td>
                         </tr>
                     </tbody>
