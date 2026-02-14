@@ -972,65 +972,93 @@
             </div>
 
             <!-- ============================================ -->
-            <!-- AVISO METEOROLÓGICO MANUAL                  -->
+            <!-- AVISO METEOROLÓGICO MANUAL - 2 FILAS        -->
             <!-- ============================================ -->
             <!-- INSTRUCCIONES:
-                 1. Coloca una de estas 3 imágenes de fondo en la carpeta:
-                    - fondo-aviso-verde.png (570x90px, color #10B981)
-                    - fondo-aviso-amarillo.png (570x90px, color #F59E0B)
-                    - fondo-aviso-rojo.png (570x90px, color #EF4444)
                  
-                 2. Para cambiar el nivel de alerta, modifica la línea "background-image":
-                    - Sin avisos: url('fondo-aviso-verde.png')
-                    - Precaución: url('fondo-aviso-amarillo.png')
-                    - Peligro: url('fondo-aviso-rojo.png')
+                 IMÁGENES QUE NECESITAS (todas PNG con fondo transparente):
                  
-                 3. Edita el ICONO (emoji), TÍTULO y DESCRIPCIÓN según el fenómeno
+                 TRIÁNGULOS (35x35px):
+                 - triangulo-verde.png
+                 - triangulo-amarillo.png
+                 - triangulo-rojo.png
                  
-                 4. Para OCULTAR el aviso completamente: añade  al inicio de <div class="aviso-table">
-                    y  al final de </div>
+                 ICONOS DE FENÓMENOS (80x80px):
+                 - icono-lluvia.png
+                 - icono-viento.png
+                 - icono-tormenta.png
+                 - icono-oleaje.png
+                 - icono-contaminacion.png
+                 - icono-calor.png
+                 - icono-frio.png
+                 
+                 CÓMO EDITAR:
+                 1. Cambia el triángulo según el nivel (verde/amarillo/rojo)
+                 2. Cambia el icono según el fenómeno
+                 3. Si NO hay avisos (verde), deja la segunda fila COMENTADA
+                 4. Edita el TÍTULO y DESCRIPCIÓN del texto
             -->
             
             <div class="aviso-table" style="
                 width: 100%;
-                height: 90px;
-                margin: 28px 0 0 0;
-                background-image: url('fondo-aviso-verde.png');
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
+                background: white;
                 border-radius: 12px;
-                display: flex;
-                align-items: center;
-                padding: 0 20px;
-                box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+                margin: 28px 0 0 0;
+                overflow: hidden;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             ">
-                <!-- ICONO (cámbialo según el fenómeno) -->
+                <!-- FILA 1: Triángulo de alerta + Texto -->
                 <div style="
-                    font-size: 40px;
-                    margin-right: 15px;
-                    flex-shrink: 0;
-                ">✅</div>
-                
-                <!-- TEXTO DEL AVISO -->
-                <div style="flex: 1;">
-                    <!-- TÍTULO (edita aquí el tipo de aviso) -->
-                    <div style="
-                        color: white;
-                        font-size: 18px;
-                        font-weight: 700;
-                        margin-bottom: 4px;
-                        letter-spacing: 0.5px;
-                    ">SIN AVISOS ACTIVOS</div>
+                    display: flex;
+                    align-items: center;
+                    padding: 15px 20px;
+                    background: #f8f9fa;
+                    border-bottom: 1px solid #e9ecef;
+                ">
+                    <!-- TRIÁNGULO (cambia según nivel: verde/amarillo/rojo) -->
+                    <img src="triangulo-verde.png" alt="Nivel" style="
+                        width: 35px;
+                        height: 35px;
+                        margin-right: 15px;
+                        flex-shrink: 0;
+                    ">
                     
-                    <!-- DESCRIPCIÓN (edita aquí los detalles) -->
-                    <div style="
-                        color: white;
-                        font-size: 14px;
-                        font-weight: 500;
-                        opacity: 0.95;
-                    ">No hay fenómenos adversos previstos</div>
+                    <!-- TEXTO DEL AVISO -->
+                    <div style="flex: 1;">
+                        <!-- TÍTULO (edita aquí) -->
+                        <div style="
+                            color: #2C3E50;
+                            font-size: 16px;
+                            font-weight: 700;
+                            margin-bottom: 2px;
+                        ">SIN AVISOS ACTIVOS</div>
+                        
+                        <!-- DESCRIPCIÓN (edita aquí) -->
+                        <div style="
+                            color: #64748B;
+                            font-size: 13px;
+                            font-weight: 500;
+                        ">No hay fenómenos adversos previstos</div>
+                    </div>
                 </div>
+                
+                <!-- FILA 2: Icono del fenómeno (solo si hay aviso) -->
+                <!-- Para SIN AVISOS (verde): comenta toda esta sección con menos-menos y más-más -->
+                <!-- Para AVISOS activos: descomenta y cambia el icono según el fenómeno -->
+                
+                <!-- <div style="
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    padding: 20px;
+                    background: white;
+                ">
+                    <img src="icono-lluvia.png" alt="Lluvia" style="
+                        width: 80px;
+                        height: 80px;
+                    ">
+                </div> -->
+                
             </div>
             
             <!-- ============================================ -->
@@ -1038,59 +1066,168 @@
             <!-- ============================================ -->
             <!--
             
-            SIN AVISOS (VERDE):
-            background-image: url('fondo-aviso-verde.png');
-            Icono: ✅
-            Título: SIN AVISOS ACTIVOS
-            Descripción: No hay fenómenos adversos previstos
+            █ SIN AVISOS (VERDE):
+            =====================
+            Fila 1:
+              Triángulo: triangulo-verde.png
+              Título: SIN AVISOS ACTIVOS
+              Descripción: No hay fenómenos adversos previstos
+            Fila 2:
+              ¡COMENTADA! (no mostrar icono)
             
-            LLUVIA AMARILLO:
-            background-image: url('fondo-aviso-amarillo.png');
-            Icono: 🌧️
-            Título: AVISO AMARILLO - LLUVIAS INTENSAS
-            Descripción: Acumulaciones de 40-60 mm/12h
             
-            LLUVIA ROJO:
-            background-image: url('fondo-aviso-rojo.png');
-            Icono: 🌧️
-            Título: AVISO ROJO - LLUVIAS MUY INTENSAS
-            Descripción: Acumulaciones superiores a 90 mm/12h
+            █ LLUVIA AMARILLO:
+            ==================
+            Fila 1:
+              Triángulo: triangulo-amarillo.png
+              Título: AVISO AMARILLO - LLUVIAS INTENSAS
+              Descripción: Acumulaciones de 40-60 mm/12h
+            Fila 2:
+              ¡DESCOMENTAR!
+              Icono: icono-lluvia.png
             
-            VIENTO AMARILLO:
-            background-image: url('fondo-aviso-amarillo.png');
-            Icono: 💨
-            Título: AVISO AMARILLO - VIENTOS FUERTES
-            Descripción: Rachas de 70-90 km/h
             
-            VIENTO ROJO:
-            background-image: url('fondo-aviso-rojo.png');
-            Icono: 💨
-            Título: AVISO ROJO - VIENTOS MUY FUERTES
-            Descripción: Rachas superiores a 120 km/h
+            █ LLUVIA ROJO:
+            ==============
+            Fila 1:
+              Triángulo: triangulo-rojo.png
+              Título: AVISO ROJO - LLUVIAS MUY INTENSAS
+              Descripción: Acumulaciones superiores a 90 mm/12h
+            Fila 2:
+              ¡DESCOMENTAR!
+              Icono: icono-lluvia.png
             
-            TORMENTA AMARILLO:
-            background-image: url('fondo-aviso-amarillo.png');
-            Icono: ⛈️
-            Título: AVISO AMARILLO - TORMENTAS
-            Descripción: Tormentas localmente intensas
             
-            TORMENTA ROJO:
-            background-image: url('fondo-aviso-rojo.png');
-            Icono: ⛈️
-            Título: AVISO ROJO - TORMENTAS SEVERAS
-            Descripción: Tormentas muy intensas con granizo
+            █ VIENTO AMARILLO:
+            ==================
+            Fila 1:
+              Triángulo: triangulo-amarillo.png
+              Título: AVISO AMARILLO - VIENTOS FUERTES
+              Descripción: Rachas de 70-90 km/h
+            Fila 2:
+              ¡DESCOMENTAR!
+              Icono: icono-viento.png
             
-            OLEAJE AMARILLO:
-            background-image: url('fondo-aviso-amarillo.png');
-            Icono: 🌊
-            Título: AVISO AMARILLO - OLEAJE FUERTE
-            Descripción: Olas de 2-3 metros
             
-            OLEAJE ROJO:
-            background-image: url('fondo-aviso-rojo.png');
-            Icono: 🌊
-            Título: AVISO ROJO - OLEAJE MUY FUERTE
-            Descripción: Olas superiores a 5 metros
+            █ VIENTO ROJO:
+            ==============
+            Fila 1:
+              Triángulo: triangulo-rojo.png
+              Título: AVISO ROJO - VIENTOS MUY FUERTES
+              Descripción: Rachas superiores a 120 km/h
+            Fila 2:
+              ¡DESCOMENTAR!
+              Icono: icono-viento.png
+            
+            
+            █ TORMENTA AMARILLO:
+            ====================
+            Fila 1:
+              Triángulo: triangulo-amarillo.png
+              Título: AVISO AMARILLO - TORMENTAS
+              Descripción: Tormentas localmente intensas
+            Fila 2:
+              ¡DESCOMENTAR!
+              Icono: icono-tormenta.png
+            
+            
+            █ TORMENTA ROJO:
+            ================
+            Fila 1:
+              Triángulo: triangulo-rojo.png
+              Título: AVISO ROJO - TORMENTAS SEVERAS
+              Descripción: Tormentas muy intensas con granizo
+            Fila 2:
+              ¡DESCOMENTAR!
+              Icono: icono-tormenta.png
+            
+            
+            █ OLEAJE AMARILLO:
+            ==================
+            Fila 1:
+              Triángulo: triangulo-amarillo.png
+              Título: AVISO AMARILLO - OLEAJE FUERTE
+              Descripción: Olas de 2-3 metros
+            Fila 2:
+              ¡DESCOMENTAR!
+              Icono: icono-oleaje.png
+            
+            
+            █ OLEAJE ROJO:
+            ==============
+            Fila 1:
+              Triángulo: triangulo-rojo.png
+              Título: AVISO ROJO - OLEAJE MUY FUERTE
+              Descripción: Olas superiores a 5 metros
+            Fila 2:
+              ¡DESCOMENTAR!
+              Icono: icono-oleaje.png
+            
+            
+            █ CONTAMINACIÓN AMARILLO:
+            =========================
+            Fila 1:
+              Triángulo: triangulo-amarillo.png
+              Título: AVISO AMARILLO - CONTAMINACIÓN
+              Descripción: Calidad del aire desfavorable
+            Fila 2:
+              ¡DESCOMENTAR!
+              Icono: icono-contaminacion.png
+            
+            
+            █ CONTAMINACIÓN ROJO:
+            =====================
+            Fila 1:
+              Triángulo: triangulo-rojo.png
+              Título: AVISO ROJO - CONTAMINACIÓN ALTA
+              Descripción: Calidad del aire muy desfavorable
+            Fila 2:
+              ¡DESCOMENTAR!
+              Icono: icono-contaminacion.png
+            
+            
+            █ CALOR AMARILLO:
+            =================
+            Fila 1:
+              Triángulo: triangulo-amarillo.png
+              Título: AVISO AMARILLO - ALTAS TEMPERATURAS
+              Descripción: Temperaturas de 36-38°C
+            Fila 2:
+              ¡DESCOMENTAR!
+              Icono: icono-calor.png
+            
+            
+            █ CALOR ROJO:
+            =============
+            Fila 1:
+              Triángulo: triangulo-rojo.png
+              Título: AVISO ROJO - CALOR EXTREMO
+              Descripción: Temperaturas superiores a 40°C
+            Fila 2:
+              ¡DESCOMENTAR!
+              Icono: icono-calor.png
+            
+            
+            █ FRÍO AMARILLO:
+            ================
+            Fila 1:
+              Triángulo: triangulo-amarillo.png
+              Título: AVISO AMARILLO - BAJAS TEMPERATURAS
+              Descripción: Temperaturas de -4 a -8°C
+            Fila 2:
+              ¡DESCOMENTAR!
+              Icono: icono-frio.png
+            
+            
+            █ FRÍO ROJO:
+            ============
+            Fila 1:
+              Triángulo: triangulo-rojo.png
+              Título: AVISO ROJO - FRÍO EXTREMO
+              Descripción: Temperaturas inferiores a -10°C
+            Fila 2:
+              ¡DESCOMENTAR!
+              Icono: icono-frio.png
             
             -->
             <!-- ============================================ -->
