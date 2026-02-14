@@ -92,35 +92,12 @@
             text-align: center;
             padding: 48px 24px 32px 24px;
             margin-bottom: 32px;
-            background-color: #f0f0f0;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            background: transparent;
             border-radius: var(--border-radius);
             box-shadow: none;
             backdrop-filter: none;
-            transition: background-image 0.5s ease-in-out;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             animation: scaleIn 0.6s ease-out 0.2s both;
-            position: relative;
-            min-height: 400px;
-        }
-        
-        .current-weather::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.4);
-            border-radius: var(--border-radius);
-            pointer-events: none;
-            z-index: 0;
-        }
-        
-        .current-weather > * {
-            position: relative;
-            z-index: 1;
         }
         
         @keyframes scaleIn {
@@ -1391,52 +1368,6 @@
             }
         }
         
-        function updateWeatherBackground(weatherCode, isNight) {
-            const currentWeatherDiv = document.querySelector('.current-weather');
-            if (!currentWeatherDiv) {
-                console.error('No se encontró .current-weather');
-                return;
-            }
-            
-            let weatherType = '';
-            
-            // Mapear códigos de clima a tipos de imagen
-            if (weatherCode === 0) {
-                weatherType = 'soleado';
-            } else if (weatherCode === 1 || weatherCode === 2) {
-                weatherType = 'poco-nublado';
-            } else if (weatherCode === 3) {
-                weatherType = 'variable';
-            } else if (weatherCode === 45 || weatherCode === 48) {
-                weatherType = 'niebla';
-            } else if (weatherCode >= 51 && weatherCode <= 65) {
-                weatherType = 'lluvia';
-            } else if (weatherCode >= 71 && weatherCode <= 77) {
-                weatherType = 'nieve';
-            } else if (weatherCode >= 80 && weatherCode <= 82) {
-                weatherType = 'lluvia';
-            } else if (weatherCode >= 95 && weatherCode <= 99) {
-                weatherType = 'tormenta';
-            } else {
-                weatherType = 'variable';
-            }
-            
-            // Determinar día o noche
-            const timeOfDay = isNight ? 'noche' : 'dia';
-            
-            // Construir nombre del archivo
-            const imageName = `${weatherType}-${timeOfDay}.jpg`;
-            
-            // Aplicar imagen de fondo
-            currentWeatherDiv.style.backgroundImage = `url('${imageName}')`;
-            currentWeatherDiv.style.backgroundSize = 'cover';
-            currentWeatherDiv.style.backgroundPosition = 'center';
-            currentWeatherDiv.style.backgroundRepeat = 'no-repeat';
-            
-            console.log(`✅ Fondo aplicado: ${imageName} (código: ${weatherCode}, noche: ${isNight})`);
-            console.log(`🔍 Para que se vea, coloca el archivo "${imageName}" en la misma carpeta que index.html`);
-        }
-        
         function updateCurrentWeather(current, weatherCode) {
             const now = new Date();
             document.getElementById('current-temp').textContent = Math.round(current.temperature_2m) + '°';
@@ -1445,9 +1376,6 @@
             document.getElementById('pressure').textContent = Math.round(current.pressure_msl) + ' hPa';
             document.getElementById('humidity').textContent = current.relative_humidity_2m + '%';
             document.getElementById('wind').textContent = Math.round(current.wind_speed_10m) + ' km/h';
-            
-            // Actualizar fondo según clima
-            updateWeatherBackground(weatherCode, isNightTime(now));
         }
         
         function updateWeatherTable(hourly) {
