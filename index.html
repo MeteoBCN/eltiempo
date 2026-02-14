@@ -969,6 +969,10 @@
                     <div>Viento</div>
                     <div class="detail-value" id="wind">-- km/h</div>
                 </div>
+                <div class="detail-item">
+                    <div>Precip. hoy</div>
+                    <div class="detail-value" id="precip-today">-- mm</div>
+                </div>
             </div>
 
             <!-- ============================================ -->
@@ -1282,7 +1286,7 @@
         </div>
 
         <div class="webcam-container">
-            <span class="webcam-label">WEBCAM / VILA OLÍMPICA</span>
+            <span class="webcam-label">Barceloneta</span>
             <div class="webcam-frame">
                 <img 
                     id="webcam-jpg" 
@@ -1293,11 +1297,11 @@
         </div>
         
          <div class="webcam-container">
-            <span class="webcam-label">WEBCAM / SAGRADA FAMÍLIA</span>
+            <span class="webcam-label">Barceloneta</span>
             <div class="webcam-frame">
                 <img 
                     id="webcam-jpg" 
-                    src="https://images-webcams.windy.com/66/1448811166/current/full/1448811166.jpg" 
+                    src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg" 
                     alt="Barceloneta"
                 />
             </div>
@@ -1552,7 +1556,22 @@
                     sunsetTime = data.daily.sunset[0];
                 }
                 
-                updateCurrentWeather(data.current, data.current.weather_code);
+                // Calcular precipitación acumulada del día
+                const now = new Date();
+                let precipToday = 0;
+                
+                if (data.hourly && data.hourly.precipitation && data.hourly.time) {
+                    for (let i = 0; i < data.hourly.time.length; i++) {
+                        const hourTime = new Date(data.hourly.time[i]);
+                        if (hourTime.getDate() === now.getDate() && 
+                            hourTime.getMonth() === now.getMonth() &&
+                            hourTime <= now) {
+                            precipToday += data.hourly.precipitation[i] || 0;
+                        }
+                    }
+                }
+                
+                updateCurrentWeather(data.current, data.current.weather_code, precipToday);
                 document.getElementById('narrative-forecast').innerHTML = generateNarrative(data.hourly);
                 updateAstronomyTable(data);
                 updateWeatherTable(data.hourly);
@@ -1565,7 +1584,7 @@
             }
         }
         
-        function updateCurrentWeather(current, weatherCode) {
+        function updateCurrentWeather(current, weatherCode, precipToday) {
             const now = new Date();
             document.getElementById('current-temp').textContent = Math.round(current.temperature_2m) + '°';
             document.getElementById('current-icon').innerHTML = getWeatherIcon(weatherCode, now);
@@ -1573,6 +1592,13 @@
             document.getElementById('pressure').textContent = Math.round(current.pressure_msl) + ' hPa';
             document.getElementById('humidity').textContent = current.relative_humidity_2m + '%';
             document.getElementById('wind').textContent = Math.round(current.wind_speed_10m) + ' km/h';
+            
+            // Mostrar precipitación acumulada del día
+            if (precipToday !== undefined) {
+                document.getElementById('precip-today').textContent = precipToday.toFixed(1) + ' mm';
+            } else {
+                document.getElementById('precip-today').textContent = '0.0 mm';
+            }
         }
         
         function updateWeatherTable(hourly) {
