@@ -822,54 +822,39 @@
         .astronomy-table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--color-bg-card);
-            border-radius: var(--border-radius-sm);
+            background: transparent;
+            border-radius: 0;
             overflow: hidden;
-            box-shadow: var(--shadow-md);
-            backdrop-filter: blur(10px);
+            box-shadow: none;
+            backdrop-filter: none;
         }
         
         .astronomy-table tbody td {
-            padding: 14px 16px;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+            padding: 10px 8px;
+            border: none;
             font-size: 14px;
+            text-align: center;
+        }
+        
+        .astronomy-table tbody tr:first-child td {
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding-bottom: 8px;
         }
         
         .astronomy-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-        
-        .astronomy-table tbody tr:nth-child(even) {
-            background-color: rgba(241, 245, 249, 0.5);
-        }
-        
-        .astronomy-table tbody tr:nth-child(odd) {
-            background-color: rgba(255, 255, 255, 0.3);
-        }
-        
-        .astronomy-table tbody tr:hover {
-            background: linear-gradient(90deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.15) 50%, rgba(59, 130, 246, 0.08) 100%);
-        }
-        
-        .astronomy-table .astro-label {
-            font-weight: 600;
-            color: var(--color-text-secondary);
-            text-align: left;
-            width: 50%;
-            font-size: 13px;
-        }
-        
-        .astronomy-table .astro-value {
             font-weight: 700;
             color: var(--color-text-primary);
-            text-align: right;
-            width: 50%;
-            font-size: 15px;
+            font-size: 16px;
+            padding-top: 4px;
         }
         
         .astronomy-table .astro-icon {
-            margin-right: 8px;
-            font-size: 16px;
+            margin-right: 6px;
+            font-size: 14px;
         }
 
         .webcam-container {
@@ -1000,18 +985,16 @@
                 <div class="astronomy-container">
                     <div class="astronomy-title">Datos Astronómicos</div>
                     <table class="astronomy-table">
-                        <tbody id="astronomy-table-body">
+                        <tbody>
                             <tr>
-                                <td class="astro-label"><span class="astro-icon">🌅</span>Salida del sol</td>
-                                <td class="astro-value" id="sunrise-time">--:--</td>
+                                <td><span class="astro-icon">🌅</span>Amanecer</td>
+                                <td><span class="astro-icon">🌇</span>Atardecer</td>
+                                <td><span class="astro-icon">☀️</span>UVI Máximo</td>
                             </tr>
                             <tr>
-                                <td class="astro-label"><span class="astro-icon">🌇</span>Puesta del sol</td>
-                                <td class="astro-value" id="sunset-time">--:--</td>
-                            </tr>
-                            <tr>
-                                <td class="astro-label"><span class="astro-icon">☀️</span>Radiación UVI máxima</td>
-                                <td class="astro-value" id="uvi-max">--</td>
+                                <td id="sunrise-time">--:--</td>
+                                <td id="sunset-time">--:--</td>
+                                <td id="uvi-max">--</td>
                             </tr>
                         </tbody>
                     </table>
