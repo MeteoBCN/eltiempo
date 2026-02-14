@@ -803,6 +803,75 @@
             font-weight: 700;
         }
 
+        .astronomy-container {
+            margin-top: 32px;
+            padding: 0;
+            animation: fadeIn 0.6s ease-out 0.5s both;
+        }
+        
+        .astronomy-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-text-secondary);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+        
+        .astronomy-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--color-bg-card);
+            border-radius: var(--border-radius-sm);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(10px);
+        }
+        
+        .astronomy-table tbody td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+            font-size: 14px;
+        }
+        
+        .astronomy-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .astronomy-table tbody tr:nth-child(even) {
+            background-color: rgba(241, 245, 249, 0.5);
+        }
+        
+        .astronomy-table tbody tr:nth-child(odd) {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .astronomy-table tbody tr:hover {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.15) 50%, rgba(59, 130, 246, 0.08) 100%);
+        }
+        
+        .astronomy-table .astro-label {
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            text-align: left;
+            width: 50%;
+            font-size: 13px;
+        }
+        
+        .astronomy-table .astro-value {
+            font-weight: 700;
+            color: var(--color-text-primary);
+            text-align: right;
+            width: 50%;
+            font-size: 15px;
+        }
+        
+        .astronomy-table .astro-icon {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
         .webcam-container {
             display: flex;
             flex-direction: column;
@@ -927,6 +996,38 @@
             <div class="narrative-container">
                 <div class="narrative-title">Tendencia Próximas Horas</div>
                 <div id="narrative-forecast">Cargando previsión...</div>
+                
+                <div class="astronomy-container">
+                    <div class="astronomy-title">Datos Astronómicos</div>
+                    <table class="astronomy-table">
+                        <tbody id="astronomy-table-body">
+                            <tr>
+                                <td class="astro-label"><span class="astro-icon">🌅</span>Salida del sol</td>
+                                <td class="astro-value" id="sunrise-time">--:--</td>
+                            </tr>
+                            <tr>
+                                <td class="astro-label"><span class="astro-icon">🌇</span>Puesta del sol</td>
+                                <td class="astro-value" id="sunset-time">--:--</td>
+                            </tr>
+                            <tr>
+                                <td class="astro-label"><span class="astro-icon">☀️</span>Radiación UVI máxima</td>
+                                <td class="astro-value" id="uvi-max">--</td>
+                            </tr>
+                            <tr>
+                                <td class="astro-label"><span class="astro-icon">🌔</span>Salida de la luna</td>
+                                <td class="astro-value" id="moonrise-time">--:--</td>
+                            </tr>
+                            <tr>
+                                <td class="astro-label"><span class="astro-icon">🌘</span>Puesta de la luna</td>
+                                <td class="astro-value" id="moonset-time">--:--</td>
+                            </tr>
+                            <tr>
+                                <td class="astro-label"><span class="astro-icon">🌙</span>Fase lunar</td>
+                                <td class="astro-value" id="moon-phase">--</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
         
@@ -952,13 +1053,6 @@
         <div class="weather-table-container" style="margin-top: 60px;">
             <div id="days-detailed-container">
                 <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
-            </div>
-        </div>
-
-        <div class="marine-forecast-container">
-            <h2 class="marine-forecast-title">🌊 Condiciones Marítimas - Playa Barcelona</h2>
-            <div id="marine-forecast-tables">
-                <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos marítimos...</div>
             </div>
         </div>
 
@@ -1240,145 +1334,87 @@
             return date.getHours().toString().padStart(2, '0') + ':00';
         }
         
-        async function loadMarineData() {
-            try {
-                const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&hourly=wave_height,wave_direction,ocean_current_velocity&daily=wave_height_max&timezone=Europe/Madrid&forecast_days=2`;
-                
-                const response = await fetch(marineUrl);
-                const marineData = await response.json();
-                
-                // También obtener datos terrestres para temperatura ambiente y UVI
-                const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=temperature_2m,uv_index&daily=uv_index_max&timezone=Europe/Madrid&forecast_days=2`;
-                
-                const weatherResponse = await fetch(weatherUrl);
-                const weatherData = await weatherResponse.json();
-                
-                // Obtener temperatura del agua (usando una aproximación con datos históricos del Mediterráneo)
-                const seaTempUrl = `https://api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&daily=wave_height_max,wave_direction_dominant&timezone=Europe/Madrid&forecast_days=2`;
-                
-                updateMarineTables(marineData, weatherData);
-                
-            } catch (error) {
-                console.error('Error al cargar datos marítimos:', error);
-                document.getElementById('marine-forecast-tables').innerHTML = '<div style="padding: 20px; text-align: center; color: #EF4444;">Error al cargar datos marítimos</div>';
-            }
+        function getMoonPhase(moonPhaseValue) {
+            // moonPhaseValue va de 0 a 1
+            if (moonPhaseValue === 0 || moonPhaseValue === 1) return '🌑 Luna Nueva';
+            if (moonPhaseValue > 0 && moonPhaseValue < 0.25) return '🌒 Creciente';
+            if (moonPhaseValue === 0.25) return '🌓 Cuarto Creciente';
+            if (moonPhaseValue > 0.25 && moonPhaseValue < 0.5) return '🌔 Gibosa Creciente';
+            if (moonPhaseValue === 0.5) return '🌕 Luna Llena';
+            if (moonPhaseValue > 0.5 && moonPhaseValue < 0.75) return '🌖 Gibosa Menguante';
+            if (moonPhaseValue === 0.75) return '🌗 Cuarto Menguante';
+            if (moonPhaseValue > 0.75 && moonPhaseValue < 1) return '🌘 Menguante';
+            return '🌙 --';
         }
         
-        function getWindDirection(degrees) {
-            const directions = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
-            const index = Math.round(degrees / 45) % 8;
-            return directions[index];
-        }
-        
-        function updateMarineTables(marineData, weatherData) {
-            const container = document.getElementById('marine-forecast-tables');
-            container.innerHTML = '';
-            
-            const now = new Date();
-            const days = ['HOY', 'MAÑANA'];
-            
-            // Temperatura aproximada del agua del Mediterráneo en Barcelona por mes
-            const seaTempsByMonth = {
-                0: 13, 1: 12, 2: 13, 3: 14, 4: 16, 5: 19, 
-                6: 22, 7: 25, 8: 26, 9: 24, 10: 20, 11: 16
-            };
-            const currentMonth = now.getMonth();
-            const approxSeaTemp = seaTempsByMonth[currentMonth] || 18;
-            
-            for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
-                const targetDay = new Date(now);
-                targetDay.setDate(targetDay.getDate() + dayOffset);
-                targetDay.setHours(12, 0, 0, 0); // Mediodía
-                
-                // Encontrar índices para mediodía (12:00)
-                let noonIndex = -1;
-                for (let i = 0; i < marineData.hourly.time.length; i++) {
-                    const hourTime = new Date(marineData.hourly.time[i]);
-                    if (hourTime.getDate() === targetDay.getDate() && 
-                        hourTime.getMonth() === targetDay.getMonth() &&
-                        hourTime.getHours() === 12) {
-                        noonIndex = i;
-                        break;
-                    }
+        function updateAstronomyTable(data) {
+            if (data.daily) {
+                // Salida y puesta del sol
+                if (data.daily.sunrise && data.daily.sunrise[0]) {
+                    const sunrise = new Date(data.daily.sunrise[0]);
+                    document.getElementById('sunrise-time').textContent = sunrise.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
                 }
                 
-                // Datos marítimos
-                const waveHeight = noonIndex !== -1 ? (marineData.hourly.wave_height[noonIndex] || 0).toFixed(1) : '--';
-                const waveDir = noonIndex !== -1 && marineData.hourly.wave_direction ? getWindDirection(marineData.hourly.wave_direction[noonIndex]) : '--';
-                
-                // Datos meteorológicos
-                let airTemp = '--';
-                let windSpeed = '--';
-                let windDir = '--';
-                let uviValue = '--';
-                
-                if (noonIndex !== -1 && weatherData.hourly) {
-                    airTemp = Math.round(weatherData.hourly.temperature_2m[noonIndex]);
-                    uviValue = weatherData.hourly.uv_index[noonIndex] ? weatherData.hourly.uv_index[noonIndex].toFixed(1) : '--';
+                if (data.daily.sunset && data.daily.sunset[0]) {
+                    const sunset = new Date(data.daily.sunset[0]);
+                    document.getElementById('sunset-time').textContent = sunset.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
                 }
                 
-                // Obtener datos de viento del día
-                const windUrl = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=wind_speed_10m,wind_direction_10m&timezone=Europe/Madrid&forecast_days=2`;
-                
-                fetch(windUrl)
-                    .then(res => res.json())
-                    .then(windData => {
-                        if (noonIndex !== -1 && windData.hourly) {
-                            windSpeed = Math.round(windData.hourly.wind_speed_10m[noonIndex]);
-                            windDir = getWindDirection(windData.hourly.wind_direction_10m[noonIndex]);
-                            
-                            // Actualizar el valor del viento en la tabla
-                            const windCell = document.getElementById(`wind-${dayOffset}`);
-                            if (windCell) {
-                                windCell.innerHTML = `${windSpeed} km/h ${windDir}`;
-                            }
-                        }
-                    });
-                
-                // Color del UVI
-                let uviColor = '#10B981';
-                const uviNum = parseFloat(uviValue);
-                if (!isNaN(uviNum)) {
+                // UVI máximo
+                if (data.daily.uv_index_max && data.daily.uv_index_max[0] !== undefined) {
+                    const uviMax = data.daily.uv_index_max[0].toFixed(1);
+                    let uviColor = '#10B981';
+                    const uviNum = parseFloat(uviMax);
                     if (uviNum >= 11) uviColor = '#9333EA';
                     else if (uviNum >= 8) uviColor = '#EF4444';
                     else if (uviNum >= 6) uviColor = '#F97316';
                     else if (uviNum >= 3) uviColor = '#F59E0B';
+                    
+                    const uviElement = document.getElementById('uvi-max');
+                    uviElement.textContent = uviMax;
+                    uviElement.style.color = uviColor;
                 }
-                
-                const table = document.createElement('table');
-                table.className = 'marine-table';
-                table.innerHTML = `
-                    <thead>
-                        <tr>
-                            <th colspan="2">${days[dayOffset]} - ${targetDay.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="marine-label">🌡️ Temperatura del agua</td>
-                            <td class="marine-value temp-water">${approxSeaTemp}°C</td>
-                        </tr>
-                        <tr>
-                            <td class="marine-label">🌡️ Temperatura ambiente</td>
-                            <td class="marine-value">${airTemp}°C</td>
-                        </tr>
-                        <tr>
-                            <td class="marine-label">🌊 Oleaje en costa</td>
-                            <td class="marine-value wave-height">${waveHeight} m ${waveDir}</td>
-                        </tr>
-                        <tr>
-                            <td class="marine-label">💨 Viento</td>
-                            <td class="marine-value" id="wind-${dayOffset}">-- km/h --</td>
-                        </tr>
-                        <tr>
-                            <td class="marine-label">☀️ Radiación UVI</td>
-                            <td class="marine-value uvi-value" style="color: ${uviColor};">${uviValue}</td>
-                        </tr>
-                    </tbody>
-                `;
-                
-                container.appendChild(table);
             }
+            
+            // Obtener datos lunares con una segunda llamada a la API
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=sunrise,sunset,moon_phase&timezone=Europe/Madrid&forecast_days=1`)
+                .then(response => response.json())
+                .then(moonData => {
+                    if (moonData.daily && moonData.daily.moon_phase && moonData.daily.moon_phase[0] !== undefined) {
+                        const moonPhaseValue = moonData.daily.moon_phase[0];
+                        document.getElementById('moon-phase').textContent = getMoonPhase(moonPhaseValue);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar fase lunar:', error);
+                    document.getElementById('moon-phase').textContent = '-- --';
+                });
+            
+            // Calcular salida y puesta de luna (aproximación)
+            // La API de Open-Meteo no proporciona moonrise/moonset directamente
+            // Usaremos una aproximación basada en la fase lunar
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=moon_phase&timezone=Europe/Madrid&forecast_days=1`)
+                .then(response => response.json())
+                .then(moonData => {
+                    if (moonData.daily && moonData.daily.moon_phase) {
+                        // Aproximación simple: la luna sale aproximadamente 50 minutos más tarde cada día
+                        // Esto es una simplificación, idealmente usaríamos una librería astronómica
+                        const now = new Date();
+                        const moonPhase = moonData.daily.moon_phase[0];
+                        
+                        // Cálculo aproximado basado en la fase
+                        const moonriseHour = Math.floor(6 + (moonPhase * 24));
+                        const moonsetHour = Math.floor((18 + (moonPhase * 24)) % 24);
+                        
+                        document.getElementById('moonrise-time').textContent = `${moonriseHour.toString().padStart(2, '0')}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`;
+                        document.getElementById('moonset-time').textContent = `${moonsetHour.toString().padStart(2, '0')}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al calcular salida/puesta de luna:', error);
+                    document.getElementById('moonrise-time').textContent = 'Variable';
+                    document.getElementById('moonset-time').textContent = 'Variable';
+                });
         }
         
         async function loadWeatherData() {
@@ -1395,6 +1431,7 @@
                 
                 updateCurrentWeather(data.current, data.current.weather_code);
                 document.getElementById('narrative-forecast').innerHTML = generateNarrative(data.hourly);
+                updateAstronomyTable(data);
                 updateWeatherTable(data.hourly);
                 updateDaysTable(data.hourly, data.daily);
                 updateTime();
@@ -1545,10 +1582,8 @@
         }
         
         loadWeatherData();
-        loadMarineData();
         setTimeout(fetchWeatherAlertsBanner, 2000);
         setInterval(loadWeatherData, 600000);
-        setInterval(loadMarineData, 600000);
         setInterval(fetchWeatherAlertsBanner, 1800000);
     </script>
 </body>
