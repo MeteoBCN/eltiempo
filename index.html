@@ -93,11 +93,32 @@
             padding: 48px 24px 32px 24px;
             margin-bottom: 32px;
             background: transparent;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             border-radius: var(--border-radius);
             box-shadow: none;
             backdrop-filter: none;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: background-image 0.5s ease-in-out;
             animation: scaleIn 0.6s ease-out 0.2s both;
+            position: relative;
+        }
+        
+        .current-weather::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: var(--border-radius);
+            pointer-events: none;
+        }
+        
+        .current-weather > * {
+            position: relative;
+            z-index: 1;
         }
         
         @keyframes scaleIn {
@@ -1030,23 +1051,23 @@
         </div>
 
         <div class="webcam-container">
-            <span class="webcam-label">WEBCAM Vila Olímpica</span>
+            <span class="webcam-label">Barceloneta</span>
             <div class="webcam-frame">
                 <img 
                     id="webcam-jpg" 
                     src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg" 
-                    alt="Vila Olímpica"
+                    alt="Barceloneta"
                 />
             </div>
         </div>
         
          <div class="webcam-container">
-            <span class="webcam-label">WEBCAM Sagrada família</span>
+            <span class="webcam-label">Barceloneta</span>
             <div class="webcam-frame">
                 <img 
                     id="webcam-jpg" 
-                    src="https://imgproxy.windy.com/_/normal/plain/current/1448811166/original.jpg" 
-                    alt="Sagrada Família"
+                    src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg" 
+                    alt="Barceloneta"
                 />
             </div>
         </div>
@@ -1368,6 +1389,43 @@
             }
         }
         
+        function updateWeatherBackground(weatherCode, isNight) {
+            const currentWeatherDiv = document.querySelector('.current-weather');
+            let weatherType = '';
+            
+            // Mapear códigos de clima a tipos de imagen
+            if (weatherCode === 0) {
+                weatherType = 'soleado';
+            } else if (weatherCode === 1 || weatherCode === 2) {
+                weatherType = 'poco-nublado';
+            } else if (weatherCode === 3) {
+                weatherType = 'variable';
+            } else if (weatherCode === 45 || weatherCode === 48) {
+                weatherType = 'niebla';
+            } else if (weatherCode >= 51 && weatherCode <= 65) {
+                weatherType = 'lluvia';
+            } else if (weatherCode >= 71 && weatherCode <= 77) {
+                weatherType = 'nieve';
+            } else if (weatherCode >= 80 && weatherCode <= 82) {
+                weatherType = 'lluvia';
+            } else if (weatherCode >= 95 && weatherCode <= 99) {
+                weatherType = 'tormenta';
+            } else {
+                weatherType = 'variable';
+            }
+            
+            // Determinar día o noche
+            const timeOfDay = isNight ? 'noche' : 'dia';
+            
+            // Construir nombre del archivo
+            const imageName = `${weatherType}-${timeOfDay}.jpg`;
+            
+            // Aplicar imagen de fondo
+            currentWeatherDiv.style.backgroundImage = `url('${imageName}')`;
+            
+            console.log(`Fondo aplicado: ${imageName}`);
+        }
+        
         function updateCurrentWeather(current, weatherCode) {
             const now = new Date();
             document.getElementById('current-temp').textContent = Math.round(current.temperature_2m) + '°';
@@ -1376,6 +1434,9 @@
             document.getElementById('pressure').textContent = Math.round(current.pressure_msl) + ' hPa';
             document.getElementById('humidity').textContent = current.relative_humidity_2m + '%';
             document.getElementById('wind').textContent = Math.round(current.wind_speed_10m) + ' km/h';
+            
+            // Actualizar fondo según clima
+            updateWeatherBackground(weatherCode, isNightTime(now));
         }
         
         function updateWeatherTable(hourly) {
