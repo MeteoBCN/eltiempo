@@ -1336,18 +1336,19 @@
         
         function getMoonPhase(moonPhaseValue) {
             // moonPhaseValue va de 0 a 1
-            if (moonPhaseValue === 0 || moonPhaseValue === 1) return '🌑 Luna Nueva';
-            if (moonPhaseValue > 0 && moonPhaseValue < 0.25) return '🌒 Creciente';
-            if (moonPhaseValue === 0.25) return '🌓 Cuarto Creciente';
-            if (moonPhaseValue > 0.25 && moonPhaseValue < 0.5) return '🌔 Gibosa Creciente';
-            if (moonPhaseValue === 0.5) return '🌕 Luna Llena';
-            if (moonPhaseValue > 0.5 && moonPhaseValue < 0.75) return '🌖 Gibosa Menguante';
-            if (moonPhaseValue === 0.75) return '🌗 Cuarto Menguante';
-            if (moonPhaseValue > 0.75 && moonPhaseValue < 1) return '🌘 Menguante';
+            if (moonPhaseValue < 0.03) return '🌑 Luna Nueva';
+            if (moonPhaseValue >= 0.03 && moonPhaseValue < 0.22) return '🌒 Creciente';
+            if (moonPhaseValue >= 0.22 && moonPhaseValue < 0.28) return '🌓 Cuarto Creciente';
+            if (moonPhaseValue >= 0.28 && moonPhaseValue < 0.47) return '🌔 Gibosa Creciente';
+            if (moonPhaseValue >= 0.47 && moonPhaseValue < 0.53) return '🌕 Luna Llena';
+            if (moonPhaseValue >= 0.53 && moonPhaseValue < 0.72) return '🌖 Gibosa Menguante';
+            if (moonPhaseValue >= 0.72 && moonPhaseValue < 0.78) return '🌗 Cuarto Menguante';
+            if (moonPhaseValue >= 0.78 && moonPhaseValue < 0.97) return '🌘 Menguante';
+            if (moonPhaseValue >= 0.97) return '🌑 Luna Nueva';
             return '🌙 --';
         }
         
-        function updateAstronomyTable(data) {
+        async function updateAstronomyTable(data) {
             if (data.daily) {
                 // Salida y puesta del sol
                 if (data.daily.sunrise && data.daily.sunrise[0]) {
@@ -1376,45 +1377,54 @@
                 }
             }
             
-            // Obtener datos lunares con una segunda llamada a la API
-            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=sunrise,sunset,moon_phase&timezone=Europe/Madrid&forecast_days=1`)
-                .then(response => response.json())
-                .then(moonData => {
-                    if (moonData.daily && moonData.daily.moon_phase && moonData.daily.moon_phase[0] !== undefined) {
-                        const moonPhaseValue = moonData.daily.moon_phase[0];
-                        document.getElementById('moon-phase').textContent = getMoonPhase(moonPhaseValue);
+            // Obtener datos lunares incluyendo moonrise y moonset
+            try {
+                const moonResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=moonrise,moonset&timezone=Europe/Madrid&forecast_days=1`);
+                const moonData = await moonResponse.json();
+                
+                console.log('Datos lunares:', moonData);
+                
+                if (moonData.daily) {
+                    // Salida de la luna
+                    if (moonData.daily.moonrise && moonData.daily.moonrise[0]) {
+                        const moonrise = new Date(moonData.daily.moonrise[0]);
+                        document.getElementById('moonrise-time').textContent = moonrise.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+                    } else {
+                        document.getElementById('moonrise-time').textContent = 'No visible';
                     }
-                })
-                .catch(error => {
-                    console.error('Error al cargar fase lunar:', error);
-                    document.getElementById('moon-phase').textContent = '-- --';
-                });
+                    
+                    // Puesta de la luna
+                    if (moonData.daily.moonset && moonData.daily.moonset[0]) {
+                        const moonset = new Date(moonData.daily.moonset[0]);
+                        document.getElementById('moonset-time').textContent = moonset.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+                    } else {
+                        document.getElementById('moonset-time').textContent = 'No visible';
+                    }
+                }
+            } catch (error) {
+                console.error('Error al cargar salida/puesta de luna:', error);
+                document.getElementById('moonrise-time').textContent = 'N/D';
+                document.getElementById('moonset-time').textContent = 'N/D';
+            }
             
-            // Calcular salida y puesta de luna (aproximación)
-            // La API de Open-Meteo no proporciona moonrise/moonset directamente
-            // Usaremos una aproximación basada en la fase lunar
-            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=moon_phase&timezone=Europe/Madrid&forecast_days=1`)
-                .then(response => response.json())
-                .then(moonData => {
-                    if (moonData.daily && moonData.daily.moon_phase) {
-                        // Aproximación simple: la luna sale aproximadamente 50 minutos más tarde cada día
-                        // Esto es una simplificación, idealmente usaríamos una librería astronómica
-                        const now = new Date();
-                        const moonPhase = moonData.daily.moon_phase[0];
-                        
-                        // Cálculo aproximado basado en la fase
-                        const moonriseHour = Math.floor(6 + (moonPhase * 24));
-                        const moonsetHour = Math.floor((18 + (moonPhase * 24)) % 24);
-                        
-                        document.getElementById('moonrise-time').textContent = `${moonriseHour.toString().padStart(2, '0')}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`;
-                        document.getElementById('moonset-time').textContent = `${moonsetHour.toString().padStart(2, '0')}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error al calcular salida/puesta de luna:', error);
-                    document.getElementById('moonrise-time').textContent = 'Variable';
-                    document.getElementById('moonset-time').textContent = 'Variable';
-                });
+            // Obtener fase lunar
+            try {
+                const phaseResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=moon_phase&timezone=Europe/Madrid&forecast_days=1`);
+                const phaseData = await phaseResponse.json();
+                
+                console.log('Fase lunar:', phaseData);
+                
+                if (phaseData.daily && phaseData.daily.moon_phase && phaseData.daily.moon_phase[0] !== undefined) {
+                    const moonPhaseValue = phaseData.daily.moon_phase[0];
+                    console.log('Valor fase lunar:', moonPhaseValue);
+                    document.getElementById('moon-phase').textContent = getMoonPhase(moonPhaseValue);
+                } else {
+                    document.getElementById('moon-phase').textContent = 'N/D';
+                }
+            } catch (error) {
+                console.error('Error al cargar fase lunar:', error);
+                document.getElementById('moon-phase').textContent = 'N/D';
+            }
         }
         
         async function loadWeatherData() {
@@ -1431,7 +1441,7 @@
                 
                 updateCurrentWeather(data.current, data.current.weather_code);
                 document.getElementById('narrative-forecast').innerHTML = generateNarrative(data.hourly);
-                updateAstronomyTable(data);
+                await updateAstronomyTable(data);
                 updateWeatherTable(data.hourly);
                 updateDaysTable(data.hourly, data.daily);
                 updateTime();
