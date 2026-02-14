@@ -971,15 +971,130 @@
                 </div>
             </div>
 
-            <div class="weather-alerts-banner">
-                <div id="alerts-banner-container">
-                    <div class="alerts-banner-loading">
-                        <i class="wi wi-day-sunny" style="animation: spin 2s linear infinite;"></i>
-                        <span>Consultando avisos...</span>
-                    </div>
+            <!-- ============================================ -->
+            <!-- AVISO METEOROLÓGICO MANUAL                  -->
+            <!-- ============================================ -->
+            <!-- INSTRUCCIONES:
+                 1. Coloca una de estas 3 imágenes de fondo en la carpeta:
+                    - fondo-aviso-verde.png (570x90px, color #10B981)
+                    - fondo-aviso-amarillo.png (570x90px, color #F59E0B)
+                    - fondo-aviso-rojo.png (570x90px, color #EF4444)
+                 
+                 2. Para cambiar el nivel de alerta, modifica la línea "background-image":
+                    - Sin avisos: url('fondo-aviso-verde.png')
+                    - Precaución: url('fondo-aviso-amarillo.png')
+                    - Peligro: url('fondo-aviso-rojo.png')
+                 
+                 3. Edita el ICONO (emoji), TÍTULO y DESCRIPCIÓN según el fenómeno
+                 
+                 4. Para OCULTAR el aviso completamente: añade  al inicio de <div class="aviso-table">
+                    y  al final de </div>
+            -->
+            
+            <div class="aviso-table" style="
+                width: 100%;
+                height: 90px;
+                margin: 28px 0 0 0;
+                background-image: url('fondo-aviso-verde.png');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                padding: 0 20px;
+                box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+            ">
+                <!-- ICONO (cámbialo según el fenómeno) -->
+                <div style="
+                    font-size: 40px;
+                    margin-right: 15px;
+                    flex-shrink: 0;
+                ">✅</div>
+                
+                <!-- TEXTO DEL AVISO -->
+                <div style="flex: 1;">
+                    <!-- TÍTULO (edita aquí el tipo de aviso) -->
+                    <div style="
+                        color: white;
+                        font-size: 18px;
+                        font-weight: 700;
+                        margin-bottom: 4px;
+                        letter-spacing: 0.5px;
+                    ">SIN AVISOS ACTIVOS</div>
+                    
+                    <!-- DESCRIPCIÓN (edita aquí los detalles) -->
+                    <div style="
+                        color: white;
+                        font-size: 14px;
+                        font-weight: 500;
+                        opacity: 0.95;
+                    ">No hay fenómenos adversos previstos</div>
                 </div>
             </div>
             
+            <!-- ============================================ -->
+            <!-- EJEMPLOS DE CONFIGURACIÓN:                  -->
+            <!-- ============================================ -->
+            <!--
+            
+            SIN AVISOS (VERDE):
+            background-image: url('fondo-aviso-verde.png');
+            Icono: ✅
+            Título: SIN AVISOS ACTIVOS
+            Descripción: No hay fenómenos adversos previstos
+            
+            LLUVIA AMARILLO:
+            background-image: url('fondo-aviso-amarillo.png');
+            Icono: 🌧️
+            Título: AVISO AMARILLO - LLUVIAS INTENSAS
+            Descripción: Acumulaciones de 40-60 mm/12h
+            
+            LLUVIA ROJO:
+            background-image: url('fondo-aviso-rojo.png');
+            Icono: 🌧️
+            Título: AVISO ROJO - LLUVIAS MUY INTENSAS
+            Descripción: Acumulaciones superiores a 90 mm/12h
+            
+            VIENTO AMARILLO:
+            background-image: url('fondo-aviso-amarillo.png');
+            Icono: 💨
+            Título: AVISO AMARILLO - VIENTOS FUERTES
+            Descripción: Rachas de 70-90 km/h
+            
+            VIENTO ROJO:
+            background-image: url('fondo-aviso-rojo.png');
+            Icono: 💨
+            Título: AVISO ROJO - VIENTOS MUY FUERTES
+            Descripción: Rachas superiores a 120 km/h
+            
+            TORMENTA AMARILLO:
+            background-image: url('fondo-aviso-amarillo.png');
+            Icono: ⛈️
+            Título: AVISO AMARILLO - TORMENTAS
+            Descripción: Tormentas localmente intensas
+            
+            TORMENTA ROJO:
+            background-image: url('fondo-aviso-rojo.png');
+            Icono: ⛈️
+            Título: AVISO ROJO - TORMENTAS SEVERAS
+            Descripción: Tormentas muy intensas con granizo
+            
+            OLEAJE AMARILLO:
+            background-image: url('fondo-aviso-amarillo.png');
+            Icono: 🌊
+            Título: AVISO AMARILLO - OLEAJE FUERTE
+            Descripción: Olas de 2-3 metros
+            
+            OLEAJE ROJO:
+            background-image: url('fondo-aviso-rojo.png');
+            Icono: 🌊
+            Título: AVISO ROJO - OLEAJE MUY FUERTE
+            Descripción: Olas superiores a 5 metros
+            
+            -->
+            <!-- ============================================ -->
+
             <div class="narrative-container">
                 <div class="narrative-title">Tendencia Próximas Horas</div>
                 <div id="narrative-forecast">Cargando previsión...</div>
@@ -1181,61 +1296,6 @@
         
         function getWeatherDescription(code) {
             return weatherDescriptions[code] || 'Desconocido';
-        }
-        
-        async function fetchWeatherAlertsBanner() {
-            const container = document.getElementById('alerts-banner-container');
-            
-            try {
-                const response = await fetch('https://www.el-tiempo.net/api/json/v2/provincias/08/alertas');
-                
-                if (!response.ok) {
-                    throw new Error('Error al obtener datos');
-                }
-                
-                const data = await response.json();
-                displayAlertsBanner(data);
-                
-            } catch (error) {
-                console.error('Error al cargar avisos:', error);
-                displayFallbackAlertsBanner();
-            }
-        }
-        
-        function displayAlertsBanner(data) {
-            const container = document.getElementById('alerts-banner-container');
-            
-            if (!data || !data.today || data.today.length === 0) {
-                container.innerHTML = '<div class="no-alerts-banner"><span class="no-alerts-banner-icon"></span><span>No hay avisos activos</span></div>';
-                return;
-            }
-            
-            let alertsHTML = '';
-            const topAlerts = data.today.slice(0, 2);
-            
-            topAlerts.forEach(alert => {
-                const level = alert.level.toLowerCase();
-                const levelInfo = ALERT_LEVELS_BANNER[level] || ALERT_LEVELS_BANNER['verde'];
-                
-                const phenomenon = Object.keys(WEATHER_PHENOMENA_BANNER).find(key => 
-                    alert.phenomenon.toLowerCase().includes(key)
-                ) || 'fenomeno';
-                const phenoInfo = WEATHER_PHENOMENA_BANNER[phenomenon];
-                
-                let shortDesc = alert.description || 'Ver AEMET para más info';
-                if (shortDesc.length > 50) {
-                    shortDesc = shortDesc.substring(0, 47) + '...';
-                }
-                
-                alertsHTML += '<div class="alert-banner-item alert-banner-' + levelInfo.class + '"><div class="alert-banner-left"><span class="alert-banner-icon">' + phenoInfo.icon + '</span><div class="alert-banner-text"><div class="alert-banner-title">' + phenoInfo.name + '</div><div class="alert-banner-desc">' + shortDesc + '</div></div></div><span class="alert-banner-level banner-level-' + levelInfo.class + '">' + levelInfo.text + '</span></div>';
-            });
-            
-            container.innerHTML = alertsHTML;
-        }
-        
-        function displayFallbackAlertsBanner() {
-            const container = document.getElementById('alerts-banner-container');
-            container.innerHTML = '<div class="no-alerts-banner"><span class="no-alerts-banner-icon"></span><span>No hay avisos activos</span></div>';
         }
         
         function generateNarrative(hourly) {
@@ -1520,9 +1580,7 @@
         }
         
         loadWeatherData();
-        setTimeout(fetchWeatherAlertsBanner, 2000);
         setInterval(loadWeatherData, 600000);
-        setInterval(fetchWeatherAlertsBanner, 1800000);
     </script>
 </body>
 </html>
