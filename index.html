@@ -1283,6 +1283,22 @@
             <div id="days-detailed-container">
                 <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
             </div>
+            
+            <!-- Resumen Próximos 3 Días (Días 5, 6, 7) -->
+            <div style="margin-top: 28px;">
+                <div style="
+                    background: #2C3E50;
+                    color: #FFFFFF;
+                    padding: 12px 20px;
+                    border-radius: 12px 12px 0 0;
+                    font-size: 16px;
+                    font-weight: 700;
+                    text-align: center;
+                ">Próximos 3 Días</div>
+                <div id="days-summary-container">
+                    <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
+                </div>
+            </div>
         </div>
 
         <div class="webcam-container">
@@ -1599,6 +1615,7 @@
                 updateAstronomyTable(data);
                 updateWeatherTable(data.hourly);
                 updateDaysTable(data.hourly, data.daily);
+                updateDaysSummary(data.hourly, data.daily);
                 updateTime();
                 
             } catch (error) {
@@ -1796,10 +1813,133 @@
                 
                 const dayTable = document.createElement('table');
                 dayTable.className = 'day-detailed-table';
-                dayTable.innerHTML = '<thead><tr style="background: #2C3E50;"><th colspan="4" style="color: #FFFFFF;">' + dayName + '</th></tr></thead><tbody><tr><td style="width: 25%;"><div class="time-label">08:00</div><div class="weather-icon-large">' + icon08 + '</div></td><td style="width: 25%;"><div class="time-label">12:00</div><div class="weather-icon-large">' + icon12 + '</div></td><td style="width: 25%;"><div class="time-label">16:00</div><div class="weather-icon-large">' + icon16 + '</div></td><td style="width: 25%;"><div class="time-label">20:00</div><div class="weather-icon-large">' + icon20 + '</div></td></tr><tr><td><div style="font-size: 16px; font-weight: 700; color: #2C3E50;">' + temp08 + '°C</div></td><td><div style="font-size: 16px; font-weight: 700; color: #2C3E50;">' + temp12 + '°C</div></td><td><div style="font-size: 16px; font-weight: 700; color: #2C3E50;">' + temp16 + '°C</div></td><td><div style="font-size: 16px; font-weight: 700; color: #2C3E50;">' + temp20 + '°C</div></td></tr><tr><td colspan="2"><div class="rain-value temp-min">' + minTemp + '°C</div></td><td colspan="2"><div class="rain-value temp-max">' + maxTemp + '°C</div></td></tr><tr style="background: rgba(44, 62, 80, 0.08);"><td><div style="font-size: 10px; color: #2C3E50; margin-bottom: 2px;"><i class="wi wi-raindrops" style="font-size: 14px;"></i></div><div style="font-size: 14px; font-weight: 600; color: #2C3E50;">' + rain08 + '%</div></td><td><div style="font-size: 10px; color: #2C3E50; margin-bottom: 2px;"><i class="wi wi-raindrops" style="font-size: 14px;"></i></div><div style="font-size: 14px; font-weight: 600; color: #2C3E50;">' + rain12 + '%</div></td><td><div style="font-size: 10px; color: #2C3E50; margin-bottom: 2px;"><i class="wi wi-raindrops" style="font-size: 14px;"></i></div><div style="font-size: 14px; font-weight: 600; color: #2C3E50;">' + rain16 + '%</div></td><td><div style="font-size: 10px; color: #2C3E50; margin-bottom: 2px;"><i class="wi wi-raindrops" style="font-size: 14px;"></i></div><div style="font-size: 14px; font-weight: 600; color: #2C3E50;">' + rain20 + '%</div></td></tr><tr style="background: rgba(44, 62, 80, 0.08);"><td colspan="4" style="padding: 10px; font-size: 13px; color: #2C3E50; font-weight: 600;">Precipitación total: <span style="color: #2C3E50;">' + totalPrecip + ' mm</span></td></tr><tr><td><div style="font-size: 13px; font-weight: 600; color: #2C3E50;">' + wind08 + ' km/h</div><div style="font-size: 11px; color: #2C3E50; margin-top: 2px;">' + windDir08 + '</div></td><td><div style="font-size: 13px; font-weight: 600; color: #2C3E50;">' + wind12 + ' km/h</div><div style="font-size: 11px; color: #2C3E50; margin-top: 2px;">' + windDir12 + '</div></td><td><div style="font-size: 13px; font-weight: 600; color: #2C3E50;">' + wind16 + ' km/h</div><div style="font-size: 11px; color: #2C3E50; margin-top: 2px;">' + windDir16 + '</div></td><td><div style="font-size: 13px; font-weight: 600; color: #2C3E50;">' + wind20 + ' km/h</div><div style="font-size: 11px; color: #2C3E50; margin-top: 2px;">' + windDir20 + '</div></td></tr><tr><td colspan="4" style="padding: 10px; font-size: 12px; color: #2C3E50;"><i class="wi wi-sunrise" style="color: #2C3E50;"></i> ' + sunrise + ' <span style="margin: 0 15px;">|</span><i class="wi wi-sunset" style="color: #2C3E50;"></i> ' + sunset + '<span style="margin: 0 15px;">|</span><i class="wi wi-day-sunny" style="color: #2C3E50;"></i> UVI: <strong>' + uvMax + '</strong></td></tr></tbody>';
+                dayTable.innerHTML = '<thead><tr style="background: #2C3E50;"><th colspan="4" style="color: #FFFFFF;">' + dayName + '</th></tr></thead><tbody><tr><td style="width: 25%;"><div class="time-label">08:00</div><div class="weather-icon-large">' + icon08 + '</div></td><td style="width: 25%;"><div class="time-label">12:00</div><div class="weather-icon-large">' + icon12 + '</div></td><td style="width: 25%;"><div class="time-label">16:00</div><div class="weather-icon-large">' + icon16 + '</div></td><td style="width: 25%;"><div class="time-label">20:00</div><div class="weather-icon-large">' + icon20 + '</div></td></tr><tr><td><div style="font-size: 16px; font-weight: 700; color: #2C3E50;">' + temp08 + '°C</div></td><td><div style="font-size: 16px; font-weight: 700; color: #2C3E50;">' + temp12 + '°C</div></td><td><div style="font-size: 16px; font-weight: 700; color: #2C3E50;">' + temp16 + '°C</div></td><td><div style="font-size: 16px; font-weight: 700; color: #2C3E50;">' + temp20 + '°C</div></td></tr><tr><td colspan="2"><div class="rain-value temp-min">' + minTemp + '°C</div></td><td colspan="2"><div class="rain-value temp-max">' + maxTemp + '°C</div></td></tr><tr style="background: rgba(44, 62, 80, 0.08);"><td colspan="4" style="padding: 8px 10px 4px 10px; font-size: 11px; color: #64748B; font-weight: 600; text-align: center;">Probabilidad de lluvia (%)</td></tr><tr style="background: rgba(44, 62, 80, 0.08);"><td style="padding-top: 0;"><div style="font-size: 14px; font-weight: 600; color: #2C3E50;">' + rain08 + '%</div></td><td style="padding-top: 0;"><div style="font-size: 14px; font-weight: 600; color: #2C3E50;">' + rain12 + '%</div></td><td style="padding-top: 0;"><div style="font-size: 14px; font-weight: 600; color: #2C3E50;">' + rain16 + '%</div></td><td style="padding-top: 0;"><div style="font-size: 14px; font-weight: 600; color: #2C3E50;">' + rain20 + '%</div></td></tr><tr style="background: rgba(44, 62, 80, 0.08);"><td colspan="4" style="padding: 10px; font-size: 13px; color: #2C3E50; font-weight: 600;">Precipitación total: <span style="color: #2C3E50;">' + totalPrecip + ' mm</span></td></tr><tr><td><div style="font-size: 13px; font-weight: 600; color: #2C3E50;">' + wind08 + ' km/h</div><div style="font-size: 11px; color: #2C3E50; margin-top: 2px;">' + windDir08 + '</div></td><td><div style="font-size: 13px; font-weight: 600; color: #2C3E50;">' + wind12 + ' km/h</div><div style="font-size: 11px; color: #2C3E50; margin-top: 2px;">' + windDir12 + '</div></td><td><div style="font-size: 13px; font-weight: 600; color: #2C3E50;">' + wind16 + ' km/h</div><div style="font-size: 11px; color: #2C3E50; margin-top: 2px;">' + windDir16 + '</div></td><td><div style="font-size: 13px; font-weight: 600; color: #2C3E50;">' + wind20 + ' km/h</div><div style="font-size: 11px; color: #2C3E50; margin-top: 2px;">' + windDir20 + '</div></td></tr><tr><td colspan="4" style="padding: 10px; font-size: 12px; color: #2C3E50;"><i class="wi wi-sunrise" style="color: #2C3E50;"></i> ' + sunrise + ' <span style="margin: 0 15px;">|</span><i class="wi wi-sunset" style="color: #2C3E50;"></i> ' + sunset + '<span style="margin: 0 15px;">|</span><i class="wi wi-day-sunny" style="color: #2C3E50;"></i> UVI: <strong>' + uvMax + '</strong></td></tr></tbody>';
                 
                 container.appendChild(dayTable);
             }
+        }
+        
+        function updateDaysSummary(hourly, daily) {
+            const container = document.getElementById('days-summary-container');
+            container.innerHTML = '';
+            
+            const now = new Date();
+            
+            function getWindDirection(degrees) {
+                const directions = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
+                const index = Math.round(degrees / 45) % 8;
+                return directions[index];
+            }
+            
+            const summaryTable = document.createElement('table');
+            summaryTable.className = 'day-detailed-table';
+            summaryTable.style.marginTop = '0';
+            
+            let summaryHTML = '<tbody>';
+            
+            for (let dayOffset = 5; dayOffset <= 7; dayOffset++) {
+                const targetDay = new Date(now);
+                targetDay.setDate(targetDay.getDate() + dayOffset);
+                targetDay.setHours(0, 0, 0, 0);
+                
+                const dayName = getDayName(targetDay.toISOString());
+                
+                // Obtener código de clima más frecuente del día
+                let weatherCodes = [];
+                let hour12Index = -1;
+                
+                for (let i = 0; i < hourly.time.length; i++) {
+                    const hourTime = new Date(hourly.time[i]);
+                    if (hourTime.getDate() === targetDay.getDate() && 
+                        hourTime.getMonth() === targetDay.getMonth()) {
+                        weatherCodes.push(hourly.weather_code[i]);
+                        if (hourTime.getHours() === 12) {
+                            hour12Index = i;
+                        }
+                    }
+                }
+                
+                // Código de clima representativo (mediodía o más frecuente)
+                let mainWeatherCode = daily.weather_code[dayOffset];
+                if (hour12Index !== -1) {
+                    mainWeatherCode = hourly.weather_code[hour12Index];
+                }
+                
+                // Datos de nubosidad para el mediodía
+                const cloudData = hour12Index !== -1 ? {
+                    cloud_cover: hourly.cloud_cover ? hourly.cloud_cover[hour12Index] : undefined,
+                    cloud_cover_low: hourly.cloud_cover_low ? hourly.cloud_cover_low[hour12Index] : undefined,
+                    cloud_cover_mid: hourly.cloud_cover_mid ? hourly.cloud_cover_mid[hour12Index] : undefined,
+                    cloud_cover_high: hourly.cloud_cover_high ? hourly.cloud_cover_high[hour12Index] : undefined
+                } : null;
+                
+                const noonTime = hour12Index !== -1 ? new Date(hourly.time[hour12Index]) : targetDay;
+                const dayIcon = getWeatherIcon(mainWeatherCode, noonTime, cloudData);
+                
+                const minTemp = Math.round(daily.temperature_2m_min[dayOffset]);
+                const maxTemp = Math.round(daily.temperature_2m_max[dayOffset]);
+                
+                // Probabilidad de lluvia máxima del día
+                let maxRainProb = 0;
+                let totalPrecip = 0;
+                let windSpeeds = [];
+                let windDirections = [];
+                
+                for (let i = 0; i < hourly.time.length; i++) {
+                    const hourTime = new Date(hourly.time[i]);
+                    if (hourTime.getDate() === targetDay.getDate() && 
+                        hourTime.getMonth() === targetDay.getMonth()) {
+                        if (hourly.precipitation_probability && hourly.precipitation_probability[i] > maxRainProb) {
+                            maxRainProb = hourly.precipitation_probability[i];
+                        }
+                        totalPrecip += hourly.precipitation[i] || 0;
+                        if (hourly.wind_speed_10m) windSpeeds.push(hourly.wind_speed_10m[i]);
+                        if (hourly.wind_direction_10m) windDirections.push(hourly.wind_direction_10m[i]);
+                    }
+                }
+                
+                totalPrecip = Math.round(totalPrecip * 10) / 10;
+                
+                // Viento promedio y dirección más común
+                const avgWind = windSpeeds.length > 0 
+                    ? Math.round(windSpeeds.reduce((a, b) => a + b, 0) / windSpeeds.length) 
+                    : 0;
+                
+                const avgWindDir = windDirections.length > 0
+                    ? Math.round(windDirections.reduce((a, b) => a + b, 0) / windDirections.length)
+                    : 0;
+                
+                const windDirText = getWindDirection(avgWindDir);
+                
+                summaryHTML += '<tr>';
+                summaryHTML += '<td style="width: 25%; padding: 15px 10px; border-bottom: 1px solid #e9ecef;">';
+                summaryHTML += '<div style="font-size: 14px; font-weight: 700; color: #2C3E50; margin-bottom: 8px;">' + dayName + '</div>';
+                summaryHTML += '<div style="font-size: 32px; margin: 5px 0;">' + dayIcon + '</div>';
+                summaryHTML += '</td>';
+                
+                summaryHTML += '<td style="width: 25%; padding: 15px 10px; text-align: center; border-bottom: 1px solid #e9ecef;">';
+                summaryHTML += '<div style="font-size: 11px; color: #64748B; margin-bottom: 4px;">Mín / Máx</div>';
+                summaryHTML += '<div style="font-size: 15px; font-weight: 700;"><span style="color: #3B82F6;">' + minTemp + '°</span> / <span style="color: #EF4444;">' + maxTemp + '°</span></div>';
+                summaryHTML += '</td>';
+                
+                summaryHTML += '<td style="width: 25%; padding: 15px 10px; text-align: center; border-bottom: 1px solid #e9ecef;">';
+                summaryHTML += '<div style="font-size: 11px; color: #64748B; margin-bottom: 4px;">Lluvia</div>';
+                summaryHTML += '<div style="font-size: 14px; font-weight: 600; color: #2C3E50;">' + maxRainProb + '%</div>';
+                summaryHTML += '<div style="font-size: 11px; color: #64748B; margin-top: 2px;">' + totalPrecip + ' mm</div>';
+                summaryHTML += '</td>';
+                
+                summaryHTML += '<td style="width: 25%; padding: 15px 10px; text-align: center; border-bottom: 1px solid #e9ecef;">';
+                summaryHTML += '<div style="font-size: 11px; color: #64748B; margin-bottom: 4px;">Viento</div>';
+                summaryHTML += '<div style="font-size: 14px; font-weight: 600; color: #2C3E50;">' + avgWind + ' km/h</div>';
+                summaryHTML += '<div style="font-size: 11px; color: #64748B; margin-top: 2px;">' + windDirText + '</div>';
+                summaryHTML += '</td>';
+                
+                summaryHTML += '</tr>';
+            }
+            
+            summaryHTML += '</tbody>';
+            summaryTable.innerHTML = summaryHTML;
+            container.appendChild(summaryTable);
         }
         
         function updateTime() {
