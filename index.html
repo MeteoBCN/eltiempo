@@ -31,7 +31,7 @@
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: var(--color-text-primary);
-            background: #FFFFFF;
+            background: #2C3E50;
             background-attachment: fixed;
             padding: 0;
             max-width: 600px;
@@ -44,10 +44,23 @@
         }
         
         .container {
-            padding: 24px;
+            padding: 0;
             animation: fadeIn 0.6s ease-out;
             max-width: 100%;
             overflow-x: hidden;
+        }
+        
+        .header-section {
+            background: #2C3E50;
+            padding: 24px;
+            padding-bottom: 40px;
+        }
+        
+        .content-section {
+            background: #FFFFFF;
+            padding: 24px;
+            border-radius: 24px 24px 0 0;
+            margin-top: -16px;
         }
         
         @keyframes fadeIn {
@@ -65,6 +78,7 @@
             text-align: center;
             padding: 32px 20px 16px;
             animation: slideDown 0.8s ease-out;
+            background: transparent;
         }
         
         @keyframes slideDown {
@@ -89,12 +103,28 @@
         .current-weather {
             text-align: center;
             padding: 48px 24px 32px 24px;
-            margin-bottom: 32px;
+            margin-bottom: 0;
             background: transparent;
             border-radius: var(--border-radius);
             box-shadow: none;
             backdrop-filter: none;
             animation: scaleIn 0.6s ease-out 0.2s both;
+        }
+        
+        .current-weather .temperature {
+            color: #FFFFFF;
+        }
+        
+        .current-weather .condition {
+            color: rgba(255, 255, 255, 0.85);
+        }
+        
+        .current-weather .detail-item > div:first-child {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .current-weather .detail-value {
+            color: #FFFFFF;
         }
         
         @keyframes scaleIn {
@@ -649,7 +679,7 @@
         .narrative-title {
             font-size: 13px;
             font-weight: 700;
-            color: var(--color-text-secondary);
+            color: rgba(255, 255, 255, 0.7);
             margin-bottom: 16px;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -660,7 +690,7 @@
             text-align: center;
             line-height: 1.7;
             font-size: 15px;
-            color: var(--color-text-primary);
+            color: rgba(255, 255, 255, 0.9);
             font-weight: 400;
             letter-spacing: 0.2px;
         }
@@ -772,7 +802,7 @@
         
         .astronomy-table tbody tr:first-child td {
             font-weight: 600;
-            color: var(--color-text-secondary);
+            color: rgba(255, 255, 255, 0.6);
             font-size: 12px;
             text-transform: none;
             letter-spacing: 0.5px;
@@ -781,7 +811,7 @@
         
         .astronomy-table tbody tr:last-child td {
             font-weight: 700;
-            color: var(--color-text-primary);
+            color: #FFFFFF;
             font-size: 16px;
             padding-top: 4px;
         }
@@ -818,7 +848,12 @@
      }
 
         @media (max-width: 480px) {
-            .container {
+            .header-section {
+                padding: 16px;
+                padding-bottom: 32px;
+            }
+            
+            .content-section {
                 padding: 16px;
             }
             
@@ -879,61 +914,92 @@
 </head>
 <body>
     <div class="container">
-        <div class="logo-container">
-            <img src="logo.jpg" alt="Logo" id="main-logo">
-        </div>
-        
-        <div class="current-weather">
-            <div style="font-size: 13px; font-weight: 700; color: var(--color-text-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">Tiempo Actual</div>
-            <div class="icon-large" id="current-icon">☀️</div>
-            <div class="temperature" id="current-temp">--°</div>
-            <div class="condition" id="current-condition">Cargando...</div>
-            <div class="details">
-                <div class="detail-item">
-                    <div>Presión</div>
-                    <div class="detail-value" id="pressure">-- hPa</div>
-                </div>
-                <div class="detail-item">
-                    <div>Humedad</div>
-                    <div class="detail-value" id="humidity">--%</div>
-                </div>
-                <div class="detail-item">
-                    <div>Viento</div>
-                    <div class="detail-value" id="wind">-- km/h</div>
-                </div>
-                <div class="detail-item">
-                    <div>Precip. hoy</div>
-                    <div class="detail-value" id="precip-today">-- mm</div>
-                </div>
-                <div class="detail-item">
-                    <div>Calidad Aire</div>
-                    <div class="detail-value" id="air-quality-current" style="color: #2C3E50;">--</div>
-                </div>
-                <div class="detail-item">
-                    <div>UVI actual</div>
-                    <div class="detail-value" id="uvi-current">--</div>
-                </div>
-                <div class="detail-item">
-                    <div>Amanecer</div>
-                    <div class="detail-value" id="sunrise-current">--:--</div>
-                </div>
-                <div class="detail-item">
-                    <div>Atardecer</div>
-                    <div class="detail-value" id="sunset-current">--:--</div>
-                </div>
+        <!-- SECCIÓN HEADER (Fondo oscuro #2C3E50) -->
+        <div class="header-section">
+            <div class="logo-container">
+                <img src="logo.jpg" alt="Logo" id="main-logo">
             </div>
+            
+            <div class="current-weather">
+                <div style="font-size: 13px; font-weight: 700; color: rgba(255, 255, 255, 0.7); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">Tiempo Actual</div>
+                <div class="icon-large" id="current-icon">☀️</div>
+                <div class="temperature" id="current-temp">--°</div>
+                <div class="condition" id="current-condition">Cargando...</div>
+                <div class="details">
+                    <div class="detail-item">
+                        <div>Presión</div>
+                        <div class="detail-value" id="pressure">-- hPa</div>
+                    </div>
+                    <div class="detail-item">
+                        <div>Humedad</div>
+                        <div class="detail-value" id="humidity">--%</div>
+                    </div>
+                    <div class="detail-item">
+                        <div>Viento</div>
+                        <div class="detail-value" id="wind">-- km/h</div>
+                    </div>
+                    <div class="detail-item">
+                        <div>Precip. hoy</div>
+                        <div class="detail-value" id="precip-today">-- mm</div>
+                    </div>
+                    <div class="detail-item">
+                        <div>Calidad Aire</div>
+                        <div class="detail-value" id="air-quality-current" style="color: #FFFFFF;">--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div>UVI actual</div>
+                        <div class="detail-value" id="uvi-current">--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div>Amanecer</div>
+                        <div class="detail-value" id="sunrise-current">--:--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div>Atardecer</div>
+                        <div class="detail-value" id="sunset-current">--:--</div>
+                    </div>
+                </div>
+
+                <!-- ============================================ -->
+                <!-- AVISO METEOROLÓGICO - EDITABLE             -->
+                <!-- ============================================ -->
+            <!-- INSTRUCCIONES:
+                 
+                 CÓMO EDITAR LOS AVISOS:
+                 
+                 1. Para SIN AVISOS:
+                    - background: transparent;
+                    - color título: #2C3E50;
+                    - color descripción: #64748B;
+                    - Título: SIN AVISOS ACTIVOS
+                    - Descripción: No hay fenómenos adversos previstos
+                 
+                 2. Para AVISO AMARILLO:
+                    - background: #F59E0B;
+                    - color título: #1E293B;
+                    - color descripción: #1E293B;
+                    - Título: AVISO AMARILLO - [FENÓMENO]
+                    - Descripción: [Detalles del aviso]
+                 
+                 3. Para AVISO ROJO:
+                    - background: #EF4444;
+                    - color título: #FFFFFF;
+                    - color descripción: rgba(255, 255, 255, 0.9);
+                    - Título: AVISO ROJO - [FENÓMENO]
+                    - Descripción: [Detalles del aviso]
+            -->
             
             <div class="aviso-box" style="
                 width: 100%;
-                background: #F8F8FF;
+                background: transparent;
                 border-radius: 12px;
                 margin: 28px 0 0 0;
                 padding: 20px 24px;
             ">
                 <!-- TÍTULO DEL AVISO -->
                 <div style="
-                    color: #2C3E50;
-                    font-size: 14px;
+                    color: #FFFFFF;
+                    font-size: 16px;
                     font-weight: 700;
                     margin-bottom: 6px;
                     letter-spacing: 0.3px;
@@ -941,18 +1007,190 @@
                 
                 <!-- DESCRIPCIÓN -->
                 <div style="
-                    color: #64748B;
-                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.75);
+                    font-size: 14px;
                     font-weight: 500;
                     line-height: 1.5;
                 ">No hay fenómenos adversos previstos</div>
             </div>
             
+            <!-- ============================================ -->
+            <!-- EJEMPLOS DE CONFIGURACIÓN:                  -->
+            <!-- ============================================ -->
+            <!--
+            
+            █ SIN AVISOS (FONDO TRANSPARENTE sobre #2C3E50):
+            =================================================
+            <div class="aviso-box" style="
+                width: 100%;
+                background: transparent;
+                border-radius: 12px;
+                margin: 28px 0 0 0;
+                padding: 20px 24px;
+            ">
+                <div style="
+                    color: #FFFFFF;
+                    font-size: 16px;
+                    font-weight: 700;
+                    margin-bottom: 6px;
+                    letter-spacing: 0.3px;
+                ">SIN AVISOS ACTIVOS</div>
+                
+                <div style="
+                    color: rgba(255, 255, 255, 0.75);
+                    font-size: 14px;
+                    font-weight: 500;
+                    line-height: 1.5;
+                ">No hay fenómenos adversos previstos</div>
+            </div>
+            
+            
+            █ AVISO AMARILLO - LLUVIA:
+            ==========================
+            <div class="aviso-box" style="
+                width: 100%;
+                background: #F59E0B;
+                border-radius: 12px;
+                margin: 28px 0 0 0;
+                padding: 20px 24px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            ">
+                <div style="
+                    color: #1E293B;
+                    font-size: 16px;
+                    font-weight: 700;
+                    margin-bottom: 6px;
+                    letter-spacing: 0.3px;
+                ">AVISO AMARILLO - LLUVIAS INTENSAS</div>
+                
+                <div style="
+                    color: #1E293B;
+                    font-size: 14px;
+                    font-weight: 500;
+                    line-height: 1.5;
+                ">Acumulaciones de 40-60 mm/12h</div>
+            </div>
+            
+            
+            █ AVISO AMARILLO - VIENTO:
+            ==========================
+            <div class="aviso-box" style="
+                width: 100%;
+                background: #F59E0B;
+                border-radius: 12px;
+                margin: 28px 0 0 0;
+                padding: 20px 24px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            ">
+                <div style="
+                    color: #1E293B;
+                    font-size: 16px;
+                    font-weight: 700;
+                    margin-bottom: 6px;
+                    letter-spacing: 0.3px;
+                ">AVISO AMARILLO - VIENTOS FUERTES</div>
+                
+                <div style="
+                    color: #1E293B;
+                    font-size: 14px;
+                    font-weight: 500;
+                    line-height: 1.5;
+                ">Rachas de 70-90 km/h</div>
+            </div>
+            
+            
+            █ AVISO ROJO - LLUVIA:
+            ======================
+            <div class="aviso-box" style="
+                width: 100%;
+                background: #EF4444;
+                border-radius: 12px;
+                margin: 28px 0 0 0;
+                padding: 20px 24px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            ">
+                <div style="
+                    color: #FFFFFF;
+                    font-size: 16px;
+                    font-weight: 700;
+                    margin-bottom: 6px;
+                    letter-spacing: 0.3px;
+                ">AVISO ROJO - LLUVIAS MUY INTENSAS</div>
+                
+                <div style="
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 14px;
+                    font-weight: 500;
+                    line-height: 1.5;
+                ">Acumulaciones superiores a 90 mm/12h. Riesgo extremo</div>
+            </div>
+            
+            
+            █ AVISO ROJO - VIENTO:
+            ======================
+            <div class="aviso-box" style="
+                width: 100%;
+                background: #EF4444;
+                border-radius: 12px;
+                margin: 28px 0 0 0;
+                padding: 20px 24px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            ">
+                <div style="
+                    color: #FFFFFF;
+                    font-size: 16px;
+                    font-weight: 700;
+                    margin-bottom: 6px;
+                    letter-spacing: 0.3px;
+                ">AVISO ROJO - VIENTOS MUY FUERTES</div>
+                
+                <div style="
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 14px;
+                    font-weight: 500;
+                    line-height: 1.5;
+                ">Rachas superiores a 120 km/h. Riesgo extremo</div>
+            </div>
+            
+            
+            █ AVISO ROJO - TORMENTA:
+            ========================
+            <div class="aviso-box" style="
+                width: 100%;
+                background: #EF4444;
+                border-radius: 12px;
+                margin: 28px 0 0 0;
+                padding: 20px 24px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            ">
+                <div style="
+                    color: #FFFFFF;
+                    font-size: 16px;
+                    font-weight: 700;
+                    margin-bottom: 6px;
+                    letter-spacing: 0.3px;
+                ">AVISO ROJO - TORMENTAS SEVERAS</div>
+                
+                <div style="
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 14px;
+                    font-weight: 500;
+                    line-height: 1.5;
+                ">Tormentas muy intensas con granizo grande. Riesgo extremo</div>
+            </div>
+            
+            -->
+
             <div class="narrative-container">
                 <div class="narrative-title">Tendencia Próximas Horas</div>
                 <div id="narrative-forecast">Cargando previsión...</div>
             </div>
         </div>
+        </div>
+        <!-- FIN SECCIÓN HEADER -->
+        
+        <!-- SECCIÓN CONTENIDO (Fondo blanco) -->
+        <div class="content-section">
         
         <div class="weather-table-container">
             <table id="weather-table">
@@ -1013,6 +1251,8 @@
         <div class="divulgacion-link">
             <a href="divulgacion.html">Aprende meteorología</a>
         </div>
+        </div>
+        <!-- FIN SECCIÓN CONTENIDO -->
     </div>
 
     <script>
@@ -1313,7 +1553,7 @@
                     
                     const uviElement = document.getElementById('uvi-current');
                     uviElement.textContent = currentUVI;
-                    uviElement.style.color = '#2C3E50';
+                    uviElement.style.color = '#FFFFFF';
                 }
             }
         }
