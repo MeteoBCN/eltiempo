@@ -858,45 +858,37 @@
             font-size: 14px;
         }
 
-        .webcam-container {
+        .webcam-container { 
             display: flex;
             flex-direction: column;
-            align-items: center;
+           align-items: flex-start;
+           width: 100%;
+           margin: 32px 0;
+           animation: fadeIn 0.6s ease-out 1s both;
+        }
+
+       .webcam-frame {
             width: 100%;
-            margin: 32px 0;
-            animation: fadeIn 0.6s ease-out 1s both;
-        }
-        
-        .webcam-label {
-            margin-bottom: 12px;
-            font-weight: 600;
-            color: var(--color-text-secondary);
-            font-size: 14px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        
-        .webcam-frame {
-            width: 320px;
-            height: 180px;
-            overflow: hidden;
-            border: none;
-            background: #000;
-            border-radius: var(--border-radius-sm);
-            box-shadow: var(--shadow-md);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .webcam-frame:hover {
-            transform: scale(1.02);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .webcam-frame img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
+            height: auto;
+           aspect-ratio: 16 / 9;
+           overflow: hidden;
+           border: none;
+           background: #000;
+           border-radius: var(--border-radius-sm);
+           box-shadow: var(--shadow-md);
+           transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .webcam-frame:hover {
+          transform: translateY(-2px);
+          box-shadow: var(--shadow-lg);
+     }
+
+     .webcam-frame img {
+         width: 100%;
+         height: 100%;
+        object-fit: cover;
+     }
 
         @media (max-width: 480px) {
             .container {
