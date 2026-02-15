@@ -1750,6 +1750,12 @@
                 const temp16 = hour16Index !== -1 ? Math.round(hourly.temperature_2m[hour16Index]) : '--';
                 const temp20 = hour20Index !== -1 ? Math.round(hourly.temperature_2m[hour20Index]) : '--';
                 
+                // Probabilidad de lluvia por hora
+                const rain08 = hour08Index !== -1 && hourly.precipitation_probability ? (hourly.precipitation_probability[hour08Index] || 0) : 0;
+                const rain12 = hour12Index !== -1 && hourly.precipitation_probability ? (hourly.precipitation_probability[hour12Index] || 0) : 0;
+                const rain16 = hour16Index !== -1 && hourly.precipitation_probability ? (hourly.precipitation_probability[hour16Index] || 0) : 0;
+                const rain20 = hour20Index !== -1 && hourly.precipitation_probability ? (hourly.precipitation_probability[hour20Index] || 0) : 0;
+                
                 const minTemp = Math.round(daily.temperature_2m_min[dayOffset]);
                 const maxTemp = Math.round(daily.temperature_2m_max[dayOffset]);
                 
