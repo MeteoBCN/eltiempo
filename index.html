@@ -53,15 +53,16 @@
         .header-section {
             background: #2C3E50;
             padding: 0;
-            /* Para añadir imagen de fondo, descomenta y edita la siguiente línea: */
+            /* Para añadir imagen de fondo, edita la siguiente línea: */
             background-image: url('banner.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             position: relative;
+            min-height: 200px;
         }
         
-        /* Superposición oscura opcional para mejorar legibilidad del logo */
+        /* Superposición oscura opcional para mejorar legibilidad */
         .header-section::before {
             content: '';
             position: absolute;
@@ -70,8 +71,9 @@
             right: 0;
             bottom: 0;
             background: transparent;
-            /* Cambia la opacidad (0.7) para más o menos oscuridad */
-            /* Para desactivar la superposición, pon: background: transparent; */
+            /* Para añadir oscuridad sobre la imagen, cambia transparent por: */
+            /* background: rgba(44, 62, 80, 0.5); */
+            /* Ajusta el último número (0.5) para más o menos oscuridad */
             z-index: 0;
         }
         
@@ -91,15 +93,6 @@
             }
         }
     
-        .logo-container {
-            text-align: center;
-            padding: 32px 20px 16px;
-            animation: slideDown 0.8s ease-out;
-            background: transparent;
-            position: relative;
-            z-index: 1;
-        }
-        
         @keyframes slideDown {
             from {
                 opacity: 0;
@@ -109,14 +102,6 @@
                 opacity: 1;
                 transform: translateY(0);
             }
-        }
-        
-        #main-logo {
-            max-width: 50px;
-            width: 50%;
-            height: auto;
-            display: block;
-            margin: 0 auto;
         }
         
         .current-weather {
@@ -853,6 +838,7 @@
         @media (max-width: 480px) {
             .header-section {
                 padding: 0;
+                min-height: 150px;
             }
             
             .content-section {
@@ -874,10 +860,6 @@
             
             .radar-frame {
                 height: 300px;
-            }
-            
-            #main-logo {
-                max-width: 220px;
             }
             
             #weather-table th,
@@ -916,11 +898,10 @@
 </head>
 <body>
     <div class="container">
-        <!-- SECCIÓN HEADER (Solo logo con fondo oscuro #2C3E50) -->
+        <!-- SECCIÓN HEADER (Banner sin logo) -->
         <div class="header-section">
-            <div class="logo-container">
-                <img src="logo.jpg" alt="Logo" id="main-logo">
-            </div>
+            <!-- Banner de 200px de altura -->
+            <!-- Para cambiar la altura, edita min-height en el CSS -->
         </div>
         <!-- FIN SECCIÓN HEADER -->
         
