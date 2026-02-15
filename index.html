@@ -1428,7 +1428,32 @@
             return time < sunrise || time > sunset;
         }
         
-        function getWeatherIcon(code, dateTime) {
+        function getWeatherIcon(code, dateTime, cloudData) {
+            // Si tenemos datos de nubosidad detallada, ajustar el código
+            if (cloudData && (code === 1 || code === 2 || code === 3)) {
+                const totalCloud = cloudData.cloud_cover || 0;
+                const lowCloud = cloudData.cloud_cover_low || 0;
+                const midCloud = cloudData.cloud_cover_mid || 0;
+                const highCloud = cloudData.cloud_cover_high || 0;
+                
+                // Si solo hay nubes altas (cirros) y poca cobertura total
+                if (highCloud > 30 && lowCloud < 20 && midCloud < 20 && totalCloud < 50) {
+                    code = 1; // Principalmente despejado
+                }
+                // Si hay nubes bajas o medias significativas
+                else if (lowCloud > 50 || midCloud > 50) {
+                    code = 3; // Nublado
+                }
+                // Si hay algo de nubosidad pero no mucha
+                else if (totalCloud > 20 && totalCloud < 70) {
+                    code = 2; // Parcialmente nublado
+                }
+                // Si hay poca nubosidad
+                else if (totalCloud < 20) {
+                    code = 0; // Despejado
+                }
+            }
+            
             if (dateTime && isNightTime(dateTime)) {
                 return weatherIconsNight[code] || '<i class="wi wi-night-clear"></i>';
             }
@@ -1546,7 +1571,7 @@
         
         async function loadWeatherData() {
             try {
-                const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + LAT + '&longitude=' + LON + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7';
+                const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + LAT + '&longitude=' + LON + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7';
                 
                 const response = await fetch(url);
                 const data = await response.json();
@@ -1587,7 +1612,13 @@
         function updateCurrentWeather(current, weatherCode, precipToday) {
             const now = new Date();
             document.getElementById('current-temp').textContent = Math.round(current.temperature_2m) + '°';
-            document.getElementById('current-icon').innerHTML = getWeatherIcon(weatherCode, now);
+            
+            // Pasar datos de nubosidad para análisis más preciso
+            const cloudData = {
+                cloud_cover: current.cloud_cover
+            };
+            document.getElementById('current-icon').innerHTML = getWeatherIcon(weatherCode, now, cloudData);
+            
             document.getElementById('current-condition').textContent = getWeatherDescription(weatherCode);
             document.getElementById('pressure').textContent = Math.round(current.pressure_msl) + ' hPa';
             document.getElementById('humidity').textContent = current.relative_humidity_2m + '%';
@@ -1622,7 +1653,16 @@
                 const temp = Math.round(hourly.temperature_2m[hourIndex]);
                 const rain = hourly.precipitation_probability[hourIndex] || 0;
                 const wind = Math.round(hourly.wind_speed_10m[hourIndex]);
-                const icon = getWeatherIcon(hourly.weather_code[hourIndex], hourTime);
+                
+                // Crear objeto con datos de nubosidad
+                const cloudData = {
+                    cloud_cover: hourly.cloud_cover ? hourly.cloud_cover[hourIndex] : undefined,
+                    cloud_cover_low: hourly.cloud_cover_low ? hourly.cloud_cover_low[hourIndex] : undefined,
+                    cloud_cover_mid: hourly.cloud_cover_mid ? hourly.cloud_cover_mid[hourIndex] : undefined,
+                    cloud_cover_high: hourly.cloud_cover_high ? hourly.cloud_cover_high[hourIndex] : undefined
+                };
+                
+                const icon = getWeatherIcon(hourly.weather_code[hourIndex], hourTime, cloudData);
                 
                 const row = document.createElement('tr');
                 row.innerHTML = '<td class="table-hour">' + formatHour(hourly.time[hourIndex]) + '</td><td class="table-icon">' + icon + '</td><td class="table-temp">' + temp + '°C</td><td class="table-rain">' + rain + '%</td><td class="table-wind">' + wind + ' km/h</td>';
@@ -1674,10 +1714,39 @@
                     }
                 }
                 
-                const icon08 = hour08Index !== -1 ? getWeatherIcon(hourly.weather_code[hour08Index], new Date(hourly.time[hour08Index])) : '—';
-                const icon12 = hour12Index !== -1 ? getWeatherIcon(hourly.weather_code[hour12Index], new Date(hourly.time[hour12Index])) : '—';
-                const icon16 = hour16Index !== -1 ? getWeatherIcon(hourly.weather_code[hour16Index], new Date(hourly.time[hour16Index])) : '—';
-                const icon20 = hour20Index !== -1 ? getWeatherIcon(hourly.weather_code[hour20Index], new Date(hourly.time[hour20Index])) : '—';
+                // Crear objetos con datos de nubosidad para cada hora
+                const cloudData08 = hour08Index !== -1 ? {
+                    cloud_cover: hourly.cloud_cover ? hourly.cloud_cover[hour08Index] : undefined,
+                    cloud_cover_low: hourly.cloud_cover_low ? hourly.cloud_cover_low[hour08Index] : undefined,
+                    cloud_cover_mid: hourly.cloud_cover_mid ? hourly.cloud_cover_mid[hour08Index] : undefined,
+                    cloud_cover_high: hourly.cloud_cover_high ? hourly.cloud_cover_high[hour08Index] : undefined
+                } : null;
+                
+                const cloudData12 = hour12Index !== -1 ? {
+                    cloud_cover: hourly.cloud_cover ? hourly.cloud_cover[hour12Index] : undefined,
+                    cloud_cover_low: hourly.cloud_cover_low ? hourly.cloud_cover_low[hour12Index] : undefined,
+                    cloud_cover_mid: hourly.cloud_cover_mid ? hourly.cloud_cover_mid[hour12Index] : undefined,
+                    cloud_cover_high: hourly.cloud_cover_high ? hourly.cloud_cover_high[hour12Index] : undefined
+                } : null;
+                
+                const cloudData16 = hour16Index !== -1 ? {
+                    cloud_cover: hourly.cloud_cover ? hourly.cloud_cover[hour16Index] : undefined,
+                    cloud_cover_low: hourly.cloud_cover_low ? hourly.cloud_cover_low[hour16Index] : undefined,
+                    cloud_cover_mid: hourly.cloud_cover_mid ? hourly.cloud_cover_mid[hour16Index] : undefined,
+                    cloud_cover_high: hourly.cloud_cover_high ? hourly.cloud_cover_high[hour16Index] : undefined
+                } : null;
+                
+                const cloudData20 = hour20Index !== -1 ? {
+                    cloud_cover: hourly.cloud_cover ? hourly.cloud_cover[hour20Index] : undefined,
+                    cloud_cover_low: hourly.cloud_cover_low ? hourly.cloud_cover_low[hour20Index] : undefined,
+                    cloud_cover_mid: hourly.cloud_cover_mid ? hourly.cloud_cover_mid[hour20Index] : undefined,
+                    cloud_cover_high: hourly.cloud_cover_high ? hourly.cloud_cover_high[hour20Index] : undefined
+                } : null;
+                
+                const icon08 = hour08Index !== -1 ? getWeatherIcon(hourly.weather_code[hour08Index], new Date(hourly.time[hour08Index]), cloudData08) : '—';
+                const icon12 = hour12Index !== -1 ? getWeatherIcon(hourly.weather_code[hour12Index], new Date(hourly.time[hour12Index]), cloudData12) : '—';
+                const icon16 = hour16Index !== -1 ? getWeatherIcon(hourly.weather_code[hour16Index], new Date(hourly.time[hour16Index]), cloudData16) : '—';
+                const icon20 = hour20Index !== -1 ? getWeatherIcon(hourly.weather_code[hour20Index], new Date(hourly.time[hour20Index]), cloudData20) : '—';
                 
                 // Temperaturas por hora
                 const temp08 = hour08Index !== -1 ? Math.round(hourly.temperature_2m[hour08Index]) : '--';
