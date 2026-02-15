@@ -888,25 +888,21 @@
                 </div>
                 <div class="detail-item">
                     <div>Calidad Aire</div>
-                    <div class="detail-value" id="air-quality-current">--</div>
+                    <div class="detail-value" id="air-quality-current" style="color: #2C3E50;">--</div>
+                </div>
+                <div class="detail-item">
+                    <div>UVI actual</div>
+                    <div class="detail-value" id="uvi-current">--</div>
+                </div>
+                <div class="detail-item">
+                    <div>Amanecer</div>
+                    <div class="detail-value" id="sunrise-current">--:--</div>
+                </div>
+                <div class="detail-item">
+                    <div>Atardecer</div>
+                    <div class="detail-value" id="sunset-current">--:--</div>
                 </div>
             </div>
-
-            <!-- Fila astronómica: amanecer, atardecer, UVI -->
-            <table class="astronomy-table" style="margin-top: 24px;">
-                <tbody>
-                    <tr>
-                        <td>amanecer</td>
-                        <td>atardecer</td>
-                        <td>uv máx</td>
-                    </tr>
-                    <tr>
-                        <td id="sunrise-time-top">--:--</td>
-                        <td id="sunset-time-top">--:--</td>
-                        <td id="uvi-max-top">--</td>
-                    </tr>
-                </tbody>
-            </table>
 
             <!-- ============================================ -->
             <!-- AVISO METEOROLÓGICO MANUAL - 2 FILAS        -->
@@ -1214,39 +1210,25 @@
                 if (data.daily.sunrise && data.daily.sunrise[0]) {
                     const sunrise = new Date(data.daily.sunrise[0]);
                     const sunriseTime = sunrise.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
-                    document.getElementById('sunrise-time-top').textContent = sunriseTime;
+                    document.getElementById('sunrise-current').textContent = sunriseTime;
                 }
                 
                 if (data.daily.sunset && data.daily.sunset[0]) {
                     const sunset = new Date(data.daily.sunset[0]);
                     const sunsetTime = sunset.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
-                    document.getElementById('sunset-time-top').textContent = sunsetTime;
-                }
-                
-                if (data.daily.uv_index_max && data.daily.uv_index_max[0] !== undefined) {
-                    const uviMax = data.daily.uv_index_max[0].toFixed(1);
-                    let uviColor = '#10B981';
-                    const uviNum = parseFloat(uviMax);
-                    if (uviNum >= 11) uviColor = '#9333EA';
-                    else if (uviNum >= 8) uviColor = '#EF4444';
-                    else if (uviNum >= 6) uviColor = '#F97316';
-                    else if (uviNum >= 3) uviColor = '#F59E0B';
-                    
-                    const uviElement = document.getElementById('uvi-max-top');
-                    uviElement.textContent = uviMax;
-                    uviElement.style.color = uviColor;
+                    document.getElementById('sunset-current').textContent = sunsetTime;
                 }
             }
         }
         
         function updateAirQualityTable(airCurrent) {
             function getAQILevel(aqi) {
-                if (aqi <= 20) return { text: 'Buena', color: '#10B981' };
-                if (aqi <= 40) return { text: 'Aceptable', color: '#84CC16' };
-                if (aqi <= 60) return { text: 'Moderada', color: '#F59E0B' };
-                if (aqi <= 80) return { text: 'Desfavorable', color: '#F97316' };
-                if (aqi <= 100) return { text: 'Muy desfavorable', color: '#EF4444' };
-                return { text: 'Extremadamente desfavorable', color: '#991B1B' };
+                if (aqi <= 20) return { text: 'Buena', color: '#2C3E50' };
+                if (aqi <= 40) return { text: 'Aceptable', color: '#2C3E50' };
+                if (aqi <= 60) return { text: 'Moderada', color: '#2C3E50' };
+                if (aqi <= 80) return { text: 'Desfavorable', color: '#2C3E50' };
+                if (aqi <= 100) return { text: 'Muy desfavorable', color: '#2C3E50' };
+                return { text: 'Extremadamente desfavorable', color: '#2C3E50' };
             }
             
             const aqi = airCurrent.european_aqi || 0;
@@ -1254,7 +1236,7 @@
             
             const aqiElement = document.getElementById('air-quality-current');
             aqiElement.textContent = aqiLevel.text;
-            aqiElement.style.color = aqiLevel.color;
+            aqiElement.style.color = '#2C3E50';
         }
         
         async function loadWeatherData() {
@@ -1288,7 +1270,7 @@
                     }
                 }
                 
-                updateCurrentWeather(data.current, data.current.weather_code, precipToday);
+                updateCurrentWeather(data.current, data.current.weather_code, precipToday, data.hourly);
                 document.getElementById('narrative-forecast').innerHTML = generateNarrative(data.hourly);
                 updateAstronomyTable(data);
                 updateAirQualityTable(airData.current);
@@ -1303,7 +1285,7 @@
             }
         }
         
-        function updateCurrentWeather(current, weatherCode, precipToday) {
+        function updateCurrentWeather(current, weatherCode, precipToday, hourly) {
             const now = new Date();
             document.getElementById('current-temp').textContent = Math.round(current.temperature_2m) + '°';
             
@@ -1321,6 +1303,28 @@
                 document.getElementById('precip-today').textContent = precipToday.toFixed(1) + ' mm';
             } else {
                 document.getElementById('precip-today').textContent = '0.0 mm';
+            }
+            
+            // UVI actual - buscar el índice de la hora actual en los datos horarios
+            if (hourly && hourly.time && hourly.uv_index) {
+                const currentHourIndex = hourly.time.findIndex(time => {
+                    const date = new Date(time);
+                    return Math.abs(date - now) < 30 * 60 * 1000; // dentro de 30 minutos
+                });
+                
+                if (currentHourIndex !== -1 && hourly.uv_index[currentHourIndex] !== undefined) {
+                    const currentUVI = hourly.uv_index[currentHourIndex].toFixed(1);
+                    let uviColor = '#10B981';
+                    const uviNum = parseFloat(currentUVI);
+                    if (uviNum >= 11) uviColor = '#9333EA';
+                    else if (uviNum >= 8) uviColor = '#EF4444';
+                    else if (uviNum >= 6) uviColor = '#F97316';
+                    else if (uviNum >= 3) uviColor = '#F59E0B';
+                    
+                    const uviElement = document.getElementById('uvi-current');
+                    uviElement.textContent = currentUVI;
+                    uviElement.style.color = uviColor;
+                }
             }
         }
         
