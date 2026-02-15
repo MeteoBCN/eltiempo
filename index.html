@@ -1284,20 +1284,9 @@
                 <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
             </div>
             
-            <!-- Resumen Próximos 3 Días (Días 5, 6, 7) -->
-            <div style="margin-top: 28px;">
-                <div style="
-                    background: #2C3E50;
-                    color: #FFFFFF;
-                    padding: 12px 20px;
-                    border-radius: 12px 12px 0 0;
-                    font-size: 16px;
-                    font-weight: 700;
-                    text-align: center;
-                ">Próximos 3 Días</div>
-                <div id="days-summary-container">
-                    <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
-                </div>
+            <!-- Resumen Próximos 3 Días (Días 5, 6, 7) - Sin cabecera -->
+            <div id="days-summary-container" style="margin-top: 28px;">
+                <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
             </div>
         </div>
 
@@ -1698,7 +1687,7 @@
                 return directions[index];
             }
             
-            for (let dayOffset = 1; dayOffset <= 4; dayOffset++) {
+            for (let dayOffset = 1; dayOffset <= 3; dayOffset++) {
                 const targetDay = new Date(now);
                 targetDay.setDate(targetDay.getDate() + dayOffset);
                 targetDay.setHours(0, 0, 0, 0);
@@ -1837,7 +1826,13 @@
             
             let summaryHTML = '<tbody>';
             
-            for (let dayOffset = 5; dayOffset <= 7; dayOffset++) {
+            for (let dayOffset = 4; dayOffset <= 6; dayOffset++) {
+                // Verificar que existen datos para este día
+                if (!daily.temperature_2m_min || !daily.temperature_2m_min[dayOffset] === undefined ||
+                    !daily.temperature_2m_max || !daily.temperature_2m_max[dayOffset] === undefined) {
+                    continue; // Saltar este día si no hay datos
+                }
+                
                 const targetDay = new Date(now);
                 targetDay.setDate(targetDay.getDate() + dayOffset);
                 targetDay.setHours(0, 0, 0, 0);
@@ -1859,8 +1854,16 @@
                     }
                 }
                 
+                // Si no hay datos horarios, saltar este día
+                if (weatherCodes.length === 0) {
+                    continue;
+                }
+                
                 // Código de clima representativo (mediodía o más frecuente)
-                let mainWeatherCode = daily.weather_code[dayOffset];
+                let mainWeatherCode = daily.weather_code && daily.weather_code[dayOffset] 
+                    ? daily.weather_code[dayOffset]
+                    : weatherCodes[0];
+                    
                 if (hour12Index !== -1) {
                     mainWeatherCode = hourly.weather_code[hour12Index];
                 }
