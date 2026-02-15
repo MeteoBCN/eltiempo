@@ -81,7 +81,6 @@
             height: auto;
             display: block;
             margin: 0 auto;
-            transition: transform 0.3s ease;
         }
         
         .current-weather {
@@ -92,7 +91,6 @@
             border-radius: var(--border-radius);
             box-shadow: none;
             backdrop-filter: none;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
             animation: scaleIn 0.6s ease-out 0.2s both;
         }
         
@@ -105,6 +103,7 @@
                 opacity: 1;
                 transform: scale(1);
             }
+        }
         
         .weather-divider {
             height: 1px;
@@ -156,11 +155,6 @@
         .detail-item {
             text-align: center;
             min-width: 90px;
-            transition: transform 0.2s ease;
-        }
-        
-        .detail-item:hover {
-            transform: translateY(-2px);
         }
         
         .detail-item > div:first-child {
@@ -193,7 +187,6 @@
             align-items: center;
             justify-content: space-between;
             gap: 14px;
-            transition: all 0.3s ease;
             margin-bottom: 10px;
             background: transparent;
             border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
@@ -517,7 +510,6 @@
         
         #weather-table tbody tr {
             border-bottom: 1px solid rgba(148, 163, 184, 0.15);
-            transition: all 0.2s ease;
         }
         
         #weather-table tbody tr:nth-child(even) {
@@ -549,7 +541,6 @@
         
         #weather-table .table-icon {
             font-size: 32px;
-            transition: transform 0.3s ease;
         }
         
         #weather-table .table-temp {
@@ -577,7 +568,6 @@
             box-shadow: none;
             margin-bottom: 24px;
             backdrop-filter: blur(10px);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
         .day-detailed-table thead tr {
@@ -614,7 +604,6 @@
         .day-detailed-table .weather-icon-large {
             font-size: 40px;
             margin: 8px 0;
-            transition: transform 0.3s ease;
         }
         
         .day-detailed-table .rain-value {
@@ -694,7 +683,6 @@
             box-shadow: var(--shadow-md);
             backdrop-filter: blur(10px);
             margin-bottom: 24px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
         .marine-table thead tr {
@@ -759,22 +747,6 @@
             font-weight: 700;
         }
 
-        .astronomy-container {
-            margin-top: 32px;
-            padding: 0;
-            animation: fadeIn 0.6s ease-out 0.5s both;
-        }
-        
-        .astronomy-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--color-text-secondary);
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-align: center;
-        }
-        
         .astronomy-table {
             width: 100%;
             border-collapse: collapse;
@@ -812,74 +784,6 @@
             margin-right: 6px;
             font-size: 14px;
         }
-        
-        .air-quality-container {
-            margin-top: 32px;
-            padding: 0;
-            animation: fadeIn 0.6s ease-out 0.6s both;
-        }
-        
-        .air-quality-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--color-text-secondary);
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-align: center;
-        }
-        
-        .air-quality-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: var(--border-radius-sm);
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-            backdrop-filter: blur(10px);
-        }
-        
-        .air-quality-table tbody td {
-            padding: 10px 8px;
-            font-size: 14px;
-            text-align: center;
-        }
-        
-        .air-quality-info {
-            margin-top: 20px;
-            padding: 16px;
-            background: rgba(255, 255, 255, 0.4);
-            border-radius: var(--border-radius-sm);
-            backdrop-filter: blur(5px);
-        }
-        
-        .info-section {
-            margin-bottom: 16px;
-        }
-        
-        .info-section:last-child {
-            margin-bottom: 0;
-        }
-        
-        .info-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--color-text-primary);
-            margin-bottom: 6px;
-            letter-spacing: 0.3px;
-        }
-        
-        .info-text {
-            font-size: 13px;
-            line-height: 1.6;
-            color: var(--color-text-secondary);
-            text-align: justify;
-        }
-        
-        .info-text strong {
-            color: var(--color-text-primary);
-            font-weight: 600;
-        }
 
         .webcam-container { 
             display: flex;
@@ -899,7 +803,6 @@
            background: #000;
            border-radius: var(--border-radius-sm);
            box-shadow: var(--shadow-md);
-           transition: transform 0.3s ease, box-shadow 0.3s ease;
       }
 
      .webcam-frame img {
@@ -979,61 +882,35 @@
                     <div>Viento</div>
                     <div class="detail-value" id="wind">-- km/h</div>
                 </div>
+                <div class="detail-item">
+                    <div>Precip. hoy</div>
+                    <div class="detail-value" id="precip-today">-- mm</div>
                 </div>
-            <div class="detail-item">
-                <div>Precip. hoy</div>
-                <div class="detail-value" id="precip-today">-- mm</div>
-            </div>
-            <div class="detail-item">
-                <div>Calidad Aire</div>
-                <div class="detail-value" id="air-quality-current">--</div>
-            </div>
-        </div>
+                <div class="detail-item">
+                    <div>Calidad Aire</div>
+                    <div class="detail-value" id="air-quality-current">--</div>
+                </div>
             </div>
 
-        <!-- Fila astronómica: amanecer, atardecer, UVI -->
-        <table class="astronomy-table" style="margin-top: 24px;">
-            <tbody>
-                <tr>
-                    <td>amanecer</td>
-                    <td>atardecer</td>
-                    <td>uv máx</td>
-                </tr>
-                <tr>
-                    <td id="sunrise-time-top">--:--</td>
-                    <td id="sunset-time-top">--:--</td>
-                    <td id="uvi-max-top">--</td>
-                </tr>
-            </tbody>
-        </table>
+            <!-- Fila astronómica: amanecer, atardecer, UVI -->
+            <table class="astronomy-table" style="margin-top: 24px;">
+                <tbody>
+                    <tr>
+                        <td>amanecer</td>
+                        <td>atardecer</td>
+                        <td>uv máx</td>
+                    </tr>
+                    <tr>
+                        <td id="sunrise-time-top">--:--</td>
+                        <td id="sunset-time-top">--:--</td>
+                        <td id="uvi-max-top">--</td>
+                    </tr>
+                </tbody>
+            </table>
 
-        <!-- ============================================ -->
-        <!-- AVISO METEOROLÓGICO MANUAL - 2 FILAS        -->
             <!-- ============================================ -->
-            <!-- INSTRUCCIONES:
-                 
-                 IMÁGENES QUE NECESITAS (todas PNG con fondo transparente):
-                 
-                 TRIÁNGULOS (35x35px):
-                 - triangulo-verde.png
-                 - triangulo-amarillo.png
-                 - triangulo-rojo.png
-                 
-                 ICONOS DE FENÓMENOS (80x80px):
-                 - icono-lluvia.png
-                 - icono-viento.png
-                 - icono-tormenta.png
-                 - icono-oleaje.png
-                 - icono-contaminacion.png
-                 - icono-calor.png
-                 - icono-frio.png
-                 
-                 CÓMO EDITAR:
-                 1. Cambia el triángulo según el nivel (verde/amarillo/rojo)
-                 2. Cambia el icono según el fenómeno
-                 3. Si NO hay avisos (verde), deja la segunda fila COMENTADA
-                 4. Edita el TÍTULO y DESCRIPCIÓN del texto
-            -->
+            <!-- AVISO METEOROLÓGICO MANUAL - 2 FILAS        -->
+            <!-- ============================================ -->
             
             <div class="aviso-table" style="
                 width: 100%;
@@ -1077,231 +954,11 @@
                         ">No hay fenómenos adversos previstos</div>
                     </div>
                 </div>
-                
-                <!-- FILA 2: Icono del fenómeno (solo si hay aviso) -->
-                <!-- Para SIN AVISOS (verde): comenta toda esta sección con menos-menos y más-más -->
-                <!-- Para AVISOS activos: descomenta y cambia el icono según el fenómeno -->
-                
-                <!-- <div style="
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    padding: 20px;
-                    background: white;
-                ">
-                    <img src="icono-lluvia.png" alt="Lluvia" style="
-                        width: 80px;
-                        height: 80px;
-                    ">
-                </div> -->
-                
             </div>
-            
-            <!-- ============================================ -->
-            <!-- EJEMPLOS DE CONFIGURACIÓN:                  -->
-            <!-- ============================================ -->
-            <!--
-            
-            █ SIN AVISOS (VERDE):
-            =====================
-            Fila 1:
-              Triángulo: triangulo-verde.png
-              Título: SIN AVISOS ACTIVOS
-              Descripción: No hay fenómenos adversos previstos
-            Fila 2:
-              ¡COMENTADA! (no mostrar icono)
-            
-            
-            █ LLUVIA AMARILLO:
-            ==================
-            Fila 1:
-              Triángulo: triangulo-amarillo.png
-              Título: AVISO AMARILLO - LLUVIAS INTENSAS
-              Descripción: Acumulaciones de 40-60 mm/12h
-            Fila 2:
-              ¡DESCOMENTAR!
-              Icono: icono-lluvia.png
-            
-            
-            █ LLUVIA ROJO:
-            ==============
-            Fila 1:
-              Triángulo: triangulo-rojo.png
-              Título: AVISO ROJO - LLUVIAS MUY INTENSAS
-              Descripción: Acumulaciones superiores a 90 mm/12h
-            Fila 2:
-              ¡DESCOMENTAR!
-              Icono: icono-lluvia.png
-            
-            
-            █ VIENTO AMARILLO:
-            ==================
-            Fila 1:
-              Triángulo: triangulo-amarillo.png
-              Título: AVISO AMARILLO - VIENTOS FUERTES
-              Descripción: Rachas de 70-90 km/h
-            Fila 2:
-              ¡DESCOMENTAR!
-              Icono: icono-viento.png
-            
-            
-            █ VIENTO ROJO:
-            ==============
-            Fila 1:
-              Triángulo: triangulo-rojo.png
-              Título: AVISO ROJO - VIENTOS MUY FUERTES
-              Descripción: Rachas superiores a 120 km/h
-            Fila 2:
-              ¡DESCOMENTAR!
-              Icono: icono-viento.png
-            
-            
-            █ TORMENTA AMARILLO:
-            ====================
-            Fila 1:
-              Triángulo: triangulo-amarillo.png
-              Título: AVISO AMARILLO - TORMENTAS
-              Descripción: Tormentas localmente intensas
-            Fila 2:
-              ¡DESCOMENTAR!
-              Icono: icono-tormenta.png
-            
-            
-            █ TORMENTA ROJO:
-            ================
-            Fila 1:
-              Triángulo: triangulo-rojo.png
-              Título: AVISO ROJO - TORMENTAS SEVERAS
-              Descripción: Tormentas muy intensas con granizo
-            Fila 2:
-              ¡DESCOMENTAR!
-              Icono: icono-tormenta.png
-            
-            
-            █ OLEAJE AMARILLO:
-            ==================
-            Fila 1:
-              Triángulo: triangulo-amarillo.png
-              Título: AVISO AMARILLO - OLEAJE FUERTE
-              Descripción: Olas de 2-3 metros
-            Fila 2:
-              ¡DESCOMENTAR!
-              Icono: icono-oleaje.png
-            
-            
-            █ OLEAJE ROJO:
-            ==============
-            Fila 1:
-              Triángulo: triangulo-rojo.png
-              Título: AVISO ROJO - OLEAJE MUY FUERTE
-              Descripción: Olas superiores a 5 metros
-            Fila 2:
-              ¡DESCOMENTAR!
-              Icono: icono-oleaje.png
-            
-            
-            █ CONTAMINACIÓN AMARILLO:
-            =========================
-            Fila 1:
-              Triángulo: triangulo-amarillo.png
-              Título: AVISO AMARILLO - CONTAMINACIÓN
-              Descripción: Calidad del aire desfavorable
-            Fila 2:
-              ¡DESCOMENTAR!
-              Icono: icono-contaminacion.png
-            
-            
-            █ CONTAMINACIÓN ROJO:
-            =====================
-            Fila 1:
-              Triángulo: triangulo-rojo.png
-              Título: AVISO ROJO - CONTAMINACIÓN ALTA
-              Descripción: Calidad del aire muy desfavorable
-            Fila 2:
-              ¡DESCOMENTAR!
-              Icono: icono-contaminacion.png
-            
-            
-            █ CALOR AMARILLO:
-            =================
-            Fila 1:
-              Triángulo: triangulo-amarillo.png
-              Título: AVISO AMARILLO - ALTAS TEMPERATURAS
-              Descripción: Temperaturas de 36-38°C
-            Fila 2:
-              ¡DESCOMENTAR!
-              Icono: icono-calor.png
-            
-            
-            █ CALOR ROJO:
-            =============
-            Fila 1:
-              Triángulo: triangulo-rojo.png
-              Título: AVISO ROJO - CALOR EXTREMO
-              Descripción: Temperaturas superiores a 40°C
-            Fila 2:
-              ¡DESCOMENTAR!
-              Icono: icono-calor.png
-            
-            
-            █ FRÍO AMARILLO:
-            ================
-            Fila 1:
-              Triángulo: triangulo-amarillo.png
-              Título: AVISO AMARILLO - BAJAS TEMPERATURAS
-              Descripción: Temperaturas de -4 a -8°C
-            Fila 2:
-              ¡DESCOMENTAR!
-              Icono: icono-frio.png
-            
-            
-            █ FRÍO ROJO:
-            ============
-            Fila 1:
-              Triángulo: triangulo-rojo.png
-              Título: AVISO ROJO - FRÍO EXTREMO
-              Descripción: Temperaturas inferiores a -10°C
-            Fila 2:
-              ¡DESCOMENTAR!
-              Icono: icono-frio.png
-            
-            -->
-            <!-- ============================================ -->
 
             <div class="narrative-container">
                 <div class="narrative-title">Tendencia Próximas Horas</div>
                 <div id="narrative-forecast">Cargando previsión...</div>
-                
-                        <tbody>
-                            <tr>
-                                <td colspan="2" style="padding: 12px 8px; border-bottom: 1px solid rgba(148, 163, 184, 0.15);">
-                                    <div style="font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Índice Calidad del Aire</div>
-                                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                                        <div style="font-size: 24px; font-weight: 700; color: var(--color-text-primary);" id="aqi-value">--</div>
-                                        <div style="font-size: 13px; font-weight: 600;" id="aqi-level">--</div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="width: 50%; padding: 10px 8px;">
-                                    <div style="font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px;">PM2.5</div>
-                                    <div style="font-size: 16px; font-weight: 700; color: var(--color-text-primary);"><span id="pm25-value">--</span> <span style="font-size: 11px; font-weight: 500;">µg/m³</span></div>
-                                </td>
-                                <td style="width: 50%; padding: 10px 8px;">
-                                    <div style="font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px;">PM10</div>
-                                    <div style="font-size: 16px; font-weight: 700; color: var(--color-text-primary);"><span id="pm10-value">--</span> <span style="font-size: 11px; font-weight: 500;">µg/m³</span></div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="2" style="padding: 12px 8px; border-top: 1px solid rgba(148, 163, 184, 0.15);">
-                                    <div style="font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Polen Total</div>
-                                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                                        <div style="font-size: 24px; font-weight: 700; color: var(--color-text-primary);" id="pollen-value">--</div>
-                                        <div style="font-size: 13px; font-weight: 600;" id="pollen-level">--</div>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
             </div>
         </div>
         
@@ -1442,26 +1099,6 @@
             99: 'Tormenta fuerte'
         };
         
-        const WEATHER_PHENOMENA_BANNER = {
-            'viento': { icon: '💨', name: 'Viento' },
-            'nieve': { icon: '❄️', name: 'Nieve' },
-            'lluvia': { icon: '🌧️', name: 'Lluvia' },
-            'tormenta': { icon: '⛈️', name: 'Tormentas' },
-            'temperatura': { icon: '🌡️', name: 'Temp. extremas' },
-            'calor': { icon: '🔥', name: 'Calor' },
-            'frio': { icon: '🥶', name: 'Frío' },
-            'niebla': { icon: '🌫️', name: 'Niebla' },
-            'fenomeno': { icon: '⚠️', name: 'Fenómeno costero' },
-            'maritimo': { icon: '🌊', name: 'Marítimo' }
-        };
-        
-        const ALERT_LEVELS_BANNER = {
-            'verde': { class: 'green', text: 'Sin riesgo' },
-            'amarillo': { class: 'yellow', text: 'Riesgo' },
-            'naranja': { class: 'orange', text: 'Importante' },
-            'rojo': { class: 'red', text: 'Extremo' }
-        };
-        
         let sunriseTime = null;
         let sunsetTime = null;
         
@@ -1479,26 +1116,17 @@
         }
         
         function getWeatherIcon(code, dateTime, cloudData) {
-            // Si tenemos datos de nubosidad detallada, ajustar el código
             if (cloudData && (code === 1 || code === 2 || code === 3)) {
                 const lowCloud = cloudData.cloud_cover_low || 0;
                 const midCloud = cloudData.cloud_cover_mid || 0;
-                const highCloud = cloudData.cloud_cover_high || 0;
+                const realCloud = lowCloud + (midCloud * 0.5);
                 
-                // Calcular nubosidad "real" (solo bajas y medias, las que tapan el sol)
-                const realCloud = lowCloud + (midCloud * 0.5); // Medias cuentan menos
-                
-                // Si hay muy pocas nubes bajas/medias, aunque haya muchas altas
                 if (realCloud < 15) {
-                    code = 1; // Principalmente despejado (solo cirros)
-                }
-                // Si hay pocas nubes bajas/medias
-                else if (realCloud < 35) {
-                    code = 2; // Parcialmente nublado
-                }
-                // Si hay muchas nubes bajas/medias
-                else {
-                    code = 3; // Nublado
+                    code = 1;
+                } else if (realCloud < 35) {
+                    code = 2;
+                } else {
+                    code = 3;
                 }
             }
             
@@ -1582,25 +1210,19 @@
         }
         
         function updateAstronomyTable(data) {
-            // Actualizar el título con el día de la semana
-            const now = new Date();
-            const daysOfWeek = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-            const currentDay = daysOfWeek[now.getDay()];
-            document.querySelector('.astronomy-title').textContent = currentDay;
-            
             if (data.daily) {
-                // Salida y puesta del sol
                 if (data.daily.sunrise && data.daily.sunrise[0]) {
                     const sunrise = new Date(data.daily.sunrise[0]);
-                    document.getElementById('sunrise-time').textContent = sunrise.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+                    const sunriseTime = sunrise.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+                    document.getElementById('sunrise-time-top').textContent = sunriseTime;
                 }
                 
                 if (data.daily.sunset && data.daily.sunset[0]) {
                     const sunset = new Date(data.daily.sunset[0]);
-                    document.getElementById('sunset-time').textContent = sunset.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+                    const sunsetTime = sunset.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+                    document.getElementById('sunset-time-top').textContent = sunsetTime;
                 }
                 
-                // UVI máximo
                 if (data.daily.uv_index_max && data.daily.uv_index_max[0] !== undefined) {
                     const uviMax = data.daily.uv_index_max[0].toFixed(1);
                     let uviColor = '#10B981';
@@ -1610,40 +1232,14 @@
                     else if (uviNum >= 6) uviColor = '#F97316';
                     else if (uviNum >= 3) uviColor = '#F59E0B';
                     
-                    const uviElement = document.getElementById('uvi-max');
-            uviElement.textContent = uviMax;
-            uviElement.style.color = uviColor;
+                    const uviElement = document.getElementById('uvi-max-top');
+                    uviElement.textContent = uviMax;
+                    uviElement.style.color = uviColor;
+                }
+            }
         }
-    }
-    
-    // Actualizar también los datos astronómicos superiores
-    if (data.daily.sunrise && data.daily.sunrise[0]) {
-        const sunrise = new Date(data.daily.sunrise[0]);
-        document.getElementById('sunrise-time-top').textContent = sunrise.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
-    }
-    
-    if (data.daily.sunset && data.daily.sunset[0]) {
-        const sunset = new Date(data.daily.sunset[0]);
-        document.getElementById('sunset-time-top').textContent = sunset.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
-    }
-    
-    if (data.daily.uv_index_max && data.daily.uv_index_max[0] !== undefined) {
-        const uviMax = data.daily.uv_index_max[0].toFixed(1);
-        let uviColor = '#10B981';
-        const uviNum = parseFloat(uviMax);
-        if (uviNum >= 11) uviColor = '#9333EA';
-        else if (uviNum >= 8) uviColor = '#EF4444';
-        else if (uviNum >= 6) uviColor = '#F97316';
-        else if (uviNum >= 3) uviColor = '#F59E0B';
-        
-        const uviElement = document.getElementById('uvi-max-top');
-        uviElement.textContent = uviMax;
-        uviElement.style.color = uviColor;
-    }
-}
         
         function updateAirQualityTable(airCurrent) {
-            // Calidad del aire según índice europeo
             function getAQILevel(aqi) {
                 if (aqi <= 20) return { text: 'Buena', color: '#10B981' };
                 if (aqi <= 40) return { text: 'Aceptable', color: '#84CC16' };
@@ -1653,47 +1249,14 @@
                 return { text: 'Extremadamente desfavorable', color: '#991B1B' };
             }
             
-            function getPollenLevel(value) {
-                if (value === undefined || value === null || value === 0) return { text: 'Nulo', color: '#10B981' };
-                if (value < 20) return { text: 'Bajo', color: '#84CC16' };
-                if (value < 50) return { text: 'Moderado', color: '#F59E0B' };
-                if (value < 100) return { text: 'Alto', color: '#F97316' };
-                return { text: 'Muy alto', color: '#EF4444' };
-            }
-            
             const aqi = airCurrent.european_aqi || 0;
             const aqiLevel = getAQILevel(aqi);
             
-            document.getElementById('aqi-value').textContent = Math.round(aqi);
-            document.getElementById('aqi-value').style.color = aqiLevel.color;
-            document.getElementById('aqi-level').textContent = aqiLevel.text;
-            document.getElementById('aqi-level').style.color = aqiLevel.color;
-            
-            // PM2.5 y PM10
-            const pm25 = airCurrent.pm2_5 || 0;
-            const pm10 = airCurrent.pm10 || 0;
-            document.getElementById('pm25-value').textContent = Math.round(pm25);
-            document.getElementById('pm10-value').textContent = Math.round(pm10);
-            
-            // Polen - sumar todos los tipos relevantes para Barcelona
-            const grassPollen = airCurrent.grass_pollen || 0;
-            const olivePollen = airCurrent.olive_pollen || 0;
-            const birchPollen = airCurrent.birch_pollen || 0;
-            const ragweedPollen = airCurrent.ragweed_pollen || 0;
-            
-            const totalPollen = grassPollen + olivePollen + birchPollen + ragweedPollen;
-            const pollenLevel = getPollenLevel(totalPollen);
-            
-            document.getElementById('pollen-value').textContent = Math.round(totalPollen);
-        document.getElementById('pollen-value').style.color = pollenLevel.color;
-        document.getElementById('pollen-level').textContent = pollenLevel.text;
-        document.getElementById('pollen-level').style.color = pollenLevel.color;
+            const aqiElement = document.getElementById('air-quality-current');
+            aqiElement.textContent = aqiLevel.text;
+            aqiElement.style.color = aqiLevel.color;
+        }
         
-        // Actualizar calidad del aire en detalles del tiempo actual
-        const aqiElement = document.getElementById('air-quality-current');
-        aqiElement.textContent = aqiLevel.text;
-        aqiElement.style.color = aqiLevel.color;
-    }
         async function loadWeatherData() {
             try {
                 const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + LAT + '&longitude=' + LON + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7';
@@ -1711,7 +1274,6 @@
                     sunsetTime = data.daily.sunset[0];
                 }
                 
-                // Calcular precipitación acumulada del día
                 const now = new Date();
                 let precipToday = 0;
                 
@@ -1745,7 +1307,6 @@
             const now = new Date();
             document.getElementById('current-temp').textContent = Math.round(current.temperature_2m) + '°';
             
-            // Pasar datos de nubosidad para análisis más preciso
             const cloudData = {
                 cloud_cover: current.cloud_cover
             };
@@ -1756,7 +1317,6 @@
             document.getElementById('humidity').textContent = current.relative_humidity_2m + '%';
             document.getElementById('wind').textContent = Math.round(current.wind_speed_10m) + ' km/h';
             
-            // Mostrar precipitación acumulada del día
             if (precipToday !== undefined) {
                 document.getElementById('precip-today').textContent = precipToday.toFixed(1) + ' mm';
             } else {
@@ -1786,7 +1346,6 @@
                 const rain = hourly.precipitation_probability[hourIndex] || 0;
                 const wind = Math.round(hourly.wind_speed_10m[hourIndex]);
                 
-                // Crear objeto con datos de nubosidad
                 const cloudData = {
                     cloud_cover: hourly.cloud_cover ? hourly.cloud_cover[hourIndex] : undefined,
                     cloud_cover_low: hourly.cloud_cover_low ? hourly.cloud_cover_low[hourIndex] : undefined,
@@ -1831,22 +1390,13 @@
                     const hourTime = new Date(hourly.time[i]);
                     if (hourTime.getDate() === targetDay.getDate() && 
                         hourTime.getMonth() === targetDay.getMonth()) {
-                        if (hourTime.getHours() === 8 && hour08Index === -1) {
-                            hour08Index = i;
-                        }
-                        if (hourTime.getHours() === 12 && hour12Index === -1) {
-                            hour12Index = i;
-                        }
-                        if (hourTime.getHours() === 16 && hour16Index === -1) {
-                            hour16Index = i;
-                        }
-                        if (hourTime.getHours() === 20 && hour20Index === -1) {
-                            hour20Index = i;
-                        }
+                        if (hourTime.getHours() === 8 && hour08Index === -1) hour08Index = i;
+                        if (hourTime.getHours() === 12 && hour12Index === -1) hour12Index = i;
+                        if (hourTime.getHours() === 16 && hour16Index === -1) hour16Index = i;
+                        if (hourTime.getHours() === 20 && hour20Index === -1) hour20Index = i;
                     }
                 }
                 
-                // Crear objetos con datos de nubosidad para cada hora
                 const cloudData08 = hour08Index !== -1 ? {
                     cloud_cover: hourly.cloud_cover ? hourly.cloud_cover[hour08Index] : undefined,
                     cloud_cover_low: hourly.cloud_cover_low ? hourly.cloud_cover_low[hour08Index] : undefined,
@@ -1880,13 +1430,11 @@
                 const icon16 = hour16Index !== -1 ? getWeatherIcon(hourly.weather_code[hour16Index], new Date(hourly.time[hour16Index]), cloudData16) : '—';
                 const icon20 = hour20Index !== -1 ? getWeatherIcon(hourly.weather_code[hour20Index], new Date(hourly.time[hour20Index]), cloudData20) : '—';
                 
-                // Temperaturas por hora
                 const temp08 = hour08Index !== -1 ? Math.round(hourly.temperature_2m[hour08Index]) : '--';
                 const temp12 = hour12Index !== -1 ? Math.round(hourly.temperature_2m[hour12Index]) : '--';
                 const temp16 = hour16Index !== -1 ? Math.round(hourly.temperature_2m[hour16Index]) : '--';
                 const temp20 = hour20Index !== -1 ? Math.round(hourly.temperature_2m[hour20Index]) : '--';
                 
-                // Probabilidad de lluvia por hora
                 const rain08 = hour08Index !== -1 && hourly.precipitation_probability ? (hourly.precipitation_probability[hour08Index] || 0) : 0;
                 const rain12 = hour12Index !== -1 && hourly.precipitation_probability ? (hourly.precipitation_probability[hour12Index] || 0) : 0;
                 const rain16 = hour16Index !== -1 && hourly.precipitation_probability ? (hourly.precipitation_probability[hour16Index] || 0) : 0;
@@ -1955,10 +1503,9 @@
             let summaryHTML = '<tbody>';
             
             for (let dayOffset = 4; dayOffset <= 6; dayOffset++) {
-                // Verificar que existen datos para este día
-                if (!daily.temperature_2m_min || !daily.temperature_2m_min[dayOffset] === undefined ||
-                    !daily.temperature_2m_max || !daily.temperature_2m_max[dayOffset] === undefined) {
-                    continue; // Saltar este día si no hay datos
+                if (!daily.temperature_2m_min || daily.temperature_2m_min[dayOffset] === undefined ||
+                    !daily.temperature_2m_max || daily.temperature_2m_max[dayOffset] === undefined) {
+                    continue;
                 }
                 
                 const targetDay = new Date(now);
@@ -1967,7 +1514,6 @@
                 
                 const dayName = getDayName(targetDay.toISOString());
                 
-                // Obtener código de clima más frecuente del día
                 let weatherCodes = [];
                 let hour12Index = -1;
                 
@@ -1982,12 +1528,10 @@
                     }
                 }
                 
-                // Si no hay datos horarios, saltar este día
                 if (weatherCodes.length === 0) {
                     continue;
                 }
                 
-                // Código de clima representativo (mediodía o más frecuente)
                 let mainWeatherCode = daily.weather_code && daily.weather_code[dayOffset] 
                     ? daily.weather_code[dayOffset]
                     : weatherCodes[0];
@@ -1996,7 +1540,6 @@
                     mainWeatherCode = hourly.weather_code[hour12Index];
                 }
                 
-                // Datos de nubosidad para el mediodía
                 const cloudData = hour12Index !== -1 ? {
                     cloud_cover: hourly.cloud_cover ? hourly.cloud_cover[hour12Index] : undefined,
                     cloud_cover_low: hourly.cloud_cover_low ? hourly.cloud_cover_low[hour12Index] : undefined,
@@ -2010,7 +1553,6 @@
                 const minTemp = Math.round(daily.temperature_2m_min[dayOffset]);
                 const maxTemp = Math.round(daily.temperature_2m_max[dayOffset]);
                 
-                // Probabilidad de lluvia máxima del día
                 let maxRainProb = 0;
                 let totalPrecip = 0;
                 let windSpeeds = [];
@@ -2031,7 +1573,6 @@
                 
                 totalPrecip = Math.round(totalPrecip * 10) / 10;
                 
-                // Viento promedio y dirección más común
                 const avgWind = windSpeeds.length > 0 
                     ? Math.round(windSpeeds.reduce((a, b) => a + b, 0) / windSpeeds.length) 
                     : 0;
