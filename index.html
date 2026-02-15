@@ -1431,26 +1431,35 @@
         function getWeatherIcon(code, dateTime, cloudData) {
             // Si tenemos datos de nubosidad detallada, ajustar el código
             if (cloudData && (code === 1 || code === 2 || code === 3)) {
-                const totalCloud = cloudData.cloud_cover || 0;
                 const lowCloud = cloudData.cloud_cover_low || 0;
                 const midCloud = cloudData.cloud_cover_mid || 0;
                 const highCloud = cloudData.cloud_cover_high || 0;
                 
-                // Si solo hay nubes altas (cirros) y poca cobertura total
-                if (highCloud > 30 && lowCloud < 20 && midCloud < 20 && totalCloud < 50) {
-                    code = 1; // Principalmente despejado
+                // DEBUG: Ver valores reales
+                console.log('🌤️ Nubosidad - Código original:', code, 
+                           'Bajas:', lowCloud + '%', 
+                           'Medias:', midCloud + '%', 
+                           'Altas:', highCloud + '%');
+                
+                // Calcular nubosidad "real" (solo bajas y medias, las que tapan el sol)
+                const realCloud = lowCloud + (midCloud * 0.5); // Medias cuentan menos
+                
+                console.log('   → Nubosidad real:', realCloud.toFixed(1) + '%');
+                
+                // Si hay muy pocas nubes bajas/medias, aunque haya muchas altas
+                if (realCloud < 15) {
+                    console.log('   → Ajustado a: Principalmente despejado (1)');
+                    code = 1; // Principalmente despejado (solo cirros)
                 }
-                // Si hay nubes bajas o medias significativas
-                else if (lowCloud > 50 || midCloud > 50) {
-                    code = 3; // Nublado
-                }
-                // Si hay algo de nubosidad pero no mucha
-                else if (totalCloud > 20 && totalCloud < 70) {
+                // Si hay pocas nubes bajas/medias
+                else if (realCloud < 35) {
+                    console.log('   → Ajustado a: Parcialmente nublado (2)');
                     code = 2; // Parcialmente nublado
                 }
-                // Si hay poca nubosidad
-                else if (totalCloud < 20) {
-                    code = 0; // Despejado
+                // Si hay muchas nubes bajas/medias
+                else {
+                    console.log('   → Ajustado a: Nublado (3)');
+                    code = 3; // Nublado
                 }
             }
             
