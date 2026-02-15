@@ -84,10 +84,6 @@
             transition: transform 0.3s ease;
         }
         
-        #main-logo:hover {
-            transform: scale(1.05);
-        }
-        
         .current-weather {
             text-align: center;
             padding: 48px 24px 32px 24px;
@@ -109,12 +105,6 @@
                 opacity: 1;
                 transform: scale(1);
             }
-        }
-        
-        .current-weather:hover {
-            transform: translateY(-2px);
-            box-shadow: none;
-        }
         
         .weather-divider {
             height: 1px;
@@ -208,12 +198,6 @@
             background: transparent;
             border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
             box-shadow: none;
-        }
-        
-        .alert-banner-item:hover {
-            transform: translateX(4px);
-            box-shadow: var(--shadow-sm);
-            background: rgba(255, 255, 255, 0.3);
         }
         
         .alert-banner-item:last-child {
@@ -544,12 +528,6 @@
             background-color: rgba(255, 255, 255, 0.3);
         }
         
-        #weather-table tbody tr:hover {
-            background: linear-gradient(90deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.15) 50%, rgba(59, 130, 246, 0.08) 100%);
-            transform: scale(1.01);
-            box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.2);
-        }
-        
         #weather-table tbody tr:last-child {
             border-bottom: none;
         }
@@ -572,10 +550,6 @@
         #weather-table .table-icon {
             font-size: 32px;
             transition: transform 0.3s ease;
-        }
-        
-        #weather-table tbody tr:hover .table-icon {
-            transform: scale(1.15);
         }
         
         #weather-table .table-temp {
@@ -604,11 +578,6 @@
             margin-bottom: 24px;
             backdrop-filter: blur(10px);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .day-detailed-table:hover {
-            transform: translateY(-2px);
-            box-shadow: none;
         }
         
         .day-detailed-table thead tr {
@@ -646,10 +615,6 @@
             font-size: 40px;
             margin: 8px 0;
             transition: transform 0.3s ease;
-        }
-        
-        .day-detailed-table tbody tr:hover .weather-icon-large {
-            transform: scale(1.1);
         }
         
         .day-detailed-table .rain-value {
@@ -732,11 +697,6 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
-        .marine-table:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-        
         .marine-table thead tr {
             background: #e6e6e6;
         }
@@ -766,11 +726,6 @@
         
         .marine-table tbody tr:nth-child(odd) {
             background-color: rgba(255, 255, 255, 0.3);
-        }
-        
-        .marine-table tbody tr:hover {
-            background: linear-gradient(90deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.15) 50%, rgba(59, 130, 246, 0.08) 100%);
-            transform: scale(1.01);
         }
         
         .marine-table tbody tr:last-child td {
@@ -947,11 +902,6 @@
            transition: transform 0.3s ease, box-shadow 0.3s ease;
       }
 
-      .webcam-frame:hover {
-          transform: translateY(-2px);
-          box-shadow: var(--shadow-lg);
-     }
-
      .webcam-frame img {
          width: 100%;
          height: 100%;
@@ -1029,14 +979,36 @@
                     <div>Viento</div>
                     <div class="detail-value" id="wind">-- km/h</div>
                 </div>
-                <div class="detail-item">
-                    <div>Precip. hoy</div>
-                    <div class="detail-value" id="precip-today">-- mm</div>
                 </div>
+            <div class="detail-item">
+                <div>Precip. hoy</div>
+                <div class="detail-value" id="precip-today">-- mm</div>
+            </div>
+            <div class="detail-item">
+                <div>Calidad Aire</div>
+                <div class="detail-value" id="air-quality-current">--</div>
+            </div>
+        </div>
             </div>
 
-            <!-- ============================================ -->
-            <!-- AVISO METEOROLÓGICO MANUAL - 2 FILAS        -->
+        <!-- Fila astronómica: amanecer, atardecer, UVI -->
+        <table class="astronomy-table" style="margin-top: 24px;">
+            <tbody>
+                <tr>
+                    <td>amanecer</td>
+                    <td>atardecer</td>
+                    <td>uv máx</td>
+                </tr>
+                <tr>
+                    <td id="sunrise-time-top">--:--</td>
+                    <td id="sunset-time-top">--:--</td>
+                    <td id="uvi-max-top">--</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- ============================================ -->
+        <!-- AVISO METEOROLÓGICO MANUAL - 2 FILAS        -->
             <!-- ============================================ -->
             <!-- INSTRUCCIONES:
                  
@@ -1300,27 +1272,6 @@
                 <div class="narrative-title">Tendencia Próximas Horas</div>
                 <div id="narrative-forecast">Cargando previsión...</div>
                 
-                <div class="astronomy-container">
-                    <div class="astronomy-title">Datos Astronómicos</div>
-                    <table class="astronomy-table">
-                        <tbody>
-                            <tr>
-                                <td>amanecer</td>
-                                <td>atardecer</td>
-                                <td>uv máx</td>
-                            </tr>
-                            <tr>
-                                <td id="sunrise-time">--:--</td>
-                                <td id="sunset-time">--:--</td>
-                                <td id="uvi-max">--</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="air-quality-container">
-                    <div class="air-quality-title">Calidad del Aire y Polen</div>
-                    <table class="air-quality-table">
                         <tbody>
                             <tr>
                                 <td colspan="2" style="padding: 12px 8px; border-bottom: 1px solid rgba(148, 163, 184, 0.15);">
@@ -1351,26 +1302,6 @@
                                 </td>
                             </tr>
                         </tbody>
-                    </table>
-                    
-                    <!-- Explicaciones -->
-                    <div class="air-quality-info">
-                        <div class="info-section">
-                            <div class="info-title">📊 Índice de Calidad del Aire (ICA)</div>
-                            <div class="info-text">Mide la contaminación atmosférica combinando varios contaminantes. <strong>0-20: Buena</strong> (verde), <strong>20-40: Aceptable</strong>, <strong>40-60: Moderada</strong> (naranja), <strong>60-80: Desfavorable</strong>, <strong>80-100: Muy desfavorable</strong> (rojo), <strong>&gt;100: Extrema</strong>. Valores bajos = aire más limpio.</div>
-                        </div>
-                        
-                        <div class="info-section">
-                            <div class="info-title">🔬 PM2.5 y PM10</div>
-                            <div class="info-text"><strong>PM2.5:</strong> Partículas finas (&lt;2.5 micras) que penetran profundamente en los pulmones. Provienen de combustión (tráfico, industria). <strong>PM10:</strong> Partículas más gruesas (&lt;10 micras) del polvo, polen y construcción. Valores recomendados OMS: PM2.5 &lt;15 µg/m³, PM10 &lt;45 µg/m³.</div>
-                        </div>
-                        
-                        <div class="info-section">
-                            <div class="info-title">🌸 Polen</div>
-                            <div class="info-text">Concentración total de polen alergénico (gramíneas, olivo, abedul, ambrosía). <strong>Nulo:</strong> 0, <strong>Bajo:</strong> 1-20, <strong>Moderado:</strong> 20-50, <strong>Alto:</strong> 50-100, <strong>Muy alto:</strong> &gt;100. Personas alérgicas deben tomar precauciones con niveles moderados o superiores.</div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
         
@@ -1680,11 +1611,36 @@
                     else if (uviNum >= 3) uviColor = '#F59E0B';
                     
                     const uviElement = document.getElementById('uvi-max');
-                    uviElement.textContent = uviMax;
-                    uviElement.style.color = uviColor;
-                }
-            }
+            uviElement.textContent = uviMax;
+            uviElement.style.color = uviColor;
         }
+    }
+    
+    // Actualizar también los datos astronómicos superiores
+    if (data.daily.sunrise && data.daily.sunrise[0]) {
+        const sunrise = new Date(data.daily.sunrise[0]);
+        document.getElementById('sunrise-time-top').textContent = sunrise.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+    }
+    
+    if (data.daily.sunset && data.daily.sunset[0]) {
+        const sunset = new Date(data.daily.sunset[0]);
+        document.getElementById('sunset-time-top').textContent = sunset.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+    }
+    
+    if (data.daily.uv_index_max && data.daily.uv_index_max[0] !== undefined) {
+        const uviMax = data.daily.uv_index_max[0].toFixed(1);
+        let uviColor = '#10B981';
+        const uviNum = parseFloat(uviMax);
+        if (uviNum >= 11) uviColor = '#9333EA';
+        else if (uviNum >= 8) uviColor = '#EF4444';
+        else if (uviNum >= 6) uviColor = '#F97316';
+        else if (uviNum >= 3) uviColor = '#F59E0B';
+        
+        const uviElement = document.getElementById('uvi-max-top');
+        uviElement.textContent = uviMax;
+        uviElement.style.color = uviColor;
+    }
+}
         
         function updateAirQualityTable(airCurrent) {
             // Calidad del aire según índice europeo
@@ -1729,11 +1685,15 @@
             const pollenLevel = getPollenLevel(totalPollen);
             
             document.getElementById('pollen-value').textContent = Math.round(totalPollen);
-            document.getElementById('pollen-value').style.color = pollenLevel.color;
-            document.getElementById('pollen-level').textContent = pollenLevel.text;
-            document.getElementById('pollen-level').style.color = pollenLevel.color;
-        }
+        document.getElementById('pollen-value').style.color = pollenLevel.color;
+        document.getElementById('pollen-level').textContent = pollenLevel.text;
+        document.getElementById('pollen-level').style.color = pollenLevel.color;
         
+        // Actualizar calidad del aire en detalles del tiempo actual
+        const aqiElement = document.getElementById('air-quality-current');
+        aqiElement.textContent = aqiLevel.text;
+        aqiElement.style.color = aqiLevel.color;
+    }
         async function loadWeatherData() {
             try {
                 const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + LAT + '&longitude=' + LON + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7';
