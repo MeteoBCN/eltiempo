@@ -1435,30 +1435,19 @@
                 const midCloud = cloudData.cloud_cover_mid || 0;
                 const highCloud = cloudData.cloud_cover_high || 0;
                 
-                // DEBUG: Ver valores reales
-                console.log('🌤️ Nubosidad - Código original:', code, 
-                           'Bajas:', lowCloud + '%', 
-                           'Medias:', midCloud + '%', 
-                           'Altas:', highCloud + '%');
-                
                 // Calcular nubosidad "real" (solo bajas y medias, las que tapan el sol)
                 const realCloud = lowCloud + (midCloud * 0.5); // Medias cuentan menos
                 
-                console.log('   → Nubosidad real:', realCloud.toFixed(1) + '%');
-                
                 // Si hay muy pocas nubes bajas/medias, aunque haya muchas altas
                 if (realCloud < 15) {
-                    console.log('   → Ajustado a: Principalmente despejado (1)');
                     code = 1; // Principalmente despejado (solo cirros)
                 }
                 // Si hay pocas nubes bajas/medias
                 else if (realCloud < 35) {
-                    console.log('   → Ajustado a: Parcialmente nublado (2)');
                     code = 2; // Parcialmente nublado
                 }
                 // Si hay muchas nubes bajas/medias
                 else {
-                    console.log('   → Ajustado a: Nublado (3)');
                     code = 3; // Nublado
                 }
             }
