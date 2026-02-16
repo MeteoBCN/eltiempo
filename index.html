@@ -1034,12 +1034,14 @@
                                 <div class="today-label">Temperatura</div>
                             </td>
                             <td style="width: 50%; text-align: right; padding-right: 20px;">
-                                <div class="today-value">8° / 15°</div>
+                                <div class="today-value">
+                                    <span class="temp-min" id="today-min">--°</span> / <span class="temp-max" id="today-max">--°</span>
+                                </div>
                             </td>
                         </tr>
                         <tr>
                             <td colspan="2" style="padding: 12px 20px; text-align: left; font-size: 12px; color: #64748B; line-height: 1.5; background: rgba(241, 245, 249, 0.3);">
-                                Temperaturas sin canvios significativos.
+                                Mañana fresca con temperaturas ascendentes durante el día. Se esperan máximas agradables por la tarde.
                             </td>
                         </tr>
                         
@@ -1049,12 +1051,12 @@
                                 <div class="today-label">Lluvia</div>
                             </td>
                             <td style="text-align: right; padding-right: 20px;">
-                                <div class="today-value">0.0 mm</div>
+                                <div class="today-value" id="today-precip">-- mm</div>
                             </td>
                         </tr>
                         <tr>
                             <td colspan="2" style="padding: 12px 20px; text-align: left; font-size: 12px; color: #64748B; line-height: 1.5; background: rgba(241, 245, 249, 0.3);">
-                                No se esperan precipitaciones.
+                                No se esperan precipitaciones durante el día. Cielos despejados o poco nubosos.
                             </td>
                         </tr>
                         
@@ -1094,7 +1096,9 @@
                                 <div class="today-label">Amanecer / Atardecer</div>
                             </td>
                             <td style="text-align: right; padding-right: 20px;">
-                                <div class="today-value">07:42 / 18:24</div>
+                                <div class="today-value">
+                                    <span id="today-sunrise">--:--</span> / <span id="today-sunset">--:--</span>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -1364,8 +1368,44 @@
             const now = new Date();
             const todayDayName = getDayName(now.toISOString());
             
-            // Actualizar solo la cabecera con el día de hoy
+            // Actualizar cabecera con el día de hoy
             document.getElementById('today-header').textContent = todayDayName.toUpperCase();
+            
+            // Temperatura mínima y máxima del día (índice 0 en daily)
+            if (daily.temperature_2m_min && daily.temperature_2m_min[0] !== undefined) {
+                document.getElementById('today-min').textContent = Math.round(daily.temperature_2m_min[0]) + '°';
+            }
+            
+            if (daily.temperature_2m_max && daily.temperature_2m_max[0] !== undefined) {
+                document.getElementById('today-max').textContent = Math.round(daily.temperature_2m_max[0]) + '°';
+            }
+            
+            // Precipitación total del día
+            let totalPrecip = 0;
+            if (hourly && hourly.time && hourly.precipitation) {
+                for (let i = 0; i < hourly.time.length; i++) {
+                    const hourTime = new Date(hourly.time[i]);
+                    if (hourTime.getDate() === now.getDate() && 
+                        hourTime.getMonth() === now.getMonth() &&
+                        hourTime.getFullYear() === now.getFullYear()) {
+                        totalPrecip += hourly.precipitation[i] || 0;
+                    }
+                }
+            }
+            document.getElementById('today-precip').textContent = totalPrecip.toFixed(1) + ' mm';
+            
+            // Amanecer y Atardecer
+            if (daily.sunrise && daily.sunrise[0]) {
+                const sunrise = new Date(daily.sunrise[0]);
+                const sunriseTime = sunrise.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+                document.getElementById('today-sunrise').textContent = sunriseTime;
+            }
+            
+            if (daily.sunset && daily.sunset[0]) {
+                const sunset = new Date(daily.sunset[0]);
+                const sunsetTime = sunset.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+                document.getElementById('today-sunset').textContent = sunsetTime;
+            }
         }
         
         function formatHour(dateTimeString) {
