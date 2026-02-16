@@ -54,7 +54,7 @@
             background: #2C3E50;
             padding: 0;
             /* Para añadir imagen de fondo, edita la siguiente línea: */
-            background-image: url('banner08.jpg');
+            background-image: url('banner07.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -986,14 +986,6 @@
                         <div>UVI actual</div>
                         <div class="detail-value" id="uvi-current">--</div>
                     </div>
-                    <div class="detail-item">
-                        <div>Amanecer</div>
-                        <div class="detail-value" id="sunrise-current">--:--</div>
-                    </div>
-                    <div class="detail-item">
-                        <div>Atardecer</div>
-                        <div class="detail-value" id="sunset-current">--:--</div>
-                    </div>
                 </div>
             
             <div class="aviso-box" style="
@@ -1055,6 +1047,16 @@
                             <td>
                                 <div class="today-label">UVI</div>
                                 <div class="today-value" id="today-uvi">--</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div class="today-label">Amanecer</div>
+                                <div class="today-value" id="today-sunrise">--:--</div>
+                            </td>
+                            <td colspan="3">
+                                <div class="today-label">Atardecer</div>
+                                <div class="today-value" id="today-sunset">--:--</div>
                             </td>
                         </tr>
                     </tbody>
@@ -1371,6 +1373,19 @@
                 const uviMax = Math.round(daily.uv_index_max[0] * 10) / 10;
                 document.getElementById('today-uvi').textContent = uviMax;
             }
+            
+            // Amanecer y Atardecer
+            if (daily.sunrise && daily.sunrise[0]) {
+                const sunrise = new Date(daily.sunrise[0]);
+                const sunriseTime = sunrise.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+                document.getElementById('today-sunrise').textContent = sunriseTime;
+            }
+            
+            if (daily.sunset && daily.sunset[0]) {
+                const sunset = new Date(daily.sunset[0]);
+                const sunsetTime = sunset.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+                document.getElementById('today-sunset').textContent = sunsetTime;
+            }
         }
         
         function formatHour(dateTimeString) {
@@ -1379,19 +1394,8 @@
         }
         
         function updateAstronomyTable(data) {
-            if (data.daily) {
-                if (data.daily.sunrise && data.daily.sunrise[0]) {
-                    const sunrise = new Date(data.daily.sunrise[0]);
-                    const sunriseTime = sunrise.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
-                    document.getElementById('sunrise-current').textContent = sunriseTime;
-                }
-                
-                if (data.daily.sunset && data.daily.sunset[0]) {
-                    const sunset = new Date(data.daily.sunset[0]);
-                    const sunsetTime = sunset.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
-                    document.getElementById('sunset-current').textContent = sunsetTime;
-                }
-            }
+            // Esta función ahora solo actualiza las variables globales sunriseTime y sunsetTime
+            // que se usan en otras funciones
         }
         
         function updateAirQualityTable(airCurrent) {
