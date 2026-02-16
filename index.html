@@ -808,6 +808,55 @@
             margin-right: 6px;
             font-size: 14px;
         }
+        
+        .today-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--color-bg-card);
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(10px);
+        }
+        
+        .today-table thead tr {
+            background: #2C3E50;
+        }
+        
+        .today-table thead th {
+            padding: 16px 10px;
+            text-align: center;
+            color: #FFFFFF;
+            font-weight: 700;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+        
+        .today-table tbody td {
+            padding: 16px 10px;
+            text-align: center;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+        }
+        
+        .today-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .today-label {
+            font-size: 11px;
+            color: var(--color-text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        
+        .today-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+        }
 
         .webcam-container { 
             display: flex;
@@ -970,6 +1019,46 @@
                     font-weight: 500;
                     line-height: 1.5;
                 ">No hay fenómenos adversos previstos</div>
+            </div>
+            
+            <!-- TABLA DEL DÍA ACTUAL -->
+            <div style="margin: 28px 0 0 0;">
+                <table class="today-table">
+                    <thead>
+                        <tr>
+                            <th colspan="5" id="today-header">HOY</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" style="padding: 0;">
+                                <img src="hoy.jpg" alt="Previsión de hoy" style="width: 100%; height: 150px; object-fit: cover; display: block;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="today-label">Mín</div>
+                                <div class="today-value temp-min" id="today-min">--°</div>
+                            </td>
+                            <td>
+                                <div class="today-label">Máx</div>
+                                <div class="today-value temp-max" id="today-max">--°</div>
+                            </td>
+                            <td>
+                                <div class="today-label">Precip.</div>
+                                <div class="today-value" id="today-precip">-- mm</div>
+                            </td>
+                            <td>
+                                <div class="today-label">Viento</div>
+                                <div class="today-value" id="today-wind">-- km/h</div>
+                            </td>
+                            <td>
+                                <div class="today-label">UVI</div>
+                                <div class="today-value" id="today-uvi">--</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
         
@@ -1231,6 +1320,59 @@
             return days[date.getDay()];
         }
         
+        function updateTodayTable(daily, hourly) {
+            const now = new Date();
+            const todayDayName = getDayName(now.toISOString());
+            
+            // Actualizar cabecera con el día de hoy
+            document.getElementById('today-header').textContent = todayDayName.toUpperCase();
+            
+            // Temperatura mínima y máxima del día (índice 0 en daily)
+            if (daily.temperature_2m_min && daily.temperature_2m_min[0] !== undefined) {
+                document.getElementById('today-min').textContent = Math.round(daily.temperature_2m_min[0]) + '°';
+            }
+            
+            if (daily.temperature_2m_max && daily.temperature_2m_max[0] !== undefined) {
+                document.getElementById('today-max').textContent = Math.round(daily.temperature_2m_max[0]) + '°';
+            }
+            
+            // Precipitación total del día
+            let totalPrecip = 0;
+            if (hourly && hourly.time && hourly.precipitation) {
+                for (let i = 0; i < hourly.time.length; i++) {
+                    const hourTime = new Date(hourly.time[i]);
+                    if (hourTime.getDate() === now.getDate() && 
+                        hourTime.getMonth() === now.getMonth() &&
+                        hourTime.getFullYear() === now.getFullYear()) {
+                        totalPrecip += hourly.precipitation[i] || 0;
+                    }
+                }
+            }
+            document.getElementById('today-precip').textContent = totalPrecip.toFixed(1) + ' mm';
+            
+            // Viento máximo del día
+            let maxWind = 0;
+            if (hourly && hourly.time && hourly.wind_speed_10m) {
+                for (let i = 0; i < hourly.time.length; i++) {
+                    const hourTime = new Date(hourly.time[i]);
+                    if (hourTime.getDate() === now.getDate() && 
+                        hourTime.getMonth() === now.getMonth() &&
+                        hourTime.getFullYear() === now.getFullYear()) {
+                        if (hourly.wind_speed_10m[i] > maxWind) {
+                            maxWind = hourly.wind_speed_10m[i];
+                        }
+                    }
+                }
+            }
+            document.getElementById('today-wind').textContent = Math.round(maxWind) + ' km/h';
+            
+            // UVI máximo del día
+            if (daily.uv_index_max && daily.uv_index_max[0] !== undefined) {
+                const uviMax = Math.round(daily.uv_index_max[0] * 10) / 10;
+                document.getElementById('today-uvi').textContent = uviMax;
+            }
+        }
+        
         function formatHour(dateTimeString) {
             const date = new Date(dateTimeString);
             return date.getHours().toString().padStart(2, '0') + ':00';
@@ -1302,6 +1444,7 @@
                 }
                 
                 updateCurrentWeather(data.current, data.current.weather_code, precipToday, data.hourly);
+                updateTodayTable(data.daily, data.hourly);
                 updateAstronomyTable(data);
                 updateAirQualityTable(airData.current);
                 updateWeatherTable(data.hourly);
