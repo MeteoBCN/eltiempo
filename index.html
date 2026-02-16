@@ -912,7 +912,6 @@
                 <div style="font-size: 13px; font-weight: 700; color: var(--color-text-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">Tiempo Actual</div>
                 <div class="icon-large" id="current-icon">☀️</div>
                 <div class="temperature" id="current-temp">--°</div>
-                <div class="condition" id="current-condition">Cargando...</div>
                 <div class="details">
                     <div class="detail-item">
                         <div>Presión</div>
@@ -971,11 +970,6 @@
                     font-weight: 500;
                     line-height: 1.5;
                 ">No hay fenómenos adversos previstos</div>
-            </div>
-                   
-            <div class="narrative-container">
-                <div class="narrative-title">Tendencia Próximas Horas</div>
-                <div id="narrative-forecast">Cargando previsión...</div>
             </div>
         </div>
         
@@ -1308,7 +1302,6 @@
                 }
                 
                 updateCurrentWeather(data.current, data.current.weather_code, precipToday, data.hourly);
-                document.getElementById('narrative-forecast').innerHTML = generateNarrative(data.hourly);
                 updateAstronomyTable(data);
                 updateAirQualityTable(airData.current);
                 updateWeatherTable(data.hourly);
@@ -1318,7 +1311,6 @@
                 
             } catch (error) {
                 console.error('Error al cargar datos:', error);
-                document.getElementById('current-condition').textContent = 'Error al cargar datos';
             }
         }
         
@@ -1331,7 +1323,6 @@
             };
             document.getElementById('current-icon').innerHTML = getWeatherIcon(weatherCode, now, cloudData);
             
-            document.getElementById('current-condition').textContent = getWeatherDescription(weatherCode);
             document.getElementById('pressure').textContent = Math.round(current.pressure_msl) + ' hPa';
             document.getElementById('humidity').textContent = current.relative_humidity_2m + '%';
             document.getElementById('wind').textContent = Math.round(current.wind_speed_10m) + ' km/h';
@@ -1626,7 +1617,7 @@
                 
                 summaryHTML += '<td style="width: 25%; padding: 15px 10px; text-align: center; border-bottom: 1px solid #e9ecef;">';
                 summaryHTML += '<div style="font-size: 11px; color: #64748B; margin-bottom: 4px;">Mín / Máx</div>';
-                summaryHTML += '<div style="font-size: 15px; font-weight: 700;"><span style="color: #3B82F6;">' + minTemp + '°</span> / <span style="color: #EF4444;">' + maxTemp + '°</span></div>';
+                summaryHTML += '<div style="font-size: 15px; font-weight: 700;"><span style="color: #3B82F6;">' + minTemp + '°</span> <span style="color: #EF4444;">' + maxTemp + '°</span></div>';
                 summaryHTML += '</td>';
                 
                 summaryHTML += '<td style="width: 25%; padding: 15px 10px; text-align: center; border-bottom: 1px solid #e9ecef;">';
