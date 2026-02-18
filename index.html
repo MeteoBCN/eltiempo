@@ -331,14 +331,7 @@
                             población o cualquier información adicional relevante.
                         </p>
 
-                        <!-- IMAGEN 2 — borra este bloque si no necesitas segunda imagen -->
-                        <img class="articulo-imagen-2" src="img2.jpg" alt="Segunda imagen">
-                        <p class="articulo-imagen-pie" style="margin-top: 6px;">Pie de foto de la segunda imagen. | <strong>Fuente</strong></p>
 
-                        <p>
-                            Párrafo final con el cierre del artículo y la perspectiva
-                            de cara a los próximos días.
-                        </p>
 
                     </div>
 
@@ -356,38 +349,34 @@
                         <tr><th colspan="2" id="today-header">HOY</th></tr>
                     </thead>
                     <tbody>
+                        <!-- TEMPERATURA -->
                         <tr>
-                            <td colspan="2" style="padding: 0;">
-                                <img src="hoy.jpg" alt="Previsión de hoy" style="width: 100%; height: 150px; object-fit: cover; display: block;">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="width: 50%; text-align: left; padding-left: 20px;"><div class="today-label">Temperatura</div></td>
+                            <td style="width: 50%; text-align: left; padding-left: 20px;"><div class="today-label">Temperatura mín / máx</div></td>
                             <td style="width: 50%; text-align: right; padding-right: 20px;">
                                 <div class="today-value"><span class="temp-min" id="today-min">--°</span> / <span class="temp-max" id="today-max">--°</span></div>
                             </td>
                         </tr>
-                        <tr><td colspan="2" style="padding: 12px 20px; text-align: left; font-size: 12px; color: #64748B; line-height: 1.5; background: rgba(241, 245, 249, 0.3);">Mañana fresca con temperaturas ascendentes durante el día. Se esperan máximas agradables por la tarde.</td></tr>
+                        <!-- PRECIPITACIÓN MÁXIMA ESPERADA -->
                         <tr>
-                            <td style="text-align: left; padding-left: 20px;"><div class="today-label">estado del cielo / Lluvia</div></td>
-                            <td style="text-align: right; padding-right: 20px;"><div class="today-value" id="today-precip">-- mm</div></td>
+                            <td style="text-align: left; padding-left: 20px;"><div class="today-label">Precipitación máx. esperada</div></td>
+                            <td style="text-align: right; padding-right: 20px;"><div class="today-value" id="today-precip-max">-- %</div></td>
                         </tr>
-                        <tr><td colspan="2" style="padding: 12px 20px; text-align: left; font-size: 12px; color: #64748B; line-height: 1.5; background: rgba(241, 245, 249, 0.3);">Cielo mayormente despejado, con algunas nubes altas. No se esperan precipitaciones.</td></tr>
+                        <!-- UVI MÁXIMO -->
                         <tr>
-                            <td style="text-align: left; padding-left: 20px;"><div class="today-label">Viento</div></td>
-                            <td style="text-align: right; padding-right: 20px;"><div class="today-value">15 km/h</div></td>
+                            <td style="text-align: left; padding-left: 20px;"><div class="today-label">UVI máximo</div></td>
+                            <td style="text-align: right; padding-right: 20px;"><div class="today-value" id="today-uvi-max">--</div></td>
                         </tr>
-                        <tr><td colspan="2" style="padding: 12px 20px; text-align: left; font-size: 12px; color: #64748B; line-height: 1.5; background: rgba(241, 245, 249, 0.3);">Vientos moderados de componente norte. Rachas máximas durante las horas centrales del día.</td></tr>
+                        <!-- SOL -->
                         <tr>
-                            <td style="text-align: left; padding-left: 20px;"><div class="today-label">Playas / Mar</div></td>
-                            <td style="text-align: right; padding-right: 20px;"><div class="today-value">uvi max. 4</div></td>
-                        </tr>
-                        <tr><td colspan="2" style="padding: 12px 20px; text-align: left; font-size: 12px; color: #64748B; line-height: 1.5; background: rgba(241, 245, 249, 0.3);">Mar en calma con oleaje inferior a 0.5 metros. Condiciones favorables para actividades náuticas y playa.</td></tr>
-                        <tr>
-                            <td style="text-align: left; padding-left: 20px;"><div class="today-label">sol</div></td>
+                            <td style="text-align: left; padding-left: 20px;"><div class="today-label">Salida / Puesta de sol</div></td>
                             <td style="text-align: right; padding-right: 20px;">
                                 <div class="today-value"><span id="today-sunrise">--:--</span> / <span id="today-sunset">--:--</span></div>
                             </td>
+                        </tr>
+                        <!-- HORAS DE LUZ -->
+                        <tr>
+                            <td style="text-align: left; padding-left: 20px;"><div class="today-label">Horas de luz</div></td>
+                            <td style="text-align: right; padding-right: 20px;"><div class="today-value" id="today-daylight">-- h -- min</div></td>
                         </tr>
                     </tbody>
                 </table>
@@ -522,18 +511,39 @@
         function updateTodayTable(daily, hourly) {
             const now = new Date();
             document.getElementById('today-header').textContent = getDayName(now.toISOString()).toUpperCase();
+
+            // Temp min / max
             if (daily.temperature_2m_min?.[0]!==undefined) document.getElementById('today-min').textContent = Math.round(daily.temperature_2m_min[0])+'°';
             if (daily.temperature_2m_max?.[0]!==undefined) document.getElementById('today-max').textContent = Math.round(daily.temperature_2m_max[0])+'°';
-            let tp=0;
-            if (hourly?.time && hourly?.precipitation) {
-                for (let i=0;i<hourly.time.length;i++) {
-                    const ht=new Date(hourly.time[i]);
-                    if (ht.getDate()===now.getDate()&&ht.getMonth()===now.getMonth()&&ht.getFullYear()===now.getFullYear()) tp+=hourly.precipitation[i]||0;
+
+            // Precipitación máxima esperada (probabilidad máxima del día)
+            let maxPrecipProb = 0;
+            if (hourly?.time && hourly?.precipitation_probability) {
+                for (let i=0; i<hourly.time.length; i++) {
+                    const ht = new Date(hourly.time[i]);
+                    if (ht.getDate()===now.getDate() && ht.getMonth()===now.getMonth() && ht.getFullYear()===now.getFullYear()) {
+                        if ((hourly.precipitation_probability[i]||0) > maxPrecipProb) maxPrecipProb = hourly.precipitation_probability[i];
+                    }
                 }
             }
-            document.getElementById('today-precip').textContent=tp.toFixed(1)+' mm';
-            if (daily.sunrise?.[0]) document.getElementById('today-sunrise').textContent=new Date(daily.sunrise[0]).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-            if (daily.sunset?.[0]) document.getElementById('today-sunset').textContent=new Date(daily.sunset[0]).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+            document.getElementById('today-precip-max').textContent = maxPrecipProb + ' %';
+
+            // UVI máximo
+            if (daily.uv_index_max?.[0]!==undefined) {
+                document.getElementById('today-uvi-max').textContent = Math.round(daily.uv_index_max[0]*10)/10;
+            }
+
+            // Salida / puesta de sol + horas de luz
+            if (daily.sunrise?.[0] && daily.sunset?.[0]) {
+                const sr = new Date(daily.sunrise[0]);
+                const ss = new Date(daily.sunset[0]);
+                document.getElementById('today-sunrise').textContent = sr.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+                document.getElementById('today-sunset').textContent = ss.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+                const totalMin = Math.round((ss - sr) / 60000);
+                const hours = Math.floor(totalMin / 60);
+                const mins = totalMin % 60;
+                document.getElementById('today-daylight').textContent = `${hours} h ${mins} min`;
+            }
         }
 
         function formatHour(s) { return new Date(s).getHours().toString().padStart(2,'0')+':00'; }
