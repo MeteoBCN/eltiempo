@@ -684,6 +684,7 @@
                     const w   = windLookup[key] ?? { ws: null, wsd: null };
                     res.push({
                         wh:  marineHourly.wave_height?.[i]             ?? null,
+                        wp:  marineHourly.wave_period?.[i]             ?? null,
                         wd:  marineHourly.wave_direction?.[i]          ?? null,
                         sst: marineHourly.sea_surface_temperature?.[i] ?? null,
                         ws:  w.ws,
@@ -733,6 +734,7 @@
             function renderStrip(dayLabel, subLabel, slots, isActive, uviVal) {
                 if (!slots.length) return;
                 const whs  = slots.map(s=>s.wh).filter(v=>v!==null);
+                const wps  = slots.map(s=>s.wp).filter(v=>v!==null);
                 const wss  = slots.map(s=>s.ws).filter(v=>v!==null);
                 const wsds = slots.map(s=>s.wsd).filter(v=>v!==null);
                 const ssts = slots.map(s=>s.sst).filter(v=>v!==null);
@@ -740,6 +742,7 @@
                 const minWH  = whs.length ? Math.min(...whs) : null;
                 const maxWH  = whs.length ? Math.max(...whs) : null;
                 const avgWH  = whs.length ? avg(whs) : null;
+                const avgWP  = wps.length ? Math.round(avg(wps)) : null;
                 const avgWS  = wss.length  ? Math.round(avg(wss))  : null;
                 const maxWS  = wss.length  ? Math.round(Math.max(...wss)) : null;
                 const avgWSD = wsds.length ? Math.round(avg(wsds)) : null;
@@ -774,10 +777,12 @@
                     </div>
                     <div style="flex:1;padding:10px 13px;display:flex;flex-direction:column;gap:5px;justify-content:center;background:#fff;">
                         <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+                            <span style="font-size:12px;color:#2c3e50;">Altura de ola:</span>
                             <span style="font-size:15px;font-weight:700;color:${textCol};">${oleajeTxt}</span>
                             <span style="font-size:11px;font-weight:600;color:#fff;background:${textCol};padding:2px 6px;border-radius:4px;">${estado}</span>
                         </div>
-                        <div style="font-size:12px;color:${textCol};line-height:1.6;">
+                        <div style="font-size:12px;color:#2c3e50;line-height:1.6;">
+                            <span>Período entre olas:</span> <span style="color:${textCol};font-weight:600;">${avgWP !== null ? avgWP + ' s' : '—'}</span><br>
                             💨 ${vientoTxt}<br>🌊 Agua ${aguaTxt} &nbsp;·&nbsp; ☀️ UVI ${uviTxt}
                         </div>
                         <div style="display:flex;align-items:center;gap:5px;margin-top:1px;">
