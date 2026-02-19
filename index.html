@@ -136,6 +136,9 @@
         .narrative-container { padding: 0; margin-top: 24px; }
         .narrative-title { font-size: 13px; font-weight: 700; color: var(--color-text-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; text-align: center; }
         #narrative-forecast { text-align: center; line-height: 1.7; font-size: 15px; color: var(--color-text-primary); font-weight: 400; letter-spacing: 0.2px; }
+        #marine-forecast-table tbody tr { border-bottom: 1px solid rgba(148,163,184,0.15); }
+        #marine-forecast-table tbody tr:nth-child(even) { background: rgba(241,245,249,0.6); }
+        #marine-forecast-table tbody td { padding: 10px 8px; text-align: center; color: var(--color-text-primary); font-weight: 500; }
         .marine-forecast-container { margin: 40px 0; animation: fadeIn 0.6s ease-out 0.8s both; }
         .marine-forecast-title { font-size: 20px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 20px; text-align: center; text-transform: uppercase; letter-spacing: 1.5px; }
         .marine-table { width: 100%; border-collapse: collapse; background: var(--color-bg-card); border-radius: 0; overflow: hidden; box-shadow: var(--shadow-md); backdrop-filter: blur(10px); margin-bottom: 24px; }
@@ -184,6 +187,11 @@
         .dot-amarilla { background: #F59E0B; }
         .dot-roja     { background: #EF4444; }
         .playas-data-col { flex: 1; display: grid; grid-template-columns: 1fr 1fr; border-left: 1px solid #e2e8f0; }
+        .playas-card-full { flex-direction: column; }
+        .playas-data-full { display: grid; grid-template-columns: 1fr 1fr 1fr; width: 100%; }
+        .playas-data-full .playas-dato { border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; }
+        .playas-data-full .playas-dato:nth-child(3n) { border-right: none; }
+        .playas-data-full .playas-dato:nth-last-child(-n+2) { border-bottom: none; }
         .playas-dato { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 18px 10px; border-bottom: 1px solid #e2e8f0; }
         .playas-dato:nth-child(odd) { border-right: 1px solid #e2e8f0; }
         .playas-dato:nth-last-child(-n+2) { border-bottom: none; }
@@ -435,38 +443,36 @@
             <div class="playas-header">
                 <span class="playas-header-title">🏖️ Playas — Estado del mar</span>
             </div>
-            <div class="playas-card" id="playas-card">
-                <!-- Icono + bandera -->
-                <div class="playas-icon-col">
-                    <svg class="playas-sea-icon" id="playas-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Icono mar genérico, se colorea por JS -->
-                        <circle cx="32" cy="32" r="30" fill="#cce8f4"/>
-                        <path d="M8 36 Q16 28 24 36 Q32 44 40 36 Q48 28 56 36" stroke="#1a6b8a" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <path d="M8 42 Q16 34 24 42 Q32 50 40 42 Q48 34 56 42" stroke="#1a6b8a" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.6"/>
-                        <circle cx="32" cy="22" r="8" fill="#F59E0B" opacity="0.9"/>
-                        <line x1="32" y1="10" x2="32" y2="6" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
-                        <line x1="32" y1="38" x2="32" y2="34" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
-                        <line x1="20" y1="22" x2="16" y2="22" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
-                        <line x1="48" y1="22" x2="44" y2="22" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <div class="playas-bandera-badge badge-amarilla" id="playas-bandera-badge">
-                        <span class="bandera-dot dot-amarilla" id="playas-bandera-dot"></span>
-                        <span id="playas-bandera-texto">—</span>
-                    </div>
-                </div>
-                <!-- Datos -->
-                <div class="playas-data-col">
+            <div class="playas-card playas-card-full" id="playas-card">
+                <!-- Datos en grid 3 columnas -->
+                <div class="playas-data-full">
                     <div class="playas-dato">
                         <div class="playas-dato-label">Oleaje</div>
                         <div class="playas-dato-value" id="playas-oleaje">—</div>
+                    </div>
+                    <div class="playas-dato">
+                        <div class="playas-dato-label">Período</div>
+                        <div class="playas-dato-value" id="playas-periodo">—</div>
+                    </div>
+                    <div class="playas-dato">
+                        <div class="playas-dato-label">Dir. olas</div>
+                        <div class="playas-dato-value" id="playas-wave-dir">—</div>
                     </div>
                     <div class="playas-dato">
                         <div class="playas-dato-label">Agua</div>
                         <div class="playas-dato-value" id="playas-temp">—</div>
                     </div>
                     <div class="playas-dato">
-                        <div class="playas-dato-label">Período</div>
-                        <div class="playas-dato-value" id="playas-periodo">—</div>
+                        <div class="playas-dato-label">Viento mar</div>
+                        <div class="playas-dato-value" id="playas-viento">—</div>
+                    </div>
+                    <div class="playas-dato">
+                        <div class="playas-dato-label">Dir. viento</div>
+                        <div class="playas-dato-value" id="playas-viento-dir">—</div>
+                    </div>
+                    <div class="playas-dato" style="grid-column: span 2;">
+                        <div class="playas-dato-label">Estado</div>
+                        <div class="playas-dato-value" id="playas-estado" style="font-size:15px;">—</div>
                     </div>
                     <div class="playas-dato">
                         <div class="playas-dato-label">UVI máx.</div>
@@ -474,7 +480,26 @@
                     </div>
                 </div>
             </div>
-            <p class="playas-note">Bandera estimada según oleaje</p>
+            <p class="playas-note">Datos marinos en tiempo real · Open-Meteo Marine API</p>
+
+            <!-- Previsión horaria del mar -->
+            <div style="overflow-x:auto; margin-top:0;">
+                <table id="marine-forecast-table" style="width:100%;border-collapse:collapse;background:#fff;font-size:13px;">
+                    <thead>
+                        <tr style="background:#1a6b8a;">
+                            <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Hora</th>
+                            <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Oleaje</th>
+                            <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Período</th>
+                            <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Dir.</th>
+                            <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">V.Viento</th>
+                            <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Agua</th>
+                        </tr>
+                    </thead>
+                    <tbody id="marine-forecast-body">
+                        <tr><td colspan="6" style="padding:16px;text-align:center;color:#94a3b8;">Cargando previsión marina…</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="weather-table-container" style="margin-top: 40px;">
@@ -645,53 +670,79 @@
             el.textContent=lvl(ac.european_aqi||0); el.style.color='#2C3E50';
         }
 
-        function updatePlayasTable(marine, daily) {
-            // Bandera según altura de ola
-            function getBandera(h) {
-                if (h === null) return { clase: 'badge-amarilla', dotClase: 'dot-amarilla', texto: 'Sin datos' };
-                if (h < 0.5)   return { clase: 'badge-verde',    dotClase: 'dot-verde',    texto: 'Verde' };
-                if (h < 1.0)   return { clase: 'badge-amarilla', dotClase: 'dot-amarilla', texto: 'Amarilla' };
-                return             { clase: 'badge-roja',     dotClase: 'dot-roja',     texto: 'Roja' };
+        function updatePlayasTable(marine, daily, marineHourly) {
+            function getWindDir(deg) { return['N','NE','E','SE','S','SO','O','NO'][Math.round(deg/45)%8]; }
+
+            function getEstadoMar(h) {
+                if (h === null) return '—';
+                if (h < 0.1)  return 'Calma';
+                if (h < 0.5)  return 'Rizada';
+                if (h < 1.25) return 'Marejadilla';
+                if (h < 2.5)  return 'Marejada';
+                if (h < 4.0)  return 'Fuerte marejada';
+                return 'Mar gruesa';
             }
 
-            // Color del circulo de fondo del icono según estado
-            function getSeaBg(h) {
-                if (h === null || h < 0.5) return '#cce8f4';   // calma — azul claro
-                if (h < 1.0)               return '#fef3c7';   // moderado — amarillo
-                return                             '#fee2e2';   // fuerte — rojo claro
+            function getWaveColor(h) {
+                if (h === null || h < 0.5) return '#0ea5e9';
+                if (h < 1.25) return '#f59e0b';
+                if (h < 2.5)  return '#f97316';
+                return '#ef4444';
             }
 
-            const waveH  = marine?.wave_height            ?? null;
-            const sst    = marine?.sea_surface_temperature ?? null;
-            const period = marine?.wave_period             ?? null;
-            const uvi    = daily?.uv_index_max?.[0]        ?? null;
-            const bandera = getBandera(waveH);
+            const waveH    = marine?.wave_height            ?? null;
+            const sst      = marine?.sea_surface_temperature ?? null;
+            const period   = marine?.wave_period             ?? null;
+            const waveDir  = marine?.wave_direction          ?? null;
+            const wwDir    = marine?.wind_wave_direction     ?? null;
+            const wwH      = marine?.wind_wave_height        ?? null;
+            const uvi      = daily?.uv_index_max?.[0]        ?? null;
 
-            // Oleaje
-            document.getElementById('playas-oleaje').textContent  = waveH  !== null ? waveH.toFixed(2)  + ' m'  : '—';
-            // Temperatura agua
-            document.getElementById('playas-temp').textContent    = sst    !== null ? sst.toFixed(1)    + ' °C' : '—';
-            // Período
-            document.getElementById('playas-periodo').textContent = period !== null ? period.toFixed(0)  + ' s'  : '—';
-            // UVI
-            document.getElementById('playas-uvi').textContent     = uvi    !== null ? uvi.toFixed(1)             : '—';
+            document.getElementById('playas-oleaje').textContent    = waveH  !== null ? waveH.toFixed(2) + ' m'  : '—';
+            document.getElementById('playas-temp').textContent      = sst    !== null ? sst.toFixed(1)   + ' °C' : '—';
+            document.getElementById('playas-periodo').textContent   = period !== null ? period.toFixed(0) + ' s'  : '—';
+            document.getElementById('playas-uvi').textContent       = uvi    !== null ? uvi.toFixed(1)            : '—';
+            document.getElementById('playas-wave-dir').textContent  = waveDir  !== null ? getWindDir(waveDir)     : '—';
+            document.getElementById('playas-viento').textContent    = wwH !== null ? wwH.toFixed(2) + ' m'        : '—';
+            document.getElementById('playas-viento-dir').textContent= wwDir !== null ? getWindDir(wwDir)          : '—';
+            document.getElementById('playas-estado').textContent    = getEstadoMar(waveH);
 
-            // Bandera badge
-            const badge = document.getElementById('playas-bandera-badge');
-            badge.className = 'playas-bandera-badge ' + bandera.clase;
-            document.getElementById('playas-bandera-dot').className = 'bandera-dot ' + bandera.dotClase;
-            document.getElementById('playas-bandera-texto').textContent = bandera.texto;
-
-            // Color fondo icono SVG (círculo)
-            const circle = document.querySelector('#playas-svg circle');
-            if (circle) circle.setAttribute('fill', getSeaBg(waveH));
+            // Previsión horaria marina
+            if (!marineHourly?.time) return;
+            const tbody = document.getElementById('marine-forecast-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            const now = new Date();
+            let count = 0;
+            for (let i = 0; i < marineHourly.time.length && count < 24; i++) {
+                const ht = new Date(marineHourly.time[i]);
+                if (ht < now && (now - ht) > 3600000) continue; // skip past hours (allow current hour)
+                const wh  = marineHourly.wave_height?.[i] ?? null;
+                const wp  = marineHourly.wave_period?.[i] ?? null;
+                const wd  = marineHourly.wave_direction?.[i] ?? null;
+                const wwh = marineHourly.wind_wave_height?.[i] ?? null;
+                const sst2 = marineHourly.sea_surface_temperature?.[i] ?? null;
+                const hora = ht.toLocaleDateString('es-ES',{weekday:'short'}) + ' ' + String(ht.getHours()).padStart(2,'0') + ':00';
+                const color = getWaveColor(wh);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:700;color:#2C3E50;white-space:nowrap;">${hora}</td>
+                    <td style="font-weight:700;color:${color};">${wh !== null ? wh.toFixed(2)+' m' : '—'}</td>
+                    <td>${wp !== null ? wp.toFixed(0)+' s' : '—'}</td>
+                    <td>${wd !== null ? getWindDir(wd) : '—'}</td>
+                    <td>${wwh !== null ? wwh.toFixed(2)+' m' : '—'}</td>
+                    <td>${sst2 !== null ? sst2.toFixed(1)+'°C' : '—'}</td>
+                `;
+                tbody.appendChild(tr);
+                count++;
+            }
         }
 
         async function loadWeatherData() {
             try {
                 const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7`;
                 const aqUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=Europe/Madrid`;
-                const marineUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature&timezone=Europe/Madrid`;
+                const marineUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=3`;
                 const [res, aqRes, marineRes] = await Promise.all([fetch(url), fetch(aqUrl), fetch(marineUrl)]);
                 const data = await res.json();
                 const aqData = await aqRes.json();
@@ -707,7 +758,7 @@
                 updateCurrentWeather(data.current, data.current.weather_code, precipToday, data.hourly);
                 updateTodayTable(data.daily, data.hourly);
                 updateAirQualityTable(aqData.current);
-                updatePlayasTable(marineData.current, data.daily);
+                updatePlayasTable(marineData.current, data.daily, marineData.hourly);
                 updateWeatherTable(data.hourly);
                 updateDaysTable(data.hourly, data.daily);
                 updateDaysSummary(data.hourly, data.daily);
