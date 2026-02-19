@@ -702,41 +702,7 @@
         }
 
         function updateTodayTable(daily, hourly) {
-            const now = new Date();
-            document.getElementById('today-header').textContent = getDayName(now.toISOString()).toUpperCase();
-
-            // Temp min / max
-            if (daily.temperature_2m_min?.[0]!==undefined) document.getElementById('today-min').textContent = Math.round(daily.temperature_2m_min[0])+'°';
-            if (daily.temperature_2m_max?.[0]!==undefined) document.getElementById('today-max').textContent = Math.round(daily.temperature_2m_max[0])+'°';
-
-            // Precipitación máxima esperada (probabilidad máxima del día)
-            let maxPrecipProb = 0;
-            if (hourly?.time && hourly?.precipitation_probability) {
-                for (let i=0; i<hourly.time.length; i++) {
-                    const ht = new Date(hourly.time[i]);
-                    if (ht.getDate()===now.getDate() && ht.getMonth()===now.getMonth() && ht.getFullYear()===now.getFullYear()) {
-                        if ((hourly.precipitation_probability[i]||0) > maxPrecipProb) maxPrecipProb = hourly.precipitation_probability[i];
-                    }
-                }
-            }
-            document.getElementById('today-precip-max').textContent = maxPrecipProb + ' %';
-
-            // UVI máximo
-            if (daily.uv_index_max?.[0]!==undefined) {
-                document.getElementById('today-uvi-max').textContent = Math.round(daily.uv_index_max[0]*10)/10;
-            }
-
-            // Salida / puesta de sol + horas de luz
-            if (daily.sunrise?.[0] && daily.sunset?.[0]) {
-                const sr = new Date(daily.sunrise[0]);
-                const ss = new Date(daily.sunset[0]);
-                document.getElementById('today-sunrise').textContent = sr.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-                document.getElementById('today-sunset').textContent = ss.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-                const totalMin = Math.round((ss - sr) / 60000);
-                const hours = Math.floor(totalMin / 60);
-                const mins = totalMin % 60;
-                document.getElementById('today-daylight').textContent = `${hours} h ${mins} min`;
-            }
+            // Tabla eliminada — función vacía para evitar errores JS
         }
 
         function formatHour(s) { return new Date(s).getHours().toString().padStart(2,'0')+':00'; }
