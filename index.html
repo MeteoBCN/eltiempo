@@ -166,7 +166,7 @@
         .today-label { font-size: 9px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; font-weight: 600; }
         .today-value { font-size: 13px; font-weight: 700; color: var(--color-text-primary); }
         /* ══════ TABLA FRANJAS DÍA ══════ */
-        .franjas-wrap { background: #2c3e50; width: 100%; }
+        .franjas-wrap { background: #2c3e50; width: 100%; max-width: 600px; margin: 0 auto; }
         .franjas-cols { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; }
         .franja-col { padding: 14px 6px 16px; border-right: 1px solid rgba(255,255,255,0.15); text-align: center; }
         .franja-col:last-child { border-right: none; }
@@ -505,9 +505,6 @@
                     </div>
                 </div>
 
-                <!-- TABLA PREVISIÓN 3 FRANJAS -->
-                <div id="franjas-tabla" style="margin: 28px -24px 0 -24px;"></div>
-
                 <!-- BLOQUE DE AVISOS -->
                 <div class="aviso-box" style="width: 100%; background: #F8F8FF; border-radius: 12px; margin: 28px 0 0 0; padding: 20px 24px;">
                     <div style="color: #2C3E50; font-size: 14px; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.3px;">SIN AVISOS ACTIVOS</div>
@@ -586,6 +583,9 @@
             </div><!-- fin current-weather -->
 
         </div><!-- fin content-section -->
+
+        <!-- TABLA PREVISIÓN FRANJAS -->
+        <div id="franjas-tabla"></div>
 
         <!-- ══════════════════════════════════════════════
              SECCIÓN PLAYAS DE BARCELONA
@@ -736,26 +736,36 @@
                 { tipo: 'noche',     label: 'noche',     inicio: 21, fin: 24 },
             ];
 
-            // Genera candidatas para hoy, mañana y pasado
-            const candidatas = [];
+            // Construir franjas de 3 días (hoy, mañana, pasado)
+            const todosDias = [];
             for (let dOff = 0; dOff <= 2; dOff++) {
                 const base = new Date(now);
                 base.setDate(base.getDate() + dOff);
                 base.setHours(0, 0, 0, 0);
                 const fecha = base.toISOString().slice(0, 10);
                 const diaNombre = cap(DIAS[base.getDay()]);
-
-                FRANJAS_DEF.forEach(f => {
-                    // Calcular timestamp de inicio y fin de la franja
-                    const tsInicio = base.getTime() + f.inicio * 3600000;
-                    const tsFin    = base.getTime() + f.fin   * 3600000; // fin:24 → medianoche siguiente, correcto
-                    if (tsFin <= now.getTime()) return; // franja completamente pasada
-
-                    candidatas.push({ ...f, fecha, base: new Date(base), diaNombre, tsInicio, tsFin });
+                const franjasDelDia = FRANJAS_DEF.map(f => {
+                    const tsFin = base.getTime() + f.fin * 3600000;
+                    const pasada = tsFin <= now.getTime();
+                    return { ...f, fecha, base: new Date(base), diaNombre, tsFin, pasada };
                 });
+                todosDias.push(franjasDelDia);
             }
 
-            const franjas = candidatas.slice(0, 4);
+            // Seleccionar 4 franjas: las pendientes de hoy + completar con mañana
+            const pendientesHoy = todosDias[0].filter(f => !f.pasada);
+            let franjas;
+            if (pendientesHoy.length >= 4) {
+                // Quedan 4 o más franjas hoy
+                franjas = pendientesHoy.slice(0, 4);
+            } else if (pendientesHoy.length === 0) {
+                // Hoy terminó, mostrar mañana completo
+                franjas = todosDias[1].slice(0, 4);
+            } else {
+                // Quedan 1-3 franjas hoy, completar con mañana
+                const pendientesMañana = todosDias[1].filter(f => !f.pasada);
+                franjas = [...pendientesHoy, ...pendientesMañana].slice(0, 4);
+            }
 
             function getWindDirSym(deg) {
                 return ['N','NE','E','SE','S','SO','O','NO'][Math.round(deg / 45) % 8];
@@ -839,7 +849,7 @@
                     temp = idx04 !== -1
                         ? Math.round(hourly.temperature_2m[idx04])
                         : Math.round(Math.min(...indices.map(i => hourly.temperature_2m?.[i] ?? 99)));
-                    tempLabel = 'a las 04h'; tempClass = 'es-min';
+                    tempLabel = 'a las 04h'; tempClass = '';
                 }
 
                 return { icon, precip, windSpd, windDir, temp, tempLabel, tempClass, extra };
