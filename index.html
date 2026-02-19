@@ -165,6 +165,23 @@
         .today-table tbody tr:last-child td { border-bottom: none; }
         .today-label { font-size: 9px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; font-weight: 600; }
         .today-value { font-size: 13px; font-weight: 700; color: var(--color-text-primary); }
+        /* ══════ TABLA FRANJAS DÍA ══════ */
+        .franjas-wrap { background: #2c3e50; width: 100%; }
+        .franjas-title { text-align: center; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.45); letter-spacing: 2px; text-transform: uppercase; padding: 12px 0 6px; }
+        .franjas-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+        .franja-col { padding: 14px 10px 18px; border-right: 1px solid rgba(255,255,255,0.08); text-align: center; }
+        .franja-col:last-child { border-right: none; }
+        .franja-nombre { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+        .franja-icon { font-size: 2rem; margin-bottom: 8px; line-height: 1; }
+        .franja-temp { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 10px; line-height: 1; }
+        .franja-temp-label { font-size: 9px; color: rgba(255,255,255,0.38); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
+        .franja-temp.es-min { color: #80cbc4; }
+        .franja-temp.es-max { color: #ff8a65; }
+        .franja-dato { font-size: 11px; color: rgba(255,255,255,0.65); margin-top: 5px; line-height: 1.4; }
+        .franja-dato span { display: block; }
+        .franja-dato .dato-icon { font-size: 12px; margin-right: 3px; }
+        /* ══════ FIN TABLA FRANJAS ══════ */
+
         .webcam-container { display: flex; flex-direction: column; align-items: center; width: 100%; margin: 32px 0; animation: fadeIn 0.6s ease-out 1s both; }
         .webcam-frame { width: 100%; height: auto; aspect-ratio: 16 / 9; overflow: hidden; border: none; background: #000; border-radius: 0; box-shadow: var(--shadow-md); }
         .webcam-frame img { width: 100%; height: 100%; object-fit: cover; }
@@ -489,6 +506,9 @@
                     </div>
                 </div>
 
+                <!-- TABLA PREVISIÓN 3 FRANJAS -->
+                <div id="franjas-tabla" style="margin: 28px -24px 0 -24px;"></div>
+
                 <!-- BLOQUE DE AVISOS -->
                 <div class="aviso-box" style="width: 100%; background: #F8F8FF; border-radius: 12px; margin: 28px 0 0 0; padding: 20px 24px;">
                     <div style="color: #2C3E50; font-size: 14px; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.3px;">SIN AVISOS ACTIVOS</div>
@@ -699,6 +719,123 @@
 
         function getDayName(ds) {
             return ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][new Date(ds).getDay()];
+        }
+
+        function updateFranjasTable(hourly, daily) {
+            const wrap = document.getElementById('franjas-tabla');
+            if (!wrap || !hourly?.time) return;
+
+            const now  = new Date();
+            const DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+            const DIAS_CAP = d => d.charAt(0).toUpperCase() + d.slice(1);
+
+            // Definir las 3 franjas: noche anterior (21-06), mañana (06-14), tarde (14-21) siguientes 48h
+            // Lógica dinámica: miramos la hora actual y calculamos las próximas 3 franjas no pasadas
+            function franjasProximas() {
+                const bloques = [];
+                // Recorremos las próximas 72h en bloques
+                for (let dOff = 0; dOff <= 2; dOff++) {
+                    const base = new Date(now);
+                    base.setDate(base.getDate() + dOff);
+                    const yyyy = base.toISOString().slice(0,10);
+                    const diaNombre = DIAS_CAP(DIAS[base.getDay()]);
+
+                    [
+                        { label: `${diaNombre} mañana`, inicio: 6,  fin: 14, tipo: 'manana' },
+                        { label: `${diaNombre} tarde`,   inicio: 14, fin: 21, tipo: 'tarde'  },
+                        { label: `${diaNombre} noche`,   inicio: 21, fin: 30, tipo: 'noche'  }, // 30 = 06 siguiente
+                    ].forEach(f => {
+                        // hora representativa de la franja
+                        const hRep = f.inicio === 21 ? 23 : Math.round((f.inicio + f.fin) / 2);
+                        const dtRep = new Date(`${yyyy}T${String(hRep).padStart(2,'0')}:00:00`);
+                        if (f.tipo === 'noche') dtRep.setDate(dtRep.getDate()); // misma noche
+                        if (dtRep > now) bloques.push({ ...f, fecha: yyyy, base: new Date(base), dtRep });
+                    });
+                }
+                return bloques.slice(0, 3);
+            }
+
+            function getWindDirSym(deg) {
+                return ['N','NE','E','SE','S','SO','O','NO'][Math.round(deg / 45) % 8];
+            }
+
+            function getHourData(fecha, h) {
+                // Devuelve índice horario más cercano a fecha+h:00
+                const dt = new Date(`${fecha}T${String(h % 24).padStart(2,'0')}:00:00`);
+                if (h >= 24) dt.setDate(dt.getDate() + 1);
+                const idx = hourly.time.findIndex(t => Math.abs(new Date(t) - dt) < 3600000);
+                return idx;
+            }
+
+            function franjaDatos(f) {
+                // Recoger todos los índices horarios dentro de la franja
+                const indices = [];
+                for (let h = f.inicio; h < Math.min(f.fin, 30); h++) {
+                    const idx = getHourData(f.fecha, h);
+                    if (idx !== -1) indices.push(idx);
+                }
+                if (!indices.length) return null;
+
+                // Icono: código del centro de la franja
+                const midIdx = indices[Math.floor(indices.length / 2)];
+                const ht = new Date(hourly.time[midIdx]);
+                const cd = { cloud_cover: hourly.cloud_cover?.[midIdx], cloud_cover_low: hourly.cloud_cover_low?.[midIdx], cloud_cover_mid: hourly.cloud_cover_mid?.[midIdx] };
+                const icon = getWeatherIcon(hourly.weather_code[midIdx], ht, cd);
+
+                // Precipitación total
+                const precip = indices.reduce((s, i) => s + (hourly.precipitation?.[i] || 0), 0);
+
+                // Viento medio
+                const ws  = indices.map(i => hourly.wind_speed_10m?.[i] || 0);
+                const wsd = indices.map(i => hourly.wind_direction_10m?.[i] || 0);
+                const windSpd = Math.round(ws.reduce((a, b) => a + b, 0) / ws.length);
+                const windDir = getWindDirSym(Math.round(wsd.reduce((a, b) => a + b, 0) / wsd.length));
+
+                // Temperatura según tipo
+                let temp = null, tempLabel = '', tempClass = '';
+                if (f.tipo === 'manana') {
+                    // mínima del día
+                    const dayIdx = daily?.time?.findIndex(t => t === f.fecha);
+                    temp = dayIdx !== -1 && dayIdx !== undefined ? Math.round(daily.temperature_2m_min[dayIdx]) : Math.round(Math.min(...indices.map(i => hourly.temperature_2m?.[i] ?? 99)));
+                    tempLabel = 'mínima'; tempClass = 'es-min';
+                } else if (f.tipo === 'tarde') {
+                    const dayIdx = daily?.time?.findIndex(t => t === f.fecha);
+                    temp = dayIdx !== -1 && dayIdx !== undefined ? Math.round(daily.temperature_2m_max[dayIdx]) : Math.round(Math.max(...indices.map(i => hourly.temperature_2m?.[i] ?? -99)));
+                    tempLabel = 'máxima'; tempClass = 'es-max';
+                } else {
+                    // noche: temperatura a las 00h del día siguiente
+                    const nextDate = new Date(f.base);
+                    nextDate.setDate(nextDate.getDate() + 1);
+                    const nextFecha = nextDate.toISOString().slice(0, 10);
+                    const idx00 = getHourData(nextFecha, 0);
+                    temp = idx00 !== -1 ? Math.round(hourly.temperature_2m[idx00]) : Math.round(hourly.temperature_2m[indices[indices.length - 1]]);
+                    tempLabel = 'a las 00h'; tempClass = '';
+                }
+
+                return { icon, precip: precip.toFixed(1), windSpd, windDir, temp, tempLabel, tempClass };
+            }
+
+            const franjas = franjasProximas();
+            let html = `<div class="franjas-wrap"><div class="franjas-title">Próximas franjas</div><div class="franjas-cols">`;
+
+            franjas.forEach(f => {
+                const d = franjaDatos(f);
+                if (!d) return;
+                html += `
+                <div class="franja-col">
+                    <div class="franja-nombre">${f.label}</div>
+                    <div class="franja-icon">${d.icon}</div>
+                    <div class="franja-temp-label">${d.tempLabel}</div>
+                    <div class="franja-temp ${d.tempClass}">${d.temp}°</div>
+                    <div class="franja-dato">
+                        <span>💧 ${d.precip} mm</span>
+                        <span>💨 ${d.windSpd} km/h ${d.windDir}</span>
+                    </div>
+                </div>`;
+            });
+
+            html += `</div></div>`;
+            wrap.innerHTML = html;
         }
 
         function updateTodayTable(daily, hourly) {
@@ -1008,6 +1145,7 @@
                     }
                 }
                 updateCurrentWeather(data.current, data.current.weather_code, precipToday, data.hourly);
+                updateFranjasTable(data.hourly, data.daily);
                 updateTodayTable(data.daily, data.hourly);
                 updateAirQualityTable(aqData.current);
                 updatePlayasTable(marineData.current, data.daily, marineData.hourly, data.hourly);
