@@ -656,7 +656,7 @@
             el.textContent=lvl(ac.european_aqi||0); el.style.color='#2C3E50';
         }
 
-        function updatePlayasTable(marine, daily, marineHourly) {
+        function updatePlayasTable(marine, daily, marineHourly, weatherHourly) {
             function getWindDir(deg) { return ['N','NE','E','SE','S','SO','O','NO'][Math.round(deg/45)%8]; }
 
             function getEstadoMar(h) {
@@ -694,88 +694,126 @@
             document.getElementById('playas-viento-dir').textContent = wwDir  !== null ? getWindDir(wwDir)         : '—';
             document.getElementById('playas-estado').textContent     = getEstadoMar(waveH);
 
-            // ── Previsión por franjas ─────────────────────────────────────
+            // ── Previsión por franjas día/mañana/tarde ────────────────────
             const container = document.getElementById('marine-summary-blocks');
             if (!container || !marineHourly?.time) return;
             container.innerHTML = '';
 
-            const now = new Date();
+            const now  = new Date();
+            const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
-            // Recoge todos los slots futuros (hasta 48h)
-            function getSlots(fromH, toH) {
+            // Lookup viento atmosférico por clave "YYYY-MM-DDTHH"
+            const windLookup = {};
+            if (weatherHourly?.time) {
+                weatherHourly.time.forEach((t, i) => {
+                    windLookup[t.slice(0,13)] = {
+                        ws:  weatherHourly.wind_speed_10m?.[i]     ?? null,
+                        wsd: weatherHourly.wind_direction_10m?.[i] ?? null,
+                    };
+                });
+            }
+
+            function getBeaufort(kmh) {
+                if (kmh === null) return '';
+                if (kmh < 1)  return 'Calma';
+                if (kmh < 6)  return 'Ventolina';
+                if (kmh < 12) return 'Brisa muy débil';
+                if (kmh < 20) return 'Brisa débil';
+                if (kmh < 29) return 'Brisa moderada';
+                if (kmh < 39) return 'Brisa fresca';
+                if (kmh < 50) return 'Brisa fuerte';
+                if (kmh < 62) return 'Viento fuerte';
+                if (kmh < 75) return 'Temporal';
+                return 'Temporal fuerte';
+            }
+
+            // Recoge slots marinos de un día y franja horaria concretos
+            function getSlots(targetDate, fromH, toH) {
                 const res = [];
                 for (let i = 0; i < marineHourly.time.length; i++) {
                     const ht = new Date(marineHourly.time[i]);
-                    const diffH = (ht - now) / 3600000;
-                    if (diffH >= fromH && diffH < toH) {
-                        res.push({
-                            wh:  marineHourly.wave_height?.[i]             ?? null,
-                            ws:  marineHourly.wind_speed_10m?.[i]          ?? null,
-                            wsd: marineHourly.wind_direction_10m?.[i]      ?? null,
-                            sst: marineHourly.sea_surface_temperature?.[i] ?? null,
-                        });
-                    }
+                    if (ht.getFullYear() !== targetDate.getFullYear() ||
+                        ht.getMonth()    !== targetDate.getMonth()    ||
+                        ht.getDate()     !== targetDate.getDate())     continue;
+                    if (ht.getHours() < fromH || ht.getHours() >= toH) continue;
+                    const key = marineHourly.time[i].slice(0,13);
+                    const w   = windLookup[key] ?? { ws: null, wsd: null };
+                    res.push({
+                        wh:  marineHourly.wave_height?.[i]             ?? null,
+                        wd:  marineHourly.wave_direction?.[i]          ?? null,
+                        sst: marineHourly.sea_surface_temperature?.[i] ?? null,
+                        ws:  w.ws,
+                        wsd: w.wsd,
+                    });
                 }
                 return res;
             }
 
             function avg(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null; }
 
-            function renderStrip(label, slots) {
+            function renderStrip(dayLabel, subLabel, slots, isActive) {
                 if (!slots.length) return;
                 const whs  = slots.map(s=>s.wh).filter(v=>v!==null);
                 const wss  = slots.map(s=>s.ws).filter(v=>v!==null);
                 const wsds = slots.map(s=>s.wsd).filter(v=>v!==null);
                 const ssts = slots.map(s=>s.sst).filter(v=>v!==null);
 
-                const avgWH  = avg(whs);
                 const minWH  = whs.length ? Math.min(...whs) : null;
                 const maxWH  = whs.length ? Math.max(...whs) : null;
+                const avgWH  = whs.length ? avg(whs) : null;
                 const avgWS  = wss.length  ? Math.round(avg(wss))  : null;
+                const maxWS  = wss.length  ? Math.round(Math.max(...wss)) : null;
                 const avgWSD = wsds.length ? Math.round(avg(wsds)) : null;
                 const avgSST = ssts.length ? avg(ssts) : null;
 
-                const estado = getEstadoMar(avgWH);
-                const color  = getWaveColor(avgWH);
+                const estado   = getEstadoMar(avgWH);
+                const color    = getWaveColor(avgWH);
+                const beaufort = getBeaufort(avgWS);
+                const bgLabel  = isActive ? '#0f4f6b' : '#1a6b8a';
 
-                // Texto de oleaje
                 let oleajeTxt = '—';
                 if (minWH !== null && maxWH !== null) {
-                    oleajeTxt = Math.abs(maxWH - minWH) < 0.1
+                    oleajeTxt = Math.abs(maxWH - minWH) < 0.08
                         ? minWH.toFixed(2) + ' m'
                         : minWH.toFixed(2) + '–' + maxWH.toFixed(2) + ' m';
                 }
 
-                const vientoTxt = avgWS  !== null ? `${avgWS} km/h ${avgWSD !== null ? getWindDir(avgWSD) : ''}` : '—';
+                const dirTxt    = avgWSD !== null ? getWindDir(avgWSD) : '';
+                const maxExtra  = maxWS && avgWS && maxWS > avgWS + 5 ? ` (máx ${maxWS})` : '';
+                const vientoTxt = avgWS !== null ? `${avgWS} km/h ${dirTxt}${maxExtra} · ${beaufort}` : '—';
                 const aguaTxt   = avgSST !== null ? avgSST.toFixed(1) + ' °C' : '—';
 
                 const div = document.createElement('div');
-                div.style.cssText = 'display:flex;align-items:stretch;border-bottom:1px solid #e2e8f0;background:#fff;';
+                div.style.cssText = 'display:flex;align-items:stretch;border-bottom:1px solid #e2e8f0;';
                 div.innerHTML = `
-                    <div style="background:#1a6b8a;padding:12px 14px;display:flex;align-items:center;justify-content:center;min-width:90px;flex-shrink:0;">
-                        <span style="color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;text-align:center;line-height:1.4;">${label}</span>
+                    <div style="background:${bgLabel};padding:10px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:82px;flex-shrink:0;gap:2px;">
+                        <span style="color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;text-align:center;">${dayLabel}</span>
+                        <span style="color:rgba(255,255,255,0.8);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">${subLabel}</span>
                     </div>
-                    <div style="flex:1;padding:12px 16px;display:flex;flex-direction:column;gap:5px;justify-content:center;">
-                        <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="flex:1;padding:10px 13px;display:flex;flex-direction:column;gap:5px;justify-content:center;background:#fff;">
+                        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
                             <span style="font-size:15px;font-weight:700;color:${color};">${oleajeTxt}</span>
-                            <span style="font-size:13px;font-weight:600;color:#2C3E50;">${estado}</span>
+                            <span style="font-size:11px;font-weight:600;color:#1a6b8a;background:#e8f4f8;padding:2px 6px;border-radius:4px;">${estado}</span>
                         </div>
-                        <div style="font-size:12px;color:#64748b;display:flex;gap:14px;flex-wrap:wrap;">
-                            <span>💨 ${vientoTxt}</span>
-                            <span>🌡️ Agua ${aguaTxt}</span>
+                        <div style="font-size:12px;color:#64748b;line-height:1.5;">
+                            💨 ${vientoTxt}<br>🌊 Agua ${aguaTxt}
                         </div>
                     </div>`;
                 container.appendChild(div);
             }
 
+            const hoy    = new Date(now);
+            const manana = new Date(now); manana.setDate(manana.getDate() + 1);
+            const horaH  = now.getHours();
+
             const franjas = [
-                { label: 'Próximas\n6h',   from: 0,  to: 6  },
-                { label: '6 – 12h',         from: 6,  to: 12 },
-                { label: '12 – 24h',        from: 12, to: 24 },
-                { label: '24 – 48h',        from: 24, to: 48 },
+                { date: hoy,    from: 6,  to: 13, label: dias[hoy.getDay()],    sub: 'mañana', active: horaH >= 6  && horaH < 13 },
+                { date: hoy,    from: 13, to: 21, label: dias[hoy.getDay()],    sub: 'tarde',  active: horaH >= 13 && horaH < 21 },
+                { date: manana, from: 6,  to: 13, label: dias[manana.getDay()], sub: 'mañana', active: false },
+                { date: manana, from: 13, to: 21, label: dias[manana.getDay()], sub: 'tarde',  active: false },
             ];
 
-            franjas.forEach(f => renderStrip(f.label, getSlots(f.from, f.to)));
+            franjas.forEach(f => renderStrip(f.label, f.sub, getSlots(f.date, f.from, f.to), f.active));
         }
 
         async function loadWeatherData() {
@@ -798,7 +836,7 @@
                 updateCurrentWeather(data.current, data.current.weather_code, precipToday, data.hourly);
                 updateTodayTable(data.daily, data.hourly);
                 updateAirQualityTable(aqData.current);
-                updatePlayasTable(marineData.current, data.daily, marineData.hourly);
+                updatePlayasTable(marineData.current, data.daily, marineData.hourly, data.hourly);
                 updateWeatherTable(data.hourly);
                 updateDaysTable(data.hourly, data.daily);
                 updateDaysSummary(data.hourly, data.daily);
