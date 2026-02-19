@@ -743,13 +743,14 @@
                 const avgWS  = wss.length  ? Math.round(avg(wss))  : null;
                 const maxWS  = wss.length  ? Math.round(Math.max(...wss)) : null;
                 const avgWSD = wsds.length ? Math.round(avg(wsds)) : null;
-                const avgSST = ssts.length ? avg(ssts) : null;
+                const avgSST = ssts.length ? Math.round(avg(ssts)) : null;   // redondeado
 
                 const estado   = getEstadoMar(avgWH);
                 const color    = getWaveColor(avgWH);
                 const beaufort = getBeaufort(avgWS);
                 const bgLabel  = isActive ? '#0f4f6b' : '#1a6b8a';
                 const calidad  = getCalidadBanyo(avgWH, avgWS, avgSST, uviVal);
+                const textCol  = '#1a6b8a';   // color cabecera para todos los textos
 
                 let oleajeTxt = '—';
                 if (minWH !== null && maxWH !== null) {
@@ -760,18 +761,14 @@
 
                 const dirTxt    = avgWSD !== null ? getWindDir(avgWSD) : '';
                 const maxExtra  = maxWS && avgWS && maxWS > avgWS + 5 ? ` (máx ${maxWS})` : '';
-                const vientoTxt = avgWS !== null ? `${avgWS} km/h ${dirTxt}${maxExtra} · ${beaufort}` : '—';
-                const aguaTxt   = avgSST !== null ? avgSST.toFixed(1) + ' °C' : '—';
+                const vientoTxt = avgWS  !== null ? `${avgWS} km/h ${dirTxt}${maxExtra} · ${beaufort}` : '—';
+                const aguaTxt   = avgSST !== null ? avgSST + ' °C' : '—';
+                const uviTxt    = uviVal  !== null ? Math.round(uviVal) : '—';   // redondeado
+
+                const dot = `<span style="color:${calidad.color};font-size:16px;line-height:1;">●</span>`;
 
                 const div = document.createElement('div');
                 div.style.cssText = 'display:flex;align-items:stretch;border-bottom:1px solid #e2e8f0;';
-
-                // Calidad: color único para todos los puntos según nivel
-                const dotColors = { 5:'#10b981', 4:'#10b981', 3:'#f59e0b', 2:'#f97316', 1:'#ef4444' };
-                const dotColor  = dotColors[calidad.score];
-                const dots      = `<span style="color:${dotColor};font-size:14px;letter-spacing:2px;">●●●●●</span>`;
-                const uviTxt    = uviVal !== null ? uviVal.toFixed(1) : '—';
-
                 div.innerHTML = `
                     <div style="background:${bgLabel};padding:10px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:82px;flex-shrink:0;gap:2px;">
                         <span style="color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;text-align:center;">${dayLabel}</span>
@@ -779,35 +776,44 @@
                     </div>
                     <div style="flex:1;padding:10px 13px;display:flex;flex-direction:column;gap:5px;justify-content:center;background:#fff;">
                         <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
-                            <span style="font-size:15px;font-weight:700;color:${color};">${oleajeTxt}</span>
-                            <span style="font-size:11px;font-weight:600;color:#1a6b8a;background:#e8f4f8;padding:2px 6px;border-radius:4px;">${estado}</span>
+                            <span style="font-size:15px;font-weight:700;color:${textCol};">${oleajeTxt}</span>
+                            <span style="font-size:11px;font-weight:600;color:#fff;background:${textCol};padding:2px 6px;border-radius:4px;">${estado}</span>
                         </div>
-                        <div style="font-size:12px;color:#64748b;line-height:1.6;">
+                        <div style="font-size:12px;color:${textCol};line-height:1.6;">
                             💨 ${vientoTxt}<br>🌊 Agua ${aguaTxt} &nbsp;·&nbsp; ☀️ UVI ${uviTxt}
                         </div>
-                        <div style="display:flex;align-items:center;gap:6px;margin-top:1px;">
-                            ${dots}
-                            <span style="font-size:11px;font-weight:700;color:${dotColor};">${calidad.texto}</span>
+                        <div style="display:flex;align-items:center;gap:5px;margin-top:1px;">
+                            ${dot}
+                            <span style="font-size:12px;font-weight:700;color:${calidad.color};">${calidad.texto}</span>
                             <span style="font-size:10px;color:#94a3b8;">*</span>
                         </div>
                     </div>`;
                 container.appendChild(div);
             }
 
-            const hoy    = new Date(now);
-            const manana = new Date(now); manana.setDate(manana.getDate() + 1);
-            const horaH  = now.getHours();
-            const uviHoy    = daily?.uv_index_max?.[0] ?? null;
-            const uviManana = daily?.uv_index_max?.[1] ?? null;
+            const hoy        = new Date(now);
+            const manana     = new Date(now); manana.setDate(manana.getDate() + 1);
+            const pasadoman  = new Date(now); pasadoman.setDate(pasadoman.getDate() + 2);
+            const uviHoy       = daily?.uv_index_max?.[0] ?? null;
+            const uviManana    = daily?.uv_index_max?.[1] ?? null;
+            const uviPasadoman = daily?.uv_index_max?.[2] ?? null;
 
-            const franjas = [
-                { date: hoy,    from: 6,  to: 13, label: dias[hoy.getDay()],    sub: 'mañana', active: horaH >= 6  && horaH < 13, uvi: uviHoy    },
-                { date: hoy,    from: 13, to: 21, label: dias[hoy.getDay()],    sub: 'tarde',  active: horaH >= 13 && horaH < 21, uvi: uviHoy    },
-                { date: manana, from: 6,  to: 13, label: dias[manana.getDay()], sub: 'mañana', active: false,                     uvi: uviManana },
-                { date: manana, from: 13, to: 21, label: dias[manana.getDay()], sub: 'tarde',  active: false,                     uvi: uviManana },
+            // Pool de todas las franjas posibles (hoy + mañana + pasado mañana)
+            const todasFranjas = [
+                { date: hoy,       from: 6,  to: 13, label: 'mañana', sub: dias[hoy.getDay()],       uvi: uviHoy       },
+                { date: hoy,       from: 13, to: 21, label: 'tarde',  sub: dias[hoy.getDay()],       uvi: uviHoy       },
+                { date: manana,    from: 6,  to: 13, label: 'mañana', sub: dias[manana.getDay()],    uvi: uviManana    },
+                { date: manana,    from: 13, to: 21, label: 'tarde',  sub: dias[manana.getDay()],    uvi: uviManana    },
+                { date: pasadoman, from: 6,  to: 13, label: 'mañana', sub: dias[pasadoman.getDay()], uvi: uviPasadoman },
+                { date: pasadoman, from: 13, to: 21, label: 'tarde',  sub: dias[pasadoman.getDay()], uvi: uviPasadoman },
             ];
 
-            franjas.forEach(f => renderStrip(f.label, f.sub, getSlots(f.date, f.from, f.to), f.active, f.uvi));
+            // Filtrar las ya pasadas y coger las primeras 4 vigentes
+            const franjas = todasFranjas
+                .filter(f => { const fin = new Date(f.date); fin.setHours(f.to, 0, 0, 0); return fin > now; })
+                .slice(0, 4);
+
+            franjas.forEach(f => renderStrip(f.label, f.sub, getSlots(f.date, f.from, f.to), false, f.uvi));
 
             // ── Leyenda calidad del baño ──────────────────────────────────
             const leyenda = document.createElement('div');
@@ -821,7 +827,7 @@
             try {
                 const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7`;
                 const aqUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=Europe/Madrid`;
-                const marineUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=3`;
+                const marineUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
                 const [res, aqRes, marineRes] = await Promise.all([fetch(url), fetch(aqUrl), fetch(marineUrl)]);
                 const data = await res.json();
                 const aqData = await aqRes.json();
