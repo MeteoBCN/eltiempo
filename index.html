@@ -168,16 +168,16 @@
         /* ══════ TABLA FRANJAS DÍA ══════ */
         .franjas-wrap { background: #2c3e50; width: 100%; }
         .franjas-cols { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; }
-        .franja-col { padding: 14px 6px 16px; border-right: 1px solid rgba(255,255,255,0.08); text-align: center; }
+        .franja-col { padding: 14px 6px 16px; border-right: 1px solid rgba(255,255,255,0.15); text-align: center; }
         .franja-col:last-child { border-right: none; }
-        .franja-nombre { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .franja-nombre { font-size: 9px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
         .franja-icon { font-size: 1.7rem; margin-bottom: 6px; line-height: 1; }
         .franja-icon i, .franja-icon i.wi { font-size: 1.7rem !important; color: #ffffff !important; }
-        .franja-temp { font-size: 19px; font-weight: 800; color: #fff; margin-bottom: 8px; line-height: 1; }
-        .franja-temp-label { font-size: 8px; color: rgba(255,255,255,0.38); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
-        .franja-temp.es-min { color: #80cbc4; }
-        .franja-temp.es-max { color: #ff8a65; }
-        .franja-dato { font-size: 10px; color: rgba(255,255,255,0.65); margin-top: 4px; line-height: 1.7; }
+        .franja-temp { font-size: 19px; font-weight: 800; color: #ffffff; margin-bottom: 8px; line-height: 1; }
+        .franja-temp-label { font-size: 8px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
+        .franja-temp.es-min { color: #7ec8e3; }
+        .franja-temp.es-max { color: #ff7c7c; }
+        .franja-dato { font-size: 10px; color: #ffffff; margin-top: 4px; line-height: 1.7; }
         .franja-dato span { display: block; }
         /* ══════ FIN TABLA FRANJAS ══════ */
 
@@ -728,12 +728,12 @@
             const DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
             const cap  = s => s.charAt(0).toUpperCase() + s.slice(1);
 
-            // Franjas: noche 21-00, madrugada 00-07, mañana 07-13, tarde 13-21
+            // Franjas en orden cronológico dentro del día
             const FRANJAS_DEF = [
-                { tipo: 'noche',     label: 'noche',     inicio: 21, fin: 24 },
                 { tipo: 'madrugada', label: 'madrugada', inicio: 0,  fin: 7  },
                 { tipo: 'manana',    label: 'mañana',    inicio: 7,  fin: 13 },
                 { tipo: 'tarde',     label: 'tarde',     inicio: 13, fin: 21 },
+                { tipo: 'noche',     label: 'noche',     inicio: 21, fin: 24 },
             ];
 
             // Genera candidatas para hoy, mañana y pasado
