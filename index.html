@@ -722,168 +722,128 @@
 
         function updateFranjasTable(hourly, daily) {
             const wrap = document.getElementById('franjas-tabla');
-            if (!wrap || !hourly?.time) return;
+            if (!wrap || !hourly?.time || !hourly.time.length) return;
 
-            const now  = new Date();
-            const DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-            const cap  = s => s.charAt(0).toUpperCase() + s.slice(1);
+            const now = new Date();
+            const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
-            // Franjas en orden cronológico dentro del día
-            const FRANJAS_DEF = [
-                { tipo: 'madrugada', label: 'madrugada', inicio: 0,  fin: 7  },
-                { tipo: 'manana',    label: 'mañana',    inicio: 7,  fin: 13 },
-                { tipo: 'tarde',     label: 'tarde',     inicio: 13, fin: 21 },
-                { tipo: 'noche',     label: 'noche',     inicio: 21, fin: 24 },
+            // Fecha local YYYY-MM-DD
+            function fechaLocal(d) {
+                return d.getFullYear() + '-' +
+                    String(d.getMonth()+1).padStart(2,'0') + '-' +
+                    String(d.getDate()).padStart(2,'0');
+            }
+
+            // Buscar índice en hourly por fecha local + hora
+            function idxHora(fecha, h) {
+                const key = fecha + 'T' + String(h).padStart(2,'0');
+                return hourly.time.findIndex(t => t.startsWith(key));
+            }
+
+            // Definición de franjas
+            const DEFS = [
+                { tipo:'madrugada', label:'Madrugada', h0:0,  h1:7  },
+                { tipo:'manana',    label:'Mañana',    h0:7,  h1:13 },
+                { tipo:'tarde',     label:'Tarde',     h0:13, h1:21 },
+                { tipo:'noche',     label:'Noche',     h0:21, h1:24 },
             ];
 
-            // Construir franjas de 3 días (hoy, mañana, pasado)
-            const todosDias = [];
-            // Fecha local de hoy (sin problemas UTC)
-            const hoyLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            for (let dOff = 0; dOff <= 2; dOff++) {
-                const base = new Date(hoyLocal);
-                base.setDate(base.getDate() + dOff);
-                // Fecha en formato YYYY-MM-DD local
-                const yy = base.getFullYear();
-                const mm = String(base.getMonth()+1).padStart(2,'0');
-                const dd = String(base.getDate()).padStart(2,'0');
-                const fecha = yy + '-' + mm + '-' + dd;
-                const diaNombre = cap(DIAS[base.getDay()]);
-                const franjasDelDia = FRANJAS_DEF.map(f => {
-                    const tsFin = base.getTime() + f.fin * 3600000;
-                    const pasada = tsFin <= now.getTime();
-                    return { ...f, fecha, base: new Date(base), diaNombre, tsFin, pasada };
-                });
-                todosDias.push(franjasDelDia);
-            }
-
-            // Seleccionar 4 franjas: las pendientes de hoy + completar con mañana
-            const pendientesHoy = todosDias[0].filter(f => !f.pasada);
-            let franjas;
-            if (pendientesHoy.length >= 4) {
-                // Quedan 4 o más franjas hoy
-                franjas = pendientesHoy.slice(0, 4);
-            } else if (pendientesHoy.length === 0) {
-                // Hoy terminó, mostrar mañana completo
-                franjas = todosDias[1].slice(0, 4);
-            } else {
-                // Quedan 1-3 franjas hoy, completar con mañana
-                const pendientesMañana = todosDias[1].filter(f => !f.pasada);
-                franjas = [...pendientesHoy, ...pendientesMañana].slice(0, 4);
-            }
-
-            function getWindDirSym(deg) {
-                return ['N','NE','E','SE','S','SO','O','NO'][Math.round(deg / 45) % 8];
-            }
-
-            function getIdxAt(fecha, hora) {
-                // Buscar por prefijo string para evitar problemas de zona horaria
-                const prefix = fecha + 'T' + String(hora).padStart(2,'0');
-                return hourly.time.findIndex(t => t.startsWith(prefix));
-            }
-
-            function franjaDatos(f) {
-                // Índices dentro de la franja
-                const indices = [];
-                for (let h = f.inicio; h < f.fin; h++) {
-                    const idx = getIdxAt(f.fecha, h);
-                    if (idx !== -1) indices.push(idx);
+            // Generar franjas de hoy y mañana
+            const candidatas = [];
+            for (let dOff = 0; dOff <= 1; dOff++) {
+                const dia = new Date(now.getFullYear(), now.getMonth(), now.getDate() + dOff);
+                const fecha = fechaLocal(dia);
+                const diaNombre = DIAS[dia.getDay()];
+                for (const def of DEFS) {
+                    // La franja termina a h1 horas del día
+                    const finMs = dia.getTime() + def.h1 * 3600000;
+                    if (finMs <= now.getTime()) continue; // ya pasó
+                    candidatas.push({ ...def, fecha, diaNombre });
                 }
-                if (!indices.length) return null;
+            }
 
-                // Icono: hora representativa (centro de franja, o primera disponible)
-                const midIdx = indices[Math.floor(indices.length / 2)];
-                const ht = new Date(hourly.time[midIdx]);
-                const cd = {
-                    cloud_cover:     hourly.cloud_cover?.[midIdx],
-                    cloud_cover_low: hourly.cloud_cover_low?.[midIdx],
-                    cloud_cover_mid: hourly.cloud_cover_mid?.[midIdx]
-                };
-                // Para noche y madrugada forzamos icono nocturno
-                const iconDt = (f.tipo === 'noche' || f.tipo === 'madrugada')
-                    ? (() => { const d = new Date(ht); d.setHours(23); return d; })()
-                    : ht;
-                const icon = getWeatherIcon(hourly.weather_code[midIdx], iconDt, cd);
+            const franjas = candidatas.slice(0, 4);
+            if (!franjas.length) { wrap.innerHTML = ''; return; }
 
-                // Precipitación total
-                const precip = indices.reduce((s, i) => s + (hourly.precipitation?.[i] || 0), 0).toFixed(1);
+            function getWindDir(deg) {
+                return ['N','NE','E','SE','S','SO','O','NO'][Math.round((deg||0)/45)%8];
+            }
+
+            function buildCol(f) {
+                // Índices de horas de esta franja
+                const ids = [];
+                for (let h = f.h0; h < f.h1; h++) {
+                    const i = idxHora(f.fecha, h);
+                    if (i !== -1) ids.push(i);
+                }
+                if (!ids.length) return null;
+
+                // Icono: hora central
+                const mi = ids[Math.floor(ids.length / 2)];
+                const esNoche = (f.tipo === 'noche' || f.tipo === 'madrugada');
+                const iconDt = new Date(f.fecha + 'T' + (esNoche ? '23' : String(Math.floor((f.h0+f.h1)/2)).padStart(2,'0')) + ':00:00');
+                const cd = { cloud_cover: hourly.cloud_cover?.[mi], cloud_cover_low: hourly.cloud_cover_low?.[mi], cloud_cover_mid: hourly.cloud_cover_mid?.[mi] };
+                const icon = getWeatherIcon(hourly.weather_code?.[mi] ?? 0, iconDt, cd);
+
+                // Lluvia total
+                const precip = ids.reduce((s,i) => s + (hourly.precipitation?.[i]||0), 0).toFixed(1);
 
                 // Viento medio
-                const wsArr  = indices.map(i => hourly.wind_speed_10m?.[i] || 0);
-                const wsdArr = indices.map(i => hourly.wind_direction_10m?.[i] || 0);
-                const windSpd = Math.round(wsArr.reduce((a, b) => a + b, 0) / wsArr.length);
-                const windDir = getWindDirSym(Math.round(wsdArr.reduce((a, b) => a + b, 0) / wsdArr.length));
+                const vv = ids.map(i => hourly.wind_speed_10m?.[i]||0);
+                const vd = ids.map(i => hourly.wind_direction_10m?.[i]||0);
+                const spd = Math.round(vv.reduce((a,b)=>a+b,0)/vv.length);
+                const dir = getWindDir(vd.reduce((a,b)=>a+b,0)/vd.length);
 
-                // Temperatura + extra (sol)
-                let temp = null, tempLabel = '', tempClass = '', extra = '';
-                const dayIdx = daily?.time?.findIndex(t => t === f.fecha);
+                // Temperatura
+                const dayIdx = daily?.time ? daily.time.findIndex(t => t === f.fecha) : -1;
+                let temp = '--', tempLabel = '', tempClass = '', extra = '';
 
                 if (f.tipo === 'manana') {
-                    temp = (dayIdx !== undefined && dayIdx !== -1)
-                        ? Math.round(daily.temperature_2m_min[dayIdx])
-                        : Math.round(Math.min(...indices.map(i => hourly.temperature_2m?.[i] ?? 99)));
+                    temp = dayIdx !== -1 ? Math.round(daily.temperature_2m_min[dayIdx]) : Math.round(Math.min(...ids.map(i=>hourly.temperature_2m?.[i]??99)));
                     tempLabel = 'mínima'; tempClass = 'es-min';
-                    // Salida del sol
-                    if (dayIdx !== -1 && dayIdx !== undefined && daily.sunrise?.[dayIdx]) {
+                    if (dayIdx !== -1 && daily.sunrise?.[dayIdx]) {
                         const sr = new Date(daily.sunrise[dayIdx]);
-                        const hh = sr.getHours().toString().padStart(2,'0');
-                        const mm = sr.getMinutes().toString().padStart(2,'0');
-                        extra = `<span>🌅 sale ${hh}:${mm}</span>`;
+                        extra = '<span>🌅 ' + String(sr.getHours()).padStart(2,'0') + ':' + String(sr.getMinutes()).padStart(2,'0') + '</span>';
                     }
                 } else if (f.tipo === 'tarde') {
-                    temp = (dayIdx !== undefined && dayIdx !== -1)
-                        ? Math.round(daily.temperature_2m_max[dayIdx])
-                        : Math.round(Math.max(...indices.map(i => hourly.temperature_2m?.[i] ?? -99)));
+                    temp = dayIdx !== -1 ? Math.round(daily.temperature_2m_max[dayIdx]) : Math.round(Math.max(...ids.map(i=>hourly.temperature_2m?.[i]??-99)));
                     tempLabel = 'máxima'; tempClass = 'es-max';
-                    // Puesta del sol
-                    if (dayIdx !== -1 && dayIdx !== undefined && daily.sunset?.[dayIdx]) {
+                    if (dayIdx !== -1 && daily.sunset?.[dayIdx]) {
                         const ss = new Date(daily.sunset[dayIdx]);
-                        const hh = ss.getHours().toString().padStart(2,'0');
-                        const mm = ss.getMinutes().toString().padStart(2,'0');
-                        extra = `<span>🌇 puesta ${hh}:${mm}</span>`;
+                        extra = '<span>🌇 ' + String(ss.getHours()).padStart(2,'0') + ':' + String(ss.getMinutes()).padStart(2,'0') + '</span>';
                     }
                 } else if (f.tipo === 'noche') {
-                    // Noche (21-00): temp a las 23h
-                    const idx23 = getIdxAt(f.fecha, 23);
-                    temp = idx23 !== -1
-                        ? Math.round(hourly.temperature_2m[idx23])
-                        : Math.round(hourly.temperature_2m[indices[indices.length - 1]]);
-                    tempLabel = 'a las 23h'; tempClass = '';
+                    const i23 = idxHora(f.fecha, 23);
+                    temp = i23 !== -1 ? Math.round(hourly.temperature_2m[i23]) : Math.round(hourly.temperature_2m[ids[ids.length-1]]);
+                    tempLabel = '23:00h';
                 } else {
-                    // Madrugada (00-07): temp a las 04h del mismo día
-                    const idx04 = getIdxAt(f.fecha, 4);
-                    temp = idx04 !== -1
-                        ? Math.round(hourly.temperature_2m[idx04])
-                        : Math.round(Math.min(...indices.map(i => hourly.temperature_2m?.[i] ?? 99)));
-                    tempLabel = 'a las 04h'; tempClass = '';
+                    const i04 = idxHora(f.fecha, 4);
+                    temp = i04 !== -1 ? Math.round(hourly.temperature_2m[i04]) : Math.round(hourly.temperature_2m[ids[0]]);
+                    tempLabel = '04:00h';
                 }
 
-                return { icon, precip, windSpd, windDir, temp, tempLabel, tempClass, extra };
+                return { icon, precip, spd, dir, temp, tempLabel, tempClass, extra };
             }
 
-            let html = `<div class="franjas-wrap"><div class="franjas-cols">`;
-
+            let html = '<div class="franjas-wrap"><div class="franjas-cols">';
             franjas.forEach(f => {
-                const d = franjaDatos(f);
+                const d = buildCol(f);
                 if (!d) return;
-                html += `
-                <div class="franja-col">
-                    <div class="franja-nombre">${f.diaNombre} ${f.label}</div>
-                    <div class="franja-icon">${d.icon}</div>
-                    <div class="franja-temp-label">${d.tempLabel}</div>
-                    <div class="franja-temp ${d.tempClass}">${d.temp}°</div>
-                    <div class="franja-dato">
-                        <span>💧 ${d.precip} mm</span>
-                        <span>💨 ${d.windSpd} km/h ${d.windDir}</span>
-                        ${d.extra}
-                    </div>
-                </div>`;
+                html += '<div class="franja-col">' +
+                    '<div class="franja-nombre">' + f.diaNombre + ' ' + f.label + '</div>' +
+                    '<div class="franja-icon">' + d.icon + '</div>' +
+                    '<div class="franja-temp-label">' + d.tempLabel + '</div>' +
+                    '<div class="franja-temp ' + d.tempClass + '">' + d.temp + '°</div>' +
+                    '<div class="franja-dato">' +
+                        '<span>💧 ' + d.precip + ' mm</span>' +
+                        '<span>💨 ' + d.spd + ' km/h ' + d.dir + '</span>' +
+                        d.extra +
+                    '</div>' +
+                '</div>';
             });
-
-            html += `</div></div>`;
+            html += '</div></div>';
             wrap.innerHTML = html;
         }
-
         function updateTodayTable(daily, hourly) {
             // Tabla eliminada — función vacía para evitar errores JS
         }
