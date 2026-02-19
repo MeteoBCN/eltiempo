@@ -167,17 +167,17 @@
         .today-value { font-size: 13px; font-weight: 700; color: var(--color-text-primary); }
         /* ══════ TABLA FRANJAS DÍA ══════ */
         .franjas-wrap { background: #2c3e50; width: 100%; }
-        .franjas-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; }
-        .franja-col { padding: 16px 10px 18px; border-right: 1px solid rgba(255,255,255,0.08); text-align: center; }
+        .franjas-cols { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; }
+        .franja-col { padding: 14px 6px 16px; border-right: 1px solid rgba(255,255,255,0.08); text-align: center; }
         .franja-col:last-child { border-right: none; }
-        .franja-nombre { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 10px; }
-        .franja-icon { font-size: 2rem; margin-bottom: 8px; line-height: 1; }
-        .franja-icon i, .franja-icon i.wi { font-size: 2rem !important; color: #ffffff !important; }
-        .franja-temp { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 10px; line-height: 1; }
-        .franja-temp-label { font-size: 9px; color: rgba(255,255,255,0.38); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
+        .franja-nombre { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .franja-icon { font-size: 1.7rem; margin-bottom: 6px; line-height: 1; }
+        .franja-icon i, .franja-icon i.wi { font-size: 1.7rem !important; color: #ffffff !important; }
+        .franja-temp { font-size: 19px; font-weight: 800; color: #fff; margin-bottom: 8px; line-height: 1; }
+        .franja-temp-label { font-size: 8px; color: rgba(255,255,255,0.38); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
         .franja-temp.es-min { color: #80cbc4; }
         .franja-temp.es-max { color: #ff8a65; }
-        .franja-dato { font-size: 11px; color: rgba(255,255,255,0.65); margin-top: 5px; line-height: 1.7; }
+        .franja-dato { font-size: 10px; color: rgba(255,255,255,0.65); margin-top: 4px; line-height: 1.7; }
         .franja-dato span { display: block; }
         /* ══════ FIN TABLA FRANJAS ══════ */
 
@@ -728,11 +728,12 @@
             const DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
             const cap  = s => s.charAt(0).toUpperCase() + s.slice(1);
 
-            // Franjas: mañana 6-14, tarde 14-21, noche 21-6 (siguiente día)
+            // Franjas: noche 21-00, madrugada 00-07, mañana 07-13, tarde 13-21
             const FRANJAS_DEF = [
-                { tipo: 'manana', label: 'mañana', inicio: 6,  fin: 14 },
-                { tipo: 'tarde',  label: 'tarde',  inicio: 14, fin: 21 },
-                { tipo: 'noche',  label: 'noche',  inicio: 21, fin: 24 },
+                { tipo: 'noche',     label: 'noche',     inicio: 21, fin: 24 },
+                { tipo: 'madrugada', label: 'madrugada', inicio: 0,  fin: 7  },
+                { tipo: 'manana',    label: 'mañana',    inicio: 7,  fin: 13 },
+                { tipo: 'tarde',     label: 'tarde',     inicio: 13, fin: 21 },
             ];
 
             // Genera candidatas para hoy, mañana y pasado
@@ -745,16 +746,16 @@
                 const diaNombre = cap(DIAS[base.getDay()]);
 
                 FRANJAS_DEF.forEach(f => {
-                    // Hora de fin real de la franja (para saber si ya pasó)
-                    const dtFin = new Date(base);
-                    dtFin.setHours(f.fin, 0, 0, 0);
-                    if (dtFin <= now) return; // franja ya pasada, ignorar
+                    // Calcular timestamp de inicio y fin de la franja
+                    const tsInicio = base.getTime() + f.inicio * 3600000;
+                    const tsFin    = base.getTime() + f.fin   * 3600000; // fin:24 → medianoche siguiente, correcto
+                    if (tsFin <= now.getTime()) return; // franja completamente pasada
 
-                    candidatas.push({ ...f, fecha, base: new Date(base), diaNombre });
+                    candidatas.push({ ...f, fecha, base: new Date(base), diaNombre, tsInicio, tsFin });
                 });
             }
 
-            const franjas = candidatas.slice(0, 3);
+            const franjas = candidatas.slice(0, 4);
 
             function getWindDirSym(deg) {
                 return ['N','NE','E','SE','S','SO','O','NO'][Math.round(deg / 45) % 8];
@@ -782,8 +783,10 @@
                     cloud_cover_low: hourly.cloud_cover_low?.[midIdx],
                     cloud_cover_mid: hourly.cloud_cover_mid?.[midIdx]
                 };
-                // Para noche forzamos icono nocturno
-                const iconDt = f.tipo === 'noche' ? (() => { const d = new Date(ht); d.setHours(23); return d; })() : ht;
+                // Para noche y madrugada forzamos icono nocturno
+                const iconDt = (f.tipo === 'noche' || f.tipo === 'madrugada')
+                    ? (() => { const d = new Date(ht); d.setHours(23); return d; })()
+                    : ht;
                 const icon = getWeatherIcon(hourly.weather_code[midIdx], iconDt, cd);
 
                 // Precipitación total
@@ -823,16 +826,20 @@
                         const mm = ss.getMinutes().toString().padStart(2,'0');
                         extra = `<span>🌇 puesta ${hh}:${mm}</span>`;
                     }
-                } else {
-                    // Noche: temp a las 00h del día siguiente
-                    const nextDate = new Date(f.base);
-                    nextDate.setDate(nextDate.getDate() + 1);
-                    const nextFecha = nextDate.toISOString().slice(0, 10);
-                    const idx00 = getIdxAt(nextFecha, 0);
-                    temp = idx00 !== -1
-                        ? Math.round(hourly.temperature_2m[idx00])
+                } else if (f.tipo === 'noche') {
+                    // Noche (21-00): temp a las 23h
+                    const idx23 = getIdxAt(f.fecha, 23);
+                    temp = idx23 !== -1
+                        ? Math.round(hourly.temperature_2m[idx23])
                         : Math.round(hourly.temperature_2m[indices[indices.length - 1]]);
-                    tempLabel = 'a las 00h'; tempClass = '';
+                    tempLabel = 'a las 23h'; tempClass = '';
+                } else {
+                    // Madrugada (00-07): temp a las 04h del mismo día
+                    const idx04 = getIdxAt(f.fecha, 4);
+                    temp = idx04 !== -1
+                        ? Math.round(hourly.temperature_2m[idx04])
+                        : Math.round(Math.min(...indices.map(i => hourly.temperature_2m?.[i] ?? 99)));
+                    tempLabel = 'a las 04h'; tempClass = 'es-min';
                 }
 
                 return { icon, precip, windSpd, windDir, temp, tempLabel, tempClass, extra };
