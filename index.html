@@ -167,6 +167,29 @@
         .webcam-frame img { width: 100%; height: 100%; object-fit: cover; }
 
         /* ══════════════════════════════════════════════
+           SECCIÓN PLAYAS — estilos
+           ══════════════════════════════════════════════ */
+        .playas-section { margin: 0; animation: fadeIn 0.6s ease-out 0.5s both; }
+        .playas-title { font-size: 13px; font-weight: 700; color: var(--color-text-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; text-align: center; padding: 0 24px; }
+        .playas-table { width: 100%; border-collapse: collapse; background: var(--color-bg-card); box-shadow: var(--shadow-md); backdrop-filter: blur(10px); }
+        .playas-table thead tr { background: #1a6b8a; }
+        .playas-table thead th { padding: 13px 8px; text-align: center; color: #FFFFFF; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; }
+        .playas-table thead th:first-child { text-align: left; padding-left: 16px; }
+        .playas-table tbody tr { border-bottom: 1px solid rgba(148,163,184,0.15); }
+        .playas-table tbody tr:nth-child(even) { background-color: rgba(241,245,249,0.5); }
+        .playas-table tbody tr:last-child { border-bottom: none; }
+        .playas-table tbody td { padding: 13px 8px; text-align: center; font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+        .playas-table tbody td:first-child { text-align: left; padding-left: 16px; font-weight: 700; font-size: 13px; color: #1E293B; }
+        .playa-bandera { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: middle; flex-shrink: 0; }
+        .playa-nombre-wrap { display: flex; align-items: center; }
+        .bandera-verde { background: #10B981; }
+        .bandera-amarilla { background: #F59E0B; }
+        .bandera-roja { background: #EF4444; }
+        .playa-olas { color: #0EA5E9; font-weight: 700; }
+        .playa-temp { color: #1a6b8a; font-weight: 700; }
+        .playas-note { font-size: 11px; color: var(--color-text-tertiary); text-align: center; margin-top: 8px; padding: 0 24px 4px; font-style: italic; }
+
+        /* ══════════════════════════════════════════════
            SECCIÓN ARTÍCULO — estilos
            ══════════════════════════════════════════════ */
         .articulo-meteorologico {
@@ -402,7 +425,28 @@
 
         </div><!-- fin content-section -->
 
-        <div class="weather-table-container">
+        <!-- ══════════════════════════════════════════════
+             SECCIÓN PLAYAS DE BARCELONA
+        ═══════════════════════════════════════════════ -->
+        <div class="playas-section">
+            <p class="playas-title">🏖️ Estado de las playas de Barcelona</p>
+            <table class="playas-table">
+                <thead>
+                    <tr>
+                        <th>Playa</th>
+                        <th>🌊 Oleaje</th>
+                        <th>🌡️ Agua</th>
+                        <th>🚩 Bandera</th>
+                    </tr>
+                </thead>
+                <tbody id="playas-table-body">
+                    <tr><td colspan="4" style="padding:20px;text-align:center;color:var(--color-text-tertiary);">Cargando datos...</td></tr>
+                </tbody>
+            </table>
+            <p class="playas-note">Bandera estimada según oleaje · Fuente: Open-Meteo Marine API</p>
+        </div>
+
+        <div class="weather-table-container" style="margin-top: 40px;">
             <table id="weather-table">
                 <thead>
                     <tr><th>Hora</th><th>Cielo</th><th>ºC</th><th>Lluvia</th><th>Viento</th></tr>
@@ -570,13 +614,54 @@
             el.textContent=lvl(ac.european_aqi||0); el.style.color='#2C3E50';
         }
 
+        function updatePlayasTable(marine) {
+            const tbody = document.getElementById('playas-table-body');
+            if (!marine) { tbody.innerHTML='<tr><td colspan="4" style="padding:16px;text-align:center;color:#EF4444;">No se pudieron cargar datos marinos</td></tr>'; return; }
+
+            const waveH = marine.wave_height ?? null;
+            const sst   = marine.sea_surface_temperature ?? null;
+
+            // Lógica de bandera según altura de ola
+            function getBandera(h) {
+                if (h === null) return { clase: 'bandera-amarilla', texto: 'Sin datos' };
+                if (h < 0.5)   return { clase: 'bandera-verde',    texto: 'Verde' };
+                if (h < 1.0)   return { clase: 'bandera-amarilla', texto: 'Amarilla' };
+                return             { clase: 'bandera-roja',     texto: 'Roja' };
+            }
+
+            // Las playas de Barcelona comparten prácticamente las mismas condiciones marinas.
+            // Usamos los datos de la Marine API (punto costero único) para todas.
+            const playas = [
+                'Sant Sebastià',
+                'La Barceloneta',
+                'Nova Icària',
+                'Bogatell',
+                'Mar Bella',
+                'Llevant'
+            ];
+
+            const waveStr = waveH !== null ? waveH.toFixed(2) + ' m' : '—';
+            const sstStr  = sst   !== null ? sst.toFixed(1)   + ' °C' : '—';
+            const bandera = getBandera(waveH);
+
+            tbody.innerHTML = playas.map(nombre => `
+                <tr>
+                    <td><div class="playa-nombre-wrap"><span class="playa-bandera ${bandera.clase}"></span>${nombre}</div></td>
+                    <td class="playa-olas">${waveStr}</td>
+                    <td class="playa-temp">${sstStr}</td>
+                    <td><span style="font-size:12px;font-weight:700;color:${bandera.clase==='bandera-verde'?'#10B981':bandera.clase==='bandera-amarilla'?'#F59E0B':'#EF4444'};">${bandera.texto}</span></td>
+                </tr>`).join('');
+        }
+
         async function loadWeatherData() {
             try {
                 const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7`;
                 const aqUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=Europe/Madrid`;
-                const [res, aqRes] = await Promise.all([fetch(url), fetch(aqUrl)]);
+                const marineUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature&timezone=Europe/Madrid`;
+                const [res, aqRes, marineRes] = await Promise.all([fetch(url), fetch(aqUrl), fetch(marineUrl)]);
                 const data = await res.json();
                 const aqData = await aqRes.json();
+                const marineData = await marineRes.json();
                 if (data.daily?.sunrise && data.daily?.sunset) { sunriseTime=data.daily.sunrise[0]; sunsetTime=data.daily.sunset[0]; }
                 const now=new Date(); let precipToday=0;
                 if (data.hourly?.precipitation && data.hourly?.time) {
@@ -588,6 +673,7 @@
                 updateCurrentWeather(data.current, data.current.weather_code, precipToday, data.hourly);
                 updateTodayTable(data.daily, data.hourly);
                 updateAirQualityTable(aqData.current);
+                updatePlayasTable(marineData.current);
                 updateWeatherTable(data.hourly);
                 updateDaysTable(data.hourly, data.daily);
                 updateDaysSummary(data.hourly, data.daily);
