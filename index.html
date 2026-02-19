@@ -482,23 +482,9 @@
             </div>
             <p class="playas-note">Datos marinos en tiempo real · Open-Meteo Marine API</p>
 
-            <!-- Previsión horaria del mar -->
-            <div style="overflow-x:auto; margin-top:0;">
-                <table id="marine-forecast-table" style="width:100%;border-collapse:collapse;background:#fff;font-size:13px;">
-                    <thead>
-                        <tr style="background:#1a6b8a;">
-                            <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Hora</th>
-                            <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Oleaje</th>
-                            <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Período</th>
-                            <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Dir.</th>
-                            <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Viento</th>
-                            <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Agua</th>
-                        </tr>
-                    </thead>
-                    <tbody id="marine-forecast-body">
-                        <tr><td colspan="6" style="padding:16px;text-align:center;color:#94a3b8;">Cargando previsión marina…</td></tr>
-                    </tbody>
-                </table>
+            <!-- Previsión marina por franjas -->
+            <div id="marine-summary-blocks" style="background:#fff;">
+                <div style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando previsión marina…</div>
             </div>
         </div>
 
@@ -671,7 +657,7 @@
         }
 
         function updatePlayasTable(marine, daily, marineHourly) {
-            function getWindDir(deg) { return['N','NE','E','SE','S','SO','O','NO'][Math.round(deg/45)%8]; }
+            function getWindDir(deg) { return ['N','NE','E','SE','S','SO','O','NO'][Math.round(deg/45)%8]; }
 
             function getEstadoMar(h) {
                 if (h === null) return '—';
@@ -690,121 +676,106 @@
                 return '#ef4444';
             }
 
-            const waveH   = marine?.wave_height            ?? null;
-            const sst     = marine?.sea_surface_temperature ?? null;
-            const period  = marine?.wave_period             ?? null;
-            const waveDir = marine?.wave_direction          ?? null;
-            const wwDir   = marine?.wind_wave_direction     ?? null;
-            const wwH     = marine?.wind_wave_height        ?? null;
-            const uvi     = daily?.uv_index_max?.[0]        ?? null;
+            // ── Datos actuales ────────────────────────────────────────────
+            const waveH   = marine?.wave_height             ?? null;
+            const sst     = marine?.sea_surface_temperature  ?? null;
+            const period  = marine?.wave_period              ?? null;
+            const waveDir = marine?.wave_direction           ?? null;
+            const wwDir   = marine?.wind_wave_direction      ?? null;
+            const wwH     = marine?.wind_wave_height         ?? null;
+            const uvi     = daily?.uv_index_max?.[0]         ?? null;
 
             document.getElementById('playas-oleaje').textContent     = waveH  !== null ? waveH.toFixed(2) + ' m'  : '—';
             document.getElementById('playas-temp').textContent       = sst    !== null ? sst.toFixed(1)   + ' °C' : '—';
             document.getElementById('playas-periodo').textContent    = period !== null ? period.toFixed(0) + ' s'  : '—';
             document.getElementById('playas-uvi').textContent        = uvi    !== null ? uvi.toFixed(1)            : '—';
             document.getElementById('playas-wave-dir').textContent   = waveDir !== null ? getWindDir(waveDir)      : '—';
-            document.getElementById('playas-viento').textContent     = wwH !== null ? wwH.toFixed(2) + ' m'        : '—';
-            document.getElementById('playas-viento-dir').textContent = wwDir !== null ? getWindDir(wwDir)          : '—';
+            document.getElementById('playas-viento').textContent     = wwH    !== null ? wwH.toFixed(2)  + ' m'   : '—';
+            document.getElementById('playas-viento-dir').textContent = wwDir  !== null ? getWindDir(wwDir)         : '—';
             document.getElementById('playas-estado').textContent     = getEstadoMar(waveH);
 
-            // ── Previsión horaria marina ──────────────────────────────────
-            if (!marineHourly?.time) return;
-            const tbody = document.getElementById('marine-forecast-body');
-            if (!tbody) return;
-            tbody.innerHTML = '';
+            // ── Previsión por franjas ─────────────────────────────────────
+            const container = document.getElementById('marine-summary-blocks');
+            if (!container || !marineHourly?.time) return;
+            container.innerHTML = '';
+
             const now = new Date();
 
-            // Recoger las próximas 24 horas válidas
-            const slots = [];
-            for (let i = 0; i < marineHourly.time.length && slots.length < 24; i++) {
-                const ht = new Date(marineHourly.time[i]);
-                if (ht < now && (now - ht) > 3600000) continue;
-                slots.push({
-                    ht,
-                    wh:   marineHourly.wave_height?.[i]            ?? null,
-                    wp:   marineHourly.wave_period?.[i]            ?? null,
-                    wd:   marineHourly.wave_direction?.[i]         ?? null,
-                    ws:   marineHourly.wind_speed_10m?.[i]         ?? null,   // km/h
-                    wsd:  marineHourly.wind_direction_10m?.[i]     ?? null,
-                    sst2: marineHourly.sea_surface_temperature?.[i]?? null,
-                });
-            }
-
-            // ── Helper: resumen textual de un grupo de slots ──────────────
-            function makeSummary(group) {
-                if (!group.length) return '—';
-                const whs  = group.map(s => s.wh).filter(v => v !== null);
-                const wss  = group.map(s => s.ws).filter(v => v !== null);
-                const wds  = group.map(s => s.wd).filter(v => v !== null);
-                const minH = whs.length ? Math.min(...whs) : null;
-                const maxH = whs.length ? Math.max(...whs) : null;
-                const avgW = wss.length ? Math.round(wss.reduce((a,b)=>a+b,0)/wss.length) : null;
-                const avgD = wds.length ? Math.round(wds.reduce((a,b)=>a+b,0)/wds.length) : null;
-                const estado = getEstadoMar(maxH !== null ? (minH+maxH)/2 : null);
-                let txt = '';
-                if (minH !== null && maxH !== null) {
-                    if (Math.abs(maxH - minH) < 0.1) txt += `Oleaje ${minH.toFixed(2)} m`;
-                    else txt += `Oleaje entre ${minH.toFixed(2)} y ${maxH.toFixed(2)} m`;
-                    txt += ` · ${estado}`;
+            // Recoge todos los slots futuros (hasta 48h)
+            function getSlots(fromH, toH) {
+                const res = [];
+                for (let i = 0; i < marineHourly.time.length; i++) {
+                    const ht = new Date(marineHourly.time[i]);
+                    const diffH = (ht - now) / 3600000;
+                    if (diffH >= fromH && diffH < toH) {
+                        res.push({
+                            wh:  marineHourly.wave_height?.[i]             ?? null,
+                            ws:  marineHourly.wind_speed_10m?.[i]          ?? null,
+                            wsd: marineHourly.wind_direction_10m?.[i]      ?? null,
+                            sst: marineHourly.sea_surface_temperature?.[i] ?? null,
+                        });
+                    }
                 }
-                if (avgW !== null) txt += ` · Viento ${avgW} km/h ${avgD !== null ? getWindDir(avgD) : ''}`;
-                return txt || '—';
+                return res;
             }
 
-            const next6  = slots.slice(0, 6);
-            const after6 = slots.slice(6, 24);
+            function avg(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null; }
 
-            // ── Fila resumen 0-6h ─────────────────────────────────────────
-            const trSum6 = document.createElement('tr');
-            trSum6.style.background = '#e8f4f8';
-            trSum6.innerHTML = `
-                <td colspan="6" style="padding:10px 12px;text-align:left;font-size:12px;color:#1a6b8a;font-weight:600;border-bottom:2px solid #1a6b8a;">
-                    <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-right:8px;">Próximas 6h</span>
-                    ${makeSummary(next6)}
-                </td>`;
-            tbody.appendChild(trSum6);
+            function renderStrip(label, slots) {
+                if (!slots.length) return;
+                const whs  = slots.map(s=>s.wh).filter(v=>v!==null);
+                const wss  = slots.map(s=>s.ws).filter(v=>v!==null);
+                const wsds = slots.map(s=>s.wsd).filter(v=>v!==null);
+                const ssts = slots.map(s=>s.sst).filter(v=>v!==null);
 
-            // Filas detalle 0-6h
-            next6.forEach(s => {
-                const hora = s.ht.toLocaleDateString('es-ES',{weekday:'short'}) + ' ' + String(s.ht.getHours()).padStart(2,'0') + ':00';
-                const color = getWaveColor(s.wh);
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="font-weight:700;color:#2C3E50;white-space:nowrap;">${hora}</td>
-                    <td style="font-weight:700;color:${color};">${s.wh !== null ? s.wh.toFixed(2)+' m' : '—'}</td>
-                    <td>${s.wp !== null ? s.wp.toFixed(0)+' s' : '—'}</td>
-                    <td>${s.wd !== null ? getWindDir(s.wd) : '—'}</td>
-                    <td>${s.ws !== null ? Math.round(s.ws)+' km/h '+(s.wsd!==null?getWindDir(s.wsd):'') : '—'}</td>
-                    <td>${s.sst2 !== null ? s.sst2.toFixed(1)+'°C' : '—'}</td>`;
-                tbody.appendChild(tr);
-            });
+                const avgWH  = avg(whs);
+                const minWH  = whs.length ? Math.min(...whs) : null;
+                const maxWH  = whs.length ? Math.max(...whs) : null;
+                const avgWS  = wss.length  ? Math.round(avg(wss))  : null;
+                const avgWSD = wsds.length ? Math.round(avg(wsds)) : null;
+                const avgSST = ssts.length ? avg(ssts) : null;
 
-            // ── Fila resumen 7-24h ────────────────────────────────────────
-            if (after6.length) {
-                const trSep = document.createElement('tr');
-                trSep.style.background = '#e8f4f8';
-                trSep.innerHTML = `
-                    <td colspan="6" style="padding:10px 12px;text-align:left;font-size:12px;color:#1a6b8a;font-weight:600;border-top:2px solid #1a6b8a;border-bottom:2px solid #1a6b8a;">
-                        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-right:8px;">7–24h</span>
-                        ${makeSummary(after6)}
-                    </td>`;
-                tbody.appendChild(trSep);
+                const estado = getEstadoMar(avgWH);
+                const color  = getWaveColor(avgWH);
 
-                // Filas detalle 7-24h
-                after6.forEach(s => {
-                    const hora = s.ht.toLocaleDateString('es-ES',{weekday:'short'}) + ' ' + String(s.ht.getHours()).padStart(2,'0') + ':00';
-                    const color = getWaveColor(s.wh);
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td style="font-weight:700;color:#2C3E50;white-space:nowrap;">${hora}</td>
-                        <td style="font-weight:700;color:${color};">${s.wh !== null ? s.wh.toFixed(2)+' m' : '—'}</td>
-                        <td>${s.wp !== null ? s.wp.toFixed(0)+' s' : '—'}</td>
-                        <td>${s.wd !== null ? getWindDir(s.wd) : '—'}</td>
-                        <td>${s.ws !== null ? Math.round(s.ws)+' km/h '+(s.wsd!==null?getWindDir(s.wsd):'') : '—'}</td>
-                        <td>${s.sst2 !== null ? s.sst2.toFixed(1)+'°C' : '—'}</td>`;
-                    tbody.appendChild(tr);
-                });
+                // Texto de oleaje
+                let oleajeTxt = '—';
+                if (minWH !== null && maxWH !== null) {
+                    oleajeTxt = Math.abs(maxWH - minWH) < 0.1
+                        ? minWH.toFixed(2) + ' m'
+                        : minWH.toFixed(2) + '–' + maxWH.toFixed(2) + ' m';
+                }
+
+                const vientoTxt = avgWS  !== null ? `${avgWS} km/h ${avgWSD !== null ? getWindDir(avgWSD) : ''}` : '—';
+                const aguaTxt   = avgSST !== null ? avgSST.toFixed(1) + ' °C' : '—';
+
+                const div = document.createElement('div');
+                div.style.cssText = 'display:flex;align-items:stretch;border-bottom:1px solid #e2e8f0;background:#fff;';
+                div.innerHTML = `
+                    <div style="background:#1a6b8a;padding:12px 14px;display:flex;align-items:center;justify-content:center;min-width:90px;flex-shrink:0;">
+                        <span style="color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;text-align:center;line-height:1.4;">${label}</span>
+                    </div>
+                    <div style="flex:1;padding:12px 16px;display:flex;flex-direction:column;gap:5px;justify-content:center;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span style="font-size:15px;font-weight:700;color:${color};">${oleajeTxt}</span>
+                            <span style="font-size:13px;font-weight:600;color:#2C3E50;">${estado}</span>
+                        </div>
+                        <div style="font-size:12px;color:#64748b;display:flex;gap:14px;flex-wrap:wrap;">
+                            <span>💨 ${vientoTxt}</span>
+                            <span>🌡️ Agua ${aguaTxt}</span>
+                        </div>
+                    </div>`;
+                container.appendChild(div);
             }
+
+            const franjas = [
+                { label: 'Próximas\n6h',   from: 0,  to: 6  },
+                { label: '6 – 12h',         from: 6,  to: 12 },
+                { label: '12 – 24h',        from: 12, to: 24 },
+                { label: '24 – 48h',        from: 24, to: 48 },
+            ];
+
+            franjas.forEach(f => renderStrip(f.label, getSlots(f.from, f.to)));
         }
 
         async function loadWeatherData() {
