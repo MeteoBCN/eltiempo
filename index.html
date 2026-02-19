@@ -436,12 +436,7 @@
             </div>
         </div>
 
-        <div class="radar" style="margin: 40px 0; animation: fadeIn 0.6s ease-out 1.2s both;">
-            <div style="font-size: 20px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 20px; text-align: center; text-transform: uppercase; letter-spacing: 1.5px;">RADAR DE PRECIPITACIÓN</div>
-            <div class="radar-frame">
-                <iframe src="https://www.rainviewer.com/map.html?loc=41.3851,2.1734,10&oFa=1&oC=1&oU=0&oCS=1&oF=1&oAP=1&rmt=4&c=3&o=83&lm=1&th=0&sm=1&sn=1" frameborder="0" allowfullscreen></iframe>
-            </div>
-        </div>
+
 
         <div class="update-time" id="update-time">Actualizado: --:--</div>
 
@@ -465,7 +460,7 @@
             const hh = String(ahora.getHours()).padStart(2,'0');
             const mm = String(ahora.getMinutes()).padStart(2,'0');
             const el = document.getElementById('articulo-fecha');
-            if (el) el.textContent = `ACTUALIZADO ${dia} ${mes} ${anyo} · ${hh}:${mm}`;
+            if (el) el.textContent = `ACTUALIZADO ${dia} ${mes} ${anyo}`;
         })();
 
         const weatherIcons = {
@@ -627,7 +622,7 @@
                 const ht=new Date(hourly.time[idx]);
                 const cd={cloud_cover:hourly.cloud_cover?.[idx],cloud_cover_low:hourly.cloud_cover_low?.[idx],cloud_cover_mid:hourly.cloud_cover_mid?.[idx]};
                 const row=document.createElement('tr');
-                row.innerHTML=`<td class="table-hour">${formatHour(hourly.time[idx])}</td><td class="table-icon">${getWeatherIcon(hourly.weather_code[idx],ht,cd)}</td><td class="table-temp">${Math.round(hourly.temperature_2m[idx])}°C</td><td class="table-rain">${hourly.precipitation_probability?.[idx]||0}%</td><td class="table-wind">${Math.round(hourly.wind_speed_10m[idx])} km/h</td>`;
+                row.innerHTML=`<td class="table-hour">${formatHour(hourly.time[idx])}</td><td class="table-icon">${getWeatherIcon(hourly.weather_code[idx],ht,cd)}</td><td class="table-temp">${Math.round(hourly.temperature_2m[idx])}°C</td><td class="table-rain">${(hourly.precipitation?.[idx]||0).toFixed(1)} mm</td><td class="table-wind">${Math.round(hourly.wind_speed_10m[idx])} km/h</td>`;
                 tbody.appendChild(row);
             }
         }
@@ -710,7 +705,7 @@
                 html+=`<tr>
                 <td style="width:25%;padding:15px 10px;border-bottom:1px solid #e9ecef;"><div style="font-size:14px;font-weight:700;color:#2C3E50;margin-bottom:8px;">${dn}</div><div style="font-size:32px;margin:5px 0;">${icon}</div></td>
                 <td style="width:25%;padding:15px 10px;text-align:center;border-bottom:1px solid #e9ecef;"><div style="font-size:11px;color:#64748B;margin-bottom:4px;">Mín / Máx</div><div style="font-size:15px;font-weight:700;"><span style="color:#3B82F6;">${minT}°</span> <span style="color:#EF4444;">${maxT}°</span></div></td>
-                <td style="width:25%;padding:15px 10px;text-align:center;border-bottom:1px solid #e9ecef;"><div style="font-size:11px;color:#64748B;margin-bottom:4px;">Lluvia</div><div style="font-size:14px;font-weight:600;color:#2C3E50;">${mrp}%</div><div style="font-size:11px;color:#64748B;margin-top:2px;">${tp} mm</div></td>
+                <td style="width:25%;padding:15px 10px;text-align:center;border-bottom:1px solid #e9ecef;"><div style="font-size:11px;color:#64748B;margin-bottom:4px;">Lluvia</div><div style="font-size:14px;font-weight:600;color:#2C3E50;">${tp} mm</div></td>
                 <td style="width:25%;padding:15px 10px;text-align:center;border-bottom:1px solid #e9ecef;"><div style="font-size:11px;color:#64748B;margin-bottom:4px;">Viento</div><div style="font-size:14px;font-weight:600;color:#2C3E50;">${aw} km/h</div><div style="font-size:11px;color:#64748B;margin-top:2px;">${getWindDir(awd)}</div></td>
                 </tr>`;
             }
@@ -719,7 +714,8 @@
 
         function updateTime() {
             const now=new Date();
-            document.getElementById('update-time').textContent='Actualizado: '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+            const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+            document.getElementById('update-time').textContent='Actualizado: '+now.getDate()+' de '+meses[now.getMonth()]+' de '+now.getFullYear();
         }
 
         loadWeatherData();
