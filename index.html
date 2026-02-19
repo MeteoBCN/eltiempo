@@ -623,8 +623,8 @@
             </div>
 
             <!-- Previsión marina por franjas -->
-            <div id="marine-summary-blocks" style="background:#1e3a4a;">
-                <div style="padding:16px;text-align:center;color:rgba(255,255,255,0.4);font-size:13px;">Cargando previsión marina…</div>
+            <div id="marine-summary-blocks" style="background:#f0f8ff;">
+                <div style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando previsión marina…</div>
             </div>
         </div>
 
@@ -946,76 +946,99 @@
                 const aguaTxt   = avgSST !== null ? avgSST + ' °C' : '—';
                 const uviTxt    = uviVal  !== null ? Math.round(uviVal) : '—';   // redondeado
 
-                // Gradiente y olas SVG según intensidad del mar
-                const seaConfigs = {
-                    'Calma':           { grad: 'linear-gradient(135deg,#0d4f6b 0%,#1a7a9a 50%,#0e6080 100%)', waveAmp: 3,  waveCount: 4, waveOpacity: 0.25 },
-                    'Rizada':          { grad: 'linear-gradient(135deg,#0c4560 0%,#1a6e8a 50%,#0d5570 100%)', waveAmp: 6,  waveCount: 5, waveOpacity: 0.35 },
-                    'Marejadilla':     { grad: 'linear-gradient(135deg,#0a3a52 0%,#155e78 50%,#0b4a62 100%)', waveAmp: 12, waveCount: 4, waveOpacity: 0.45 },
-                    'Marejada':        { grad: 'linear-gradient(135deg,#082e42 0%,#10495e 50%,#093a50 100%)', waveAmp: 20, waveCount: 3, waveOpacity: 0.55 },
-                    'Fuerte marejada': { grad: 'linear-gradient(135deg,#06202e 0%,#0d3545 50%,#06293a 100%)', waveAmp: 28, waveCount: 3, waveOpacity: 0.65 },
-                    'Mar gruesa':      { grad: 'linear-gradient(135deg,#040f18 0%,#08202c 50%,#040f1a 100%)', waveAmp: 36, waveCount: 2, waveOpacity: 0.75 },
+                // Degradado sutil según intensidad del mar
+                const seaGrads = {
+                    'Calma':           'linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 60%, #ffffff 100%)',
+                    'Rizada':          'linear-gradient(135deg, #daeef9 0%, #edf6fc 60%, #f8fcff 100%)',
+                    'Marejadilla':     'linear-gradient(135deg, #cce5f5 0%, #e4f2fb 60%, #f5fafe 100%)',
+                    'Marejada':        'linear-gradient(135deg, #b8d8ef 0%, #d5ecf8 60%, #eef7fd 100%)',
+                    'Fuerte marejada': 'linear-gradient(135deg, #a0c8e6 0%, #c4e0f5 60%, #e5f3fb 100%)',
+                    'Mar gruesa':      'linear-gradient(135deg, #88b8da 0%, #b0d2ec 60%, #d8edf8 100%)',
                 };
-                const cfg = seaConfigs[estado] || seaConfigs['Marejadilla'];
+                const bgGrad = seaGrads[estado] || seaGrads['Marejadilla'];
 
-                // Genera SVG de olas inline según intensidad
-                function makeWaveSVG(amp, count, opacity) {
-                    const h = 90, w = 400;
-                    let paths = '';
-                    for (let n = 0; n < count; n++) {
-                        const y = h * 0.4 + n * (h * 0.15);
-                        const shift = n * 30;
-                        const a = amp * (1 - n * 0.18);
-                        const p = 80 + n * 20;
-                        let d = `M${-p + shift},${y}`;
-                        for (let x = -p; x < w + p; x += p) {
-                            d += ` C${x + shift},${y - a} ${x + p/2 + shift},${y + a} ${x + p + shift},${y}`;
-                        }
-                        const op = (opacity - n * 0.07).toFixed(2);
-                        const col = n === 0 ? 'rgba(255,255,255,' + op + ')' : 'rgba(100,220,255,' + op + ')';
-                        paths += `<path d="${d}" fill="none" stroke="${col}" stroke-width="${2.5 - n * 0.4}"/>`;
-                    }
-                    // Relleno de agua en la parte inferior
-                    const fillY = h * 0.55;
-                    const fillD = `M0,${fillY} Q100,${fillY - amp * 0.6} 200,${fillY} Q300,${fillY + amp * 0.6} 400,${fillY} L400,${h} L0,${h} Z`;
-                    paths = `<path d="${fillD}" fill="rgba(255,255,255,0.07)"/>` + paths;
-                    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-                        `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${paths}</svg>`
-                    )}`;
+                // Ola SVG decorativa sutil en azul claro
+                function makeWaveSVG(amp) {
+                    const w = 400, h = 40;
+                    const y = h * 0.6;
+                    const d1 = `M0,${y} C80,${y-amp} 160,${y+amp} 240,${y} C320,${y-amp} 380,${y+amp*0.5} 400,${y} L400,${h} L0,${h} Z`;
+                    const d2 = `M0,${y+4} C60,${y+4-amp*0.7} 140,${y+4+amp*0.7} 220,${y+4} C300,${y+4-amp*0.7} 370,${y+4+amp*0.4} 400,${y+4} L400,${h} L0,${h} Z`;
+                    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+                        <path d="${d1}" fill="rgba(44,120,180,0.10)"/>
+                        <path d="${d2}" fill="rgba(44,120,180,0.06)"/>
+                    </svg>`;
+                    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
                 }
 
-                const waveSvg = makeWaveSVG(cfg.waveAmp, cfg.waveCount, cfg.waveOpacity);
+                const waveAmps = {'Calma':4,'Rizada':7,'Marejadilla':11,'Marejada':16,'Fuerte marejada':21,'Mar gruesa':26};
+                const waveSvg = makeWaveSVG(waveAmps[estado] || 8);
 
                 const div = document.createElement('div');
-                div.style.cssText = 'display:flex;align-items:stretch;border-bottom:2px solid rgba(255,255,255,0.08);overflow:hidden;';
+                div.style.cssText = `
+                    display:flex;
+                    align-items:stretch;
+                    border-bottom:1px solid #dbeaf5;
+                    overflow:hidden;
+                    background:${bgGrad};
+                    position:relative;
+                `;
                 div.innerHTML = `
-                    <div style="background:linear-gradient(180deg,#1a3a4a 0%,#102838 100%);padding:10px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:82px;flex-shrink:0;gap:3px;border-right:1px solid rgba(255,255,255,0.08);">
-                        <span style="color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;text-align:center;">${dayLabel}</span>
-                        <span style="color:rgba(255,255,255,0.6);font-size:10px;font-weight:600;text-transform:capitalize;letter-spacing:0.3px;">${subLabel}</span>
-                        <span style="margin-top:5px;font-size:22px;">🌊</span>
-                        <span style="margin-top:3px;font-size:10px;font-weight:800;color:${color};background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:3px;text-align:center;">${estado}</span>
+                    <!-- ola decorativa en el fondo -->
+                    <div style="position:absolute;bottom:0;left:0;right:0;height:40px;
+                                background-image:url('${waveSvg}');
+                                background-size:cover;background-repeat:no-repeat;
+                                pointer-events:none;"></div>
+
+                    <!-- columna izquierda: día + franja -->
+                    <div style="
+                        background:rgba(44,100,150,0.12);
+                        padding:14px 10px;
+                        display:flex;flex-direction:column;
+                        align-items:center;justify-content:center;
+                        min-width:80px;flex-shrink:0;gap:4px;
+                        border-right:1px solid rgba(44,100,150,0.15);
+                    ">
+                        <span style="color:#2c3e50;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;text-align:center;">${dayLabel}</span>
+                        <span style="color:#2c3e50;font-size:10px;font-weight:600;text-transform:capitalize;opacity:0.65;">${subLabel}</span>
+                        <span style="margin-top:6px;font-size:20px;">🌊</span>
+                        <span style="
+                            margin-top:4px;font-size:10px;font-weight:700;
+                            color:#fff;background:${color};
+                            padding:2px 7px;border-radius:4px;
+                            text-align:center;letter-spacing:0.3px;
+                            box-shadow:0 1px 4px rgba(0,0,0,0.15);
+                        ">${estado}</span>
                     </div>
-                    <div style="flex:1;display:flex;flex-direction:column;gap:0;justify-content:center;position:relative;overflow:hidden;min-height:100px;">
-                        <!-- fondo degradado marino -->
-                        <div style="position:absolute;inset:0;background:${cfg.grad};"></div>
-                        <!-- olas SVG -->
-                        <div style="position:absolute;bottom:0;left:0;right:0;height:90px;background-image:url('${waveSvg}');background-size:cover;background-repeat:no-repeat;"></div>
-                        <!-- contenido -->
-                        <div style="position:relative;z-index:2;padding:11px 14px;display:flex;flex-direction:column;gap:7px;">
-                            <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
-                                <span style="font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.5px;line-height:1;">${oleajeTxt}</span>
-                                <span style="font-size:11px;color:rgba(255,255,255,0.55);">altura de ola</span>
-                                ${avgWP !== null ? `<span style="font-size:11px;color:#7dd3fc;font-weight:600;">· ${avgWP}s período</span>` : ''}
-                            </div>
-                            <div style="font-size:11.5px;color:rgba(255,255,255,0.78);line-height:1.65;">
-                                🌬️ <span style="color:#7dd3fc;font-weight:600;">${vientoTxt}</span><br>
-                                💧 Agua <span style="color:#7dd3fc;font-weight:700;">${aguaTxt}</span> &nbsp;·&nbsp; ☀️ UVI <span style="font-weight:700;color:#fde68a;">${uviTxt}</span>
-                            </div>
-                            <div style="display:flex;align-items:center;gap:6px;">
-                                <span style="font-size:11px;color:rgba(255,255,255,0.5);">Baño:</span>
-                                <span style="font-size:12px;font-weight:800;color:${calidad.color};background:rgba(0,0,0,0.35);padding:2px 8px;border-radius:4px;">${calidad.texto}</span>
-                                <span style="font-size:9px;color:rgba(255,255,255,0.3);">*</span>
-                            </div>
+
+                    <!-- columna derecha: datos -->
+                    <div style="position:relative;z-index:1;flex:1;padding:13px 15px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+
+                        <!-- oleaje destacado -->
+                        <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                            <span style="font-size:24px;font-weight:900;color:#2c3e50;letter-spacing:-0.5px;line-height:1;">${oleajeTxt}</span>
+                            <span style="font-size:11px;color:#2c3e50;opacity:0.55;font-weight:500;">altura de ola</span>
+                            ${avgWP !== null ? `<span style="font-size:11px;color:#1a6b8a;font-weight:700;">· ${avgWP}s período</span>` : ''}
                         </div>
+
+                        <!-- viento + agua + uvi -->
+                        <div style="font-size:12px;color:#2c3e50;line-height:1.75;">
+                            🌬️ <span style="font-weight:600;">${vientoTxt}</span><br>
+                            💧 Agua <span style="font-weight:700;color:#1a6b8a;">${aguaTxt}</span>
+                            &nbsp;·&nbsp; ☀️ UVI <span style="font-weight:700;color:#2c3e50;">${uviTxt}</span>
+                        </div>
+
+                        <!-- calidad baño -->
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="font-size:11px;color:#2c3e50;opacity:0.6;">Calidad del baño:</span>
+                            <span style="
+                                font-size:12px;font-weight:800;
+                                color:#fff;background:${calidad.color};
+                                padding:2px 10px;border-radius:4px;
+                                box-shadow:0 1px 4px rgba(0,0,0,0.12);
+                            ">${calidad.texto}</span>
+                            <span style="font-size:9px;color:#2c3e50;opacity:0.35;">*</span>
+                        </div>
+
                     </div>`;
                 container.appendChild(div);
             }
@@ -1046,9 +1069,8 @@
 
             // ── Leyenda calidad del baño ──────────────────────────────────
             const leyenda = document.createElement('div');
-            leyenda.style.cssText = 'padding:10px 14px 12px;background:#1e3a4a;border-top:1px solid #1a4a5e;font-size:11px;color:rgba(255,255,255,0.5);line-height:1.8;';
-            leyenda.innerHTML = `
-                <strong style="color:rgba(255,255,255,0.7);">* Calidad del baño:</strong> se valoran conjuntamente oleaje (altura e intensidad), viento (velocidad), temperatura del agua e índice UV.`;
+            leyenda.style.cssText = 'padding:10px 14px 12px;background:#f0f8ff;border-top:1px solid #dbeaf5;font-size:11px;color:#64748b;line-height:1.8;';
+            leyenda.innerHTML = `<strong style="color:#2c3e50;">* Calidad del baño:</strong> se valoran conjuntamente oleaje (altura e intensidad), viento (velocidad), temperatura del agua e índice UV.`;
             container.appendChild(leyenda);
         }
 
