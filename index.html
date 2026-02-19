@@ -463,7 +463,7 @@
                         <div class="playas-dato-value" id="playas-temp">—</div>
                     </div>
                     <div class="playas-dato">
-                        <div class="playas-dato-label">Viento mar</div>
+                        <div class="playas-dato-label">Ol. viento</div>
                         <div class="playas-dato-value" id="playas-viento">—</div>
                     </div>
                     <div class="playas-dato">
@@ -491,7 +491,7 @@
                             <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Oleaje</th>
                             <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Período</th>
                             <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Dir.</th>
-                            <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">V.Viento</th>
+                            <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Viento</th>
                             <th style="padding:10px 8px;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;">Agua</th>
                         </tr>
                     </thead>
@@ -690,51 +690,120 @@
                 return '#ef4444';
             }
 
-            const waveH    = marine?.wave_height            ?? null;
-            const sst      = marine?.sea_surface_temperature ?? null;
-            const period   = marine?.wave_period             ?? null;
-            const waveDir  = marine?.wave_direction          ?? null;
-            const wwDir    = marine?.wind_wave_direction     ?? null;
-            const wwH      = marine?.wind_wave_height        ?? null;
-            const uvi      = daily?.uv_index_max?.[0]        ?? null;
+            const waveH   = marine?.wave_height            ?? null;
+            const sst     = marine?.sea_surface_temperature ?? null;
+            const period  = marine?.wave_period             ?? null;
+            const waveDir = marine?.wave_direction          ?? null;
+            const wwDir   = marine?.wind_wave_direction     ?? null;
+            const wwH     = marine?.wind_wave_height        ?? null;
+            const uvi     = daily?.uv_index_max?.[0]        ?? null;
 
-            document.getElementById('playas-oleaje').textContent    = waveH  !== null ? waveH.toFixed(2) + ' m'  : '—';
-            document.getElementById('playas-temp').textContent      = sst    !== null ? sst.toFixed(1)   + ' °C' : '—';
-            document.getElementById('playas-periodo').textContent   = period !== null ? period.toFixed(0) + ' s'  : '—';
-            document.getElementById('playas-uvi').textContent       = uvi    !== null ? uvi.toFixed(1)            : '—';
-            document.getElementById('playas-wave-dir').textContent  = waveDir  !== null ? getWindDir(waveDir)     : '—';
-            document.getElementById('playas-viento').textContent    = wwH !== null ? wwH.toFixed(2) + ' m'        : '—';
-            document.getElementById('playas-viento-dir').textContent= wwDir !== null ? getWindDir(wwDir)          : '—';
-            document.getElementById('playas-estado').textContent    = getEstadoMar(waveH);
+            document.getElementById('playas-oleaje').textContent     = waveH  !== null ? waveH.toFixed(2) + ' m'  : '—';
+            document.getElementById('playas-temp').textContent       = sst    !== null ? sst.toFixed(1)   + ' °C' : '—';
+            document.getElementById('playas-periodo').textContent    = period !== null ? period.toFixed(0) + ' s'  : '—';
+            document.getElementById('playas-uvi').textContent        = uvi    !== null ? uvi.toFixed(1)            : '—';
+            document.getElementById('playas-wave-dir').textContent   = waveDir !== null ? getWindDir(waveDir)      : '—';
+            document.getElementById('playas-viento').textContent     = wwH !== null ? wwH.toFixed(2) + ' m'        : '—';
+            document.getElementById('playas-viento-dir').textContent = wwDir !== null ? getWindDir(wwDir)          : '—';
+            document.getElementById('playas-estado').textContent     = getEstadoMar(waveH);
 
-            // Previsión horaria marina
+            // ── Previsión horaria marina ──────────────────────────────────
             if (!marineHourly?.time) return;
             const tbody = document.getElementById('marine-forecast-body');
             if (!tbody) return;
             tbody.innerHTML = '';
             const now = new Date();
-            let count = 0;
-            for (let i = 0; i < marineHourly.time.length && count < 24; i++) {
+
+            // Recoger las próximas 24 horas válidas
+            const slots = [];
+            for (let i = 0; i < marineHourly.time.length && slots.length < 24; i++) {
                 const ht = new Date(marineHourly.time[i]);
-                if (ht < now && (now - ht) > 3600000) continue; // skip past hours (allow current hour)
-                const wh  = marineHourly.wave_height?.[i] ?? null;
-                const wp  = marineHourly.wave_period?.[i] ?? null;
-                const wd  = marineHourly.wave_direction?.[i] ?? null;
-                const wwh = marineHourly.wind_wave_height?.[i] ?? null;
-                const sst2 = marineHourly.sea_surface_temperature?.[i] ?? null;
-                const hora = ht.toLocaleDateString('es-ES',{weekday:'short'}) + ' ' + String(ht.getHours()).padStart(2,'0') + ':00';
-                const color = getWaveColor(wh);
+                if (ht < now && (now - ht) > 3600000) continue;
+                slots.push({
+                    ht,
+                    wh:   marineHourly.wave_height?.[i]            ?? null,
+                    wp:   marineHourly.wave_period?.[i]            ?? null,
+                    wd:   marineHourly.wave_direction?.[i]         ?? null,
+                    ws:   marineHourly.wind_speed_10m?.[i]         ?? null,   // km/h
+                    wsd:  marineHourly.wind_direction_10m?.[i]     ?? null,
+                    sst2: marineHourly.sea_surface_temperature?.[i]?? null,
+                });
+            }
+
+            // ── Helper: resumen textual de un grupo de slots ──────────────
+            function makeSummary(group) {
+                if (!group.length) return '—';
+                const whs  = group.map(s => s.wh).filter(v => v !== null);
+                const wss  = group.map(s => s.ws).filter(v => v !== null);
+                const wds  = group.map(s => s.wd).filter(v => v !== null);
+                const minH = whs.length ? Math.min(...whs) : null;
+                const maxH = whs.length ? Math.max(...whs) : null;
+                const avgW = wss.length ? Math.round(wss.reduce((a,b)=>a+b,0)/wss.length) : null;
+                const avgD = wds.length ? Math.round(wds.reduce((a,b)=>a+b,0)/wds.length) : null;
+                const estado = getEstadoMar(maxH !== null ? (minH+maxH)/2 : null);
+                let txt = '';
+                if (minH !== null && maxH !== null) {
+                    if (Math.abs(maxH - minH) < 0.1) txt += `Oleaje ${minH.toFixed(2)} m`;
+                    else txt += `Oleaje entre ${minH.toFixed(2)} y ${maxH.toFixed(2)} m`;
+                    txt += ` · ${estado}`;
+                }
+                if (avgW !== null) txt += ` · Viento ${avgW} km/h ${avgD !== null ? getWindDir(avgD) : ''}`;
+                return txt || '—';
+            }
+
+            const next6  = slots.slice(0, 6);
+            const after6 = slots.slice(6, 24);
+
+            // ── Fila resumen 0-6h ─────────────────────────────────────────
+            const trSum6 = document.createElement('tr');
+            trSum6.style.background = '#e8f4f8';
+            trSum6.innerHTML = `
+                <td colspan="6" style="padding:10px 12px;text-align:left;font-size:12px;color:#1a6b8a;font-weight:600;border-bottom:2px solid #1a6b8a;">
+                    <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-right:8px;">Próximas 6h</span>
+                    ${makeSummary(next6)}
+                </td>`;
+            tbody.appendChild(trSum6);
+
+            // Filas detalle 0-6h
+            next6.forEach(s => {
+                const hora = s.ht.toLocaleDateString('es-ES',{weekday:'short'}) + ' ' + String(s.ht.getHours()).padStart(2,'0') + ':00';
+                const color = getWaveColor(s.wh);
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="font-weight:700;color:#2C3E50;white-space:nowrap;">${hora}</td>
-                    <td style="font-weight:700;color:${color};">${wh !== null ? wh.toFixed(2)+' m' : '—'}</td>
-                    <td>${wp !== null ? wp.toFixed(0)+' s' : '—'}</td>
-                    <td>${wd !== null ? getWindDir(wd) : '—'}</td>
-                    <td>${wwh !== null ? wwh.toFixed(2)+' m' : '—'}</td>
-                    <td>${sst2 !== null ? sst2.toFixed(1)+'°C' : '—'}</td>
-                `;
+                    <td style="font-weight:700;color:${color};">${s.wh !== null ? s.wh.toFixed(2)+' m' : '—'}</td>
+                    <td>${s.wp !== null ? s.wp.toFixed(0)+' s' : '—'}</td>
+                    <td>${s.wd !== null ? getWindDir(s.wd) : '—'}</td>
+                    <td>${s.ws !== null ? Math.round(s.ws)+' km/h '+(s.wsd!==null?getWindDir(s.wsd):'') : '—'}</td>
+                    <td>${s.sst2 !== null ? s.sst2.toFixed(1)+'°C' : '—'}</td>`;
                 tbody.appendChild(tr);
-                count++;
+            });
+
+            // ── Fila resumen 7-24h ────────────────────────────────────────
+            if (after6.length) {
+                const trSep = document.createElement('tr');
+                trSep.style.background = '#e8f4f8';
+                trSep.innerHTML = `
+                    <td colspan="6" style="padding:10px 12px;text-align:left;font-size:12px;color:#1a6b8a;font-weight:600;border-top:2px solid #1a6b8a;border-bottom:2px solid #1a6b8a;">
+                        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-right:8px;">7–24h</span>
+                        ${makeSummary(after6)}
+                    </td>`;
+                tbody.appendChild(trSep);
+
+                // Filas detalle 7-24h
+                after6.forEach(s => {
+                    const hora = s.ht.toLocaleDateString('es-ES',{weekday:'short'}) + ' ' + String(s.ht.getHours()).padStart(2,'0') + ':00';
+                    const color = getWaveColor(s.wh);
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight:700;color:#2C3E50;white-space:nowrap;">${hora}</td>
+                        <td style="font-weight:700;color:${color};">${s.wh !== null ? s.wh.toFixed(2)+' m' : '—'}</td>
+                        <td>${s.wp !== null ? s.wp.toFixed(0)+' s' : '—'}</td>
+                        <td>${s.wd !== null ? getWindDir(s.wd) : '—'}</td>
+                        <td>${s.ws !== null ? Math.round(s.ws)+' km/h '+(s.wsd!==null?getWindDir(s.wsd):'') : '—'}</td>
+                        <td>${s.sst2 !== null ? s.sst2.toFixed(1)+'°C' : '—'}</td>`;
+                    tbody.appendChild(tr);
+                });
             }
         }
 
@@ -742,7 +811,7 @@
             try {
                 const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7`;
                 const aqUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=Europe/Madrid`;
-                const marineUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=3`;
+                const marineUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=3`;
                 const [res, aqRes, marineRes] = await Promise.all([fetch(url), fetch(aqUrl), fetch(marineUrl)]);
                 const data = await res.json();
                 const aqData = await aqRes.json();
