@@ -638,24 +638,6 @@
                 return '#ef4444';
             }
 
-            // ── Datos actuales ────────────────────────────────────────────
-            const waveH   = marine?.wave_height             ?? null;
-            const sst     = marine?.sea_surface_temperature  ?? null;
-            const period  = marine?.wave_period              ?? null;
-            const waveDir = marine?.wave_direction           ?? null;
-            const wwDir   = marine?.wind_wave_direction      ?? null;
-            const wwH     = marine?.wind_wave_height         ?? null;
-            const uvi     = daily?.uv_index_max?.[0]         ?? null;
-
-            document.getElementById('playas-oleaje').textContent     = waveH  !== null ? waveH.toFixed(2) + ' m'  : '—';
-            document.getElementById('playas-temp').textContent       = sst    !== null ? sst.toFixed(1)   + ' °C' : '—';
-            document.getElementById('playas-periodo').textContent    = period !== null ? period.toFixed(0) + ' s'  : '—';
-            document.getElementById('playas-uvi').textContent        = uvi    !== null ? uvi.toFixed(1)            : '—';
-            document.getElementById('playas-wave-dir').textContent   = waveDir !== null ? getWindDir(waveDir)      : '—';
-            document.getElementById('playas-viento').textContent     = wwH    !== null ? wwH.toFixed(2)  + ' m'   : '—';
-            document.getElementById('playas-viento-dir').textContent = wwDir  !== null ? getWindDir(wwDir)         : '—';
-            document.getElementById('playas-estado').textContent     = getEstadoMar(waveH);
-
             // ── Previsión por franjas día/mañana/tarde ────────────────────
             const container = document.getElementById('marine-summary-blocks');
             if (!container || !marineHourly?.time) return;
