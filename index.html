@@ -261,6 +261,178 @@
            FIN estilos artículo
            ══════════════════════════════════════════════ */
 
+        /* ══════════ WIDGET PREVISIÓN 3 DÍAS ══════════ */
+        #prevision-widget {
+          font-family: 'Inter', sans-serif;
+          background: linear-gradient(160deg, #34495e 0%, #2c3e50 100%);
+          padding: 0;
+          overflow: hidden;
+        }
+        #prevision-widget .pw-title {
+          display: flex; align-items: center; gap: 10px;
+          padding: 14px 20px 10px;
+        }
+        #prevision-widget .pw-dot {
+          width: 7px; height: 7px; border-radius: 50%;
+          background: #4db6ac; flex-shrink: 0;
+          animation: pw-pulse 2s infinite;
+        }
+        @keyframes pw-pulse {
+          0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.5)}
+        }
+        #prevision-widget .pw-heading {
+          color: rgba(255,255,255,0.7);
+          font-size: 10px; font-weight: 700;
+          letter-spacing: 2.5px; text-transform: uppercase;
+        }
+        #prevision-widget .pw-cards {
+          display: flex; gap: 3px; padding: 0 3px 3px;
+        }
+        #prevision-widget .pw-card {
+          flex: 1; background: rgba(255,255,255,0.06);
+          border-radius: 4px; overflow: hidden;
+          border: 1px solid rgba(255,255,255,0.1);
+          display: flex; flex-direction: column;
+          opacity: 0; transform: translateY(8px);
+          transition: opacity .45s ease, transform .45s ease;
+        }
+        #prevision-widget .pw-card.pw-visible {
+          opacity: 1; transform: translateY(0);
+        }
+        #prevision-widget .pw-card-head {
+          padding: 8px 8px 6px; text-align: center;
+          background: #263238; border-top: 3px solid;
+        }
+        #prevision-widget .pw-card:nth-child(1) .pw-card-head { border-color: #4caf50; }
+        #prevision-widget .pw-card:nth-child(2) .pw-card-head { border-color: #cddc39; }
+        #prevision-widget .pw-card:nth-child(3) .pw-card-head { border-color: #ffc107; }
+        #prevision-widget .pw-day-name {
+          color: #fff; font-size: 12px; font-weight: 700;
+          text-transform: capitalize; letter-spacing: .3px;
+        }
+        #prevision-widget .pw-day-date {
+          color: rgba(255,255,255,.38); font-size: 9px;
+          letter-spacing: 1px; margin-top: 1px;
+        }
+        /* Temps */
+        #prevision-widget .pw-temps {
+          background: #1a252b;
+          display: flex; justify-content: center;
+          align-items: center; gap: 10px; padding: 7px 6px;
+        }
+        #prevision-widget .pw-tmax {
+          font-size: 18px; font-weight: 800; color: #ff8a65; line-height: 1;
+        }
+        #prevision-widget .pw-tmin {
+          font-size: 13px; font-weight: 700; color: #80cbc4; line-height: 1;
+        }
+        #prevision-widget .pw-tdiv {
+          width: 1px; height: 20px; background: rgba(255,255,255,.12);
+        }
+        #prevision-widget .pw-ttag {
+          font-size: 8px; letter-spacing: .8px; text-transform: uppercase;
+          font-weight: 700; display: block; text-align: center;
+        }
+        #prevision-widget .pw-ttag-max { color: rgba(255,138,101,.55); }
+        #prevision-widget .pw-ttag-min { color: rgba(128,203,196,.55); }
+        /* Map */
+        #prevision-widget .pw-map {
+          position: relative; height: 190px;
+          background: linear-gradient(155deg, #9fb8c4 0%, #b8cdd5 100%);
+          overflow: hidden; flex: 1;
+        }
+        #prevision-widget .pw-sea {
+          position: absolute; bottom: 0; left: 0; right: 0;
+          height: 55px;
+          background: linear-gradient(180deg,#4db6ac 0%,#26a69a 100%);
+          clip-path: polygon(0 38%,100% 8%,100% 100%,0 100%);
+        }
+        #prevision-widget .pw-sea-lbl {
+          position: absolute; bottom: 7px; left: 50%;
+          transform: translateX(-50%);
+          color: rgba(255,255,255,.3); font-size: 6px;
+          letter-spacing: 2.5px; text-transform: uppercase;
+          white-space: nowrap; z-index: 4;
+        }
+        #prevision-widget .pw-wind-lbl {
+          position: absolute; top: 5px; right: 6px;
+          font-size: 7px; color: rgba(255,255,255,.42);
+          letter-spacing: 1.5px; text-transform: uppercase; z-index: 6;
+        }
+        #prevision-widget .pw-wicon {
+          position: absolute; font-size: 1.4rem; z-index: 5;
+          filter: drop-shadow(0 2px 5px rgba(0,0,0,.4));
+        }
+        #prevision-widget .pw-pin {
+          position: absolute; z-index: 6;
+          display: flex; flex-direction: column; align-items: center; gap: 2px;
+        }
+        #prevision-widget .pw-pin-dot {
+          width: 5px; height: 5px; background: #fff;
+          border-radius: 50%; border: 1.5px solid rgba(0,0,0,.35);
+          box-shadow: 0 1px 3px rgba(0,0,0,.4);
+        }
+        #prevision-widget .pw-pin-name {
+          background: rgba(15,25,30,.75); color: #fff;
+          font-size: 6.5px; font-weight: 700; padding: 1px 4px;
+          border-radius: 2px; letter-spacing: .4px; white-space: nowrap;
+        }
+        /* Summary bar */
+        #prevision-widget .pw-summary {
+          background: #1a252b;
+          display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+        }
+        #prevision-widget .pw-big-icon {
+          font-size: 2rem; line-height: 1; flex-shrink: 0;
+          filter: drop-shadow(0 2px 6px rgba(0,0,0,.45));
+        }
+        #prevision-widget .pw-summary-right { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+        #prevision-widget .pw-cond-text {
+          color: #eceff1; font-size: 10px; font-weight: 700; letter-spacing: .2px;
+        }
+        #prevision-widget .pw-precip-row {
+          display: flex; align-items: center; gap: 4px;
+        }
+        #prevision-widget .pw-precip-val {
+          font-size: 10px; font-weight: 700; color: #80cbc4;
+        }
+        #prevision-widget .pw-precip-lbl {
+          font-size: 8.5px; color: #546e7a; letter-spacing: .3px;
+        }
+        #prevision-widget .pw-precip-bar-wrap {
+          height: 3px; background: rgba(255,255,255,.08);
+          border-radius: 2px; overflow: hidden; margin-top: 2px;
+        }
+        #prevision-widget .pw-precip-bar-fill {
+          height: 100%; border-radius: 2px;
+          background: linear-gradient(90deg,#4db6ac,#80cbc4);
+          transition: width 1s ease;
+        }
+        /* Bottom wind/sea */
+        #prevision-widget .pw-bottom {
+          background: #151f24;
+          display: flex; justify-content: center;
+          align-items: center; gap: 16px; padding: 8px 8px;
+          flex-wrap: wrap;
+        }
+        #prevision-widget .pw-info {
+          display: flex; flex-direction: column; align-items: center; gap: 2px;
+        }
+        #prevision-widget .pw-info svg { width: 24px; height: 24px; }
+        #prevision-widget .pw-info-val {
+          font-size: 9px; font-weight: 700; color: #b0bec5;
+        }
+        #prevision-widget .pw-info-lbl {
+          font-size: 7.5px; color: #546e7a; text-align: center;
+        }
+
+        @media (max-width: 480px) {
+          #prevision-widget .pw-map { height: 155px; }
+          #prevision-widget .pw-tmax { font-size: 15px; }
+          #prevision-widget .pw-tmin { font-size: 11px; }
+        }
+        /* ══════════ FIN WIDGET ══════════ */
+
         @media (max-width: 480px) {
             .header-section { padding: 0; min-height: 150px; }
             .content-section { padding: 16px; }
@@ -323,6 +495,12 @@
                     <div style="color: #2C3E50; font-size: 12px; font-weight: 500; line-height: 1.5;">No hay fenómenos adversos previstos</div>
                 </div>
 
+                <!-- ══════════════════════════════════════════════════════════
+                     PREVISIÓN 3 DÍAS — WIDGET MAPA BARCELONA
+                ════════════════════════════════════════════════════════════ -->
+                <div id="prevision-widget" style="margin: 28px -24px 0 -24px;">
+                  <!-- El widget se renderiza aquí por JS -->
+                </div>
                 <!-- ══════════════════════════════════════════════════════════
                      SECCIÓN ARTÍCULO METEOROLÓGICO
                      
@@ -979,6 +1157,150 @@
 
         loadWeatherData();
         setInterval(loadWeatherData, 600000);
+
+        /* ══════ WIDGET PREVISIÓN 3 DÍAS ══════ */
+        (function(){
+          const DAYS_ES=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+          const MONTHS_ES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+          const WMO={
+            0:{e:'☀️',l:'Despejado'},1:{e:'🌤️',l:'Mayormente despejado'},
+            2:{e:'⛅',l:'Parcialmente nublado'},3:{e:'☁️',l:'Nublado'},
+            45:{e:'🌫️',l:'Niebla'},48:{e:'🌫️',l:'Niebla con escarcha'},
+            51:{e:'🌦️',l:'Llovizna ligera'},53:{e:'🌦️',l:'Llovizna'},55:{e:'🌧️',l:'Llovizna intensa'},
+            61:{e:'🌧️',l:'Lluvia ligera'},63:{e:'🌧️',l:'Lluvia moderada'},65:{e:'🌧️',l:'Lluvia intensa'},
+            71:{e:'🌨️',l:'Nieve ligera'},80:{e:'🌦️',l:'Chubascos ligeros'},
+            81:{e:'🌧️',l:'Chubascos moderados'},82:{e:'⛈️',l:'Chubascos fuertes'},
+            95:{e:'⛈️',l:'Tormenta'},99:{e:'⛈️',l:'Tormenta con granizo'}
+          };
+          function wmo(c){return WMO[c]||{e:'🌡️',l:'Variable'};}
+          function windDir(d){return['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'][Math.round(d/22.5)%16];}
+          function windLbl(s){if(s<10)return'Calma';if(s<20)return'Brisa suave';if(s<35)return'Viento moderado';if(s<50)return'Viento fuerte';return'Viento muy fuerte';}
+          function seaLbl(s){if(s<10)return{l:'Mar en calma',o:'< 0.5m'};if(s<20)return{l:'Mar rizada',o:'0.5–1m'};if(s<35)return{l:'Mar moderada',o:'1–1.5m'};if(s<50)return{l:'Mar agitada',o:'1.5–2.5m'};return{l:'Mar gruesa',o:'> 2.5m'};}
+
+          function bcnMap(){
+            return `<svg style="position:absolute;top:6px;left:50%;transform:translateX(-50%);width:90%;z-index:2;" viewBox="0 0 320 185" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="58" cy="52" rx="66" ry="40" fill="#8aac8a" opacity="0.42"/>
+              <polygon points="93,8 143,8 152,44 108,49 88,30" fill="#90a4ae" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="100" y="30" font-size="5.5" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">Nou Barris</text>
+              <polygon points="143,8 192,13 197,54 152,44" fill="#8fa8b5" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="154" y="33" font-size="5.5" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">Horta</text>
+              <polygon points="152,44 197,54 202,88 162,93 148,74" fill="#92aab8" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="159" y="73" font-size="5" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">St.Andreu</text>
+              <polygon points="108,49 152,44 148,74 118,84 98,69" fill="#8da5b2" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="112" y="67" font-size="5.5" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">Gràcia</text>
+              <polygon points="162,93 202,88 212,132 172,142 152,120" fill="#8badb8" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="167" y="118" font-size="5" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">St.Martí</text>
+              <polygon points="98,69 148,74 152,120 103,124 86,103" fill="#8fadb9" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="103" y="100" font-size="5.5" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">Eixample</text>
+              <polygon points="58,84 98,69 86,103 63,116 46,104" fill="#90a4ae" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="51" y="97" font-size="4.8" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">Les Corts</text>
+              <polygon points="38,42 108,49 98,69 58,84 28,64" fill="#8da5b0" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="44" y="62" font-size="4.8" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">Sarrià-S.G.</text>
+              <polygon points="46,104 86,103 103,124 88,152 38,142 28,122" fill="#8fa4ae" stroke="#546e7a" stroke-width="0.7"/>
+              <ellipse cx="52" cy="132" rx="18" ry="12" fill="#7a9a7a" opacity="0.48"/>
+              <text x="52" y="136" font-size="4.8" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">Montjuïc</text>
+              <polygon points="103,124 152,120 157,150 108,155 93,143" fill="#8aaab5" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="102" y="141" font-size="4.8" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">C.Vella/BCNeta</text>
+              <polygon points="157,150 212,132 220,160 162,168" fill="#89aab4" stroke="#546e7a" stroke-width="0.7"/>
+              <polyline points="28,162 88,155 108,157 157,153 212,133 230,127" fill="none" stroke="#4db6ac" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M202,88 Q212,108 216,132" fill="none" stroke="#80cbc4" stroke-width="1.2" opacity="0.5"/>
+            </svg>`;
+          }
+
+          function buildCard(idx, day){
+            const info=wmo(day.wmo);
+            const sea=seaLbl(day.wind);
+            const wdir=windDir(day.winddir);
+            const iconPos=[[{l:'26%',t:'10%'},{l:'52%',t:'20%'},{l:'35%',t:'42%'}],
+                           [{l:'23%',t:'12%'},{l:'50%',t:'18%'},{l:'37%',t:'41%'}],
+                           [{l:'28%',t:'11%'},{l:'53%',t:'22%'},{l:'33%',t:'43%'}]][idx];
+            const pins=[{n:'Eixample',l:'42%',t:'34%'},{n:'St.Martí',l:'60%',t:'20%'},{n:'Sarrià',l:'20%',t:'21%'}];
+            const rainPct=Math.min(day.rain*8,100);
+            const rainLbl=day.rain>10?'· Lluvia significativa':day.rain>0?'· Lluvia leve':'· Sin precipitación';
+            const delays=['0s','0.12s','0.24s'];
+
+            return `<div class="pw-card" id="pwcard${idx}" style="transition-delay:${delays[idx]}">
+              <div class="pw-card-head">
+                <div class="pw-day-name">${day.name}</div>
+                <div class="pw-day-date">${day.date}</div>
+              </div>
+              <div class="pw-temps">
+                <div><span class="pw-ttag pw-ttag-max">MÁX</span><span class="pw-tmax">${day.tmax}°</span></div>
+                <div class="pw-tdiv"></div>
+                <div><span class="pw-ttag pw-ttag-min">MÍN</span><span class="pw-tmin">${day.tmin}°</span></div>
+              </div>
+              <div class="pw-map">
+                <div class="pw-wind-lbl">${wdir} · ${Math.round(day.wind)} km/h</div>
+                ${bcnMap()}
+                <div class="pw-sea"></div>
+                <div class="pw-sea-lbl">Mar Mediterráneo</div>
+                ${iconPos.map(p=>`<div class="pw-wicon" style="left:${p.l};top:${p.t}">${info.e}</div>`).join('')}
+                ${pins.map(p=>`<div class="pw-pin" style="left:${p.l};top:${p.t}"><div class="pw-pin-dot"></div><div class="pw-pin-name">${p.n}</div></div>`).join('')}
+              </div>
+              <div class="pw-summary">
+                <div class="pw-big-icon">${info.e}</div>
+                <div class="pw-summary-right">
+                  <div class="pw-cond-text">${info.l}</div>
+                  <div class="pw-precip-row">
+                    <span>💧</span>
+                    <span class="pw-precip-val">${day.rain>0?day.rain.toFixed(1)+' mm':'0 mm'}</span>
+                    <span class="pw-precip-lbl">${rainLbl}</span>
+                  </div>
+                  <div class="pw-precip-bar-wrap"><div class="pw-precip-bar-fill" style="width:${rainPct}%"></div></div>
+                </div>
+              </div>
+              <div class="pw-bottom">
+                <div class="pw-info">
+                  <svg viewBox="0 0 40 40" fill="none"><line x1="10" y1="30" x2="26" y2="10" stroke="#80cbc4" stroke-width="3" stroke-linecap="round"/><polyline points="17,8 26,10 24,19" stroke="#80cbc4" stroke-width="2.5" stroke-linejoin="round"/><line x1="5" y1="34" x2="12" y2="34" stroke="#80cbc4" stroke-width="2"/></svg>
+                  <div class="pw-info-val">${windLbl(day.wind)}</div>
+                  <div class="pw-info-lbl">${Math.round(day.wind)} km/h · ${wdir}</div>
+                </div>
+                <div class="pw-info">
+                  <svg viewBox="0 0 50 34" fill="none"><path d="M2 14 Q9 6 16 14 Q23 22 30 14 Q37 6 44 14 Q48 18 50 14" stroke="#80cbc4" stroke-width="2.5" stroke-linecap="round"/><path d="M2 23 Q9 15 16 23 Q23 31 30 23 Q37 15 44 23" stroke="#80cbc4" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/></svg>
+                  <div class="pw-info-val">${sea.l}</div>
+                  <div class="pw-info-lbl">Oleaje ${sea.o}</div>
+                </div>
+              </div>
+            </div>`;
+          }
+
+          async function loadWidget(){
+            const wrap=document.getElementById('prevision-widget');
+            if(!wrap) return;
+            try {
+              const url='https://api.open-meteo.com/v1/forecast?latitude=41.3888&longitude=2.159&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,winddirection_10m_dominant&timezone=Europe%2FMadrid&forecast_days=3';
+              const data=await(await fetch(url)).json();
+              const d=data.daily;
+              const days=[];
+              for(let i=0;i<3;i++){
+                const raw=new Date(d.time[i]+'T12:00:00');
+                days.push({
+                  name:DAYS_ES[raw.getDay()],
+                  date:`${raw.getDate()} ${MONTHS_ES[raw.getMonth()].toUpperCase()} · ${raw.getFullYear()}`,
+                  wmo:d.weathercode[i],
+                  tmax:Math.round(d.temperature_2m_max[i]),
+                  tmin:Math.round(d.temperature_2m_min[i]),
+                  rain:d.precipitation_sum[i]||0,
+                  wind:d.windspeed_10m_max[i],
+                  winddir:d.winddirection_10m_dominant[i]
+                });
+              }
+              wrap.innerHTML=`
+                <div class="pw-title"><div class="pw-dot"></div><div class="pw-heading">Previsión próximos 3 días · Barcelona</div></div>
+                <div class="pw-cards">${days.map((d,i)=>buildCard(i,d)).join('')}</div>`;
+              requestAnimationFrame(()=>{
+                document.querySelectorAll('.pw-card').forEach((c,i)=>{
+                  setTimeout(()=>c.classList.add('pw-visible'),i*130);
+                });
+              });
+            } catch(e){
+              // Silently fail — widget simply stays hidden
+              wrap.style.display='none';
+            }
+          }
+          loadWidget();
+        })();
+        /* ══════ FIN WIDGET ══════ */
     </script>
 </body>
 </html>
