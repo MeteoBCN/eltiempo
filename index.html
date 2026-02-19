@@ -738,11 +738,16 @@
 
             // Construir franjas de 3 días (hoy, mañana, pasado)
             const todosDias = [];
+            // Fecha local de hoy (sin problemas UTC)
+            const hoyLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             for (let dOff = 0; dOff <= 2; dOff++) {
-                const base = new Date(now);
+                const base = new Date(hoyLocal);
                 base.setDate(base.getDate() + dOff);
-                base.setHours(0, 0, 0, 0);
-                const fecha = base.toISOString().slice(0, 10);
+                // Fecha en formato YYYY-MM-DD local
+                const yy = base.getFullYear();
+                const mm = String(base.getMonth()+1).padStart(2,'0');
+                const dd = String(base.getDate()).padStart(2,'0');
+                const fecha = yy + '-' + mm + '-' + dd;
                 const diaNombre = cap(DIAS[base.getDay()]);
                 const franjasDelDia = FRANJAS_DEF.map(f => {
                     const tsFin = base.getTime() + f.fin * 3600000;
@@ -772,8 +777,9 @@
             }
 
             function getIdxAt(fecha, hora) {
-                const dt = new Date(`${fecha}T${String(hora).padStart(2,'0')}:00:00`);
-                return hourly.time.findIndex(t => Math.abs(new Date(t) - dt) < 1800000);
+                // Buscar por prefijo string para evitar problemas de zona horaria
+                const prefix = fecha + 'T' + String(hora).padStart(2,'0');
+                return hourly.time.findIndex(t => t.startsWith(prefix));
             }
 
             function franjaDatos(f) {
