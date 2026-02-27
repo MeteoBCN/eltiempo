@@ -1202,187 +1202,173 @@
 
         function getWindDir(deg) { return['N','NE','E','SE','S','SO','O','NO'][Math.round(deg/45)%8]; }
 
+        function buildExpandableDay(hourly, daily, off, container) {
+            if(daily.temperature_2m_min[off]===undefined||daily.temperature_2m_max[off]===undefined) return;
+            const now=new Date();
+            const tDay=new Date(now); tDay.setDate(tDay.getDate()+off); tDay.setHours(0,0,0,0);
+            const dn=getDayName(tDay.toISOString());
+            const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+            const fechaStr=tDay.getDate()+' '+MESES[tDay.getMonth()];
+
+            // Icono representativo (hora 12)
+            let h12=-1;
+            for(let i=0;i<hourly.time.length;i++){const ht=new Date(hourly.time[i]);if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()&&ht.getHours()===12){h12=i;break;}}
+            const mc=h12!==-1?hourly.weather_code[h12]:(daily.weather_code?.[off]||0);
+            const cdMain=h12!==-1?{cloud_cover:hourly.cloud_cover?.[h12],cloud_cover_low:hourly.cloud_cover_low?.[h12],cloud_cover_mid:hourly.cloud_cover_mid?.[h12]}:null;
+            const icon=getWeatherIcon(mc,h12!==-1?new Date(hourly.time[h12]):tDay,cdMain);
+            const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
+
+            // Totales del día
+            let tp=0,ws=[],wd=[];
+            for(let i=0;i<hourly.time.length;i++){
+                const ht=new Date(hourly.time[i]);
+                if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()){
+                    tp+=hourly.precipitation[i]||0;
+                    if(hourly.wind_speed_10m)ws.push(hourly.wind_speed_10m[i]);
+                    if(hourly.wind_direction_10m)wd.push(hourly.wind_direction_10m[i]);
+                }
+            }
+            tp=Math.round(tp*10)/10;
+            const aw=ws.length>0?Math.round(ws.reduce((a,b)=>a+b,0)/ws.length):0;
+            const awd=wd.length>0?Math.round(wd.reduce((a,b)=>a+b,0)/wd.length):0;
+
+            // Amanecer/atardecer y UVI
+            const sr=daily.sunrise?.[off]?new Date(daily.sunrise[off]).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'--:--';
+            const ss=daily.sunset?.[off]?new Date(daily.sunset[off]).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'--:--';
+            const uv=daily.uv_index_max?.[off]!==undefined?Math.round(daily.uv_index_max[off]*10)/10:'--';
+
+            // Datos horarios 08, 12, 16, 20
+            let hIdx={8:-1,12:-1,16:-1,20:-1};
+            for(let i=0;i<hourly.time.length;i++){
+                const ht=new Date(hourly.time[i]);
+                if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()){
+                    const hr=ht.getHours();
+                    if(hr===8&&hIdx[8]===-1)hIdx[8]=i;
+                    if(hr===12&&hIdx[12]===-1)hIdx[12]=i;
+                    if(hr===16&&hIdx[16]===-1)hIdx[16]=i;
+                    if(hr===20&&hIdx[20]===-1)hIdx[20]=i;
+                }
+            }
+            const hrs=[8,12,16,20];
+            const labels=['08:00','12:00','16:00','20:00'];
+            function cdHr(idx){return idx!==-1?{cloud_cover:hourly.cloud_cover?.[idx],cloud_cover_low:hourly.cloud_cover_low?.[idx],cloud_cover_mid:hourly.cloud_cover_mid?.[idx]}:null;}
+            const icons4=hrs.map(hr=>hIdx[hr]!==-1?getWeatherIcon(hourly.weather_code[hIdx[hr]],new Date(hourly.time[hIdx[hr]]),cdHr(hIdx[hr])):'—');
+            const temps4=hrs.map(hr=>hIdx[hr]!==-1?Math.round(hourly.temperature_2m[hIdx[hr]])+'°C':'--');
+            const hum4=hrs.map(hr=>hIdx[hr]!==-1&&hourly.relative_humidity_2m?hourly.relative_humidity_2m[hIdx[hr]]+'%':'--');
+            const pres4=hrs.map(hr=>{
+                const i=hIdx[hr]; if(i===-1)return'--';
+                const p=hourly.pressure_msl?.[i];
+                return p?Math.round(p)+' hPa':'--';
+            });
+            const rain4=hrs.map(hr=>hIdx[hr]!==-1?(hourly.precipitation?.[hIdx[hr]]||0).toFixed(1)+' mm':'--');
+            const wind4=hrs.map(hr=>hIdx[hr]!==-1?Math.round(hourly.wind_speed_10m?.[hIdx[hr]]||0)+' km/h':'--');
+            const wdir4=hrs.map(hr=>hIdx[hr]!==-1&&hourly.wind_direction_10m?getWindDir(hourly.wind_direction_10m[hIdx[hr]]):'--');
+
+            // Wrapper
+            const wrap=document.createElement('div');
+            wrap.style.cssText='margin-bottom:0;border-bottom:1px solid #e9ecef;';
+
+            // Cabecera clicable
+            const head=document.createElement('div');
+            head.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:14px 10px;cursor:pointer;background:#fff;user-select:none;transition:background 0.2s;';
+            head.innerHTML=`
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="font-size:30px;line-height:1;">${icon}</div>
+                    <div>
+                        <div style="font-size:15px;font-weight:700;color:#2C3E50;">${dn} <span style="font-size:12px;font-weight:400;color:#94A3B8;">${fechaStr}</span></div>
+                        <div style="font-size:12px;color:#64748B;margin-top:3px;line-height:1.6;">
+                            <span style="color:#3B82F6;font-weight:700;">${minT}°</span>
+                            <span style="color:#ccc;margin:0 3px;">·</span>
+                            <span style="color:#EF4444;font-weight:700;">${maxT}°</span>
+                            <span style="color:#ccc;margin:0 5px;">|</span>
+                            <span>💧 ${tp} mm</span>
+                            <span style="color:#ccc;margin:0 5px;">|</span>
+                            <span>💨 ${aw} km/h ${getWindDir(awd)}</span>
+                            <br>
+                            <span style="font-size:11px;">🌅 ${sr}</span>
+                            <span style="color:#ccc;margin:0 5px;">|</span>
+                            <span style="font-size:11px;">🌇 ${ss}</span>
+                            <span style="color:#ccc;margin:0 5px;">|</span>
+                            <span style="font-size:11px;">☀️ UVI ${uv}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="ds-arrow" style="font-size:12px;color:#94A3B8;transition:transform 0.3s;flex-shrink:0;">▼</div>`;
+
+            // Contenido desplegable
+            const body=document.createElement('div');
+            body.style.cssText='display:none;overflow:hidden;';
+            body.innerHTML=`
+            <table style="width:100%;border-collapse:collapse;background:#f8fafc;">
+            <thead><tr style="background:#2C3E50;">${labels.map(l=>`<th style="padding:10px 6px;color:#fff;font-size:13px;font-weight:700;text-align:center;">${l}</th>`).join('')}</tr></thead>
+            <tbody>
+                <tr>${[0,1,2,3].map(j=>`<td style="text-align:center;padding:12px 4px 4px;font-size:30px;line-height:1;">${icons4[j]}</td>`).join('')}</tr>
+                <tr style="background:#fff;">
+                    ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px;">
+                        <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Temp.</div>
+                        <div style="font-size:15px;font-weight:700;color:#2C3E50;">${temps4[j]}</div>
+                    </td>`).join('')}
+                </tr>
+                <tr>
+                    ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px;">
+                        <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Humedad</div>
+                        <div style="font-size:13px;font-weight:600;color:#2C3E50;">${hum4[j]}</div>
+                    </td>`).join('')}
+                </tr>
+                <tr style="background:#fff;">
+                    ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px;">
+                        <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Presión</div>
+                        <div style="font-size:12px;font-weight:600;color:#2C3E50;">${pres4[j]}</div>
+                    </td>`).join('')}
+                </tr>
+                <tr>
+                    ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px;">
+                        <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Lluvia</div>
+                        <div style="font-size:13px;font-weight:700;color:#3B82F6;">${rain4[j]}</div>
+                    </td>`).join('')}
+                </tr>
+                <tr style="background:#fff;">
+                    ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px 4px 12px;">
+                        <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Viento</div>
+                        <div style="font-size:13px;font-weight:700;color:#2C3E50;">${wind4[j]}</div>
+                        <div style="font-size:11px;color:#64748B;">${wdir4[j]}</div>
+                    </td>`).join('')}
+                </tr>
+            </tbody>
+            </table>`;
+
+            head.addEventListener('click',function(){
+                const isOpen=body.style.display!=='none';
+                body.style.display=isOpen?'none':'block';
+                head.querySelector('.ds-arrow').style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';
+                head.style.background=isOpen?'#fff':'#f0f4f8';
+            });
+
+            wrap.appendChild(head);
+            wrap.appendChild(body);
+            container.appendChild(wrap);
+        }
+
         function updateDaysTable(hourly, daily) {
             const container=document.getElementById('days-detailed-container'); container.innerHTML='';
-            const now=new Date();
-            for(let off=1;off<=3;off++){
-                const tDay=new Date(now); tDay.setDate(tDay.getDate()+off); tDay.setHours(0,0,0,0);
-                const dn=getDayName(tDay.toISOString());
-                let h={8:-1,12:-1,16:-1,20:-1};
-                for(let i=0;i<hourly.time.length;i++){
-                    const ht=new Date(hourly.time[i]);
-                    if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()){
-                        const hr=ht.getHours();
-                        if(hr===8&&h[8]===-1)h[8]=i; if(hr===12&&h[12]===-1)h[12]=i;
-                        if(hr===16&&h[16]===-1)h[16]=i; if(hr===20&&h[20]===-1)h[20]=i;
-                    }
-                }
-                function cd(idx){return idx!==-1?{cloud_cover:hourly.cloud_cover?.[idx],cloud_cover_low:hourly.cloud_cover_low?.[idx],cloud_cover_mid:hourly.cloud_cover_mid?.[idx]}:null;}
-                const hrs=[8,12,16,20];
-                const icons=hrs.map(hr=>h[hr]!==-1?getWeatherIcon(hourly.weather_code[h[hr]],new Date(hourly.time[h[hr]]),cd(h[hr])):'—');
-                const temps=hrs.map(hr=>h[hr]!==-1?Math.round(hourly.temperature_2m[h[hr]]):'--');
-                const rains=hrs.map(hr=>h[hr]!==-1?(hourly.precipitation_probability?.[h[hr]]||0):0);
-                const winds=hrs.map(hr=>h[hr]!==-1?Math.round(hourly.wind_speed_10m[h[hr]]):'--');
-                const wdirs=hrs.map(hr=>h[hr]!==-1&&hourly.wind_direction_10m?getWindDir(hourly.wind_direction_10m[h[hr]]):'--');
-                const minT=Math.round(daily.temperature_2m_min[off]), maxT=Math.round(daily.temperature_2m_max[off]);
-                let tp=0;
-                for(let i=0;i<hourly.time.length;i++){const ht=new Date(hourly.time[i]);if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth())tp+=hourly.precipitation[i]||0;}
-                tp=Math.round(tp*10)/10;
-                const sr=daily.sunrise?.[off]?new Date(daily.sunrise[off]).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'--:--';
-                const ss=daily.sunset?.[off]?new Date(daily.sunset[off]).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'--:--';
-                const uv=daily.uv_index_max?.[off]!==undefined?Math.round(daily.uv_index_max[off]*10)/10:0;
-                const t=document.createElement('table'); t.className='day-detailed-table';
-                const labels=['08:00','12:00','16:00','20:00'];
-                t.innerHTML=`<thead><tr style="background:#2C3E50;"><th colspan="4" style="color:#FFFFFF;">${dn}</th></tr></thead><tbody>
-                <tr>${[0,1,2,3].map(j=>`<td style="width:25%;"><div class="time-label">${labels[j]}</div><div class="weather-icon-large">${icons[j]}</div></td>`).join('')}</tr>
-                <tr>${[0,1,2,3].map(j=>`<td><div style="font-size:16px;font-weight:700;color:#2C3E50;">${temps[j]}°C</div></td>`).join('')}</tr>
-                <tr><td colspan="2"><div class="rain-value temp-min">${minT}°C</div></td><td colspan="2"><div class="rain-value temp-max">${maxT}°C</div></td></tr>
-                <tr style="background:rgba(44,62,80,0.08);">${[0,1,2,3].map(j=>`<td style="border:none;"><div style="font-size:14px;font-weight:600;color:#2C3E50;">${rains[j]}%</div></td>`).join('')}</tr>
-                <tr style="background:rgba(44,62,80,0.08);"><td colspan="4" style="padding:10px;font-size:13px;color:#2C3E50;font-weight:600;border:none;">Precipitación total: <span>${tp} mm</span></td></tr>
-                <tr>${[0,1,2,3].map(j=>`<td><div style="font-size:13px;font-weight:600;color:#2C3E50;">${winds[j]} km/h</div><div style="font-size:11px;color:#2C3E50;margin-top:2px;">${wdirs[j]}</div></td>`).join('')}</tr>
-                <tr><td colspan="4" style="padding:10px;font-size:12px;color:#2C3E50;"><i class="wi wi-sunrise"></i> ${sr} <span style="margin:0 15px;">|</span><i class="wi wi-sunset"></i> ${ss}<span style="margin:0 15px;">|</span> UVI: <strong>${uv}</strong></td></tr>
-                </tbody>`;
-                container.appendChild(t);
+            // Título de sección
+            const title=document.createElement('div');
+            title.style.cssText='background:#2C3E50;padding:14px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;';
+            title.textContent='Previsión próximos 7 días';
+            container.appendChild(title);
+            // Wrapper con borde
+            const box=document.createElement('div');
+            box.style.cssText='border:1px solid #e9ecef;border-top:none;background:#fff;';
+            for(let off=1;off<=6;off++){
+                buildExpandableDay(hourly, daily, off, box);
             }
+            container.appendChild(box);
         }
 
         function updateDaysSummary(hourly, daily) {
-            const container=document.getElementById('days-summary-container'); container.innerHTML='';
-            const now=new Date();
-
-            for(let off=4;off<=6;off++){
-                if(daily.temperature_2m_min[off]===undefined||daily.temperature_2m_max[off]===undefined) continue;
-                const tDay=new Date(now); tDay.setDate(tDay.getDate()+off); tDay.setHours(0,0,0,0);
-                const dn=getDayName(tDay.toISOString());
-
-                // Icono representativo (hora 12)
-                let h12=-1;
-                for(let i=0;i<hourly.time.length;i++){const ht=new Date(hourly.time[i]);if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()&&ht.getHours()===12){h12=i;break;}}
-                const mc=h12!==-1?hourly.weather_code[h12]:(daily.weather_code?.[off]||0);
-                const cd=h12!==-1?{cloud_cover:hourly.cloud_cover?.[h12],cloud_cover_low:hourly.cloud_cover_low?.[h12],cloud_cover_mid:hourly.cloud_cover_mid?.[h12]}:null;
-                const icon=getWeatherIcon(mc,h12!==-1?new Date(hourly.time[h12]):tDay,cd);
-                const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
-
-                // Totales del día
-                let tp=0,ws=[],wd=[];
-                // Humedad y presión medias
-                let humArr=[],presArr=[];
-                for(let i=0;i<hourly.time.length;i++){
-                    const ht=new Date(hourly.time[i]);
-                    if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()){
-                        tp+=hourly.precipitation[i]||0;
-                        if(hourly.wind_speed_10m)ws.push(hourly.wind_speed_10m[i]);
-                        if(hourly.wind_direction_10m)wd.push(hourly.wind_direction_10m[i]);
-                        if(hourly.relative_humidity_2m)humArr.push(hourly.relative_humidity_2m[i]);
-                        if(hourly.surface_pressure)presArr.push(hourly.surface_pressure[i]);
-                    }
-                }
-                tp=Math.round(tp*10)/10;
-                const aw=ws.length>0?Math.round(ws.reduce((a,b)=>a+b,0)/ws.length):0;
-                const awd=wd.length>0?Math.round(wd.reduce((a,b)=>a+b,0)/wd.length):0;
-
-                // Datos horarios para las 4 franjas (08, 12, 16, 20)
-                let hIdx={8:-1,12:-1,16:-1,20:-1};
-                for(let i=0;i<hourly.time.length;i++){
-                    const ht=new Date(hourly.time[i]);
-                    if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()){
-                        const hr=ht.getHours();
-                        if(hr===8&&hIdx[8]===-1)hIdx[8]=i;
-                        if(hr===12&&hIdx[12]===-1)hIdx[12]=i;
-                        if(hr===16&&hIdx[16]===-1)hIdx[16]=i;
-                        if(hr===20&&hIdx[20]===-1)hIdx[20]=i;
-                    }
-                }
-                const hrs=[8,12,16,20];
-                const labels=['08:00','12:00','16:00','20:00'];
-                function cdHr(idx){return idx!==-1?{cloud_cover:hourly.cloud_cover?.[idx],cloud_cover_low:hourly.cloud_cover_low?.[idx],cloud_cover_mid:hourly.cloud_cover_mid?.[idx]}:null;}
-                const icons4=hrs.map(hr=>hIdx[hr]!==-1?getWeatherIcon(hourly.weather_code[hIdx[hr]],new Date(hourly.time[hIdx[hr]]),cdHr(hIdx[hr])):'—');
-                const temps4=hrs.map(hr=>hIdx[hr]!==-1?Math.round(hourly.temperature_2m[hIdx[hr]]):'--');
-                const hum4=hrs.map(hr=>hIdx[hr]!==-1&&hourly.relative_humidity_2m?hourly.relative_humidity_2m[hIdx[hr]]+'%':'--');
-                const pres4=hrs.map(hr=>{
-                    const i=hIdx[hr];
-                    if(i===-1) return '--';
-                    // intentar surface_pressure o pressure_msl si está en hourly
-                    const p=hourly.pressure_msl?.[i]||hourly.surface_pressure?.[i];
-                    return p?Math.round(p)+' hPa':'--';
-                });
-                const rain4=hrs.map(hr=>hIdx[hr]!==-1?(hourly.precipitation?.[hIdx[hr]]||0).toFixed(1)+' mm':'--');
-
-                const dayId='dsday'+off;
-
-                // Wrapper desplegable
-                const wrap=document.createElement('div');
-                wrap.style.cssText='margin-bottom:0;border-bottom:1px solid #e9ecef;';
-
-                // Cabecera clicable (resumen)
-                const head=document.createElement('div');
-                head.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:14px 10px;cursor:pointer;background:#fff;user-select:none;';
-                head.innerHTML=`
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="font-size:28px;line-height:1;">${icon}</div>
-                        <div>
-                            <div style="font-size:15px;font-weight:700;color:#2C3E50;">${dn}</div>
-                            <div style="font-size:12px;color:#64748B;margin-top:2px;">
-                                <span style="color:#3B82F6;font-weight:600;">${minT}°</span>
-                                <span style="margin:0 4px;color:#ccc;">·</span>
-                                <span style="color:#EF4444;font-weight:600;">${maxT}°</span>
-                                <span style="margin:0 6px;color:#ccc;">|</span>
-                                <span style="color:#2C3E50;">💧 ${tp} mm</span>
-                                <span style="margin:0 6px;color:#ccc;">|</span>
-                                <span style="color:#2C3E50;">💨 ${aw} km/h ${getWindDir(awd)}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="ds-arrow" style="font-size:12px;color:#94A3B8;transition:transform 0.3s;">▼</div>`;
-
-                // Contenido desplegable
-                const body=document.createElement('div');
-                body.id=dayId;
-                body.style.cssText='display:none;overflow:hidden;';
-
-                // Tabla de 4 horas
-                body.innerHTML=`
-                <table style="width:100%;border-collapse:collapse;background:#f8fafc;">
-                <thead><tr style="background:#2C3E50;">${labels.map(l=>`<th style="padding:10px 6px;color:#fff;font-size:13px;font-weight:700;text-align:center;">${l}</th>`).join('')}</tr></thead>
-                <tbody>
-                    <tr>${[0,1,2,3].map(j=>`<td style="text-align:center;padding:12px 6px 6px;font-size:30px;line-height:1;">${icons4[j]}</td>`).join('')}</tr>
-                    <tr style="background:#fff;">
-                        ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px 6px;">
-                            <div style="font-size:15px;font-weight:700;color:#2C3E50;">${temps4[j]}°C</div>
-                        </td>`).join('')}
-                    </tr>
-                    <tr>
-                        ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px 6px;">
-                            <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Humedad</div>
-                            <div style="font-size:13px;font-weight:600;color:#2C3E50;">${hum4[j]}</div>
-                        </td>`).join('')}
-                    </tr>
-                    <tr style="background:#fff;">
-                        ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px 6px;">
-                            <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Presión</div>
-                            <div style="font-size:12px;font-weight:600;color:#2C3E50;">${pres4[j]}</div>
-                        </td>`).join('')}
-                    </tr>
-                    <tr>
-                        ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px 6px 12px;">
-                            <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Lluvia</div>
-                            <div style="font-size:13px;font-weight:700;color:#3B82F6;">${rain4[j]}</div>
-                        </td>`).join('')}
-                    </tr>
-                </tbody>
-                </table>`;
-
-                // Toggle al clicar
-                head.addEventListener('click',function(){
-                    const isOpen=body.style.display!=='none';
-                    body.style.display=isOpen?'none':'block';
-                    head.querySelector('.ds-arrow').style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';
-                });
-
-                wrap.appendChild(head);
-                wrap.appendChild(body);
-                container.appendChild(wrap);
-            }
+            // Ahora vacío — los días 5-7 ya se muestran en updateDaysTable
+            const container=document.getElementById('days-summary-container');
+            if(container) container.innerHTML='';
         }
 
         function updateTime() {
