@@ -618,7 +618,10 @@
             </div>
         </div>
 
-        <div class="weather-table-container" style="margin-top: 60px;">
+        <!-- TABLA PRECIPITACIONES 7 DÍAS -->
+        <div id="rain-7days-container" style="max-width:600px;margin:40px auto 0;"></div>
+
+        <div class="weather-table-container" style="margin-top: 28px;">
             <div id="days-detailed-container">
                 <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
             </div>
@@ -1162,6 +1165,7 @@
                 updateAirQualityTable(aqData.current);
                 updatePlayasTable(marineData.current, data.daily, marineData.hourly, data.hourly);
                 updateWeatherTable(data.hourly);
+                updateRainTable(data.hourly, data.daily);
                 updateDaysTable(data.hourly, data.daily);
                 updateDaysSummary(data.hourly, data.daily);
                 updateTime();
@@ -1457,6 +1461,124 @@
             wrap.appendChild(head);
             wrap.appendChild(body);
             container.appendChild(wrap);
+        }
+
+        function updateRainTable(hourly, daily) {
+            const container = document.getElementById('rain-7days-container');
+            if (!container || !daily?.time) return;
+            const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+            const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+            function groupRainHours(hours) {
+                if (!hours.length) return '';
+                const ranges = [];
+                let s = hours[0], e = hours[0];
+                for (let k = 1; k < hours.length; k++) {
+                    if (hours[k] === e + 1) { e = hours[k]; }
+                    else {
+                        ranges.push(s === e
+                            ? String(s).padStart(2,'0') + 'h'
+                            : String(s).padStart(2,'0') + '-' + String(e+1).padStart(2,'0') + 'h');
+                        s = e = hours[k];
+                    }
+                }
+                ranges.push(s === e
+                    ? String(s).padStart(2,'0') + 'h'
+                    : String(s).padStart(2,'0') + '-' + String(e+1).padStart(2,'0') + 'h');
+                return ranges.join(', ');
+            }
+
+            // Construir filas: día 0 (hoy) hasta día 6
+            const rows = [];
+            let totalAcum = 0;
+            for (let off = 0; off < 7; off++) {
+                const dateStr = daily.time[off];
+                if (!dateStr) continue;
+                const d = new Date(dateStr + 'T12:00:00');
+                const diaNom = DIAS[d.getDay()];
+                const fechaLabel = d.getDate() + ' ' + MESES[d.getMonth()];
+
+                let tp = 0, rainHours = [];
+                for (let i = 0; i < hourly.time.length; i++) {
+                    if (!hourly.time[i].startsWith(dateStr)) continue;
+                    const pr = hourly.precipitation[i] || 0;
+                    tp += pr;
+                    if (pr > 0) rainHours.push(parseInt(hourly.time[i].slice(11,13), 10));
+                }
+                tp = Math.round(tp * 10) / 10;
+                totalAcum += tp;
+
+                const horasStr = groupRainHours(rainHours);
+                const hasRain = tp > 0;
+
+                // Barra visual proporcional (máx 20mm = 100%)
+                const barPct = Math.min(tp / 20 * 100, 100);
+                const barColor = tp === 0 ? '#e2e8f0'
+                    : tp < 2   ? '#93c5fd'
+                    : tp < 8   ? '#3b82f6'
+                    : tp < 15  ? '#1d4ed8'
+                    : '#7c3aed';
+
+                rows.push({ diaNom, fechaLabel, tp, horasStr, hasRain, barPct, barColor, isToday: off === 0 });
+            }
+            totalAcum = Math.round(totalAcum * 10) / 10;
+
+            let html = `
+            <div style="background:#2C3E50;padding:14px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
+                Precipitación — Próximos 7 días
+            </div>
+            <div style="border:1px solid #e2e8f0;border-top:none;background:#fff;overflow:hidden;">
+                <table style="width:100%;border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:#f1f5f9;">
+                            <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;width:38%;">Día</th>
+                            <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;width:16%;">Total</th>
+                            <th style="padding:10px 8px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;">Horas con lluvia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            rows.forEach((r, idx) => {
+                const bg = r.isToday ? 'background:#f8faff;' : (idx % 2 === 0 ? '' : 'background:#fafafa;');
+                const todayMark = r.isToday ? '<span style="font-size:9px;background:#3b82f6;color:#fff;padding:1px 5px;border-radius:3px;margin-left:5px;vertical-align:middle;">HOY</span>' : '';
+                const mmColor = r.tp === 0 ? '#94a3b8' : r.tp < 5 ? '#3b82f6' : r.tp < 15 ? '#1d4ed8' : '#7c3aed';
+                const horasCell = r.hasRain
+                    ? `<span style="font-size:12px;color:#1e293b;font-weight:500;">${r.horasStr}</span>`
+                    : `<span style="font-size:12px;color:#94a3b8;font-style:italic;">Sin lluvia</span>`;
+
+                html += `
+                <tr style="${bg}border-bottom:1px solid #f1f5f9;">
+                    <td style="padding:11px 12px;">
+                        <div style="font-size:14px;font-weight:700;color:#2c3e50;">${r.diaNom} <span style="font-weight:400;color:#64748b;">${r.fechaLabel}</span>${todayMark}</div>
+                        <div style="margin-top:5px;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;">
+                            <div style="height:100%;width:${r.barPct}%;background:${r.barColor};border-radius:3px;transition:width 0.8s ease;"></div>
+                        </div>
+                    </td>
+                    <td style="padding:11px 8px;text-align:center;">
+                        <div style="font-size:16px;font-weight:800;color:${mmColor};">${r.tp > 0 ? r.tp : '—'}</div>
+                        ${r.tp > 0 ? '<div style="font-size:10px;color:#94a3b8;margin-top:1px;">mm</div>' : ''}
+                    </td>
+                    <td style="padding:11px 8px;">${horasCell}</td>
+                </tr>`;
+            });
+
+            html += `
+                    </tbody>
+                    <tfoot>
+                        <tr style="background:#f1f5f9;border-top:2px solid #e2e8f0;">
+                            <td style="padding:11px 12px;font-size:13px;font-weight:700;color:#2c3e50;">Total acumulado 7 días</td>
+                            <td style="padding:11px 8px;text-align:center;">
+                                <div style="font-size:17px;font-weight:800;color:${totalAcum > 0 ? '#1d4ed8' : '#94a3b8'};">${totalAcum > 0 ? totalAcum : '—'}</div>
+                                ${totalAcum > 0 ? '<div style="font-size:10px;color:#94a3b8;margin-top:1px;">mm</div>' : ''}
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>`;
+
+            container.innerHTML = html;
         }
 
         function updateDaysTable(hourly, daily) {
