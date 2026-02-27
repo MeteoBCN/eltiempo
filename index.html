@@ -110,6 +110,7 @@
         .weather-table-container { margin: 40px auto; overflow-x: auto; animation: fadeIn 0.6s ease-out 0.6s both; max-width: 600px; width: 100%; -webkit-overflow-scrolling: touch; }
         #weather-table { width: 100%; min-width: 100%; border-collapse: collapse; background: var(--color-bg-card); border-radius: 0; overflow: hidden; box-shadow: var(--shadow-md); backdrop-filter: blur(10px); }
         #weather-table thead tr { background: #2C3E50; }
+        #weather-table thead tr.rain-header-bg { background: linear-gradient(135deg, #1a3a5c 0%, #1e4976 40%, #1a6b8a 100%) !important; }
         #weather-table th { padding: 14px 10px; text-align: center; color: #FFFFFF; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
         #weather-table tbody tr { border-bottom: 1px solid rgba(148, 163, 184, 0.15); }
         #weather-table tbody tr:nth-child(even) { background-color: rgba(241, 245, 249, 0.5); }
@@ -181,6 +182,26 @@
         .franja-dato span { display: block; }
         /* ══════ FIN TABLA FRANJAS ══════ */
 
+        /* ══════ CABECERA LLUVIA (fondo compartido) ══════ */
+        .rain-header-bg {
+            background: linear-gradient(135deg, #1a3a5c 0%, #1e4976 40%, #1a6b8a 100%) !important;
+            position: relative;
+            overflow: hidden;
+        }
+        .rain-header-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0.18;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='60'%3E%3Cellipse cx='30' cy='12' rx='18' ry='9' fill='%23fff'/%3E%3Cellipse cx='75' cy='8' rx='24' ry='11' fill='%23fff'/%3E%3Cellipse cx='55' cy='13' rx='20' ry='10' fill='%23fff'/%3E%3Cellipse cx='140' cy='10' rx='22' ry='10' fill='%23fff'/%3E%3Cellipse cx='175' cy='7' rx='18' ry='9' fill='%23fff'/%3E%3Cellipse cx='158' cy='13' rx='16' ry='8' fill='%23fff'/%3E%3Cellipse cx='260' cy='11' rx='20' ry='10' fill='%23fff'/%3E%3Cellipse cx='295' cy='7' rx='22' ry='10' fill='%23fff'/%3E%3Cellipse cx='278' cy='14' rx='18' ry='9' fill='%23fff'/%3E%3Cellipse cx='360' cy='9' rx='19' ry='9' fill='%23fff'/%3E%3Cellipse cx='390' cy='12' rx='15' ry='8' fill='%23fff'/%3E%3Cline x1='28' y1='22' x2='24' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='38' y1='24' x2='34' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='48' y1='22' x2='44' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='58' y1='24' x2='54' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='68' y1='22' x2='64' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='78' y1='24' x2='74' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='148' y1='22' x2='144' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='158' y1='24' x2='154' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='168' y1='22' x2='164' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='178' y1='24' x2='174' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='268' y1='22' x2='264' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='278' y1='24' x2='274' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='288' y1='22' x2='284' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='298' y1='24' x2='294' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='368' y1='22' x2='364' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='378' y1='24' x2='374' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-size: 400px 60px;
+            background-repeat: repeat-x;
+            background-position: bottom;
+            pointer-events: none;
+        }
+        .rain-header-bg > * { position: relative; z-index: 1; }
+        /* ══════ FIN CABECERA LLUVIA ══════ */
+
         .webcam-container { display: flex; flex-direction: column; align-items: center; width: 100%; margin: 32px 0; animation: fadeIn 0.6s ease-out 1s both; }
         .webcam-frame { width: 100%; height: auto; aspect-ratio: 16 / 9; overflow: hidden; border: none; background: #000; border-radius: 0; box-shadow: var(--shadow-md); }
         .webcam-frame img { width: 100%; height: 100%; object-fit: cover; }
@@ -190,6 +211,7 @@
            ══════════════════════════════════════════════ */
         .playas-section { margin: 0 auto; max-width: 600px; animation: fadeIn 0.6s ease-out 0.5s both; }
         .playas-header { background: #2c3e50; padding: 13px 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .playas-header.rain-header-bg { background: linear-gradient(135deg, #1a3a5c 0%, #1e4976 40%, #1a6b8a 100%) !important; }
         .playas-header-title { font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
         .playas-card { display: flex; align-items: stretch; width: 100%; background: #fff; box-shadow: var(--shadow-md); }
         .playas-icon-col { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 20px; background: #eaf4f8; min-width: 110px; gap: 10px; }
@@ -594,7 +616,7 @@
         <div class="weather-table-container" style="margin-top: 28px; margin-bottom: 0;">
             <table id="weather-table">
                 <thead>
-                    <tr><th>Hora</th><th>Cielo</th><th>ºC</th><th>Lluvia</th><th>Viento</th></tr>
+                    <tr class="rain-header-bg"><th>Hora</th><th>Cielo</th><th>ºC</th><th>Lluvia</th><th>Viento</th></tr>
                 </thead>
                 <tbody id="weather-table-body">
                     <tr><td colspan="5" style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</td></tr>
@@ -608,7 +630,7 @@
              SECCIÓN PLAYAS DE BARCELONA
         ═══════════════════════════════════════════════ -->
         <div class="playas-section">
-            <div class="playas-header">
+            <div class="playas-header rain-header-bg">
                 <span class="playas-header-title">Playas — Estado de la mar</span>
             </div>
 
@@ -1530,9 +1552,8 @@
             });
 
             let html = `
-            <div style="background:linear-gradient(135deg,#1a3a5c 0%,#1e4976 40%,#1a6b8a 100%);padding:16px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;position:relative;overflow:hidden;">
-                <div style="position:absolute;inset:0;opacity:0.18;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='60'%3E%3Cellipse cx='30' cy='12' rx='18' ry='9' fill='%23fff'/%3E%3Cellipse cx='75' cy='8' rx='24' ry='11' fill='%23fff'/%3E%3Cellipse cx='55' cy='13' rx='20' ry='10' fill='%23fff'/%3E%3Cellipse cx='140' cy='10' rx='22' ry='10' fill='%23fff'/%3E%3Cellipse cx='175' cy='7' rx='18' ry='9' fill='%23fff'/%3E%3Cellipse cx='158' cy='13' rx='16' ry='8' fill='%23fff'/%3E%3Cellipse cx='260' cy='11' rx='20' ry='10' fill='%23fff'/%3E%3Cellipse cx='295' cy='7' rx='22' ry='10' fill='%23fff'/%3E%3Cellipse cx='278' cy='14' rx='18' ry='9' fill='%23fff'/%3E%3Cellipse cx='360' cy='9' rx='19' ry='9' fill='%23fff'/%3E%3Cellipse cx='390' cy='12' rx='15' ry='8' fill='%23fff'/%3E%3Cline x1='28' y1='22' x2='24' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='38' y1='24' x2='34' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='48' y1='22' x2='44' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='58' y1='24' x2='54' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='68' y1='22' x2='64' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='78' y1='24' x2='74' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='148' y1='22' x2='144' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='158' y1='24' x2='154' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='168' y1='22' x2='164' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='178' y1='24' x2='174' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='268' y1='22' x2='264' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='278' y1='24' x2='274' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='288' y1='22' x2='284' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='298' y1='24' x2='294' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='368' y1='22' x2='364' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='378' y1='24' x2='374' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E\");background-size:400px 60px;background-repeat:repeat-x;background-position:bottom;"></div>
-                <span style="position:relative;z-index:1;">💧 Precipitación — Próximos 7 días</span>
+            <div class="rain-header-bg" style="padding:16px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
+                Precipitación — Próximos 7 días
             </div>
             <div style="border:1px solid #e2e8f0;border-top:none;background:#fff;overflow:hidden;">
                 <table style="width:100%;border-collapse:collapse;">
@@ -1582,7 +1603,8 @@
             const container=document.getElementById('days-detailed-container'); container.innerHTML='';
             // Título de sección
             const title=document.createElement('div');
-            title.style.cssText='background:#2C3E50;padding:14px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;';
+            title.className = 'rain-header-bg';
+            title.style.cssText='padding:14px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;';
             title.textContent='Previsión próximos 7 días';
             container.appendChild(title);
             // Wrapper con borde
