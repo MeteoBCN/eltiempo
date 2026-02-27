@@ -1511,21 +1511,28 @@
                 const horasStr = groupRainHours(rainHours);
                 const hasRain = tp > 0;
 
-                // Barra visual proporcional (máx 20mm = 100%)
-                const barPct = Math.min(tp / 20 * 100, 100);
-                const barColor = tp === 0 ? '#e2e8f0'
-                    : tp < 2   ? '#93c5fd'
-                    : tp < 8   ? '#3b82f6'
-                    : tp < 15  ? '#1d4ed8'
-                    : '#7c3aed';
-
-                rows.push({ diaNom, fechaLabel, tp, horasStr, hasRain, barPct, barColor, isToday: off === 0 });
+                rows.push({ diaNom, fechaLabel, tp, horasStr, hasRain, isToday: off === 0 });
             }
             totalAcum = Math.round(totalAcum * 10) / 10;
+
+            // Escala dinámica: máximo real redondeado al múltiplo de 5 superior (mínimo 10mm)
+            const maxTp = Math.max(...rows.map(r => r.tp), 0);
+            const scaleMax = Math.max(10, Math.ceil(maxTp / 5) * 5);
+
+            // Calcular barras y colores ahora que tenemos la escala
+            rows.forEach(r => {
+                r.barPct = scaleMax > 0 ? Math.min(r.tp / scaleMax * 100, 100) : 0;
+                r.barColor = r.tp === 0 ? '#e2e8f0'
+                    : r.tp < 2   ? '#93c5fd'
+                    : r.tp < 8   ? '#3b82f6'
+                    : r.tp < 15  ? '#1d4ed8'
+                    : '#7c3aed';
+            });
 
             let html = `
             <div style="background:#2C3E50;padding:14px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
                 Precipitación — Próximos 7 días
+                <span style="font-size:10px;font-weight:400;opacity:0.6;display:block;margin-top:2px;text-transform:none;letter-spacing:0;">Escala de barras: 0 – ${scaleMax} mm</span>
             </div>
             <div style="border:1px solid #e2e8f0;border-top:none;background:#fff;overflow:hidden;">
                 <table style="width:100%;border-collapse:collapse;">
