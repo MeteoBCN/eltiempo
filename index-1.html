@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiempo Barcelona</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/weather-icons@1.3.2/css/weather-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #3B82F6;
+            --color-bg-card: rgba(255, 255, 255, 0.85);
+            --color-text-primary: #1E293B;
+            --color-text-secondary: #64748B;
+            --color-text-tertiary: #94A3B8;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --border-radius: 16px;
+            --border-radius-sm: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--color-text-primary);
+            background: #FFFFFF;
+            background-attachment: fixed;
+            padding: 0;
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: 100vh;
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+        .container { padding: 0; animation: fadeIn 0.6s ease-out; max-width: 100%; overflow-x: hidden; }
+        .header-section {
+            background: #2C3E50;
+            padding: 0;
+            background-image: url('banner11.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            min-height: 200px;
+        }
+        .header-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: transparent; z-index: 0; }
+        .content-section { background: #FFFFFF; padding: 24px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .current-weather { text-align: center; padding: 48px 24px 32px 24px; margin-bottom: 32px; background: transparent; border-radius: var(--border-radius); box-shadow: none; backdrop-filter: none; animation: scaleIn 0.6s ease-out 0.2s both; }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .weather-divider { height: 1px; background: linear-gradient(90deg, transparent 0%, var(--color-text-tertiary) 50%, transparent 100%); opacity: 0.3; margin: 32px 0 24px 0; }
+        .location { font-size: 18px; margin-bottom: 12px; font-weight: 500; color: var(--color-text-secondary); letter-spacing: 0.5px; }
+        .icon-large { font-size: 72px; margin: 24px 0; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1)); }
+        .temperature { font-size: 72px; font-weight: 300; margin-bottom: 12px; color: var(--color-text-primary); letter-spacing: -2px; line-height: 1; }
+        .condition { font-size: 22px; margin-bottom: 28px; font-weight: 400; color: var(--color-text-secondary); letter-spacing: 0.3px; }
+        .details { display: flex; justify-content: space-around; font-size: 14px; margin-top: 28px; flex-wrap: wrap; gap: 24px; }
+        .detail-item { text-align: center; min-width: 90px; }
+        .detail-item > div:first-child { color: var(--color-text-tertiary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 6px; }
+        .detail-value { font-size: 16px; font-weight: 600; margin-top: 6px; color: var(--color-text-primary); }
+        .weather-alerts-banner { margin: 24px 0; padding: 0; animation: fadeIn 0.6s ease-out 0.4s both; }
+        .alert-banner-item { padding: 16px 18px; border-left: 4px solid; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 10px; background: transparent; border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0; box-shadow: none; }
+        .alert-banner-item:last-child { margin-bottom: 0; }
+        .alert-banner-green { border-left-color: #10B981; }
+        .alert-banner-yellow { border-left-color: #F59E0B; }
+        .alert-banner-orange { border-left-color: #F97316; }
+        .alert-banner-red { border-left-color: #EF4444; }
+        .alert-banner-left { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .alert-banner-icon { font-size: 24px; flex-shrink: 0; animation: pulse 2s ease-in-out infinite; }
+        .alert-banner-text { flex: 1; }
+        .alert-banner-title { font-size: 15px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 3px; letter-spacing: 0.2px; }
+        .alert-banner-desc { font-size: 13px; color: var(--color-text-secondary); line-height: 1.4; }
+        .alert-banner-level { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; white-space: nowrap; flex-shrink: 0; }
+        .banner-level-green { background-color: #10B981; color: white; }
+        .banner-level-yellow { background-color: #F59E0B; color: white; }
+        .banner-level-orange { background-color: #F97316; color: white; }
+        .banner-level-red { background-color: #EF4444; color: white; }
+        .no-alerts-banner { padding: 16px 18px; text-align: center; color: #10B981; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; background: transparent; border-radius: var(--border-radius-sm); box-shadow: none; font-weight: 500; }
+        .no-alerts-banner-icon { width: 20px; height: 20px; background-color: #10B981; border-radius: 50%; display: inline-block; animation: pulse 2s ease-in-out infinite; }
+        .alerts-banner-loading { padding: 16px 18px; text-align: center; color: var(--color-text-tertiary); font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 10px; background: transparent; border-radius: var(--border-radius-sm); box-shadow: none; }
+        .daily-forecast { margin-bottom: 40px; }
+        .day-item { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; border-bottom: 1px solid rgba(0, 0, 0, 0.1); }
+        .day-item:last-child { border-bottom: none; }
+        .day-name { flex: 1; font-size: 18px; color: var(--color-text-primary); }
+        .day-icon { font-size: 40px; margin: 0 15px; }
+        .day-temps { display: flex; gap: 10px; font-size: 18px; }
+        .temp-max { font-weight: 600; color: #EF4444; }
+        .temp-min { font-weight: 500; color: #3B82F6; }
+        .radar { margin-bottom: 40px; }
+        .radar-frame { width: 100%; height: 400px; background: #d0d0d0; border-radius: var(--border-radius); overflow: hidden; }
+        .radar-frame iframe { width: 100%; height: 100%; border: none; }
+        .update-time { text-align: center; font-size: 13px; color: var(--color-text-tertiary); margin-top: 36px; padding-bottom: 12px; font-weight: 500; letter-spacing: 0.3px; }
+        .divulgacion-link { text-align: center; padding: 24px 0 36px; }
+        .divulgacion-link a { color: var(--color-text-secondary); text-decoration: none; font-size: 15px; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.3s ease; letter-spacing: 0.3px; padding-bottom: 2px; }
+        .divulgacion-link a:hover { border-bottom-color: var(--color-primary); color: var(--color-primary); }
+        .loading { text-align: center; padding: 40px; color: var(--color-text-tertiary); }
+        .error { text-align: center; padding: 20px; color: #EF4444; }
+        .wi-day-sunny, .wi-night-clear, .wi-day-sunny-overcast, .wi-mostly-clear-day,
+        .wi-night-alt-cloudy, .wi-day-cloudy, .wi-cloudy, .wi-fog, .wi-night-fog,
+        .wi-sprinkle, .wi-night-alt-sprinkle, .wi-rain, .wi-night-alt-rain,
+        .wi-rain-wind, .wi-night-alt-rain-wind, .wi-snow, .wi-night-alt-snow,
+        .wi-snow-wind, .wi-night-alt-snow-wind, .wi-showers, .wi-night-alt-showers,
+        .wi-storm-showers, .wi-night-alt-storm-showers, .wi-thunderstorm,
+        .wi-night-alt-thunderstorm, .wi-raindrop { color: #2C3E50; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .weather-table-container { margin: 40px auto; overflow-x: auto; animation: fadeIn 0.6s ease-out 0.6s both; max-width: 600px; width: 100%; -webkit-overflow-scrolling: touch; }
+        #weather-table { width: 100%; min-width: 100%; border-collapse: collapse; background: var(--color-bg-card); border-radius: 0; overflow: hidden; box-shadow: var(--shadow-md); backdrop-filter: blur(10px); }
+        #weather-table thead tr { background: #2C3E50; }
+        #weather-table th { padding: 14px 10px; text-align: center; color: #FFFFFF; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        #weather-table tbody tr { border-bottom: 1px solid rgba(148, 163, 184, 0.15); }
+        #weather-table tbody tr:nth-child(even) { background-color: rgba(241, 245, 249, 0.5); }
+        #weather-table tbody tr:nth-child(odd) { background-color: rgba(255, 255, 255, 0.3); }
+        #weather-table tbody tr:last-child { border-bottom: none; }
+        #weather-table td { padding: 16px 10px; text-align: center; color: var(--color-text-primary); font-size: 14px; font-weight: 500; }
+        #weather-table .table-hour { font-weight: 700; color: #2C3E50; font-size: 15px; letter-spacing: 0.3px; }
+        #weather-table .table-icon { font-size: 32px; }
+        #weather-table .table-temp { font-weight: 600; font-size: 16px; color: #2C3E50; }
+        #weather-table .table-rain { color: #2C3E50; font-weight: 600; }
+        #weather-table .table-wind { color: #2C3E50; font-weight: 500; }
+        .day-detailed-table { width: 100%; border-collapse: collapse; background: var(--color-bg-card); border-radius: 0; overflow: hidden; box-shadow: none; margin-bottom: 24px; backdrop-filter: blur(10px); }
+        .day-detailed-table thead tr { background: #2C3E50; }
+        .day-detailed-table thead th { padding: 16px 10px; text-align: center; color: #FFFFFF; font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 1.2px; }
+        .day-detailed-table tbody td { padding: 14px 10px; text-align: center; border-bottom: 1px solid rgba(148, 163, 184, 0.15); }
+        .day-detailed-table tbody tr:last-child td { border-bottom: none; }
+        .day-detailed-table .time-label { font-size: 13px; color: #2C3E50; font-weight: 600; letter-spacing: 0.3px; }
+        .day-detailed-table .weather-icon-large { font-size: 40px; margin: 8px 0; }
+        .day-detailed-table .rain-value { color: #3B82F6; font-weight: 700; font-size: 15px; }
+        .day-detailed-table .info-label { font-size: 11px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; font-weight: 600; }
+        .day-detailed-table .info-value { font-size: 15px; font-weight: 700; color: var(--color-text-primary); }
+        .day-detailed-table .temp-max { color: #EF4444; }
+        .day-detailed-table .temp-min { color: #3B82F6; }
+        .narrative-container { padding: 0; margin-top: 24px; }
+        .narrative-title { font-size: 13px; font-weight: 700; color: var(--color-text-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; text-align: center; }
+        #narrative-forecast { text-align: center; line-height: 1.7; font-size: 15px; color: var(--color-text-primary); font-weight: 400; letter-spacing: 0.2px; }
+        #marine-forecast-table tbody tr { border-bottom: 1px solid rgba(148,163,184,0.15); }
+        #marine-forecast-table tbody tr:nth-child(even) { background: rgba(241,245,249,0.6); }
+        #marine-forecast-table tbody td { padding: 10px 8px; text-align: center; color: var(--color-text-primary); font-weight: 500; }
+        .marine-forecast-container { margin: 40px 0; animation: fadeIn 0.6s ease-out 0.8s both; }
+        .marine-forecast-title { font-size: 20px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 20px; text-align: center; text-transform: uppercase; letter-spacing: 1.5px; }
+        .marine-table { width: 100%; border-collapse: collapse; background: var(--color-bg-card); border-radius: 0; overflow: hidden; box-shadow: var(--shadow-md); backdrop-filter: blur(10px); margin-bottom: 24px; }
+        .marine-table thead tr { background: #e6e6e6; }
+        .marine-table thead th { padding: 16px 10px; text-align: center; color: #505050; font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 1.2px; }
+        .marine-table tbody td { padding: 16px 10px; text-align: center; border-bottom: 1px solid rgba(148, 163, 184, 0.15); font-size: 14px; color: var(--color-text-primary); font-weight: 500; }
+        .marine-table tbody tr:nth-child(even) { background-color: rgba(241, 245, 249, 0.5); }
+        .marine-table tbody tr:nth-child(odd) { background-color: rgba(255, 255, 255, 0.3); }
+        .marine-table tbody tr:last-child td { border-bottom: none; }
+        .marine-table .marine-label { font-weight: 700; color: var(--color-text-secondary); text-align: left; padding-left: 20px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .marine-table .marine-value { font-weight: 700; font-size: 16px; }
+        .marine-table .temp-water { color: #0EA5E9; }
+        .marine-table .wave-height { color: #06B6D4; }
+        .marine-table .uvi-value { font-weight: 700; }
+        .astronomy-table { width: 100%; border-collapse: collapse; background: transparent; border-radius: 0; overflow: hidden; box-shadow: none; backdrop-filter: none; }
+        .astronomy-table tbody td { padding: 10px 8px; border: none; font-size: 14px; text-align: center; }
+        .astronomy-table tbody tr:first-child td { font-weight: 600; color: var(--color-text-secondary); font-size: 12px; text-transform: none; letter-spacing: 0.5px; padding-bottom: 8px; }
+        .astronomy-table tbody tr:last-child td { font-weight: 700; color: var(--color-text-primary); font-size: 16px; padding-top: 4px; }
+        .astronomy-table .astro-icon { margin-right: 6px; font-size: 14px; }
+        .today-table { width: 100%; border-collapse: collapse; background: var(--color-bg-card); border-radius: 0; overflow: hidden; box-shadow: var(--shadow-md); backdrop-filter: blur(10px); }
+        .today-table thead tr { background: #2C3E50; }
+        .today-table thead th { padding: 16px 10px; text-align: center; color: #FFFFFF; font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 1.2px; }
+        .today-table tbody td { padding: 16px 10px; text-align: center; border-bottom: 1px solid rgba(148, 163, 184, 0.15); }
+        .today-table tbody tr:last-child td { border-bottom: none; }
+        .today-label { font-size: 9px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; font-weight: 600; }
+        .today-value { font-size: 13px; font-weight: 700; color: var(--color-text-primary); }
+        /* ══════ TABLA FRANJAS DÍA ══════ */
+        .franjas-wrap { background: #2c3e50; width: 100%; max-width: 600px; margin: 0 auto; }
+        .franjas-cols { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; }
+        .franja-col { padding: 14px 6px 16px; border-right: 1px solid rgba(255,255,255,0.15); text-align: center; }
+        .franja-col:last-child { border-right: none; }
+        .franja-nombre { font-size: 9px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .franja-icon { font-size: 1.7rem; margin-bottom: 6px; line-height: 1; }
+        .franja-icon i, .franja-icon i.wi { font-size: 1.7rem !important; color: #ffffff !important; }
+        .franja-temp { font-size: 19px; font-weight: 800; color: #ffffff; margin-bottom: 8px; line-height: 1; }
+        .franja-temp-label { font-size: 8px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
+        .franja-temp.es-min { color: #7ec8e3; }
+        .franja-temp.es-max { color: #ff7c7c; }
+        .franja-dato { font-size: 10px; color: #ffffff; margin-top: 4px; line-height: 1.7; }
+        .franja-dato span { display: block; }
+        /* ══════ FIN TABLA FRANJAS ══════ */
+
+        .webcam-container { display: flex; flex-direction: column; align-items: center; width: 100%; margin: 32px 0; animation: fadeIn 0.6s ease-out 1s both; }
+        .webcam-frame { width: 100%; height: auto; aspect-ratio: 16 / 9; overflow: hidden; border: none; background: #000; border-radius: 0; box-shadow: var(--shadow-md); }
+        .webcam-frame img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* ══════════════════════════════════════════════
+           SECCIÓN PLAYAS — estilos
+           ══════════════════════════════════════════════ */
+        .playas-section { margin: 0 auto; max-width: 600px; animation: fadeIn 0.6s ease-out 0.5s both; }
+        .playas-header { background: #2c3e50; padding: 13px 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .playas-header-title { font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
+        .playas-card { display: flex; align-items: stretch; width: 100%; background: #fff; box-shadow: var(--shadow-md); }
+        .playas-icon-col { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 20px; background: #eaf4f8; min-width: 110px; gap: 10px; }
+        .playas-sea-icon { width: 64px; height: 64px; }
+        .playas-bandera-badge { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-verde  { background: #d1fae5; color: #065f46; }
+        .badge-amarilla { background: #fef3c7; color: #92400e; }
+        .badge-roja   { background: #fee2e2; color: #991b1b; }
+        .bandera-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .dot-verde    { background: #10B981; }
+        .dot-amarilla { background: #F59E0B; }
+        .dot-roja     { background: #EF4444; }
+        .playas-data-col { flex: 1; display: grid; grid-template-columns: 1fr 1fr; border-left: 1px solid #e2e8f0; }
+        .playas-card-full { flex-direction: column; }
+        .playas-data-full { display: grid; grid-template-columns: 1fr 1fr 1fr; width: 100%; }
+        .playas-data-full .playas-dato { border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; }
+        .playas-data-full .playas-dato:nth-child(3n) { border-right: none; }
+        .playas-data-full .playas-dato:nth-last-child(-n+2) { border-bottom: none; }
+        .playas-dato { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 18px 10px; border-bottom: 1px solid #e2e8f0; }
+        .playas-dato:nth-child(odd) { border-right: 1px solid #e2e8f0; }
+        .playas-dato:nth-last-child(-n+2) { border-bottom: none; }
+        .playas-dato-label { font-size: 10px; font-weight: 700; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 5px; }
+        .playas-dato-value { font-size: 20px; font-weight: 700; color: #1a6b8a; }
+        .playas-dato-value.uvi-value { color: #e07b00; }
+        .playas-note { font-size: 11px; color: var(--color-text-tertiary); text-align: center; margin-top: 6px; padding: 0 24px 4px; font-style: italic; }
+
+        /* ══════════════════════════════════════════════
+           SECCIÓN ARTÍCULO — estilos
+           ══════════════════════════════════════════════ */
+        .articulo-meteorologico {
+            margin: 32px 0 0 0;
+            padding-top: 28px;
+            border-top: 1px solid #e2e8f0;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .articulo-autor {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .articulo-autor-avatar {
+            position: relative;
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+        }
+        .articulo-autor-foto {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            background: #e2e8f0;
+        }
+        .articulo-autor-initials {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #2C3E50;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 1px;
+        }
+        .articulo-autor-info { display: flex; flex-direction: column; gap: 4px; }
+        .articulo-autor-nombre { font-size: 13px; color: #64748B; font-weight: 400; letter-spacing: 0.3px; }
+        .articulo-autor-nombre strong { color: #1E293B; font-weight: 700; }
+        .articulo-autor-fecha { font-size: 12px; color: #94A3B8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; }
+        .articulo-titulo { font-size: 24px; font-weight: 700; color: #1E293B; line-height: 1.3; margin: 0 0 22px 0; letter-spacing: -0.3px; }
+        .articulo-imagen-wrapper { margin: 0 0 8px 0; border-radius: 8px; overflow: hidden; }
+        .articulo-imagen-1 { width: 100%; height: 220px; object-fit: cover; display: block; background: #e2e8f0; }
+        .articulo-imagen-pie { font-size: 12px; color: #94A3B8; margin: 0 0 20px 0; line-height: 1.4; }
+        .articulo-imagen-pie strong { color: #64748B; }
+        .articulo-cuerpo { font-size: 15px; color: #374151; line-height: 1.75; letter-spacing: 0.2px; }
+        .articulo-cuerpo p { margin: 0 0 16px 0; }
+        .articulo-cuerpo p:last-child { margin-bottom: 0; }
+        .articulo-imagen-2 { width: 100%; height: 180px; object-fit: cover; display: block; border-radius: 8px; background: #e2e8f0; margin: 20px 0 8px 0; }
+        .articulo-destacado { border-left: 4px solid #2C3E50; padding: 12px 18px; margin: 20px 0; background: #F8FAFC; border-radius: 0 8px 8px 0; font-size: 15px; font-weight: 600; color: #2C3E50; line-height: 1.5; font-style: italic; }
+        /* ══════════════════════════════════════════════
+           FIN estilos artículo
+           ══════════════════════════════════════════════ */
+
+        /* ══════════ WIDGET PREVISIÓN 3 DÍAS ══════════ */
+        #prevision-widget {
+          font-family: 'Inter', sans-serif;
+          background: linear-gradient(160deg, #34495e 0%, #2c3e50 100%);
+          padding: 0;
+          overflow: hidden;
+        }
+        #prevision-widget .pw-title {
+          display: flex; align-items: center; gap: 10px;
+          padding: 14px 20px 10px;
+        }
+        #prevision-widget .pw-dot {
+          width: 7px; height: 7px; border-radius: 50%;
+          background: #4db6ac; flex-shrink: 0;
+          animation: pw-pulse 2s infinite;
+        }
+        @keyframes pw-pulse {
+          0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.5)}
+        }
+        #prevision-widget .pw-heading {
+          color: rgba(255,255,255,0.7);
+          font-size: 10px; font-weight: 700;
+          letter-spacing: 2.5px; text-transform: uppercase;
+        }
+        #prevision-widget .pw-cards {
+          display: flex; gap: 3px; padding: 0 3px 3px;
+        }
+        #prevision-widget .pw-card {
+          flex: 1; background: rgba(255,255,255,0.06);
+          border-radius: 4px; overflow: hidden;
+          border: 1px solid rgba(255,255,255,0.1);
+          display: flex; flex-direction: column;
+          opacity: 0; transform: translateY(8px);
+          transition: opacity .45s ease, transform .45s ease;
+        }
+        #prevision-widget .pw-card.pw-visible {
+          opacity: 1; transform: translateY(0);
+        }
+        #prevision-widget .pw-card-head {
+          padding: 8px 8px 6px; text-align: center;
+          background: #263238; border-top: 3px solid;
+        }
+        #prevision-widget .pw-card:nth-child(1) .pw-card-head { border-color: #4caf50; }
+        #prevision-widget .pw-card:nth-child(2) .pw-card-head { border-color: #cddc39; }
+        #prevision-widget .pw-card:nth-child(3) .pw-card-head { border-color: #ffc107; }
+        #prevision-widget .pw-day-name {
+          color: #fff; font-size: 12px; font-weight: 700;
+          text-transform: capitalize; letter-spacing: .3px;
+        }
+        #prevision-widget .pw-day-date {
+          color: rgba(255,255,255,.38); font-size: 9px;
+          letter-spacing: 1px; margin-top: 1px;
+        }
+        /* Temps */
+        #prevision-widget .pw-temps {
+          background: #1a252b;
+          display: flex; justify-content: center;
+          align-items: center; gap: 10px; padding: 7px 6px;
+        }
+        #prevision-widget .pw-tmax {
+          font-size: 18px; font-weight: 800; color: #ff8a65; line-height: 1;
+        }
+        #prevision-widget .pw-tmin {
+          font-size: 13px; font-weight: 700; color: #80cbc4; line-height: 1;
+        }
+        #prevision-widget .pw-tdiv {
+          width: 1px; height: 20px; background: rgba(255,255,255,.12);
+        }
+        #prevision-widget .pw-ttag {
+          font-size: 8px; letter-spacing: .8px; text-transform: uppercase;
+          font-weight: 700; display: block; text-align: center;
+        }
+        #prevision-widget .pw-ttag-max { color: rgba(255,138,101,.55); }
+        #prevision-widget .pw-ttag-min { color: rgba(128,203,196,.55); }
+        /* Map */
+        #prevision-widget .pw-map {
+          position: relative; height: 190px;
+          background: linear-gradient(155deg, #9fb8c4 0%, #b8cdd5 100%);
+          overflow: hidden; flex: 1;
+        }
+        #prevision-widget .pw-sea {
+          position: absolute; bottom: 0; left: 0; right: 0;
+          height: 55px;
+          background: linear-gradient(180deg,#4db6ac 0%,#26a69a 100%);
+          clip-path: polygon(0 38%,100% 8%,100% 100%,0 100%);
+        }
+        #prevision-widget .pw-sea-lbl {
+          position: absolute; bottom: 7px; left: 50%;
+          transform: translateX(-50%);
+          color: rgba(255,255,255,.3); font-size: 6px;
+          letter-spacing: 2.5px; text-transform: uppercase;
+          white-space: nowrap; z-index: 4;
+        }
+        #prevision-widget .pw-wind-lbl {
+          position: absolute; top: 5px; right: 6px;
+          font-size: 7px; color: rgba(255,255,255,.42);
+          letter-spacing: 1.5px; text-transform: uppercase; z-index: 6;
+        }
+        #prevision-widget .pw-wicon {
+          position: absolute; font-size: 1.4rem; z-index: 5;
+          filter: drop-shadow(0 2px 5px rgba(0,0,0,.4));
+        }
+        #prevision-widget .pw-pin {
+          position: absolute; z-index: 6;
+          display: flex; flex-direction: column; align-items: center; gap: 2px;
+        }
+        #prevision-widget .pw-pin-dot {
+          width: 5px; height: 5px; background: #fff;
+          border-radius: 50%; border: 1.5px solid rgba(0,0,0,.35);
+          box-shadow: 0 1px 3px rgba(0,0,0,.4);
+        }
+        #prevision-widget .pw-pin-name {
+          background: rgba(15,25,30,.75); color: #fff;
+          font-size: 6.5px; font-weight: 700; padding: 1px 4px;
+          border-radius: 2px; letter-spacing: .4px; white-space: nowrap;
+        }
+        /* Summary bar */
+        #prevision-widget .pw-summary {
+          background: #1a252b;
+          display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+        }
+        #prevision-widget .pw-big-icon {
+          font-size: 2rem; line-height: 1; flex-shrink: 0;
+          filter: drop-shadow(0 2px 6px rgba(0,0,0,.45));
+        }
+        #prevision-widget .pw-summary-right { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+        #prevision-widget .pw-cond-text {
+          color: #eceff1; font-size: 10px; font-weight: 700; letter-spacing: .2px;
+        }
+        #prevision-widget .pw-precip-row {
+          display: flex; align-items: center; gap: 4px;
+        }
+        #prevision-widget .pw-precip-val {
+          font-size: 10px; font-weight: 700; color: #80cbc4;
+        }
+        #prevision-widget .pw-precip-lbl {
+          font-size: 8.5px; color: #546e7a; letter-spacing: .3px;
+        }
+        #prevision-widget .pw-precip-bar-wrap {
+          height: 3px; background: rgba(255,255,255,.08);
+          border-radius: 2px; overflow: hidden; margin-top: 2px;
+        }
+        #prevision-widget .pw-precip-bar-fill {
+          height: 100%; border-radius: 2px;
+          background: linear-gradient(90deg,#4db6ac,#80cbc4);
+          transition: width 1s ease;
+        }
+        /* Bottom wind/sea */
+        #prevision-widget .pw-bottom {
+          background: #151f24;
+          display: flex; justify-content: center;
+          align-items: center; gap: 16px; padding: 8px 8px;
+          flex-wrap: wrap;
+        }
+        #prevision-widget .pw-info {
+          display: flex; flex-direction: column; align-items: center; gap: 2px;
+        }
+        #prevision-widget .pw-info svg { width: 24px; height: 24px; }
+        #prevision-widget .pw-info-val {
+          font-size: 9px; font-weight: 700; color: #b0bec5;
+        }
+        #prevision-widget .pw-info-lbl {
+          font-size: 7.5px; color: #546e7a; text-align: center;
+        }
+
+        @media (max-width: 480px) {
+          #prevision-widget .pw-map { height: 155px; }
+          #prevision-widget .pw-tmax { font-size: 15px; }
+          #prevision-widget .pw-tmin { font-size: 11px; }
+        }
+        /* ══════════ FIN WIDGET ══════════ */
+
+        @media (max-width: 480px) {
+            .header-section { padding: 0; min-height: 150px; }
+            .content-section { padding: 16px; }
+            body { overflow-x: hidden; max-width: 100vw; }
+            .temperature { font-size: 64px; }
+            .icon-large { font-size: 64px; }
+            .radar-frame { height: 300px; }
+            #weather-table th, #weather-table td { padding: 12px 6px; font-size: 12px; }
+            #weather-table .table-icon { font-size: 26px; }
+            .alert-banner-item { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .alert-banner-left { width: 100%; }
+            .alert-banner-level { align-self: flex-start; }
+            .details { gap: 16px; }
+            .detail-item { min-width: 80px; }
+            .articulo-titulo { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="header-section"></div>
+
+        <div class="content-section">
+
+            <div class="current-weather">
+                <div style="font-size: 13px; font-weight: 700; color: var(--color-text-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">Tiempo Actual</div>
+                <div class="icon-large" id="current-icon">☀️</div>
+                <div class="temperature" id="current-temp">--°</div>
+                <div class="details">
+                    <div class="detail-item">
+                        <div>Presión</div>
+                        <div class="detail-value" id="pressure">-- hPa</div>
+                    </div>
+                    <div class="detail-item">
+                        <div>Humedad</div>
+                        <div class="detail-value" id="humidity">--%</div>
+                    </div>
+                    <div class="detail-item">
+                        <div>Viento</div>
+                        <div class="detail-value" id="wind">-- km/h</div>
+                    </div>
+                    <div class="detail-item">
+                        <div>Precip. hoy</div>
+                        <div class="detail-value" id="precip-today">-- mm</div>
+                    </div>
+                    <div class="detail-item">
+                        <div>Calidad Aire</div>
+                        <div class="detail-value" id="air-quality-current" style="color: #2C3E50;">--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div>UVI actual</div>
+                        <div class="detail-value" id="uvi-current">--</div>
+                    </div>
+                </div>
+
+                <!-- BLOQUE DE AVISOS -->
+                <div class="aviso-box" style="width: 100%; background: #F8F8FF; border-radius: 12px; margin: 28px 0 0 0; padding: 20px 24px;">
+                    <div style="color: #2C3E50; font-size: 14px; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.3px;">SIN AVISOS ACTIVOS</div>
+                    <div style="color: #2C3E50; font-size: 12px; font-weight: 500; line-height: 1.5;">No hay fenómenos adversos previstos</div>
+                </div>
+
+                <!-- ══════════════════════════════════════════════════════════
+                     SECCIÓN ARTÍCULO METEOROLÓGICO
+                     
+                     Qué puedes editar:
+                       1. foto-autor.jpg  → pon la ruta de tu foto de autor
+                       2. NOMBRE APELLIDO → el nombre del autor
+                       3. El <h2>         → el titular del artículo
+                       4. img1.jpg        → tu primera imagen
+                       5. Los párrafos <p>→ tu texto
+                       6. img2.jpg        → tu segunda imagen (o borra ese bloque)
+                       7. El .articulo-destacado → frase en cursiva (o bórralo)
+                     
+                     La fecha se actualiza sola con JavaScript.
+                ════════════════════════════════════════════════════════════ -->
+                <section class="articulo-meteorologico">
+
+                    <!-- AUTOR Y FECHA -->
+                    <div class="articulo-autor">
+                        <!-- ✏️ Cambia foto-autor.jpg por el nombre de tu imagen -->
+                        <img class="articulo-autor-foto" src="data:image/jpeg;base64,/9j/4QL0RXhpZgAATU0AKgAAAAgABwEAAAQAAAABAAAB8AEBAAQAAAABAAAB8AESAAMAAAABAAEAAAEyAAIAAAAUAAAAYodpAAQAAAABAAABpwE7AAIAAAAlAAAAdgEOAAIAAAEMAAAAmwAAAAAyMDI2OjAyOjE4IDEzOjEwOjIxAGVjNDhlZGJmLThkYjctNDBkYS1hZTkzLTVjMDBlODkyYTJkOQBTaWduYXR1cmU6IHMxcmQyK1RZMG1tdmJQR3RaTlQwd0lRdTN2U3ZabEFIYlhROEtFVkpBVndsTEwwSEcybnU5NzdaaEQzRU1IZ2VMNGtpZXlpNkxPQjI1R05UQjBEVHF4MzRPd2NoMGdZbXFxcVRvUnQydVcvZGhFU3lqZmVuRGJKT1hnVmt0VVlQVmpOU1pxeHZ4cHQ3YTIwYW1aUzFlb1dmS1VhUmg3eFlFaG0xSTVLS0pBZXlsUng5RXNxUVIxUW85YTByOXUweUpVU1N0QWRvUkl3eXVvbm15TWcxallaNWNtQk11Y1duOGtJY3BxSGVabzZTTVdNeE9xbGFnODQwVVlvRFgwSnAAAAKShgAHAAABEwAAAcWQAwACAAAAFAAAAtgAAAAAQVNDSUkAAABTaWduYXR1cmU6IHMxcmQyK1RZMG1tdmJQR3RaTlQwd0lRdTN2U3ZabEFIYlhROEtFVkpBVndsTEwwSEcybnU5NzdaaEQzRU1IZ2VMNGtpZXlpNkxPQjI1R05UQjBEVHF4MzRPd2NoMGdZbXFxcVRvUnQydVcvZGhFU3lqZmVuRGJKT1hnVmt0VVlQVmpOU1pxeHZ4cHQ3YTIwYW1aUzFlb1dmS1VhUmg3eFlFaG0xSTVLS0pBZXlsUng5RXNxUVIxUW85YTByOXUweUpVU1N0QWRvUkl3eXVvbm15TWcxallaNWNtQk11Y1duOGtJY3BxSGVabzZTTVdNeE9xbGFnODQwVVlvRFgwSnAyMDI2OjAyOjE4IDEzOjA5OjI1AP/gABBKRklGAAEBAAABAAEAAP/iAihJQ0NfUFJPRklMRQABAQAAAhgAAAAABDAAAG1udHJSR0IgWFlaIAAAAAAAAAAAAAAAAGFjc3AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAD21gABAAAAANMtAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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" alt="Foto autor">
+                        <div class="articulo-autor-info">
+                            <!-- ✏️ Cambia el nombre aquí -->
+                            <span class="articulo-autor-nombre">POR <strong>DRA. ISOBARAS</strong></span>
+                            <span class="articulo-autor-fecha" id="articulo-fecha">ACTUALIZADO --</span>
+                        </div>
+                    </div>
+
+                    <!-- ✏️ TITULAR — edita este texto -->
+                    <h2 class="articulo-titulo">
+                        Escribe aquí el titular de tu artículo meteorológico
+                    </h2>
+
+                    <!-- ✏️ IMAGEN 1 — cambia img1.jpg por tu imagen -->
+                    <div class="articulo-imagen-wrapper">
+                        <img class="articulo-imagen-1" src="hoy.jpg" alt="Descripción de la imagen">
+                    </div>
+
+                    <!-- ✏️ TEXTO — edita, añade o quita párrafos <p> según necesites -->
+                    <div class="articulo-cuerpo">
+
+                        <p>
+                            Escribe aquí el primer párrafo. Puedes explicar la situación
+                            meteorológica actual o el contexto de la noticia.
+                        </p>
+
+                        <p>
+                            Segundo párrafo con más detalles: zonas afectadas, causas
+                            del fenómeno o previsiones para los próximos días.
+                        </p>
+
+                        <!-- FRASE DESTACADA — bórrala si no la necesitas -->
+                        <div class="articulo-destacado">
+                            "Escribe aquí una frase importante que quieras destacar."
+                        </div>
+
+                        <p>
+                            Tercer párrafo. Avisos activos, recomendaciones para la
+                            población o cualquier información adicional relevante.
+                        </p>
+
+
+
+                    </div>
+
+                </section>
+                <!-- ══════════════════════════════════════════════════════════
+                     FIN SECCIÓN ARTÍCULO
+                ════════════════════════════════════════════════════════════ -->
+
+            </div><!-- fin current-weather -->
+
+        </div><!-- fin content-section -->
+
+        <!-- TABLA PREVISIÓN FRANJAS -->
+        <div id="franjas-tabla" style="margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto;"></div>
+
+        <!-- TABLA PREVISIÓN 24 HORAS -->
+        <div class="weather-table-container" style="margin-top: 28px; margin-bottom: 0;">
+            <table id="weather-table">
+                <thead>
+                    <tr><th>Hora</th><th>Cielo</th><th>ºC</th><th>Lluvia</th><th>Viento</th></tr>
+                </thead>
+                <tbody id="weather-table-body">
+                    <tr><td colspan="5" style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+
+
+        <!-- ══════════════════════════════════════════════
+             SECCIÓN PLAYAS DE BARCELONA
+        ═══════════════════════════════════════════════ -->
+        <div class="playas-section">
+            <div class="playas-header">
+                <span class="playas-header-title">Playas — Estado de la mar</span>
+            </div>
+
+            <!-- Previsión marina por franjas -->
+            <div id="marine-summary-blocks" style="background:#f0f8ff; max-width: 600px; margin: 0 auto;">
+                <div style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando previsión marina…</div>
+            </div>
+        </div>
+
+        <div class="weather-table-container" style="margin-top: 60px;">
+            <div id="days-detailed-container">
+                <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
+            </div>
+            <div id="days-summary-container" style="margin-top: 28px;">
+                <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
+            </div>
+        </div>
+
+        <div class="webcam-container">
+            <span class="webcam-label">WEBCAM / VILA OLÍMPICA</span>
+            <div class="webcam-frame">
+                <img id="webcam-jpg" src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg" alt="vila olimpica"/>
+            </div>
+        </div>
+
+        <div class="webcam-container">
+            <span class="webcam-label">WEBCAM / SAGRADA FAMÍLIA</span>
+            <div class="webcam-frame">
+                <img src="https://imgproxy.windy.com/_/normal/plain/current/1448811166/original.jpg" alt="sagrada familia"/>
+            </div>
+        </div>
+
+
+
+        <div class="update-time" id="update-time">Actualizado: --:--</div>
+
+        <div class="divulgacion-link">
+            <a href="divulgacion.html">Aprende meteorología</a>
+        </div>
+
+    </div><!-- fin container -->
+
+    <script>
+        const LAT = 41.3851;
+        const LON = 2.1734;
+
+        // Fecha automática del artículo
+        (function() {
+            const meses = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+            const ahora = new Date();
+            const dia = String(ahora.getDate()).padStart(2,'0');
+            const mes = meses[ahora.getMonth()];
+            const anyo = String(ahora.getFullYear()).slice(2);
+            const hh = String(ahora.getHours()).padStart(2,'0');
+            const mm = String(ahora.getMinutes()).padStart(2,'0');
+            const el = document.getElementById('articulo-fecha');
+            if (el) el.textContent = `ACTUALIZADO ${dia} ${mes} ${anyo}`;
+        })();
+
+        const weatherIcons = {
+            0:'<i class="wi wi-day-sunny"></i>',1:'<i class="wi wi-day-sunny-overcast"></i>',
+            2:'<i class="wi wi-day-cloudy"></i>',3:'<i class="wi wi-cloudy"></i>',
+            45:'<i class="wi wi-fog"></i>',48:'<i class="wi wi-fog"></i>',
+            51:'<i class="wi wi-sprinkle"></i>',53:'<i class="wi wi-sprinkle"></i>',
+            55:'<i class="wi wi-rain"></i>',61:'<i class="wi wi-rain"></i>',
+            63:'<i class="wi wi-rain"></i>',65:'<i class="wi wi-rain-wind"></i>',
+            71:'<i class="wi wi-snow"></i>',73:'<i class="wi wi-snow"></i>',
+            75:'<i class="wi wi-snow-wind"></i>',80:'<i class="wi wi-showers"></i>',
+            81:'<i class="wi wi-showers"></i>',82:'<i class="wi wi-storm-showers"></i>',
+            95:'<i class="wi wi-thunderstorm"></i>',96:'<i class="wi wi-thunderstorm"></i>',
+            99:'<i class="wi wi-thunderstorm"></i>'
+        };
+        const weatherIconsNight = {
+            0:'<i class="wi wi-night-clear"></i>',1:'<i class="wi wi-night-alt-cloudy"></i>',
+            2:'<i class="wi wi-night-alt-cloudy"></i>',3:'<i class="wi wi-cloudy"></i>',
+            45:'<i class="wi wi-night-fog"></i>',48:'<i class="wi wi-night-fog"></i>',
+            51:'<i class="wi wi-night-alt-sprinkle"></i>',53:'<i class="wi wi-night-alt-sprinkle"></i>',
+            55:'<i class="wi wi-night-alt-rain"></i>',61:'<i class="wi wi-night-alt-rain"></i>',
+            63:'<i class="wi wi-night-alt-rain"></i>',65:'<i class="wi wi-night-alt-rain-wind"></i>',
+            71:'<i class="wi wi-night-alt-snow"></i>',73:'<i class="wi wi-night-alt-snow"></i>',
+            75:'<i class="wi wi-night-alt-snow-wind"></i>',80:'<i class="wi wi-night-alt-showers"></i>',
+            81:'<i class="wi wi-night-alt-showers"></i>',82:'<i class="wi wi-night-alt-storm-showers"></i>',
+            95:'<i class="wi wi-night-alt-thunderstorm"></i>',96:'<i class="wi wi-night-alt-thunderstorm"></i>',
+            99:'<i class="wi wi-night-alt-thunderstorm"></i>'
+        };
+        const weatherDescriptions = {
+            0:'Despejado',1:'Principalmente despejado',2:'Parcialmente nublado',3:'Nublado',
+            45:'Niebla',48:'Niebla con escarcha',51:'Llovizna ligera',53:'Llovizna moderada',
+            55:'Llovizna densa',61:'Lluvia ligera',63:'Lluvia moderada',65:'Lluvia intensa',
+            71:'Nevada ligera',73:'Nevada moderada',75:'Nevada intensa',
+            80:'Chubascos ligeros',81:'Chubascos moderados',82:'Chubascos violentos',
+            95:'Tormenta',96:'Tormenta con granizo',99:'Tormenta fuerte'
+        };
+
+        let sunriseTime = null, sunsetTime = null;
+
+        function isNightTime(dt) {
+            if (!sunriseTime || !sunsetTime) return false;
+            const t = new Date(dt), sr = new Date(sunriseTime), ss = new Date(sunsetTime);
+            sr.setFullYear(t.getFullYear(),t.getMonth(),t.getDate());
+            ss.setFullYear(t.getFullYear(),t.getMonth(),t.getDate());
+            return t < sr || t > ss;
+        }
+
+        function getWeatherIcon(code, dateTime, cloudData) {
+            if (cloudData && (code===1||code===2||code===3)) {
+                const rc = (cloudData.cloud_cover_low||0)+((cloudData.cloud_cover_mid||0)*0.5);
+                if (rc<15) code=1; else if (rc<35) code=2; else code=3;
+            }
+            if (dateTime && isNightTime(dateTime)) return weatherIconsNight[code]||'<i class="wi wi-night-clear"></i>';
+            return weatherIcons[code]||'<i class="wi wi-day-sunny"></i>';
+        }
+
+        function getDayName(ds) {
+            return ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][new Date(ds).getDay()];
+        }
+
+        function updateFranjasTable(hourly, daily) {
+            const wrap = document.getElementById('franjas-tabla');
+            if (!wrap || !hourly?.time || !hourly.time.length) return;
+
+            const now = new Date();
+            const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
+            // Fecha local YYYY-MM-DD
+            function fechaLocal(d) {
+                return d.getFullYear() + '-' +
+                    String(d.getMonth()+1).padStart(2,'0') + '-' +
+                    String(d.getDate()).padStart(2,'0');
+            }
+
+            // Buscar índice en hourly por fecha local + hora
+            function idxHora(fecha, h) {
+                const key = fecha + 'T' + String(h).padStart(2,'0');
+                return hourly.time.findIndex(t => t.startsWith(key));
+            }
+
+            // Definición de franjas
+            const DEFS = [
+                { tipo:'madrugada', label:'Madrugada', h0:0,  h1:7  },
+                { tipo:'manana',    label:'Mañana',    h0:7,  h1:13 },
+                { tipo:'tarde',     label:'Tarde',     h0:13, h1:21 },
+                { tipo:'noche',     label:'Noche',     h0:21, h1:24 },
+            ];
+
+            // Generar franjas de hoy y mañana
+            const candidatas = [];
+            for (let dOff = 0; dOff <= 1; dOff++) {
+                const dia = new Date(now.getFullYear(), now.getMonth(), now.getDate() + dOff);
+                const fecha = fechaLocal(dia);
+                const diaNombre = DIAS[dia.getDay()];
+                for (const def of DEFS) {
+                    // La franja termina a h1 horas del día
+                    const finMs = dia.getTime() + def.h1 * 3600000;
+                    if (finMs <= now.getTime()) continue; // ya pasó
+                    candidatas.push({ ...def, fecha, diaNombre });
+                }
+            }
+
+            const franjas = candidatas.slice(0, 4);
+            if (!franjas.length) { wrap.innerHTML = ''; return; }
+
+            function getWindDir(deg) {
+                return ['N','NE','E','SE','S','SO','O','NO'][Math.round((deg||0)/45)%8];
+            }
+
+            function buildCol(f) {
+                // Índices de horas de esta franja
+                const ids = [];
+                for (let h = f.h0; h < f.h1; h++) {
+                    const i = idxHora(f.fecha, h);
+                    if (i !== -1) ids.push(i);
+                }
+                if (!ids.length) return null;
+
+                // Icono: hora central
+                const mi = ids[Math.floor(ids.length / 2)];
+                const esNoche = (f.tipo === 'noche' || f.tipo === 'madrugada');
+                const iconDt = new Date(f.fecha + 'T' + (esNoche ? '23' : String(Math.floor((f.h0+f.h1)/2)).padStart(2,'0')) + ':00:00');
+                const cd = { cloud_cover: hourly.cloud_cover?.[mi], cloud_cover_low: hourly.cloud_cover_low?.[mi], cloud_cover_mid: hourly.cloud_cover_mid?.[mi] };
+                const icon = getWeatherIcon(hourly.weather_code?.[mi] ?? 0, iconDt, cd);
+
+                // Lluvia total
+                const precip = ids.reduce((s,i) => s + (hourly.precipitation?.[i]||0), 0).toFixed(1);
+
+                // Viento medio
+                const vv = ids.map(i => hourly.wind_speed_10m?.[i]||0);
+                const vd = ids.map(i => hourly.wind_direction_10m?.[i]||0);
+                const spd = Math.round(vv.reduce((a,b)=>a+b,0)/vv.length);
+                const dir = getWindDir(vd.reduce((a,b)=>a+b,0)/vd.length);
+
+                // Temperatura
+                const dayIdx = daily?.time ? daily.time.findIndex(t => t === f.fecha) : -1;
+                let temp = '--', tempLabel = '', tempClass = '', extra = '';
+
+                if (f.tipo === 'manana') {
+                    temp = dayIdx !== -1 ? Math.round(daily.temperature_2m_min[dayIdx]) : Math.round(Math.min(...ids.map(i=>hourly.temperature_2m?.[i]??99)));
+                    tempLabel = 'mínima'; tempClass = 'es-min';
+                    if (dayIdx !== -1 && daily.sunrise?.[dayIdx]) {
+                        const sr = new Date(daily.sunrise[dayIdx]);
+                        extra = '<span>🌅 ' + String(sr.getHours()).padStart(2,'0') + ':' + String(sr.getMinutes()).padStart(2,'0') + '</span>';
+                    }
+                } else if (f.tipo === 'tarde') {
+                    temp = dayIdx !== -1 ? Math.round(daily.temperature_2m_max[dayIdx]) : Math.round(Math.max(...ids.map(i=>hourly.temperature_2m?.[i]??-99)));
+                    tempLabel = 'máxima'; tempClass = 'es-max';
+                    if (dayIdx !== -1 && daily.sunset?.[dayIdx]) {
+                        const ss = new Date(daily.sunset[dayIdx]);
+                        extra = '<span>🌇 ' + String(ss.getHours()).padStart(2,'0') + ':' + String(ss.getMinutes()).padStart(2,'0') + '</span>';
+                    }
+                } else if (f.tipo === 'noche') {
+                    const i23 = idxHora(f.fecha, 23);
+                    temp = i23 !== -1 ? Math.round(hourly.temperature_2m[i23]) : Math.round(hourly.temperature_2m[ids[ids.length-1]]);
+                    tempLabel = '23:00h';
+                } else {
+                    const i04 = idxHora(f.fecha, 4);
+                    temp = i04 !== -1 ? Math.round(hourly.temperature_2m[i04]) : Math.round(hourly.temperature_2m[ids[0]]);
+                    tempLabel = '04:00h';
+                }
+
+                return { icon, precip, spd, dir, temp, tempLabel, tempClass, extra };
+            }
+
+            let html = '<div class="franjas-wrap"><div class="franjas-cols">';
+            franjas.forEach(f => {
+                const d = buildCol(f);
+                if (!d) return;
+                html += '<div class="franja-col">' +
+                    '<div class="franja-nombre">' + f.diaNombre + ' ' + f.label + '</div>' +
+                    '<div class="franja-icon">' + d.icon + '</div>' +
+                    '<div class="franja-temp-label">' + d.tempLabel + '</div>' +
+                    '<div class="franja-temp ' + d.tempClass + '">' + d.temp + '°</div>' +
+                    '<div class="franja-dato">' +
+                        '<span>💧 ' + d.precip + ' mm</span>' +
+                        '<span>💨 ' + d.spd + ' km/h ' + d.dir + '</span>' +
+                        d.extra +
+                    '</div>' +
+                '</div>';
+            });
+            html += '</div></div>';
+            wrap.innerHTML = html;
+        }
+        function updateTodayTable(daily, hourly) {
+            // Tabla eliminada — función vacía para evitar errores JS
+        }
+
+        function formatHour(s) { return new Date(s).getHours().toString().padStart(2,'0')+':00'; }
+
+        function updateAirQualityTable(ac) {
+            function lvl(aqi) {
+                if(aqi<=20)return'Buena';if(aqi<=40)return'Aceptable';if(aqi<=60)return'Moderada';
+                if(aqi<=80)return'Desfavorable';if(aqi<=100)return'Muy desfavorable';return'Extremadamente desfavorable';
+            }
+            const el=document.getElementById('air-quality-current');
+            el.textContent=lvl(ac.european_aqi||0); el.style.color='#2C3E50';
+        }
+
+        function updatePlayasTable(marine, daily, marineHourly, weatherHourly) {
+            function getWindDir(deg) { return ['N','NE','E','SE','S','SO','O','NO'][Math.round(deg/45)%8]; }
+
+            function getEstadoMar(h) {
+                if (h === null) return '—';
+                if (h < 0.1)  return 'Calma';
+                if (h < 0.5)  return 'Rizada';
+                if (h < 1.25) return 'Marejadilla';
+                if (h < 2.5)  return 'Marejada';
+                if (h < 4.0)  return 'Fuerte marejada';
+                return 'Mar gruesa';
+            }
+
+            function getWaveColor(h) {
+                if (h === null || h < 0.5) return '#0ea5e9';
+                if (h < 1.25) return '#f59e0b';
+                if (h < 2.5)  return '#f97316';
+                return '#ef4444';
+            }
+
+            // ── Previsión por franjas día/mañana/tarde ────────────────────
+            const container = document.getElementById('marine-summary-blocks');
+            if (!container || !marineHourly?.time) return;
+            container.innerHTML = '';
+
+            const now  = new Date();
+            const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+
+            // Lookup viento atmosférico por clave "YYYY-MM-DDTHH"
+            const windLookup = {};
+            if (weatherHourly?.time) {
+                weatherHourly.time.forEach((t, i) => {
+                    windLookup[t.slice(0,13)] = {
+                        ws:  weatherHourly.wind_speed_10m?.[i]     ?? null,
+                        wsd: weatherHourly.wind_direction_10m?.[i] ?? null,
+                    };
+                });
+            }
+
+            function getBeaufort(kmh) {
+                if (kmh === null) return '';
+                if (kmh < 1)  return 'Calma';
+                if (kmh < 6)  return 'Ventolina';
+                if (kmh < 12) return 'Brisa muy débil';
+                if (kmh < 20) return 'Brisa débil';
+                if (kmh < 29) return 'Brisa moderada';
+                if (kmh < 39) return 'Brisa fresca';
+                if (kmh < 50) return 'Brisa fuerte';
+                if (kmh < 62) return 'Viento fuerte';
+                if (kmh < 75) return 'Temporal';
+                return 'Temporal fuerte';
+            }
+
+            // Recoge slots marinos de un día y franja horaria concretos
+            function getSlots(targetDate, fromH, toH) {
+                const res = [];
+                for (let i = 0; i < marineHourly.time.length; i++) {
+                    const ht = new Date(marineHourly.time[i]);
+                    if (ht.getFullYear() !== targetDate.getFullYear() ||
+                        ht.getMonth()    !== targetDate.getMonth()    ||
+                        ht.getDate()     !== targetDate.getDate())     continue;
+                    if (ht.getHours() < fromH || ht.getHours() >= toH) continue;
+                    const key = marineHourly.time[i].slice(0,13);
+                    const w   = windLookup[key] ?? { ws: null, wsd: null };
+                    res.push({
+                        wh:  marineHourly.wave_height?.[i]             ?? null,
+                        wp:  marineHourly.wave_period?.[i]             ?? null,
+                        wd:  marineHourly.wave_direction?.[i]          ?? null,
+                        sst: marineHourly.sea_surface_temperature?.[i] ?? null,
+                        ws:  w.ws,
+                        wsd: w.wsd,
+                    });
+                }
+                return res;
+            }
+
+            function avg(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null; }
+
+            function getCalidadBanyo(avgWH, avgWS, avgSST, uvi) {
+                // Puntuación: empezamos en 5 y vamos restando
+                let score = 5;
+                // Oleaje
+                if (avgWH !== null) {
+                    if (avgWH >= 2.5) score -= 3;
+                    else if (avgWH >= 1.25) score -= 2;
+                    else if (avgWH >= 0.5)  score -= 1;
+                }
+                // Viento
+                if (avgWS !== null) {
+                    if (avgWS >= 50) score -= 2;
+                    else if (avgWS >= 29) score -= 1;
+                }
+                // Temperatura agua
+                if (avgSST !== null) {
+                    if (avgSST < 16) score -= 2;
+                    else if (avgSST < 20) score -= 1;
+                    else if (avgSST >= 28) score -= 1; // demasiado caliente, medusas
+                }
+                // UVI extremo (quemadura rápida)
+                if (uvi !== null && uvi >= 10) score -= 1;
+
+                score = Math.max(1, Math.min(5, score));
+
+                const niveles = {
+                    5: { texto: 'Excelente',      color: '#10b981' },
+                    4: { texto: 'Buena',           color: '#10b981' },
+                    3: { texto: 'Aceptable',       color: '#f59e0b' },
+                    2: { texto: 'Mejorable',       color: '#f97316' },
+                    1: { texto: 'No aconsejable',  color: '#ef4444' },
+                };
+                return { score, ...niveles[score] };
+            }
+
+            function renderStrip(dayLabel, subLabel, slots, isActive, uviVal) {
+                if (!slots.length) return;
+                const whs  = slots.map(s=>s.wh).filter(v=>v!==null);
+                const wps  = slots.map(s=>s.wp).filter(v=>v!==null);
+                const wss  = slots.map(s=>s.ws).filter(v=>v!==null);
+                const wsds = slots.map(s=>s.wsd).filter(v=>v!==null);
+                const ssts = slots.map(s=>s.sst).filter(v=>v!==null);
+
+                const minWH  = whs.length ? Math.min(...whs) : null;
+                const maxWH  = whs.length ? Math.max(...whs) : null;
+                const avgWH  = whs.length ? avg(whs) : null;
+                const avgWP  = wps.length ? Math.round(avg(wps)) : null;
+                const avgWS  = wss.length  ? Math.round(avg(wss))  : null;
+                const maxWS  = wss.length  ? Math.round(Math.max(...wss)) : null;
+                const avgWSD = wsds.length ? Math.round(avg(wsds)) : null;
+                const avgSST = ssts.length ? Math.round(avg(ssts)) : null;   // redondeado
+
+                const estado   = getEstadoMar(avgWH);
+                const color    = getWaveColor(avgWH);
+                const beaufort = getBeaufort(avgWS);
+                const bgLabel  = isActive ? '#0f4f6b' : '#1a6b8a';
+                const calidad  = getCalidadBanyo(avgWH, avgWS, avgSST, uviVal);
+                const textCol  = '#1a6b8a';   // color cabecera para todos los textos
+
+                let oleajeTxt = '—';
+                if (minWH !== null && maxWH !== null) {
+                    oleajeTxt = Math.abs(maxWH - minWH) < 0.08
+                        ? minWH.toFixed(2) + ' m'
+                        : minWH.toFixed(2) + '–' + maxWH.toFixed(2) + ' m';
+                }
+
+                const dirTxt    = avgWSD !== null ? getWindDir(avgWSD) : '';
+                const maxExtra  = maxWS && avgWS && maxWS > avgWS + 5 ? ` (máx ${maxWS})` : '';
+                const vientoTxt = avgWS  !== null ? `${avgWS} km/h ${dirTxt}${maxExtra} · ${beaufort}` : '—';
+                const aguaTxt   = avgSST !== null ? avgSST + ' °C' : '—';
+                const uviTxt    = uviVal  !== null ? Math.round(uviVal) : '—';   // redondeado
+
+                // Degradado sutil según intensidad del mar
+                const seaGrads = {
+                    'Calma':           'linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 60%, #ffffff 100%)',
+                    'Rizada':          'linear-gradient(135deg, #daeef9 0%, #edf6fc 60%, #f8fcff 100%)',
+                    'Marejadilla':     'linear-gradient(135deg, #cce5f5 0%, #e4f2fb 60%, #f5fafe 100%)',
+                    'Marejada':        'linear-gradient(135deg, #b8d8ef 0%, #d5ecf8 60%, #eef7fd 100%)',
+                    'Fuerte marejada': 'linear-gradient(135deg, #a0c8e6 0%, #c4e0f5 60%, #e5f3fb 100%)',
+                    'Mar gruesa':      'linear-gradient(135deg, #88b8da 0%, #b0d2ec 60%, #d8edf8 100%)',
+                };
+                const bgGrad = seaGrads[estado] || seaGrads['Marejadilla'];
+
+                // Ola SVG decorativa sutil en azul claro
+                function makeWaveSVG(amp) {
+                    const w = 400, h = 40;
+                    const y = h * 0.6;
+                    const d1 = `M0,${y} C80,${y-amp} 160,${y+amp} 240,${y} C320,${y-amp} 380,${y+amp*0.5} 400,${y} L400,${h} L0,${h} Z`;
+                    const d2 = `M0,${y+4} C60,${y+4-amp*0.7} 140,${y+4+amp*0.7} 220,${y+4} C300,${y+4-amp*0.7} 370,${y+4+amp*0.4} 400,${y+4} L400,${h} L0,${h} Z`;
+                    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+                        <path d="${d1}" fill="rgba(44,120,180,0.10)"/>
+                        <path d="${d2}" fill="rgba(44,120,180,0.06)"/>
+                    </svg>`;
+                    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+                }
+
+                const waveAmps = {'Calma':4,'Rizada':7,'Marejadilla':11,'Marejada':16,'Fuerte marejada':21,'Mar gruesa':26};
+                const waveSvg = makeWaveSVG(waveAmps[estado] || 8);
+
+                const div = document.createElement('div');
+                div.style.cssText = `
+                    display:flex;
+                    align-items:stretch;
+                    border-bottom:1px solid #dbeaf5;
+                    overflow:hidden;
+                    background:${bgGrad};
+                    position:relative;
+                `;
+                div.innerHTML = `
+                    <!-- ola decorativa en el fondo -->
+                    <div style="position:absolute;bottom:0;left:0;right:0;height:40px;
+                                background-image:url('${waveSvg}');
+                                background-size:cover;background-repeat:no-repeat;
+                                pointer-events:none;"></div>
+
+                    <!-- columna izquierda: día + franja -->
+                    <div style="
+                        background:rgba(44,100,150,0.12);
+                        padding:14px 10px;
+                        display:flex;flex-direction:column;
+                        align-items:center;justify-content:center;
+                        min-width:80px;flex-shrink:0;gap:4px;
+                        border-right:1px solid rgba(44,100,150,0.15);
+                    ">
+                        <span style="color:#2c3e50;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;text-align:center;">${dayLabel}</span>
+                        <span style="color:#2c3e50;font-size:10px;font-weight:600;text-transform:capitalize;opacity:0.65;">${subLabel}</span>
+                        <span style="margin-top:6px;font-size:22px;">🌊</span>
+                    </div>
+
+                    <!-- columna derecha: datos -->
+                    <div style="position:relative;z-index:1;flex:1;padding:13px 15px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+
+                        <!-- oleaje: altura pequeña + estado · período en misma línea -->
+                        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:-2px;">
+                            <span style="font-size:13px;font-weight:800;color:#2c3e50;">${oleajeTxt}</span>
+                            <span style="font-size:11px;color:#2c3e50;opacity:0.45;font-weight:500;">altura olas</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+                            <span style="font-size:11px;font-weight:700;color:#fff;background:${color};padding:2px 8px;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,0.12);">${estado}</span>
+                            ${avgWP !== null ? `<span style="font-size:12px;color:#1a6b8a;font-weight:600;">· ${avgWP}s período</span>` : ''}
+                        </div>
+
+                        <!-- viento + agua + uvi -->
+                        <div style="font-size:12px;color:#2c3e50;line-height:1.75;">
+                            <span style="font-weight:600;">${vientoTxt}</span><br>
+                            Agua <span style="font-weight:700;color:#1a6b8a;">${aguaTxt}</span>
+                            &nbsp;·&nbsp; UVI <span style="font-weight:700;color:#2c3e50;">${uviTxt}</span>
+                        </div>
+
+                        <!-- calidad baño -->
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="font-size:11px;color:#2c3e50;opacity:0.6;">Calidad del baño:</span>
+                            <span style="
+                                font-size:12px;font-weight:800;
+                                color:#fff;background:${calidad.color};
+                                padding:2px 10px;border-radius:4px;
+                                box-shadow:0 1px 4px rgba(0,0,0,0.12);
+                            ">${calidad.texto}</span>
+                            <span style="font-size:9px;color:#2c3e50;opacity:0.35;">*</span>
+                        </div>
+
+                    </div>`;
+                container.appendChild(div);
+            }
+
+            const hoy        = new Date(now);
+            const manana     = new Date(now); manana.setDate(manana.getDate() + 1);
+            const pasadoman  = new Date(now); pasadoman.setDate(pasadoman.getDate() + 2);
+            const uviHoy       = daily?.uv_index_max?.[0] ?? null;
+            const uviManana    = daily?.uv_index_max?.[1] ?? null;
+            const uviPasadoman = daily?.uv_index_max?.[2] ?? null;
+
+            // Pool de todas las franjas posibles (hoy + mañana + pasado mañana)
+            const todasFranjas = [
+                { date: hoy,       from: 6,  to: 13, label: 'mañana', sub: dias[hoy.getDay()],       uvi: uviHoy       },
+                { date: hoy,       from: 13, to: 21, label: 'tarde',  sub: dias[hoy.getDay()],       uvi: uviHoy       },
+                { date: manana,    from: 6,  to: 13, label: 'mañana', sub: dias[manana.getDay()],    uvi: uviManana    },
+                { date: manana,    from: 13, to: 21, label: 'tarde',  sub: dias[manana.getDay()],    uvi: uviManana    },
+                { date: pasadoman, from: 6,  to: 13, label: 'mañana', sub: dias[pasadoman.getDay()], uvi: uviPasadoman },
+                { date: pasadoman, from: 13, to: 21, label: 'tarde',  sub: dias[pasadoman.getDay()], uvi: uviPasadoman },
+            ];
+
+            // Filtrar las ya pasadas y coger las primeras 4 vigentes
+            const franjas = todasFranjas
+                .filter(f => { const fin = new Date(f.date); fin.setHours(f.to, 0, 0, 0); return fin > now; })
+                .slice(0, 4);
+
+            franjas.forEach(f => renderStrip(f.label, f.sub, getSlots(f.date, f.from, f.to), false, f.uvi));
+
+            // ── Leyenda calidad del baño ──────────────────────────────────
+            const leyenda = document.createElement('div');
+            leyenda.style.cssText = 'padding:10px 14px 12px;background:#f0f8ff;border-top:1px solid #dbeaf5;font-size:11px;color:#64748b;line-height:1.8;';
+            leyenda.innerHTML = `<strong style="color:#2c3e50;">* Calidad del baño:</strong> se valoran conjuntamente oleaje (altura e intensidad), viento (velocidad), temperatura del agua e índice UV.`;
+            container.appendChild(leyenda);
+        }
+
+        async function loadWeatherData() {
+            try {
+                const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7`;
+                const aqUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=Europe/Madrid`;
+                const marineUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
+                const [res, aqRes, marineRes] = await Promise.all([fetch(url), fetch(aqUrl), fetch(marineUrl)]);
+                const data = await res.json();
+                const aqData = await aqRes.json();
+                const marineData = await marineRes.json();
+                if (data.daily?.sunrise && data.daily?.sunset) { sunriseTime=data.daily.sunrise[0]; sunsetTime=data.daily.sunset[0]; }
+                const now=new Date(); let precipToday=0;
+                if (data.hourly?.precipitation && data.hourly?.time) {
+                    for(let i=0;i<data.hourly.time.length;i++){
+                        const ht=new Date(data.hourly.time[i]);
+                        if(ht.getDate()===now.getDate()&&ht.getMonth()===now.getMonth()&&ht<=now) precipToday+=data.hourly.precipitation[i]||0;
+                    }
+                }
+                updateCurrentWeather(data.current, data.current.weather_code, precipToday, data.hourly);
+                updateFranjasTable(data.hourly, data.daily);
+                updateTodayTable(data.daily, data.hourly);
+                updateAirQualityTable(aqData.current);
+                updatePlayasTable(marineData.current, data.daily, marineData.hourly, data.hourly);
+                updateWeatherTable(data.hourly);
+                updateDaysTable(data.hourly, data.daily);
+                updateDaysSummary(data.hourly, data.daily);
+                updateTime();
+            } catch(e) { console.error('Error al cargar datos:',e); }
+        }
+
+        function updateCurrentWeather(current, weatherCode, precipToday, hourly) {
+            const now=new Date();
+            document.getElementById('current-temp').textContent=Math.round(current.temperature_2m)+'°';
+            document.getElementById('current-icon').innerHTML=getWeatherIcon(weatherCode,now,{cloud_cover:current.cloud_cover});
+            document.getElementById('pressure').textContent=Math.round(current.pressure_msl)+' hPa';
+            document.getElementById('humidity').textContent=current.relative_humidity_2m+'%';
+            document.getElementById('wind').textContent=Math.round(current.wind_speed_10m)+' km/h';
+            document.getElementById('precip-today').textContent=(precipToday||0).toFixed(1)+' mm';
+            if (hourly?.time && hourly?.uv_index) {
+                const idx=hourly.time.findIndex(t=>Math.abs(new Date(t)-now)<30*60*1000);
+                if (idx!==-1&&hourly.uv_index[idx]!==undefined) {
+                    const el=document.getElementById('uvi-current');
+                    el.textContent=hourly.uv_index[idx].toFixed(1); el.style.color='#2C3E50';
+                }
+            }
+        }
+
+        function updateWeatherTable(hourly) {
+            const tbody=document.getElementById('weather-table-body'); tbody.innerHTML='';
+            const now=new Date();
+            for(let i=1;i<=11;i++){
+                const target=new Date(now.getTime()+i*2*3600000);
+                const idx=hourly.time.findIndex(t=>Math.abs(new Date(t)-target)<3600000);
+                if(idx===-1) continue;
+                const ht=new Date(hourly.time[idx]);
+                const cd={cloud_cover:hourly.cloud_cover?.[idx],cloud_cover_low:hourly.cloud_cover_low?.[idx],cloud_cover_mid:hourly.cloud_cover_mid?.[idx]};
+                const row=document.createElement('tr');
+                row.innerHTML=`<td class="table-hour">${formatHour(hourly.time[idx])}</td><td class="table-icon">${getWeatherIcon(hourly.weather_code[idx],ht,cd)}</td><td class="table-temp">${Math.round(hourly.temperature_2m[idx])}°C</td><td class="table-rain">${(hourly.precipitation?.[idx]||0).toFixed(1)} mm</td><td class="table-wind">${Math.round(hourly.wind_speed_10m[idx])} km/h</td>`;
+                tbody.appendChild(row);
+            }
+        }
+
+        function getWindDir(deg) { return['N','NE','E','SE','S','SO','O','NO'][Math.round(deg/45)%8]; }
+
+        const SKY_IMG="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQACWAJYAAD/2wCEAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDIBCQkJDAsMGA0NGDIhHCEyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMv/CABEIA9QFpAMBIgACEQEDEQH/xAAyAAEBAQEBAQEBAAAAAAAAAAAAAQIFBAYDBwEBAQEBAQEAAAAAAAAAAAAAAAECBAMF/9oADAMBAAIQAxAAAAD+ij6nyAAAAFlgAAoAABaCgCAKAFUAFlBZQKACiLZQAAMKIAoAKBZRZRZQAABZRZSgAABaGwKACgWUAWUCAUACgoAKAFCAKACiUABZQBZQAAAAFogAAIDAAAAAAAD50fQ5AAAgBQAWUAABVlAKIAAoAVQAUFllWUAFBYWUAAFyCCoAKAFBZRZQAABQWUoAAAWhsCgAoFlAFlAgFAAoKACgBQgCgAolAAWUAAAoAAAWiAAAAyCAgAAAAD50fQ5AABYAAAWUABQFACiAFAFAoKABSFlUCgWWFlAAFgowWIoKgoKUlBZQABZRZQCgAAFaBoUAAoFlAFlAAlAWUAoAKAFCAKACiUABZQAACgAABalgAAAAIDIIAAAA+dV38kUSgAAKSgACigBRKQABQoCgKACgSrKAUCywsoAABRgEUAFBbKALKAALKLKAUAKBQ2UAACgCygCygAKELKAUAFAChAFABRKAAsoAABQAAAoFRFAAAAEBAQAAEfPDv5AAACgAAFAWUWUACBSUAVZQCgAogFWUWUAWWFlAAFIFylIAUBRZQBZQABQWUAoUGhUBqgAFAAFlAFlAAUIWUAoAKAFCAKACiUABZUAABaAAAFACKAAAAAAAAMgPnh28oApKIAACgCkoCgBUAAoCgAoCwC0AoAEKCygAFGFEAAUFAsoAsoAsoAsoKAoNUKBQAUAACygCygAKELKAUAFQUKEAUAFEoAFCAAAtAAACgBFAAAAAAAAAB88rr5YoAAFIoiiKACgUlAIAFUAUAKgFWUAoFlgUiiUBcpQFyAFAFlAFlAFABQAUBVBoFoAKACgAAWUAWUABQhZQCgAAoUIAoAKJQAKlAAQFoAAAAUCpYAAAAAAAAA+fV18sURRFAAoBFABQEAAAtAoAAVLKAsosoAssLKAALBRgsRQVKAUCgKSgAsoAsoKAoNAtABQAUAACygCygAKEKAFAAAsFEoFABRKAAsoAABQAAAAAoCxFAAAAAAABwB18oBRAKAAAsSgAAKsURQBQAKQCqCgLAEoLKACwGQoECgBQBQLKAAKACgsoCg0C0AFABQAKAACygKLEoAAUAAAFEAtABRKAAsoAABQAAAAAoAFEAAAAAAAcEdfKAAEAoBQAAAUAAAqgEKAAFKAKQsoAAKBgpAAFAoCkoALKALKALKAUKDQKUCkoAAUAoAClAAQsoAsoAAAAsoApAKBRKACLKAoAAAFAAAAAC1BRAAAAAAHBHXzABCgAAAAKAAACgKVAAApLRKCkCkoAALLksuQABQBQUAACgAoCkoCgNgqgBQAAAUCygCygAASrKALKAAAAAUCxFCigSgAiygKAAABQAAAAAoAAQBUoAABwVdXNFEoFEURQBKAABURVpUSgAAULKCwAKAAAFZBCkAKACgBQAKApKACyiyqADQLQAUAAAoAsoAsoAAEqygCygAAAAFAEUKsoCgAiywCggAKBUFQUAAAKAAAABUFRFQcMdXMKSgAAAoRYtAVEoACkKALKAKQAAsoAEKZCgQKACgBQAABQLKAAKNLKoKAsoKAAAKAACygCygAASrKALKAAAAAUARQqwUAKCLLAKCAAAoAFAAAAACgAAAAAcNp0c+WhloZtBRFEUSgAAmhKAApKApKQAAKBkUBAsAKApKAoAAAKAFAAoAUA2CgLKUAAAFABQAALKoIChCygCygAAAAFAEUKAAsoCrKgAAQAAKsWFAAAAAAAAAAABxh0eAAAApFEURQLEURRFEVQQoACkVEpBVSmQsSgKSgKACgAABQAoAALKqyqCA0KsUShQAAFAAFAACrKAABCygCygAAAAFAEUKAAsoAAAsoCggRQAqUQFAAAAAAAAABxx0eCURRKAAACkCkURRFEUSgKSkBkURQApACgAoAACgAoAKSgACqNAqgAAsoKRQAACrKgAoACgKAAsRRKACygAAAAFAEUKAAsACygCygKACUQCgAAAAAAAAAAAcdXv4RRFEUSgURRFAAABRKAZCxFEVAApKAoAKAAAFACgAAsFAK1KKKsoAACgCygAAALQigACgKICgLLAApFEoAAAACgARQoAAACygCw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";
+        function uviLevel(v) {
+            const n = Math.round(v);
+            if (n <= 2)  return { lbl: 'Bajo',        color: '#4caf50' };
+            if (n <= 5)  return { lbl: 'Moderado',    color: '#ffb300' };
+            if (n <= 7)  return { lbl: 'Alto',         color: '#ff7043' };
+            if (n <= 10) return { lbl: 'Muy alto',     color: '#e53935' };
+            return              { lbl: 'Extremo',      color: '#9c27b0' };
+        }
+
+        function getSkyGradient(wmoCode) {
+            if(wmoCode===0||wmoCode===1)
+                return 'linear-gradient(160deg,#1a6fc4 0%,#56a0e0 45%,#ffd97a 100%)';
+            if(wmoCode===2)
+                return 'linear-gradient(160deg,#4a7ab5 0%,#8ab4d8 50%,#c9d8e8 100%)';
+            if(wmoCode===3)
+                return 'linear-gradient(160deg,#6b7f96 0%,#9bafc4 60%,#c5cfd8 100%)';
+            if(wmoCode===45||wmoCode===48)
+                return 'linear-gradient(160deg,#8e9aaa 0%,#b5bec8 60%,#dde2e7 100%)';
+            if((wmoCode>=51&&wmoCode<=67)||(wmoCode>=80&&wmoCode<=82))
+                return 'linear-gradient(160deg,#3d5a7a 0%,#607a94 50%,#90a8bc 100%)';
+            if(wmoCode>=71&&wmoCode<=77)
+                return 'linear-gradient(160deg,#7a8fa0 0%,#b0c4d4 50%,#ddeaf3 100%)';
+            if(wmoCode>=95)
+                return 'linear-gradient(160deg,#2a3444 0%,#4a5568 50%,#6b7a8d 100%)';
+            return 'linear-gradient(160deg,#4a7ab5 0%,#7aaad0 60%,#b0d0e8 100%)';
+        }
+
+        function buildExpandableDay(hourly, daily, off, container) {
+            if(daily.temperature_2m_min[off]===undefined||daily.temperature_2m_max[off]===undefined) return;
+            const now=new Date();
+            const tDay=new Date(now); tDay.setDate(tDay.getDate()+off); tDay.setHours(0,0,0,0);
+            const dn=getDayName(tDay.toISOString());
+            const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+            const fechaStr=tDay.getDate()+' '+MESES[tDay.getMonth()];
+
+            // Icono representativo (hora 12)
+            let h12=-1;
+            for(let i=0;i<hourly.time.length;i++){const ht=new Date(hourly.time[i]);if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()&&ht.getHours()===12){h12=i;break;}}
+            const mc=h12!==-1?hourly.weather_code[h12]:(daily.weather_code?.[off]||0);
+            const cdMain=h12!==-1?{cloud_cover:hourly.cloud_cover?.[h12],cloud_cover_low:hourly.cloud_cover_low?.[h12],cloud_cover_mid:hourly.cloud_cover_mid?.[h12]}:null;
+            const icon=getWeatherIcon(mc,h12!==-1?new Date(hourly.time[h12]):tDay,cdMain);
+            const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
+
+            // Totales del día
+            let tp=0,ws=[],wd=[],rainHours=[];
+            for(let i=0;i<hourly.time.length;i++){
+                const ht=new Date(hourly.time[i]);
+                if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()){
+                    const pr=hourly.precipitation[i]||0;
+                    tp+=pr;
+                    if(pr>=0.1) rainHours.push(ht.getHours());
+                    if(hourly.wind_speed_10m)ws.push(hourly.wind_speed_10m[i]);
+                    if(hourly.wind_direction_10m)wd.push(hourly.wind_direction_10m[i]);
+                }
+            }
+            tp=Math.round(tp*10)/10;
+            const aw=ws.length>0?Math.round(ws.reduce((a,b)=>a+b,0)/ws.length):0;
+            const awd=wd.length>0?Math.round(wd.reduce((a,b)=>a+b,0)/wd.length):0;
+            function groupRainHours(hours){
+                if(!hours.length) return '';
+                const ranges=[];
+                let s=hours[0],e=hours[0];
+                for(let k=1;k<hours.length;k++){
+                    if(hours[k]===e+1){e=hours[k];}
+                    else{ranges.push(s===e?String(s).padStart(2,'0')+':00h':String(s).padStart(2,'0')+':00-'+String(e+1).padStart(2,'0')+':00h');s=e=hours[k];}
+                }
+                ranges.push(s===e?String(s).padStart(2,'0')+':00h':String(s).padStart(2,'0')+':00-'+String(e+1).padStart(2,'0')+':00h');
+                return ' ('+ranges.join(', ')+')';
+            }
+            const rainHoursStr=groupRainHours(rainHours);
+
+            // Amanecer/atardecer y UVI
+            const sr=daily.sunrise?.[off]?new Date(daily.sunrise[off]).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'--:--';
+            const ss=daily.sunset?.[off]?new Date(daily.sunset[off]).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'--:--';
+            const uv=daily.uv_index_max?.[off]!==undefined?Math.round(daily.uv_index_max[off]*10)/10:'--';
+
+            // Datos horarios 08, 12, 16, 20
+            let hIdx={8:-1,12:-1,16:-1,20:-1};
+            for(let i=0;i<hourly.time.length;i++){
+                const ht=new Date(hourly.time[i]);
+                if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()){
+                    const hr=ht.getHours();
+                    if(hr===8&&hIdx[8]===-1)hIdx[8]=i;
+                    if(hr===12&&hIdx[12]===-1)hIdx[12]=i;
+                    if(hr===16&&hIdx[16]===-1)hIdx[16]=i;
+                    if(hr===20&&hIdx[20]===-1)hIdx[20]=i;
+                }
+            }
+            const hrs=[8,12,16,20];
+            const labels=['08:00','12:00','16:00','20:00'];
+            function cdHr(idx){return idx!==-1?{cloud_cover:hourly.cloud_cover?.[idx],cloud_cover_low:hourly.cloud_cover_low?.[idx],cloud_cover_mid:hourly.cloud_cover_mid?.[idx]}:null;}
+            const icons4=hrs.map(hr=>hIdx[hr]!==-1?getWeatherIcon(hourly.weather_code[hIdx[hr]],new Date(hourly.time[hIdx[hr]]),cdHr(hIdx[hr])):'—');
+            const temps4=hrs.map(hr=>hIdx[hr]!==-1?Math.round(hourly.temperature_2m[hIdx[hr]])+'°C':'--');
+            const hum4=hrs.map(hr=>hIdx[hr]!==-1&&hourly.relative_humidity_2m?hourly.relative_humidity_2m[hIdx[hr]]+'%':'--');
+            const pres4=hrs.map(hr=>{
+                const i=hIdx[hr]; if(i===-1)return'--';
+                const p=hourly.pressure_msl?.[i];
+                return p?Math.round(p)+' hPa':'--';
+            });
+            const rain4=hrs.map(hr=>hIdx[hr]!==-1?(hourly.precipitation?.[hIdx[hr]]||0).toFixed(1)+' mm':'--');
+            const feels4=hrs.map(hr=>hIdx[hr]!==-1&&hourly.apparent_temperature?Math.round(hourly.apparent_temperature[hIdx[hr]])+'°C':'--');
+            const wind4=hrs.map(hr=>hIdx[hr]!==-1?Math.round(hourly.wind_speed_10m?.[hIdx[hr]]||0)+' km/h':'--');
+            const wdir4=hrs.map(hr=>hIdx[hr]!==-1&&hourly.wind_direction_10m?getWindDir(hourly.wind_direction_10m[hIdx[hr]]):'--');
+
+            // Wrapper
+            const wrap=document.createElement('div');
+            wrap.style.cssText='margin-bottom:0;border-bottom:1px solid #e9ecef;';
+
+            const skyBg=getSkyGradient(mc);
+
+            const HEADER_BG=`url("${SKY_IMG}") center/cover no-repeat`;
+
+            // Cabecera clicable
+            const head=document.createElement('div');
+            head.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:18px 14px;cursor:pointer;background:#fff;user-select:none;transition:background 0.4s;';
+            head.innerHTML=`
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div class="day-head-icon" style="font-size:42px;line-height:1;">${icon}</div>
+                    <div>
+                        <div class="day-head-title" style="font-size:19px;font-weight:700;color:#2C3E50;transition:color 0.4s;letter-spacing:0.5px;">${dn.toUpperCase()} <span class="day-head-date" style="font-size:14px;font-weight:400;color:#94A3B8;transition:color 0.4s;">${fechaStr}</span></div>
+                        <div class="day-head-meta" style="font-size:13px;color:#64748B;margin-top:5px;line-height:1.7;transition:color 0.4s;">
+                            <span class="day-temp-min" style="color:#3B82F6;font-weight:700;font-size:22px;transition:color 0.4s;">${minT}°</span>
+                            <span class="day-sep" style="margin:0 4px;opacity:0.4;">/</span>
+                            <span class="day-temp-max" style="color:#EF4444;font-weight:700;font-size:22px;transition:color 0.4s;">${maxT}°</span>
+                            <span class="day-sep" style="margin:0 5px;opacity:0.4;">|</span>
+                            <span class="day-rain-lbl" style="transition:color 0.4s;">Lluvia prevista: ${tp} mm${rainHoursStr}</span>
+                            <span class="day-sep" style="margin:0 5px;opacity:0.4;">|</span>
+                            <span class="day-wind-lbl" style="transition:color 0.4s;">${aw} km/h ${getWindDir(awd)}</span>
+                            <br>
+                            <span class="day-sol-lbl" style="font-size:11px;transition:color 0.4s;">SOL: ${sr} / ${ss}</span>
+                            <span class="day-sep" style="margin:0 5px;opacity:0.4;">|</span>
+                            <span class="day-uvi-lbl" style="font-size:11px;transition:color 0.4s;">UVI ${Math.round(uv)} (${uviLevel(uv).lbl})</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="ds-arrow" style="font-size:12px;color:#94A3B8;transition:transform 0.3s,color 0.4s;flex-shrink:0;">▼</div>`;
+
+            // Contenido desplegable
+            const body=document.createElement('div');
+            body.style.cssText=`display:none;overflow:hidden;background:url("${SKY_IMG}") center/cover no-repeat;`;
+
+            // Helper: celda con etiqueta solo en col 0
+            function cell(j, label, value, extra='') {
+                const lbl = j===0 ? `<div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">${label}</div>` : '';
+                return `<td style="text-align:center;padding:5px 4px;">${lbl}<div style="font-size:${label==='Temp.'?'15px':'13px'};font-weight:${label==='Temp.'?'700':'600'};color:#2C3E50;">${value}</div>${extra}</td>`;
+            }
+
+            body.innerHTML=`
+            <table style="width:100%;border-collapse:collapse;background:transparent;">
+            <thead>
+              <tr style="background:rgba(20,50,80,0.82);">
+                ${labels.map(l=>`<th style="padding:11px 4px;color:#fff;font-size:14px;font-weight:700;text-align:center;letter-spacing:0.5px;">${l}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              <!-- ICONOS -->
+              <tr style="background:rgba(255,255,255,0.18);">
+                ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:14px 4px 8px;font-size:34px;line-height:1;">${icons4[j]}</td>`).join('')}
+              </tr>
+              <!-- TEMPERATURA -->
+              <tr style="background:rgba(255,255,255,0.55);">
+                <td colspan="4" style="text-align:center;padding:6px 4px 2px;">
+                  <div style="font-size:10px;font-weight:700;color:#546e7a;text-transform:uppercase;letter-spacing:1px;">Temperatura</div>
+                </td>
+              </tr>
+              <tr style="background:rgba(255,255,255,0.40);">
+                ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:2px 4px 8px;"><div style="font-size:16px;font-weight:700;color:#1a2e44;">${temps4[j]}</div></td>`).join('')}
+              </tr>
+              <!-- SENSACION -->
+              <tr style="background:rgba(255,255,255,0.55);">
+                <td colspan="4" style="text-align:center;padding:6px 4px 2px;">
+                  <div style="font-size:10px;font-weight:700;color:#546e7a;text-transform:uppercase;letter-spacing:1px;">Sensación</div>
+                </td>
+              </tr>
+              <tr style="background:rgba(255,255,255,0.40);">
+                ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:2px 4px 8px;"><div style="font-size:15px;font-weight:600;color:#1a2e44;">${feels4[j]}</div></td>`).join('')}
+              </tr>
+              <!-- LLUVIA -->
+              <tr style="background:rgba(255,255,255,0.55);">
+                <td colspan="4" style="text-align:center;padding:6px 4px 2px;">
+                  <div style="font-size:10px;font-weight:700;color:#546e7a;text-transform:uppercase;letter-spacing:1px;">Lluvia prevista</div>
+                </td>
+              </tr>
+              <tr style="background:rgba(255,255,255,0.40);">
+                ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:2px 4px 8px;"><div style="font-size:15px;font-weight:600;color:#1a2e44;">${rain4[j]}</div></td>`).join('')}
+              </tr>
+              <!-- HUMEDAD -->
+              <tr style="background:rgba(255,255,255,0.55);">
+                <td colspan="4" style="text-align:center;padding:6px 4px 2px;">
+                  <div style="font-size:10px;font-weight:700;color:#546e7a;text-transform:uppercase;letter-spacing:1px;">Humedad</div>
+                </td>
+              </tr>
+              <tr style="background:rgba(255,255,255,0.40);">
+                ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:2px 4px 8px;"><div style="font-size:15px;font-weight:600;color:#1a2e44;">${hum4[j]}</div></td>`).join('')}
+              </tr>
+              <!-- PRESION -->
+              <tr style="background:rgba(255,255,255,0.55);">
+                <td colspan="4" style="text-align:center;padding:6px 4px 2px;">
+                  <div style="font-size:10px;font-weight:700;color:#546e7a;text-transform:uppercase;letter-spacing:1px;">Presión</div>
+                </td>
+              </tr>
+              <tr style="background:rgba(255,255,255,0.40);">
+                ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:2px 4px 8px;"><div style="font-size:14px;font-weight:600;color:#1a2e44;">${pres4[j]}</div></td>`).join('')}
+              </tr>
+              <!-- VIENTO -->
+              <tr style="background:rgba(255,255,255,0.55);">
+                <td colspan="4" style="text-align:center;padding:6px 4px 2px;">
+                  <div style="font-size:10px;font-weight:700;color:#546e7a;text-transform:uppercase;letter-spacing:1px;">Viento</div>
+                </td>
+              </tr>
+              <tr style="background:rgba(255,255,255,0.40);">
+                ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:2px 4px 12px;">
+                  <div style="font-size:15px;font-weight:700;color:#1a2e44;">${wind4[j]}</div>
+                  <div style="font-size:12px;color:#546e7a;margin-top:1px;">${wdir4[j]}</div>
+                </td>`).join('')}
+              </tr>
+            </tbody>
+            </table>`;
+
+            head.addEventListener('click',function(){
+                const isOpen=body.style.display!=='none';
+                body.style.display=isOpen?'none':'block';
+                head.querySelector('.ds-arrow').style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';
+                if(!isOpen){
+                    head.style.background=HEADER_BG;
+                    head.querySelector('.day-head-title').style.color='#1a2e44';
+                    head.querySelector('.day-head-date').style.color='rgba(20,50,80,0.7)';
+                    head.querySelector('.day-head-meta').style.color='rgba(20,50,80,0.85)';
+                    head.querySelector('.day-temp-min').style.color='#1a5a9a';
+                    head.querySelector('.day-temp-max').style.color='#c05000';
+                    head.querySelector('.day-rain-lbl').style.color='rgba(20,50,80,0.85)';
+                    head.querySelector('.day-wind-lbl').style.color='rgba(20,50,80,0.85)';
+                    head.querySelector('.day-sol-lbl').style.color='rgba(20,50,80,0.85)';
+                    head.querySelector('.day-uvi-lbl').style.color='rgba(20,50,80,0.85)';
+                    head.querySelector('.ds-arrow').style.color='rgba(20,50,80,0.6)';
+                    head.querySelectorAll('.day-sep').forEach(s=>s.style.color='rgba(20,50,80,0.25)');
+                } else {
+                    head.style.background='#fff';
+                    head.querySelector('.day-head-title').style.color='#2C3E50';
+                    head.querySelector('.day-head-date').style.color='#94A3B8';
+                    head.querySelector('.day-head-meta').style.color='#64748B';
+                    head.querySelector('.day-temp-min').style.color='#3B82F6';
+                    head.querySelector('.day-temp-max').style.color='#EF4444';
+                    head.querySelector('.day-rain-lbl').style.color='#64748B';
+                    head.querySelector('.day-wind-lbl').style.color='#64748B';
+                    head.querySelector('.day-sol-lbl').style.color='#64748B';
+                    head.querySelector('.day-uvi-lbl').style.color='#64748B';
+                    head.querySelector('.ds-arrow').style.color='#94A3B8';
+                    head.querySelectorAll('.day-sep').forEach(s=>s.style.color='#ccc');
+                }
+            });
+
+            wrap.appendChild(head);
+            wrap.appendChild(body);
+            container.appendChild(wrap);
+        }
+
+        function updateDaysTable(hourly, daily) {
+            const container=document.getElementById('days-detailed-container'); container.innerHTML='';
+            // Título de sección
+            const title=document.createElement('div');
+            title.style.cssText='background:#2C3E50;padding:14px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;';
+            title.textContent='Previsión próximos 7 días';
+            container.appendChild(title);
+            // Wrapper con borde
+            const box=document.createElement('div');
+            box.style.cssText='border:1px solid #e9ecef;border-top:none;background:#fff;';
+            for(let off=1;off<=6;off++){
+                buildExpandableDay(hourly, daily, off, box);
+            }
+            container.appendChild(box);
+        }
+
+        function updateDaysSummary(hourly, daily) {
+            // Ahora vacío — los días 5-7 ya se muestran en updateDaysTable
+            const container=document.getElementById('days-summary-container');
+            if(container) container.innerHTML='';
+        }
+
+        function updateTime() {
+            const now=new Date();
+            const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+            document.getElementById('update-time').textContent='Actualizado: '+now.getDate()+' de '+meses[now.getMonth()]+' de '+now.getFullYear();
+        }
+
+        loadWeatherData();
+        setInterval(loadWeatherData, 600000);
+
+        /* ══════ WIDGET PREVISIÓN 3 DÍAS ══════ */
+        (function(){
+          const DAYS_ES=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+          const MONTHS_ES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+          const WMO={
+            0:{e:'☀️',l:'Despejado'},1:{e:'🌤️',l:'Mayormente despejado'},
+            2:{e:'⛅',l:'Parcialmente nublado'},3:{e:'☁️',l:'Nublado'},
+            45:{e:'🌫️',l:'Niebla'},48:{e:'🌫️',l:'Niebla con escarcha'},
+            51:{e:'🌦️',l:'Llovizna ligera'},53:{e:'🌦️',l:'Llovizna'},55:{e:'🌧️',l:'Llovizna intensa'},
+            61:{e:'🌧️',l:'Lluvia ligera'},63:{e:'🌧️',l:'Lluvia moderada'},65:{e:'🌧️',l:'Lluvia intensa'},
+            71:{e:'🌨️',l:'Nieve ligera'},80:{e:'🌦️',l:'Chubascos ligeros'},
+            81:{e:'🌧️',l:'Chubascos moderados'},82:{e:'⛈️',l:'Chubascos fuertes'},
+            95:{e:'⛈️',l:'Tormenta'},99:{e:'⛈️',l:'Tormenta con granizo'}
+          };
+          function wmo(c){return WMO[c]||{e:'🌡️',l:'Variable'};}
+          function windDir(d){return['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'][Math.round(d/22.5)%16];}
+          function windLbl(s){if(s<10)return'Calma';if(s<20)return'Brisa suave';if(s<35)return'Viento moderado';if(s<50)return'Viento fuerte';return'Viento muy fuerte';}
+          function seaLbl(s){if(s<10)return{l:'Mar en calma',o:'< 0.5m'};if(s<20)return{l:'Mar rizada',o:'0.5–1m'};if(s<35)return{l:'Mar moderada',o:'1–1.5m'};if(s<50)return{l:'Mar agitada',o:'1.5–2.5m'};return{l:'Mar gruesa',o:'> 2.5m'};}
+
+          function bcnMap(){
+            return `<svg style="position:absolute;top:6px;left:50%;transform:translateX(-50%);width:90%;z-index:2;" viewBox="0 0 320 185" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="58" cy="52" rx="66" ry="40" fill="#8aac8a" opacity="0.42"/>
+              <polygon points="93,8 143,8 152,44 108,49 88,30" fill="#90a4ae" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="100" y="30" font-size="5.5" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">Nou Barris</text>
+              <polygon points="143,8 192,13 197,54 152,44" fill="#8fa8b5" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="154" y="33" font-size="5.5" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">Horta</text>
+              <polygon points="152,44 197,54 202,88 162,93 148,74" fill="#92aab8" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="159" y="73" font-size="5" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">St.Andreu</text>
+              <polygon points="108,49 152,44 148,74 118,84 98,69" fill="#8da5b2" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="112" y="67" font-size="5.5" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">Gràcia</text>
+              <polygon points="162,93 202,88 212,132 172,142 152,120" fill="#8badb8" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="167" y="118" font-size="5" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">St.Martí</text>
+              <polygon points="98,69 148,74 152,120 103,124 86,103" fill="#8fadb9" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="103" y="100" font-size="5.5" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">Eixample</text>
+              <polygon points="58,84 98,69 86,103 63,116 46,104" fill="#90a4ae" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="51" y="97" font-size="4.8" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">Les Corts</text>
+              <polygon points="38,42 108,49 98,69 58,84 28,64" fill="#8da5b0" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="44" y="62" font-size="4.8" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">Sarrià-S.G.</text>
+              <polygon points="46,104 86,103 103,124 88,152 38,142 28,122" fill="#8fa4ae" stroke="#546e7a" stroke-width="0.7"/>
+              <ellipse cx="52" cy="132" rx="18" ry="12" fill="#7a9a7a" opacity="0.48"/>
+              <text x="52" y="136" font-size="4.8" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">Montjuïc</text>
+              <polygon points="103,124 152,120 157,150 108,155 93,143" fill="#8aaab5" stroke="#546e7a" stroke-width="0.7"/>
+              <text x="102" y="141" font-size="4.8" fill="#cfd8dc" font-family="Inter,sans-serif" opacity="0.8">C.Vella/BCNeta</text>
+              <polygon points="157,150 212,132 220,160 162,168" fill="#89aab4" stroke="#546e7a" stroke-width="0.7"/>
+              <polyline points="28,162 88,155 108,157 157,153 212,133 230,127" fill="none" stroke="#4db6ac" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M202,88 Q212,108 216,132" fill="none" stroke="#80cbc4" stroke-width="1.2" opacity="0.5"/>
+            </svg>`;
+          }
+
+          function buildCard(idx, day){
+            const info=wmo(day.wmo);
+            const sea=seaLbl(day.wind);
+            const wdir=windDir(day.winddir);
+            const iconPos=[[{l:'26%',t:'10%'},{l:'52%',t:'20%'},{l:'35%',t:'42%'}],
+                           [{l:'23%',t:'12%'},{l:'50%',t:'18%'},{l:'37%',t:'41%'}],
+                           [{l:'28%',t:'11%'},{l:'53%',t:'22%'},{l:'33%',t:'43%'}]][idx];
+            const pins=[{n:'Eixample',l:'42%',t:'34%'},{n:'St.Martí',l:'60%',t:'20%'},{n:'Sarrià',l:'20%',t:'21%'}];
+            const rainPct=Math.min(day.rain*8,100);
+            const rainLbl=day.rain>10?'· Lluvia significativa':day.rain>0?'· Lluvia leve':'· Sin precipitación';
+            const delays=['0s','0.12s','0.24s'];
+
+            return `<div class="pw-card" id="pwcard${idx}" style="transition-delay:${delays[idx]}">
+              <div class="pw-card-head">
+                <div class="pw-day-name">${day.name}</div>
+                <div class="pw-day-date">${day.date}</div>
+              </div>
+              <div class="pw-temps">
+                <div><span class="pw-ttag pw-ttag-max">MÁX</span><span class="pw-tmax">${day.tmax}°</span></div>
+                <div class="pw-tdiv"></div>
+                <div><span class="pw-ttag pw-ttag-min">MÍN</span><span class="pw-tmin">${day.tmin}°</span></div>
+              </div>
+              <div class="pw-map">
+                <div class="pw-wind-lbl">${wdir} · ${Math.round(day.wind)} km/h</div>
+                ${bcnMap()}
+                <div class="pw-sea"></div>
+                <div class="pw-sea-lbl">Mar Mediterráneo</div>
+                ${iconPos.map(p=>`<div class="pw-wicon" style="left:${p.l};top:${p.t}">${info.e}</div>`).join('')}
+                ${pins.map(p=>`<div class="pw-pin" style="left:${p.l};top:${p.t}"><div class="pw-pin-dot"></div><div class="pw-pin-name">${p.n}</div></div>`).join('')}
+              </div>
+              <div class="pw-summary">
+                <div class="pw-big-icon">${info.e}</div>
+                <div class="pw-summary-right">
+                  <div class="pw-cond-text">${info.l}</div>
+                  <div class="pw-precip-row">
+                    <span>💧</span>
+                    <span class="pw-precip-val">${day.rain>0?day.rain.toFixed(1)+' mm':'0 mm'}</span>
+                    <span class="pw-precip-lbl">${rainLbl}</span>
+                  </div>
+                  <div class="pw-precip-bar-wrap"><div class="pw-precip-bar-fill" style="width:${rainPct}%"></div></div>
+                </div>
+              </div>
+              <div class="pw-bottom">
+                <div class="pw-info">
+                  <svg viewBox="0 0 40 40" fill="none"><line x1="10" y1="30" x2="26" y2="10" stroke="#80cbc4" stroke-width="3" stroke-linecap="round"/><polyline points="17,8 26,10 24,19" stroke="#80cbc4" stroke-width="2.5" stroke-linejoin="round"/><line x1="5" y1="34" x2="12" y2="34" stroke="#80cbc4" stroke-width="2"/></svg>
+                  <div class="pw-info-val">${windLbl(day.wind)}</div>
+                  <div class="pw-info-lbl">${Math.round(day.wind)} km/h · ${wdir}</div>
+                </div>
+                <div class="pw-info">
+                  <svg viewBox="0 0 50 34" fill="none"><path d="M2 14 Q9 6 16 14 Q23 22 30 14 Q37 6 44 14 Q48 18 50 14" stroke="#80cbc4" stroke-width="2.5" stroke-linecap="round"/><path d="M2 23 Q9 15 16 23 Q23 31 30 23 Q37 15 44 23" stroke="#80cbc4" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/></svg>
+                  <div class="pw-info-val">${sea.l}</div>
+                  <div class="pw-info-lbl">Oleaje ${sea.o}</div>
+                </div>
+              </div>
+            </div>`;
+          }
+
+          async function loadWidget(){
+            const wrap=document.getElementById('prevision-widget');
+            if(!wrap) return;
+            try {
+              const url='https://api.open-meteo.com/v1/forecast?latitude=41.3888&longitude=2.159&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,winddirection_10m_dominant&timezone=Europe%2FMadrid&forecast_days=3';
+              const data=await(await fetch(url)).json();
+              const d=data.daily;
+              const days=[];
+              for(let i=0;i<3;i++){
+                const raw=new Date(d.time[i]+'T12:00:00');
+                days.push({
+                  name:DAYS_ES[raw.getDay()],
+                  date:`${raw.getDate()} ${MONTHS_ES[raw.getMonth()].toUpperCase()} · ${raw.getFullYear()}`,
+                  wmo:d.weathercode[i],
+                  tmax:Math.round(d.temperature_2m_max[i]),
+                  tmin:Math.round(d.temperature_2m_min[i]),
+                  rain:d.precipitation_sum[i]||0,
+                  wind:d.windspeed_10m_max[i],
+                  winddir:d.winddirection_10m_dominant[i]
+                });
+              }
+              wrap.innerHTML=`
+                <div class="pw-title"><div class="pw-dot"></div><div class="pw-heading">Previsión próximos 3 días · Barcelona</div></div>
+                <div class="pw-cards">${days.map((d,i)=>buildCard(i,d)).join('')}</div>`;
+              requestAnimationFrame(()=>{
+                document.querySelectorAll('.pw-card').forEach((c,i)=>{
+                  setTimeout(()=>c.classList.add('pw-visible'),i*130);
+                });
+              });
+            } catch(e){
+              // Silently fail — widget simply stays hidden
+              wrap.style.display='none';
+            }
+          }
+          loadWidget();
+        })();
+        /* ══════ FIN WIDGET ══════ */
+    </script>
+</body>
+</html>
