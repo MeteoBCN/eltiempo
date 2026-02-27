@@ -184,20 +184,13 @@
 
         /* ══════ CABECERA LLUVIA (fondo compartido) ══════ */
         .rain-header-bg {
-            background: linear-gradient(135deg, #1a3a5c 0%, #1e4976 40%, #1a6b8a 100%) !important;
+            background: url('ff.jpg') center/cover no-repeat !important;
             position: relative;
             overflow: hidden;
-        }
-        .rain-header-bg::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            opacity: 0.18;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='60'%3E%3Cellipse cx='30' cy='12' rx='18' ry='9' fill='%23fff'/%3E%3Cellipse cx='75' cy='8' rx='24' ry='11' fill='%23fff'/%3E%3Cellipse cx='55' cy='13' rx='20' ry='10' fill='%23fff'/%3E%3Cellipse cx='140' cy='10' rx='22' ry='10' fill='%23fff'/%3E%3Cellipse cx='175' cy='7' rx='18' ry='9' fill='%23fff'/%3E%3Cellipse cx='158' cy='13' rx='16' ry='8' fill='%23fff'/%3E%3Cellipse cx='260' cy='11' rx='20' ry='10' fill='%23fff'/%3E%3Cellipse cx='295' cy='7' rx='22' ry='10' fill='%23fff'/%3E%3Cellipse cx='278' cy='14' rx='18' ry='9' fill='%23fff'/%3E%3Cellipse cx='360' cy='9' rx='19' ry='9' fill='%23fff'/%3E%3Cellipse cx='390' cy='12' rx='15' ry='8' fill='%23fff'/%3E%3Cline x1='28' y1='22' x2='24' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='38' y1='24' x2='34' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='48' y1='22' x2='44' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='58' y1='24' x2='54' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='68' y1='22' x2='64' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='78' y1='24' x2='74' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='148' y1='22' x2='144' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='158' y1='24' x2='154' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='168' y1='22' x2='164' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='178' y1='24' x2='174' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='268' y1='22' x2='264' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='278' y1='24' x2='274' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='288' y1='22' x2='284' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='298' y1='24' x2='294' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='368' y1='22' x2='364' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='378' y1='24' x2='374' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-            background-size: 400px 60px;
-            background-repeat: repeat-x;
-            background-position: bottom;
-            pointer-events: none;
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .rain-header-bg > * { position: relative; z-index: 1; }
         /* ══════ FIN CABECERA LLUVIA ══════ */
@@ -210,8 +203,8 @@
            SECCIÓN PLAYAS — estilos
            ══════════════════════════════════════════════ */
         .playas-section { margin: 0 auto; max-width: 600px; animation: fadeIn 0.6s ease-out 0.5s both; }
-        .playas-header { background: #2c3e50; padding: 13px 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .playas-header.rain-header-bg { background: linear-gradient(135deg, #1a3a5c 0%, #1e4976 40%, #1a6b8a 100%) !important; }
+        .playas-header { background: #2c3e50; padding: 0 16px; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; }
+        .playas-header.rain-header-bg { background: url('ff.jpg') center/cover no-repeat !important; }
         .playas-header-title { font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
         .playas-card { display: flex; align-items: stretch; width: 100%; background: #fff; box-shadow: var(--shadow-md); }
         .playas-icon-col { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 20px; background: #eaf4f8; min-width: 110px; gap: 10px; }
@@ -1388,11 +1381,6 @@
                 ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:14px 4px 8px;font-size:34px;line-height:1;">${icons4[j]}</td>`).join('')}
               </tr>
               <!-- TEMPERATURA -->
-              <tr style="background:rgba(255,255,255,0.55);">
-                <td colspan="4" style="text-align:center;padding:6px 4px 2px;">
-                  <div style="font-size:10px;font-weight:700;color:#546e7a;text-transform:uppercase;letter-spacing:1px;">Temperatura</div>
-                </td>
-              </tr>
               <tr style="background:rgba(255,255,255,0.40);">
                 ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:2px 4px 8px;"><div style="font-size:16px;font-weight:700;color:#1a2e44;">${temps4[j]}</div></td>`).join('')}
               </tr>
@@ -1404,15 +1392,6 @@
               </tr>
               <tr style="background:rgba(255,255,255,0.40);">
                 ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:2px 4px 8px;"><div style="font-size:15px;font-weight:600;color:#1a2e44;">${feels4[j]}</div></td>`).join('')}
-              </tr>
-              <!-- LLUVIA -->
-              <tr style="background:rgba(255,255,255,0.55);">
-                <td colspan="4" style="text-align:center;padding:6px 4px 2px;">
-                  <div style="font-size:10px;font-weight:700;color:#546e7a;text-transform:uppercase;letter-spacing:1px;">Lluvia prevista</div>
-                </td>
-              </tr>
-              <tr style="background:rgba(255,255,255,0.40);">
-                ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:2px 4px 8px;"><div style="font-size:15px;font-weight:600;color:#1a2e44;">${rain4[j]}</div></td>`).join('')}
               </tr>
               <!-- HUMEDAD -->
               <tr style="background:rgba(255,255,255,0.55);">
@@ -1552,7 +1531,7 @@
             });
 
             let html = `
-            <div class="rain-header-bg" style="padding:16px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
+            <div class="rain-header-bg" style="padding:0 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
                 Precipitación — Próximos 7 días
             </div>
             <div style="border:1px solid #e2e8f0;border-top:none;background:#fff;overflow:hidden;">
@@ -1604,7 +1583,7 @@
             // Título de sección
             const title=document.createElement('div');
             title.className = 'rain-header-bg';
-            title.style.cssText='padding:14px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;';
+            title.style.cssText='padding:0 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;';
             title.textContent='Previsión próximos 7 días';
             container.appendChild(title);
             // Wrapper con borde
