@@ -1612,124 +1612,99 @@
         }
 
         function updateDaysSummary(hourly, daily) {
-            const container=document.getElementById('days-summary-container');
-            if(!container) return;
+            const container = document.getElementById('days-summary-container');
+            if (!container || !hourly?.time) return;
+            container.innerHTML = '';
 
-            const now=new Date();
-            const DIAS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-            const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+            const now = new Date();
+            const DIAS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+            const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
-            const labels=[], rainData=[], probData=[];
-            for(let off=1;off<=7;off++){
-                if(daily.temperature_2m_max[off]===undefined) continue;
-                const d=new Date(now); d.setDate(d.getDate()+off);
-                labels.push(DIAS[d.getDay()]+' '+d.getDate()+' '+MESES[d.getMonth()]);
-                let tp=0, maxProb=0;
-                for(let i=0;i<hourly.time.length;i++){
-                    const ht=new Date(hourly.time[i]);
-                    if(ht.getDate()===d.getDate()&&ht.getMonth()===d.getMonth()){
-                        tp+=hourly.precipitation?.[i]||0;
-                        if((hourly.precipitation_probability?.[i]||0)>maxProb)
-                            maxProb=hourly.precipitation_probability[i];
-                    }
-                }
-                rainData.push(Math.round(tp*10)/10);
-                probData.push(maxProb);
+            // Find next Thursday from today (or today if today is Thursday)
+            // "desde hoy hasta el próximo jueves" = days 0..N where dayOfWeek==4
+            const todayDow = now.getDay();
+            // days until next thursday (dow=4). If today is thursday, go to next week's thursday
+            const daysToThursday = todayDow === 4 ? 7 : (4 - todayDow + 7) % 7;
+            const rows = [];
+            for (let off = 0; off <= daysToThursday; off++) {
+                const d = new Date(now);
+                d.setDate(d.getDate() + off);
+                d.setHours(0, 0, 0, 0);
+                rows.push(d);
             }
 
-            container.innerHTML='';
+            // Build table
+            const tbl = document.createElement('table');
+            tbl.style.cssText = 'width:100%;border-collapse:collapse;background:#fff;';
 
-            // Title
-            const titleEl=document.createElement('div');
-            titleEl.style.cssText='background:#2C3E50;padding:14px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;';
-            titleEl.textContent='Precipitación · Próximos 7 días';
-            container.appendChild(titleEl);
+            // Header
+            tbl.innerHTML = `<thead>
+                <tr style="background:#2C3E50;">
+                    <th style="padding:12px 10px;color:#fff;font-size:13px;font-weight:700;text-align:left;letter-spacing:0.8px;text-transform:uppercase;">Día</th>
+                    <th style="padding:12px 10px;color:#fff;font-size:13px;font-weight:700;text-align:center;letter-spacing:0.8px;text-transform:uppercase;">Precip. máx.</th>
+                    <th style="padding:12px 10px;color:#fff;font-size:13px;font-weight:700;text-align:center;letter-spacing:0.8px;text-transform:uppercase;">Hora prevista</th>
+                </tr>
+            </thead><tbody></tbody>`;
 
-            const wrap=document.createElement('div');
-            wrap.style.cssText='background:#fff;padding:16px 8px 8px;border:1px solid #e9ecef;border-top:none;';
-            wrap.innerHTML='<canvas id="rainChart" height="220"></canvas>';
-            container.appendChild(wrap);
+            const tbody = tbl.querySelector('tbody');
 
-            if(window.rainChartInstance) window.rainChartInstance.destroy();
-            const ctx=document.getElementById('rainChart').getContext('2d');
-            window.rainChartInstance=new Chart(ctx,{
-                data:{
-                    labels,
-                    datasets:[
-                        {
-                            type:'bar',
-                            label:'Lluvia (mm)',
-                            data:rainData,
-                            backgroundColor:'rgba(59,130,246,0.65)',
-                            borderColor:'#3b82f6',
-                            borderWidth:1.5,
-                            borderRadius:4,
-                            yAxisID:'yRain',
-                            order:2,
-                        },
-                        {
-                            type:'line',
-                            label:'Prob. lluvia (%)',
-                            data:probData,
-                            borderColor:'#0ea5e9',
-                            backgroundColor:'rgba(14,165,233,0.08)',
-                            borderWidth:2,
-                            pointRadius:4,
-                            pointBackgroundColor:'#0ea5e9',
-                            tension:0.4,
-                            fill:false,
-                            yAxisID:'yProb',
-                            order:1,
-                        }
-                    ]
-                },
-                options:{
-                    responsive:true,
-                    interaction:{mode:'index',intersect:false},
-                    plugins:{
-                        legend:{
-                            position:'bottom',
-                            labels:{
-                                font:{family:'Inter, sans-serif',size:11},
-                                color:'#64748b',
-                                padding:16,
-                                usePointStyle:true,
-                                pointStyleWidth:16,
-                            }
-                        },
-                        tooltip:{
-                            backgroundColor:'rgba(44,62,80,0.92)',
-                            titleFont:{family:'Inter, sans-serif',size:12,weight:'700'},
-                            bodyFont:{family:'Inter, sans-serif',size:12},
-                            padding:10,
-                            callbacks:{
-                                label:ctx=>ctx.dataset.type==='bar'
-                                    ? ` Lluvia: ${ctx.parsed.y} mm`
-                                    : ` Prob.: ${ctx.parsed.y}%`
-                            }
-                        }
-                    },
-                    scales:{
-                        x:{
-                            grid:{color:'rgba(0,0,0,0.05)'},
-                            ticks:{font:{family:'Inter, sans-serif',size:11},color:'#64748b'}
-                        },
-                        yRain:{
-                            position:'left',
-                            grid:{color:'rgba(0,0,0,0.06)'},
-                            ticks:{font:{family:'Inter, sans-serif',size:11},color:'#64748b',callback:v=>v+' mm'},
-                            title:{display:true,text:'mm',color:'#64748b',font:{size:11}}
-                        },
-                        yProb:{
-                            position:'right',
-                            min:0,max:100,
-                            grid:{drawOnChartArea:false},
-                            ticks:{font:{family:'Inter, sans-serif',size:11},color:'#0ea5e9',callback:v=>v+'%'},
-                            title:{display:true,text:'%',color:'#0ea5e9',font:{size:11}}
+            rows.forEach((d, idx) => {
+                let maxRain = 0, maxRainHour = null;
+                for (let i = 0; i < hourly.time.length; i++) {
+                    const ht = new Date(hourly.time[i]);
+                    if (ht.getDate() === d.getDate() && ht.getMonth() === d.getMonth()) {
+                        const r = hourly.precipitation?.[i] || 0;
+                        if (r > maxRain) {
+                            maxRain = r;
+                            maxRainHour = ht;
                         }
                     }
                 }
+
+                const isToday = idx === 0;
+                const isSat = d.getDay() === 6;
+                const isSun = d.getDay() === 0;
+                const isThu = d.getDay() === 4;
+                const isWeekend = isSat || isSun;
+
+                const dayLabel = isToday
+                    ? `Hoy, ${DIAS_FULL[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`
+                    : `${DIAS_FULL[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`;
+
+                const rainTxt = maxRain > 0 ? maxRain.toFixed(1) + ' mm' : '—';
+                const hourTxt = maxRain > 0 && maxRainHour
+                    ? String(maxRainHour.getHours()).padStart(2,'0') + ':00 h'
+                    : '—';
+
+                const bgRow = isWeekend
+                    ? 'rgba(44,62,80,0.04)'
+                    : (idx % 2 === 0 ? '#fff' : 'rgba(241,245,249,0.6)');
+                const borderBottom = isThu ? 'none' : '1px solid rgba(148,163,184,0.15)';
+                const dayFw = isToday || isThu ? '700' : '500';
+                const dayColor = isToday ? '#2C3E50' : isThu ? '#2C3E50' : '#374151';
+
+                const tr = document.createElement('tr');
+                tr.style.cssText = `background:${bgRow};border-bottom:${borderBottom};`;
+                tr.innerHTML = `
+                    <td style="padding:13px 10px;font-size:14px;font-weight:${dayFw};color:${dayColor};">
+                        ${isToday ? '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3B82F6;margin-right:7px;vertical-align:middle;"></span>' : ''}${dayLabel}
+                        ${isThu ? '<span style="margin-left:6px;font-size:11px;color:#94A3B8;font-weight:400;">(jueves)</span>' : ''}
+                    </td>
+                    <td style="padding:13px 10px;text-align:center;font-size:15px;font-weight:700;color:${maxRain>0?'#3B82F6':'#94A3B8'};">${rainTxt}</td>
+                    <td style="padding:13px 10px;text-align:center;font-size:14px;font-weight:600;color:${maxRain>0?'#374151':'#94A3B8'};">${hourTxt}</td>`;
+                tbody.appendChild(tr);
             });
+
+            // Title bar
+            const titleEl = document.createElement('div');
+            titleEl.style.cssText = 'background:#2C3E50;padding:14px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;';
+            titleEl.textContent = 'Precipitación prevista · Hasta el próximo jueves';
+            container.appendChild(titleEl);
+
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = 'border:1px solid #e9ecef;border-top:none;overflow:hidden;';
+            wrapper.appendChild(tbl);
+            container.appendChild(wrapper);
         }
 
         function updateTime() {
