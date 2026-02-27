@@ -1289,8 +1289,7 @@
 
             const skyBg=getSkyGradient(mc);
 
-            // Degradado fijo elegante para la cabecera abierta
-            const HEADER_GRADIENT='linear-gradient(135deg,#1e3a5f 0%,#2d6a9f 50%,#1a8a8a 100%)';
+            const HEADER_GRADIENT='linear-gradient(135deg,#5b9bd5 0%,#7ec8c8 50%,#a8d8a8 100%)';
 
             // Cabecera clicable
             const head=document.createElement('div');
@@ -1320,47 +1319,26 @@
             // Contenido desplegable
             const body=document.createElement('div');
             body.style.cssText='display:none;overflow:hidden;';
+
+            // Helper: celda con etiqueta solo en col 0
+            function cell(j, label, value, extra='') {
+                const lbl = j===0 ? `<div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">${label}</div>` : '';
+                return `<td style="text-align:center;padding:5px 4px;">${lbl}<div style="font-size:${label==='Temp.'?'15px':'13px'};font-weight:${label==='Temp.'?'700':'600'};color:#2C3E50;">${value}</div>${extra}</td>`;
+            }
+
             body.innerHTML=`
             <table style="width:100%;border-collapse:collapse;background:#f8fafc;">
             <thead><tr style="background:#2C3E50;">${labels.map(l=>`<th style="padding:10px 6px;color:#fff;font-size:13px;font-weight:700;text-align:center;">${l}</th>`).join('')}</tr></thead>
             <tbody>
                 <tr>${[0,1,2,3].map(j=>`<td style="text-align:center;padding:12px 4px 4px;font-size:30px;line-height:1;">${icons4[j]}</td>`).join('')}</tr>
-                <tr style="background:#fff;">
-                    ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px;">
-                        <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Temp.</div>
-                        <div style="font-size:15px;font-weight:700;color:#2C3E50;">${temps4[j]}</div>
-                    </td>`).join('')}
-                </tr>
-                <tr>
-                    ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px;">
-                        <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Sensación</div>
-                        <div style="font-size:13px;font-weight:600;color:#2C3E50;">${feels4[j]}</div>
-                    </td>`).join('')}
-                </tr>
-                <tr style="background:#fff;">
-                    ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px;">
-                        <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Lluvia</div>
-                        <div style="font-size:13px;font-weight:700;color:#2C3E50;">${rain4[j]}</div>
-                    </td>`).join('')}
-                </tr>
-                <tr>
-                    ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px;">
-                        <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Humedad</div>
-                        <div style="font-size:13px;font-weight:600;color:#2C3E50;">${hum4[j]}</div>
-                    </td>`).join('')}
-                </tr>
-                <tr style="background:#fff;">
-                    ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px;">
-                        <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Presión</div>
-                        <div style="font-size:12px;font-weight:600;color:#2C3E50;">${pres4[j]}</div>
-                    </td>`).join('')}
-                </tr>
-                <tr>
-                    ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px 4px 12px;">
-                        <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Viento</div>
-                        <div style="font-size:13px;font-weight:700;color:#2C3E50;">${wind4[j]}</div>
-                        <div style="font-size:11px;color:#64748B;">${wdir4[j]}</div>
-                    </td>`).join('')}
+                <tr style="background:#fff;">${[0,1,2,3].map(j=>cell(j,'Temp.',temps4[j])).join('')}</tr>
+                <tr>${[0,1,2,3].map(j=>cell(j,'Sensación',feels4[j])).join('')}</tr>
+                <tr style="background:#fff;">${[0,1,2,3].map(j=>cell(j,'Lluvia',rain4[j])).join('')}</tr>
+                <tr>${[0,1,2,3].map(j=>cell(j,'Humedad',hum4[j])).join('')}</tr>
+                <tr style="background:#fff;">${[0,1,2,3].map(j=>cell(j,'Presión',pres4[j])).join('')}</tr>
+                <tr>${[0,1,2,3].map(j=>`<td style="text-align:center;padding:5px 4px 12px;">${j===0?`<div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Viento</div>`:''}
+                    <div style="font-size:13px;font-weight:700;color:#2C3E50;">${wind4[j]}</div>
+                    <div style="font-size:11px;color:#64748B;">${wdir4[j]}</div></td>`).join('')}
                 </tr>
             </tbody>
             </table>`;
@@ -1371,17 +1349,17 @@
                 head.querySelector('.ds-arrow').style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';
                 if(!isOpen){
                     head.style.background=HEADER_GRADIENT;
-                    head.querySelector('.day-head-title').style.color='#fff';
-                    head.querySelector('.day-head-date').style.color='rgba(255,255,255,0.7)';
-                    head.querySelector('.day-head-meta').style.color='rgba(255,255,255,0.85)';
-                    head.querySelector('.day-temp-min').style.color='#a8d8ff';
-                    head.querySelector('.day-temp-max').style.color='#ffd580';
-                    head.querySelector('.day-rain-lbl').style.color='rgba(255,255,255,0.85)';
-                    head.querySelector('.day-wind-lbl').style.color='rgba(255,255,255,0.85)';
-                    head.querySelector('.day-sol-lbl').style.color='rgba(255,255,255,0.85)';
-                    head.querySelector('.day-uvi-lbl').style.color='rgba(255,255,255,0.85)';
-                    head.querySelector('.ds-arrow').style.color='rgba(255,255,255,0.7)';
-                    head.querySelectorAll('.day-sep').forEach(s=>s.style.color='rgba(255,255,255,0.3)');
+                    head.querySelector('.day-head-title').style.color='#1a2e44';
+                    head.querySelector('.day-head-date').style.color='rgba(20,50,80,0.7)';
+                    head.querySelector('.day-head-meta').style.color='rgba(20,50,80,0.85)';
+                    head.querySelector('.day-temp-min').style.color='#1a5a9a';
+                    head.querySelector('.day-temp-max').style.color='#c05000';
+                    head.querySelector('.day-rain-lbl').style.color='rgba(20,50,80,0.85)';
+                    head.querySelector('.day-wind-lbl').style.color='rgba(20,50,80,0.85)';
+                    head.querySelector('.day-sol-lbl').style.color='rgba(20,50,80,0.85)';
+                    head.querySelector('.day-uvi-lbl').style.color='rgba(20,50,80,0.85)';
+                    head.querySelector('.ds-arrow').style.color='rgba(20,50,80,0.6)';
+                    head.querySelectorAll('.day-sep').forEach(s=>s.style.color='rgba(20,50,80,0.25)');
                 } else {
                     head.style.background='#fff';
                     head.querySelector('.day-head-title').style.color='#2C3E50';
