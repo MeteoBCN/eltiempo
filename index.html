@@ -110,6 +110,7 @@
         .weather-table-container { margin: 40px auto; overflow-x: auto; animation: fadeIn 0.6s ease-out 0.6s both; max-width: 600px; width: 100%; -webkit-overflow-scrolling: touch; }
         #weather-table { width: 100%; min-width: 100%; border-collapse: collapse; background: var(--color-bg-card); border-radius: 0; overflow: hidden; box-shadow: var(--shadow-md); backdrop-filter: blur(10px); }
         #weather-table thead tr { background: #2C3E50; }
+        #weather-table thead tr.rain-header-bg { background: linear-gradient(135deg, #1a3a5c 0%, #1e4976 40%, #1a6b8a 100%) !important; }
         #weather-table th { padding: 14px 10px; text-align: center; color: #FFFFFF; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
         #weather-table tbody tr { border-bottom: 1px solid rgba(148, 163, 184, 0.15); }
         #weather-table tbody tr:nth-child(even) { background-color: rgba(241, 245, 249, 0.5); }
@@ -181,6 +182,26 @@
         .franja-dato span { display: block; }
         /* ══════ FIN TABLA FRANJAS ══════ */
 
+        /* ══════ CABECERA LLUVIA (fondo compartido) ══════ */
+        .rain-header-bg {
+            background: linear-gradient(135deg, #1a3a5c 0%, #1e4976 40%, #1a6b8a 100%) !important;
+            position: relative;
+            overflow: hidden;
+        }
+        .rain-header-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0.18;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='60'%3E%3Cellipse cx='30' cy='12' rx='18' ry='9' fill='%23fff'/%3E%3Cellipse cx='75' cy='8' rx='24' ry='11' fill='%23fff'/%3E%3Cellipse cx='55' cy='13' rx='20' ry='10' fill='%23fff'/%3E%3Cellipse cx='140' cy='10' rx='22' ry='10' fill='%23fff'/%3E%3Cellipse cx='175' cy='7' rx='18' ry='9' fill='%23fff'/%3E%3Cellipse cx='158' cy='13' rx='16' ry='8' fill='%23fff'/%3E%3Cellipse cx='260' cy='11' rx='20' ry='10' fill='%23fff'/%3E%3Cellipse cx='295' cy='7' rx='22' ry='10' fill='%23fff'/%3E%3Cellipse cx='278' cy='14' rx='18' ry='9' fill='%23fff'/%3E%3Cellipse cx='360' cy='9' rx='19' ry='9' fill='%23fff'/%3E%3Cellipse cx='390' cy='12' rx='15' ry='8' fill='%23fff'/%3E%3Cline x1='28' y1='22' x2='24' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='38' y1='24' x2='34' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='48' y1='22' x2='44' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='58' y1='24' x2='54' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='68' y1='22' x2='64' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='78' y1='24' x2='74' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='148' y1='22' x2='144' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='158' y1='24' x2='154' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='168' y1='22' x2='164' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='178' y1='24' x2='174' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='268' y1='22' x2='264' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='278' y1='24' x2='274' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='288' y1='22' x2='284' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='298' y1='24' x2='294' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='368' y1='22' x2='364' y2='38' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='378' y1='24' x2='374' y2='40' stroke='%23a0d8ef' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-size: 400px 60px;
+            background-repeat: repeat-x;
+            background-position: bottom;
+            pointer-events: none;
+        }
+        .rain-header-bg > * { position: relative; z-index: 1; }
+        /* ══════ FIN CABECERA LLUVIA ══════ */
+
         .webcam-container { display: flex; flex-direction: column; align-items: center; width: 100%; margin: 32px 0; animation: fadeIn 0.6s ease-out 1s both; }
         .webcam-frame { width: 100%; height: auto; aspect-ratio: 16 / 9; overflow: hidden; border: none; background: #000; border-radius: 0; box-shadow: var(--shadow-md); }
         .webcam-frame img { width: 100%; height: 100%; object-fit: cover; }
@@ -190,6 +211,7 @@
            ══════════════════════════════════════════════ */
         .playas-section { margin: 0 auto; max-width: 600px; animation: fadeIn 0.6s ease-out 0.5s both; }
         .playas-header { background: #2c3e50; padding: 13px 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .playas-header.rain-header-bg { background: linear-gradient(135deg, #1a3a5c 0%, #1e4976 40%, #1a6b8a 100%) !important; }
         .playas-header-title { font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
         .playas-card { display: flex; align-items: stretch; width: 100%; background: #fff; box-shadow: var(--shadow-md); }
         .playas-icon-col { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 20px; background: #eaf4f8; min-width: 110px; gap: 10px; }
@@ -469,7 +491,6 @@
             .articulo-titulo { font-size: 20px; }
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -595,7 +616,7 @@
         <div class="weather-table-container" style="margin-top: 28px; margin-bottom: 0;">
             <table id="weather-table">
                 <thead>
-                    <tr><th>Hora</th><th>Cielo</th><th>ºC</th><th>Lluvia</th><th>Viento</th></tr>
+                    <tr class="rain-header-bg"><th>Hora</th><th>Cielo</th><th>ºC</th><th>Lluvia</th><th>Viento</th></tr>
                 </thead>
                 <tbody id="weather-table-body">
                     <tr><td colspan="5" style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</td></tr>
@@ -609,7 +630,7 @@
              SECCIÓN PLAYAS DE BARCELONA
         ═══════════════════════════════════════════════ -->
         <div class="playas-section">
-            <div class="playas-header">
+            <div class="playas-header rain-header-bg">
                 <span class="playas-header-title">Playas — Estado de la mar</span>
             </div>
 
@@ -619,14 +640,10 @@
             </div>
         </div>
 
-        <div id="temp-chart-container" style="max-width:600px;margin:40px auto 0;padding:0 0 0 0;">
-            <div style="background:#2C3E50;padding:14px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Temperatura · Próximos 7 días</div>
-            <div style="background:#fff;padding:16px 8px 8px;border:1px solid #e9ecef;border-top:none;">
-                <canvas id="tempChart" height="220"></canvas>
-            </div>
-        </div>
+        <!-- TABLA PRECIPITACIONES 7 DÍAS -->
+        <div id="rain-7days-container" style="max-width:600px;margin:40px auto 0;"></div>
 
-        <div class="weather-table-container" style="margin-top: 60px;">
+        <div class="weather-table-container" style="margin-top: 28px;">
             <div id="days-detailed-container">
                 <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
             </div>
@@ -1170,8 +1187,8 @@
                 updateAirQualityTable(aqData.current);
                 updatePlayasTable(marineData.current, data.daily, marineData.hourly, data.hourly);
                 updateWeatherTable(data.hourly);
+                updateRainTable(data.hourly, data.daily);
                 updateDaysTable(data.hourly, data.daily);
-                updateTempChart(data.hourly, data.daily);
                 updateDaysSummary(data.hourly, data.daily);
                 updateTime();
             } catch(e) { console.error('Error al cargar datos:',e); }
@@ -1256,18 +1273,31 @@
             const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
 
             // Totales del día
-            let tp=0,ws=[],wd=[];
+            const tDayStr=daily.time[off]; // "YYYY-MM-DD" — fuente de verdad
+            let tp=0,ws=[],wd=[],rainHours=[];
             for(let i=0;i<hourly.time.length;i++){
-                const ht=new Date(hourly.time[i]);
-                if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()){
-                    tp+=hourly.precipitation[i]||0;
-                    if(hourly.wind_speed_10m)ws.push(hourly.wind_speed_10m[i]);
-                    if(hourly.wind_direction_10m)wd.push(hourly.wind_direction_10m[i]);
-                }
+                if(!hourly.time[i].startsWith(tDayStr)) continue;
+                const pr=hourly.precipitation[i]||0;
+                tp+=pr;
+                if(pr>0) rainHours.push(parseInt(hourly.time[i].slice(11,13),10));
+                if(hourly.wind_speed_10m)ws.push(hourly.wind_speed_10m[i]);
+                if(hourly.wind_direction_10m)wd.push(hourly.wind_direction_10m[i]);
             }
             tp=Math.round(tp*10)/10;
             const aw=ws.length>0?Math.round(ws.reduce((a,b)=>a+b,0)/ws.length):0;
             const awd=wd.length>0?Math.round(wd.reduce((a,b)=>a+b,0)/wd.length):0;
+            function groupRainHours(hours){
+                if(!hours.length) return '';
+                const ranges=[];
+                let s=hours[0],e=hours[0];
+                for(let k=1;k<hours.length;k++){
+                    if(hours[k]===e+1){e=hours[k];}
+                    else{ranges.push(s===e?String(s).padStart(2,'0')+':00h':String(s).padStart(2,'0')+':00-'+String(e+1).padStart(2,'0')+':00h');s=e=hours[k];}
+                }
+                ranges.push(s===e?String(s).padStart(2,'0')+':00h':String(s).padStart(2,'0')+':00-'+String(e+1).padStart(2,'0')+':00h');
+                return ' ('+ranges.join(', ')+')';
+            }
+            const rainHoursStr=groupRainHours(rainHours);
 
             // Amanecer/atardecer y UVI
             const sr=daily.sunrise?.[off]?new Date(daily.sunrise[off]).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'--:--';
@@ -1323,7 +1353,7 @@
                             <span class="day-sep" style="margin:0 4px;opacity:0.4;">/</span>
                             <span class="day-temp-max" style="color:#EF4444;font-weight:700;font-size:22px;transition:color 0.4s;">${maxT}°</span>
                             <span class="day-sep" style="margin:0 5px;opacity:0.4;">|</span>
-                            <span class="day-rain-lbl" style="transition:color 0.4s;">Lluvia prevista: ${tp} mm</span>
+                            <span class="day-rain-lbl" style="transition:color 0.4s;">Lluvia prevista: ${tp} mm${rainHoursStr}</span>
                             <span class="day-sep" style="margin:0 5px;opacity:0.4;">|</span>
                             <span class="day-wind-lbl" style="transition:color 0.4s;">${aw} km/h ${getWindDir(awd)}</span>
                             <br>
@@ -1455,151 +1485,126 @@
             container.appendChild(wrap);
         }
 
-
-        let tempChartInstance = null;
-
-        function updateTempChart(hourly, daily) {
-            const canvas = document.getElementById('tempChart');
-            if (!canvas) return;
-
-            const now = new Date();
+        function updateRainTable(hourly, daily) {
+            const container = document.getElementById('rain-7days-container');
+            if (!container || !daily?.time) return;
             const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
             const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
-            const labels = [];
-            const maxTemps = [];
-            const minTemps = [];
-            const feelsMax = [];
-            const feelsMin = [];
-
-            for (let off = 1; off <= 7; off++) {
-                if (daily.temperature_2m_max[off] === undefined) continue;
-                const d = new Date(now);
-                d.setDate(d.getDate() + off);
-                labels.push(DIAS[d.getDay()] + ' ' + d.getDate() + ' ' + MESES[d.getMonth()]);
-                maxTemps.push(Math.round(daily.temperature_2m_max[off]));
-                minTemps.push(Math.round(daily.temperature_2m_min[off]));
-
-                // apparent_temperature: get max and min from hourly for that day
-                let appMax = -999, appMin = 999;
-                for (let i = 0; i < hourly.time.length; i++) {
-                    const ht = new Date(hourly.time[i]);
-                    if (ht.getDate() === d.getDate() && ht.getMonth() === d.getMonth()) {
-                        const at = hourly.apparent_temperature?.[i];
-                        if (at !== undefined && at !== null) {
-                            if (at > appMax) appMax = at;
-                            if (at < appMin) appMin = at;
-                        }
+            function groupRainHours(hours) {
+                if (!hours.length) return '';
+                const ranges = [];
+                let s = hours[0], e = hours[0];
+                for (let k = 1; k < hours.length; k++) {
+                    if (hours[k] === e + 1) { e = hours[k]; }
+                    else {
+                        ranges.push(s === e
+                            ? String(s).padStart(2,'0') + 'h'
+                            : String(s).padStart(2,'0') + '-' + String(e+1).padStart(2,'0') + 'h');
+                        s = e = hours[k];
                     }
                 }
-                feelsMax.push(appMax > -999 ? Math.round(appMax) : null);
-                feelsMin.push(appMin < 999  ? Math.round(appMin) : null);
+                ranges.push(s === e
+                    ? String(s).padStart(2,'0') + 'h'
+                    : String(s).padStart(2,'0') + '-' + String(e+1).padStart(2,'0') + 'h');
+                return ranges.join(', ');
             }
 
-            if (tempChartInstance) tempChartInstance.destroy();
+            // Construir filas: día 0 (hoy) hasta día 6
+            const rows = [];
+            let totalAcum = 0;
+            for (let off = 0; off < 7; off++) {
+                const dateStr = daily.time[off];
+                if (!dateStr) continue;
+                const d = new Date(dateStr + 'T12:00:00');
+                const diaNom = DIAS[d.getDay()];
+                const fechaLabel = d.getDate() + ' ' + MESES[d.getMonth()];
 
-            const ctx = canvas.getContext('2d');
-            tempChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [
-                        {
-                            label: 'Máx. real',
-                            data: maxTemps,
-                            borderColor: '#ef4444',
-                            backgroundColor: 'rgba(239,68,68,0.08)',
-                            borderWidth: 2.5,
-                            pointRadius: 5,
-                            pointBackgroundColor: '#ef4444',
-                            tension: 0.4,
-                            fill: false,
-                        },
-                        {
-                            label: 'Mín. real',
-                            data: minTemps,
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59,130,246,0.08)',
-                            borderWidth: 2.5,
-                            pointRadius: 5,
-                            pointBackgroundColor: '#3b82f6',
-                            tension: 0.4,
-                            fill: false,
-                        },
-                        {
-                            label: 'Sensación máx.',
-                            data: feelsMax,
-                            borderColor: '#f97316',
-                            borderWidth: 1.5,
-                            borderDash: [5, 4],
-                            pointRadius: 3,
-                            pointBackgroundColor: '#f97316',
-                            tension: 0.4,
-                            fill: false,
-                        },
-                        {
-                            label: 'Sensación mín.',
-                            data: feelsMin,
-                            borderColor: '#60a5fa',
-                            borderWidth: 1.5,
-                            borderDash: [5, 4],
-                            pointRadius: 3,
-                            pointBackgroundColor: '#60a5fa',
-                            tension: 0.4,
-                            fill: false,
-                        },
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                font: { family: 'Inter, sans-serif', size: 11 },
-                                color: '#64748b',
-                                padding: 16,
-                                usePointStyle: true,
-                                pointStyleWidth: 16,
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(44,62,80,0.92)',
-                            titleFont: { family: 'Inter, sans-serif', size: 12, weight: '700' },
-                            bodyFont:  { family: 'Inter, sans-serif', size: 12 },
-                            padding: 10,
-                            callbacks: {
-                                label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}°C`
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: { color: 'rgba(0,0,0,0.05)' },
-                            ticks: {
-                                font: { family: 'Inter, sans-serif', size: 11 },
-                                color: '#64748b',
-                            }
-                        },
-                        y: {
-                            grid: { color: 'rgba(0,0,0,0.06)' },
-                            ticks: {
-                                font: { family: 'Inter, sans-serif', size: 11 },
-                                color: '#64748b',
-                                callback: v => v + '°C'
-                            }
-                        }
-                    }
+                let tp = 0, rainHours = [];
+                for (let i = 0; i < hourly.time.length; i++) {
+                    if (!hourly.time[i].startsWith(dateStr)) continue;
+                    const pr = hourly.precipitation[i] || 0;
+                    tp += pr;
+                    if (pr > 0) rainHours.push(parseInt(hourly.time[i].slice(11,13), 10));
                 }
+                tp = Math.round(tp * 10) / 10;
+                totalAcum += tp;
+
+                const horasStr = groupRainHours(rainHours);
+                const hasRain = tp > 0;
+
+                rows.push({ diaNom, fechaLabel, tp, horasStr, hasRain, isToday: off === 0 });
+            }
+            totalAcum = Math.round(totalAcum * 10) / 10;
+
+            // Escala dinámica: máximo real redondeado al múltiplo de 5 superior (mínimo 10mm)
+            const maxTp = Math.max(...rows.map(r => r.tp), 0);
+            const scaleMax = Math.max(10, Math.ceil(maxTp / 5) * 5);
+
+            // Calcular barras y colores ahora que tenemos la escala
+            rows.forEach(r => {
+                r.barPct = scaleMax > 0 ? Math.min(r.tp / scaleMax * 100, 100) : 0;
+                r.barColor = r.tp === 0 ? '#e2e8f0'
+                    : r.tp < 2   ? '#93c5fd'
+                    : r.tp < 8   ? '#3b82f6'
+                    : r.tp < 15  ? '#1d4ed8'
+                    : '#7c3aed';
             });
+
+            let html = `
+            <div class="rain-header-bg" style="padding:16px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
+                Precipitación — Próximos 7 días
+            </div>
+            <div style="border:1px solid #e2e8f0;border-top:none;background:#fff;overflow:hidden;">
+                <table style="width:100%;border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:#f1f5f9;">
+                            <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;width:38%;">Día</th>
+                            <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;width:16%;">Total</th>
+                            <th style="padding:10px 8px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;">Horas con lluvia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            rows.forEach((r, idx) => {
+                const bg = r.isToday ? 'background:#f8faff;' : (idx % 2 === 0 ? '' : 'background:#fafafa;');
+                const todayMark = r.isToday ? '<span style="font-size:9px;background:#3b82f6;color:#fff;padding:1px 5px;border-radius:3px;margin-left:5px;vertical-align:middle;">HOY</span>' : '';
+                const mmColor = r.tp === 0 ? '#94a3b8' : r.tp < 5 ? '#3b82f6' : r.tp < 15 ? '#1d4ed8' : '#7c3aed';
+                const horasCell = r.hasRain
+                    ? `<span style="font-size:12px;color:#1e293b;font-weight:500;">${r.horasStr}</span>`
+                    : `<span style="font-size:12px;color:#94a3b8;font-style:italic;">Sin lluvia</span>`;
+
+                html += `
+                <tr style="${bg}border-bottom:1px solid #f1f5f9;">
+                    <td style="padding:11px 12px;">
+                        <div style="font-size:14px;font-weight:700;color:#2c3e50;">${r.diaNom} <span style="font-weight:400;color:#64748b;">${r.fechaLabel}</span>${todayMark}</div>
+                        <div style="margin-top:5px;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;">
+                            <div style="height:100%;width:${r.barPct}%;background:${r.barColor};border-radius:3px;transition:width 0.8s ease;"></div>
+                        </div>
+                    </td>
+                    <td style="padding:11px 8px;text-align:center;">
+                        <div style="font-size:16px;font-weight:800;color:${mmColor};">${r.tp > 0 ? r.tp : '—'}</div>
+                        ${r.tp > 0 ? '<div style="font-size:10px;color:#94a3b8;margin-top:1px;">mm</div>' : ''}
+                    </td>
+                    <td style="padding:11px 8px;">${horasCell}</td>
+                </tr>`;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            </div>`;
+
+            container.innerHTML = html;
         }
 
         function updateDaysTable(hourly, daily) {
             const container=document.getElementById('days-detailed-container'); container.innerHTML='';
             // Título de sección
             const title=document.createElement('div');
-            title.style.cssText='background:#2C3E50;padding:14px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;';
+            title.className = 'rain-header-bg';
+            title.style.cssText='padding:14px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;';
             title.textContent='Previsión próximos 7 días';
             container.appendChild(title);
             // Wrapper con borde
@@ -1612,99 +1617,9 @@
         }
 
         function updateDaysSummary(hourly, daily) {
-            const container = document.getElementById('days-summary-container');
-            if (!container || !hourly?.time) return;
-            container.innerHTML = '';
-
-            const now = new Date();
-            const DIAS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-            const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-
-            // Find next Thursday from today (or today if today is Thursday)
-            // "desde hoy hasta el próximo jueves" = days 0..N where dayOfWeek==4
-            const todayDow = now.getDay();
-            // days until next thursday (dow=4). If today is thursday, go to next week's thursday
-            const daysToThursday = todayDow === 4 ? 7 : (4 - todayDow + 7) % 7;
-            const rows = [];
-            for (let off = 0; off <= daysToThursday; off++) {
-                const d = new Date(now);
-                d.setDate(d.getDate() + off);
-                d.setHours(0, 0, 0, 0);
-                rows.push(d);
-            }
-
-            // Build table
-            const tbl = document.createElement('table');
-            tbl.style.cssText = 'width:100%;border-collapse:collapse;background:#fff;';
-
-            // Header
-            tbl.innerHTML = `<thead>
-                <tr style="background:#2C3E50;">
-                    <th style="padding:12px 10px;color:#fff;font-size:13px;font-weight:700;text-align:left;letter-spacing:0.8px;text-transform:uppercase;">Día</th>
-                    <th style="padding:12px 10px;color:#fff;font-size:13px;font-weight:700;text-align:center;letter-spacing:0.8px;text-transform:uppercase;">Precip. máx.</th>
-                    <th style="padding:12px 10px;color:#fff;font-size:13px;font-weight:700;text-align:center;letter-spacing:0.8px;text-transform:uppercase;">Hora prevista</th>
-                </tr>
-            </thead><tbody></tbody>`;
-
-            const tbody = tbl.querySelector('tbody');
-
-            rows.forEach((d, idx) => {
-                let maxRain = 0, maxRainHour = null;
-                for (let i = 0; i < hourly.time.length; i++) {
-                    const ht = new Date(hourly.time[i]);
-                    if (ht.getDate() === d.getDate() && ht.getMonth() === d.getMonth()) {
-                        const r = hourly.precipitation?.[i] || 0;
-                        if (r > maxRain) {
-                            maxRain = r;
-                            maxRainHour = ht;
-                        }
-                    }
-                }
-
-                const isToday = idx === 0;
-                const isSat = d.getDay() === 6;
-                const isSun = d.getDay() === 0;
-                const isThu = d.getDay() === 4;
-                const isWeekend = isSat || isSun;
-
-                const dayLabel = isToday
-                    ? `Hoy, ${DIAS_FULL[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`
-                    : `${DIAS_FULL[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`;
-
-                const rainTxt = maxRain > 0 ? maxRain.toFixed(1) + ' mm' : '—';
-                const hourTxt = maxRain > 0 && maxRainHour
-                    ? String(maxRainHour.getHours()).padStart(2,'0') + ':00 h'
-                    : '—';
-
-                const bgRow = isWeekend
-                    ? 'rgba(44,62,80,0.04)'
-                    : (idx % 2 === 0 ? '#fff' : 'rgba(241,245,249,0.6)');
-                const borderBottom = isThu ? 'none' : '1px solid rgba(148,163,184,0.15)';
-                const dayFw = isToday || isThu ? '700' : '500';
-                const dayColor = isToday ? '#2C3E50' : isThu ? '#2C3E50' : '#374151';
-
-                const tr = document.createElement('tr');
-                tr.style.cssText = `background:${bgRow};border-bottom:${borderBottom};`;
-                tr.innerHTML = `
-                    <td style="padding:13px 10px;font-size:14px;font-weight:${dayFw};color:${dayColor};">
-                        ${isToday ? '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3B82F6;margin-right:7px;vertical-align:middle;"></span>' : ''}${dayLabel}
-                        ${isThu ? '<span style="margin-left:6px;font-size:11px;color:#94A3B8;font-weight:400;">(jueves)</span>' : ''}
-                    </td>
-                    <td style="padding:13px 10px;text-align:center;font-size:15px;font-weight:700;color:${maxRain>0?'#3B82F6':'#94A3B8'};">${rainTxt}</td>
-                    <td style="padding:13px 10px;text-align:center;font-size:14px;font-weight:600;color:${maxRain>0?'#374151':'#94A3B8'};">${hourTxt}</td>`;
-                tbody.appendChild(tr);
-            });
-
-            // Title bar
-            const titleEl = document.createElement('div');
-            titleEl.style.cssText = 'background:#2C3E50;padding:14px 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;';
-            titleEl.textContent = 'Precipitación prevista · Hasta el próximo jueves';
-            container.appendChild(titleEl);
-
-            const wrapper = document.createElement('div');
-            wrapper.style.cssText = 'border:1px solid #e9ecef;border-top:none;overflow:hidden;';
-            wrapper.appendChild(tbl);
-            container.appendChild(wrapper);
+            // Ahora vacío — los días 5-7 ya se muestran en updateDaysTable
+            const container=document.getElementById('days-summary-container');
+            if(container) container.innerHTML='';
         }
 
         function updateTime() {
