@@ -1141,7 +1141,7 @@
 
         async function loadWeatherData() {
             try {
-                const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7`;
+                const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=Europe/Madrid&forecast_days=7`;
                 const aqUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=Europe/Madrid`;
                 const marineUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
                 const [res, aqRes, marineRes] = await Promise.all([fetch(url), fetch(aqUrl), fetch(marineUrl)]);
@@ -1279,6 +1279,7 @@
                 return p?Math.round(p)+' hPa':'--';
             });
             const rain4=hrs.map(hr=>hIdx[hr]!==-1?(hourly.precipitation?.[hIdx[hr]]||0).toFixed(1)+' mm':'--');
+            const feels4=hrs.map(hr=>hIdx[hr]!==-1&&hourly.apparent_temperature?Math.round(hourly.apparent_temperature[hIdx[hr]])+'°C':'--');
             const wind4=hrs.map(hr=>hIdx[hr]!==-1?Math.round(hourly.wind_speed_10m?.[hIdx[hr]]||0)+' km/h':'--');
             const wdir4=hrs.map(hr=>hIdx[hr]!==-1&&hourly.wind_direction_10m?getWindDir(hourly.wind_direction_10m[hIdx[hr]]):'--');
 
@@ -1288,26 +1289,29 @@
 
             const skyBg=getSkyGradient(mc);
 
+            // Degradado fijo elegante para la cabecera abierta
+            const HEADER_GRADIENT='linear-gradient(135deg,#1e3a5f 0%,#2d6a9f 50%,#1a8a8a 100%)';
+
             // Cabecera clicable
             const head=document.createElement('div');
-            head.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:14px 10px;cursor:pointer;background:#fff;user-select:none;transition:background 0.5s,color 0.5s;';
+            head.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:14px 10px;cursor:pointer;background:#fff;user-select:none;transition:background 0.4s;';
             head.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div class="day-head-icon" style="font-size:30px;line-height:1;transition:filter 0.4s;">${icon}</div>
+                    <div class="day-head-icon" style="font-size:30px;line-height:1;">${icon}</div>
                     <div>
-                        <div class="day-head-title" style="font-size:15px;font-weight:700;color:#2C3E50;transition:color 0.4s;">${dn} <span class="day-head-date" style="font-size:12px;font-weight:400;color:#94A3B8;transition:color 0.4s;">${fechaStr}</span></div>
+                        <div class="day-head-title" style="font-size:15px;font-weight:700;color:#2C3E50;transition:color 0.4s;">${dn.toUpperCase()} <span class="day-head-date" style="font-size:12px;font-weight:400;color:#94A3B8;transition:color 0.4s;">${fechaStr}</span></div>
                         <div class="day-head-meta" style="font-size:12px;color:#64748B;margin-top:3px;line-height:1.6;transition:color 0.4s;">
                             <span class="day-temp-min" style="color:#3B82F6;font-weight:700;transition:color 0.4s;">${minT}°</span>
-                            <span style="margin:0 4px;">/</span>
+                            <span class="day-sep" style="margin:0 4px;opacity:0.4;">/</span>
                             <span class="day-temp-max" style="color:#EF4444;font-weight:700;transition:color 0.4s;">${maxT}°</span>
                             <span class="day-sep" style="margin:0 5px;opacity:0.4;">|</span>
-                            <span class="day-rain-lbl">Lluvia prevista: ${tp} mm</span>
+                            <span class="day-rain-lbl" style="transition:color 0.4s;">Lluvia prevista: ${tp} mm</span>
                             <span class="day-sep" style="margin:0 5px;opacity:0.4;">|</span>
-                            <span class="day-wind-lbl">${aw} km/h ${getWindDir(awd)}</span>
+                            <span class="day-wind-lbl" style="transition:color 0.4s;">${aw} km/h ${getWindDir(awd)}</span>
                             <br>
-                            <span class="day-sol-lbl" style="font-size:11px;">SOL: ${sr} / ${ss}</span>
+                            <span class="day-sol-lbl" style="font-size:11px;transition:color 0.4s;">SOL: ${sr} / ${ss}</span>
                             <span class="day-sep" style="margin:0 5px;opacity:0.4;">|</span>
-                            <span class="day-uvi-lbl" style="font-size:11px;">UVI ${Math.round(uv)}</span>
+                            <span class="day-uvi-lbl" style="font-size:11px;transition:color 0.4s;">UVI ${Math.round(uv)}</span>
                         </div>
                     </div>
                 </div>
@@ -1329,6 +1333,18 @@
                 </tr>
                 <tr>
                     ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px;">
+                        <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Sensación</div>
+                        <div style="font-size:13px;font-weight:600;color:#2C3E50;">${feels4[j]}</div>
+                    </td>`).join('')}
+                </tr>
+                <tr style="background:#fff;">
+                    ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px;">
+                        <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Lluvia</div>
+                        <div style="font-size:13px;font-weight:700;color:#2C3E50;">${rain4[j]}</div>
+                    </td>`).join('')}
+                </tr>
+                <tr>
+                    ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px;">
                         <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Humedad</div>
                         <div style="font-size:13px;font-weight:600;color:#2C3E50;">${hum4[j]}</div>
                     </td>`).join('')}
@@ -1340,12 +1356,6 @@
                     </td>`).join('')}
                 </tr>
                 <tr>
-                    ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px;">
-                        <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Lluvia</div>
-                        <div style="font-size:13px;font-weight:700;color:#2C3E50;">${rain4[j]}</div>
-                    </td>`).join('')}
-                </tr>
-                <tr style="background:#fff;">
                     ${[0,1,2,3].map(j=>`<td style="text-align:center;padding:4px 4px 12px;">
                         <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Viento</div>
                         <div style="font-size:13px;font-weight:700;color:#2C3E50;">${wind4[j]}</div>
@@ -1359,25 +1369,20 @@
                 const isOpen=body.style.display!=='none';
                 body.style.display=isOpen?'none':'block';
                 head.querySelector('.ds-arrow').style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';
-
                 if(!isOpen){
-                    // Aplicar fondo cielo
-                    head.style.background=skyBg;
-                    head.style.borderRadius='0';
-                    // Texto en blanco
-                    head.querySelector('.day-head-title').style.color='#ffffff';
-                    head.querySelector('.day-head-date').style.color='rgba(255,255,255,0.75)';
-                    head.querySelector('.day-head-meta').style.color='rgba(255,255,255,0.9)';
-                    head.querySelector('.day-temp-min').style.color='#c8e8ff';
+                    head.style.background=HEADER_GRADIENT;
+                    head.querySelector('.day-head-title').style.color='#fff';
+                    head.querySelector('.day-head-date').style.color='rgba(255,255,255,0.7)';
+                    head.querySelector('.day-head-meta').style.color='rgba(255,255,255,0.85)';
+                    head.querySelector('.day-temp-min').style.color='#a8d8ff';
                     head.querySelector('.day-temp-max').style.color='#ffd580';
-                    head.querySelector('.day-rain-lbl').style.color='rgba(255,255,255,0.9)';
-                    head.querySelector('.day-wind-lbl').style.color='rgba(255,255,255,0.9)';
-                    head.querySelector('.day-sol-lbl').style.color='rgba(255,255,255,0.9)';
-                    head.querySelector('.day-uvi-lbl').style.color='rgba(255,255,255,0.9)';
-                    head.querySelector('.ds-arrow').style.color='rgba(255,255,255,0.8)';
-                    head.querySelectorAll('.day-sep').forEach(s=>s.style.color='rgba(255,255,255,0.35)');
+                    head.querySelector('.day-rain-lbl').style.color='rgba(255,255,255,0.85)';
+                    head.querySelector('.day-wind-lbl').style.color='rgba(255,255,255,0.85)';
+                    head.querySelector('.day-sol-lbl').style.color='rgba(255,255,255,0.85)';
+                    head.querySelector('.day-uvi-lbl').style.color='rgba(255,255,255,0.85)';
+                    head.querySelector('.ds-arrow').style.color='rgba(255,255,255,0.7)';
+                    head.querySelectorAll('.day-sep').forEach(s=>s.style.color='rgba(255,255,255,0.3)');
                 } else {
-                    // Restaurar fondo blanco
                     head.style.background='#fff';
                     head.querySelector('.day-head-title').style.color='#2C3E50';
                     head.querySelector('.day-head-date').style.color='#94A3B8';
