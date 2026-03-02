@@ -1127,7 +1127,7 @@
         }
 
         function updateWeatherTable(hourly) {
-            const tbody=document.getElementById('weather-table-body'); tbody.innerHTML='';
+            const tbody=document.getElementById('weather-table-body'); if(!tbody) return; tbody.innerHTML='';
             const now=new Date();
             for(let i=1;i<=11;i++){
                 const target=new Date(now.getTime()+i*2*3600000);
@@ -1501,7 +1501,7 @@
         }
 
         function updateDaysTable(hourly, daily) {
-            const container=document.getElementById('days-detailed-container'); container.innerHTML='';
+            const container=document.getElementById('days-detailed-container'); if(!container) return; container.innerHTML='';
             // Título de sección
             const title=document.createElement('div');
             title.className = 'rain-header-bg';
