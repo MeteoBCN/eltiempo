@@ -237,7 +237,10 @@
             color: #4db6ac; letter-spacing: 1.5px;
             background: rgba(77,182,172,0.18); padding: 3px 0;
         }
+        .hourly-col.is-night { background: rgba(30, 20, 60, 0.35); }
         .hourly-time { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.55); margin-bottom: 8px; margin-top: 4px; letter-spacing: 0.3px; }
+        .hourly-col.is-night { background: rgba(20, 15, 50, 0.4); }
+        .hourly-col.is-night .hourly-time { color: rgba(190,170,255,0.65); }
         .hourly-col.is-now .hourly-time { color: #4db6ac; }
         .hourly-icon { font-size: 26px; line-height: 1; margin-bottom: 6px; }
         .hourly-temp { font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 8px; line-height: 1; }
@@ -1139,11 +1142,19 @@
             const strip = document.getElementById('hourly-forecast-strip');
             if (!strip || !hourly?.time) return;
 
-            const WMO_EMOJI = {
+            const WMO_EMOJI_DAY = {
                 0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',
                 51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',
                 71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',
                 80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',
+                95:'⛈️',96:'⛈️',99:'⛈️'
+            };
+            // Noche: despejado/poco nublado → luna; el resto igual
+            const WMO_EMOJI_NIGHT = {
+                0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',
+                51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',
+                71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',
+                80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',
                 95:'⛈️',96:'⛈️',99:'⛈️'
             };
 
@@ -1172,7 +1183,9 @@
                 const hh = String(ht.getHours()).padStart(2,'0') + ':00';
                 const isNow = pos === 0;
                 const wmo = hourly.weather_code?.[idx] ?? 0;
-                const icon = WMO_EMOJI[wmo] || '🌡️';
+                const night = isNightTime(ht);
+                const iconMap = night ? WMO_EMOJI_NIGHT : WMO_EMOJI_DAY;
+                const icon = iconMap[wmo] || (night ? '🌙' : '🌡️');
                 const temp = Math.round(hourly.temperature_2m?.[idx] ?? 0);
                 const ws = Math.round(hourly.wind_speed_10m?.[idx] ?? 0);
                 const wd = hourly.wind_direction_10m?.[idx] ?? 0;
@@ -1182,7 +1195,8 @@
                 const precipStr = precip >= 0.1 ? precip.toFixed(1) + 'mm' : '—';
                 const precipClass = precip >= 0.1 ? '' : ' no-rain';
 
-                html += `<div class="hourly-col${isNow?' is-now':''}">
+                const nightClass = night && !isNow ? ' is-night' : '';
+                html += `<div class="hourly-col${isNow?' is-now':''}${nightClass}">
                     <div class="hourly-time">${hh}</div>
                     <div class="hourly-icon">${icon}</div>
                     <div class="hourly-temp">${temp}°</div>
