@@ -591,13 +591,23 @@
         ═══════════════════════════════════════════════ -->
         <div class="hourly-section">
             <div class="hourly-header">
-                <span class="hourly-header-title">⏱ Previsión por horas</span>
+                <span class="hourly-header-title" id="hourly-header-title">⏱ Previsión por horas</span>
             </div>
             <div class="hourly-scroll-wrap">
                 <div class="hourly-inner" id="hourly-forecast-strip">
                     <div style="padding:20px;color:rgba(255,255,255,0.3);font-size:13px;text-align:center;width:100%;">Cargando…</div>
                 </div>
             </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════
+             PREVISIÓN PRÓXIMOS DÍAS
+        ═══════════════════════════════════════════════ -->
+        <div class="weather-table-container" style="margin-top: 0;">
+            <div id="days-detailed-container">
+                <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
+            </div>
+            <div id="days-summary-container" style="margin-top: 0;"></div>
         </div>
 
         <!-- ══════════════════════════════════════════════
@@ -616,15 +626,6 @@
 
         <!-- TABLA PRECIPITACIONES 7 DÍAS -->
         <div id="rain-7days-container" style="max-width:600px;margin:40px auto 0;"></div>
-
-        <div class="weather-table-container" style="margin-top: 28px;">
-            <div id="days-detailed-container">
-                <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
-            </div>
-            <div id="days-summary-container" style="margin-top: 28px;">
-                <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
-            </div>
-        </div>
 
         <div class="webcam-container">
             <span class="webcam-label">WEBCAM / VILA OLÍMPICA</span>
@@ -1164,7 +1165,12 @@
             }
 
             const now = new Date();
-            // Find index of current hour and show next 24 hours
+            const DIAS_ES = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+            const hoyNombre = DIAS_ES[now.getDay()];
+            const titleEl = document.getElementById('hourly-header-title');
+            if (titleEl) titleEl.textContent = '⏱ Previsión de hoy — ' + hoyNombre.toUpperCase();
+
+            // Solo horas de hoy: desde la hora actual hasta las 23:00 de hoy
             let startIdx = -1;
             for (let i = 0; i < hourly.time.length; i++) {
                 const ht = new Date(hourly.time[i]);
@@ -1173,7 +1179,9 @@
             if (startIdx === -1) startIdx = 0;
 
             const slots = [];
-            for (let i = startIdx; i < Math.min(startIdx + 24, hourly.time.length); i++) {
+            for (let i = startIdx; i < hourly.time.length; i++) {
+                const ht = new Date(hourly.time[i]);
+                if (ht.getDate() !== now.getDate() || ht.getMonth() !== now.getMonth()) break;
                 slots.push(i);
             }
 
