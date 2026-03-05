@@ -1355,38 +1355,58 @@
             const ss=daily.sunset?.[off]?new Date(daily.sunset[off]).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'--:--';
             const uv=daily.uv_index_max?.[off]!==undefined?Math.round(daily.uv_index_max[off]*10)/10:'--';
 
-            // Datos horarios — todas las horas del día (0-23)
-            const allHourIdxs = [];
+            // ── Strip horario completo (0-23h) al estilo hourly ──────────────
+            function cdHr(idx){return{cloud_cover:hourly.cloud_cover?.[idx],cloud_cover_low:hourly.cloud_cover_low?.[idx],cloud_cover_mid:hourly.cloud_cover_mid?.[idx]};}
+            function windDir8(deg){const d=['↑N','↗NE','→E','↘SE','↓S','↙SO','←O','↖NO'];return d[Math.round((deg||0)/45)%8];}
+
+            // Recoger los 24 índices del día (h=0..23)
+            const daySlots=[];
             for(let i=0;i<hourly.time.length;i++){
                 const ht=new Date(hourly.time[i]);
                 if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()){
-                    allHourIdxs.push({h:ht.getHours(),i});
+                    daySlots.push({h:ht.getHours(),i,ht});
                 }
             }
-            allHourIdxs.sort((a,b)=>a.h-b.h);
+            daySlots.sort((a,b)=>a.h-b.h);
 
-            function cdHr(idx){return idx!==-1?{cloud_cover:hourly.cloud_cover?.[idx],cloud_cover_low:hourly.cloud_cover_low?.[idx],cloud_cover_mid:hourly.cloud_cover_mid?.[idx]}:null;}
-
-            // Construir array de datos por hora
-            const horasData = allHourIdxs.map(({h,i})=>{
-                const ht=new Date(hourly.time[i]);
-                const cd=cdHr(i);
-                return {
-                    h,
-                    label: String(h).padStart(2,'0')+':00',
-                    icon: getWeatherIcon(hourly.weather_code?.[i]??0, ht, cd),
-                    temp: hourly.temperature_2m?.[i]!==undefined?Math.round(hourly.temperature_2m[i])+'°C':'--',
-                    feels: hourly.apparent_temperature?.[i]!==undefined?Math.round(hourly.apparent_temperature[i])+'°C':'--',
-                    hum: hourly.relative_humidity_2m?.[i]!==undefined?hourly.relative_humidity_2m[i]+'%':'--',
-                    pres: hourly.pressure_msl?.[i]!==undefined?Math.round(hourly.pressure_msl[i])+' hPa':'--',
-                    rain: hourly.precipitation?.[i]!==undefined?(hourly.precipitation[i]||0).toFixed(1)+' mm':'--',
-                    wind: hourly.wind_speed_10m?.[i]!==undefined?Math.round(hourly.wind_speed_10m[i])+' km/h':'--',
-                    wdir: hourly.wind_direction_10m?.[i]!==undefined?getWindDir(hourly.wind_direction_10m[i]):'--',
-                };
+            // Construir columnas HTML idénticas al strip de horas
+            let stripCols='';
+            daySlots.forEach(({h,i,ht})=>{
+                const isNight=isNightTime(ht);
+                const wmo=hourly.weather_code?.[i]??0;
+                const iconMap=isNight?{0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'}:{0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
+                const ico=iconMap[wmo]||(isNight?'🌙':'🌡️');
+                const temp=hourly.temperature_2m?.[i]!==undefined?Math.round(hourly.temperature_2m[i])+'°':'--';
+                const feels=hourly.apparent_temperature?.[i]!==undefined?Math.round(hourly.apparent_temperature[i])+'°':'--';
+                const hum=hourly.relative_humidity_2m?.[i]!==undefined?hourly.relative_humidity_2m[i]+'%':'--';
+                const pres=hourly.pressure_msl?.[i]!==undefined?Math.round(hourly.pressure_msl[i])+' hPa':'--';
+                const ws=Math.round(hourly.wind_speed_10m?.[i]??0);
+                const wd=hourly.wind_direction_10m?.[i]??0;
+                const arrow=windDir8(wd);
+                const dirLbl=['N','NE','E','SE','S','SO','O','NO'][Math.round(wd/45)%8];
+                const precip=hourly.precipitation?.[i]??0;
+                const precipStr=precip>=0.1?precip.toFixed(1)+'mm':'—';
+                const precipCls=precip>=0.1?'':'no-rain';
+                const nightCls=isNight?' is-night':'';
+                const hh=String(h).padStart(2,'0')+':00';
+                stripCols+=`<div class="hourly-col${nightCls}">
+                    <div class="hourly-time">${hh}</div>
+                    <div class="hourly-icon">${ico}</div>
+                    <div class="hourly-temp">${temp}</div>
+                    <div class="hourly-divider"></div>
+                    <div style="font-size:10px;color:rgba(255,255,255,0.42);margin-bottom:2px;line-height:1;">sens.</div>
+                    <div style="font-size:11px;font-weight:600;color:#80cbc4;margin-bottom:6px;line-height:1;">${feels}</div>
+                    <div style="font-size:10px;color:rgba(255,255,255,0.42);margin-bottom:2px;line-height:1;">hum.</div>
+                    <div style="font-size:11px;font-weight:600;color:#80cbc4;margin-bottom:6px;line-height:1;">${hum}</div>
+                    <div class="hourly-divider"></div>
+                    <span class="hourly-wind-arrow">${arrow}</span>
+                    <div class="hourly-wind-spd">${ws}km/h</div>
+                    <div class="hourly-wind-dir">${dirLbl}</div>
+                    <div style="font-size:10px;color:rgba(255,255,255,0.42);margin-top:4px;margin-bottom:2px;line-height:1;">pres.</div>
+                    <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.55);line-height:1.2;text-align:center;">${pres}</div>
+                    <div class="hourly-precip ${precipCls}" style="margin-top:6px;">💧${precipStr}</div>
+                </div>`;
             });
-
-            const sliderUid = 'slider-' + off + '-' + Date.now();
-            const displayUid = 'display-' + off + '-' + Date.now();
 
             // Wrapper
             const wrap=document.createElement('div');
@@ -1419,74 +1439,13 @@
                 </div>
                 <div class="ds-arrow" style="font-size:12px;color:#94A3B8;transition:transform 0.3s,color 0.4s;flex-shrink:0;">▼</div>`;
 
-            // Contenido desplegable con slider horario
+            // Contenido desplegable: strip deslizante idéntico al hourly
             const body=document.createElement('div');
-            body.style.cssText=`display:none;overflow:hidden;background:url("${SKY_IMG}") center/cover no-repeat;`;
-
-            const initIdx = Math.min(12, horasData.length-1);
-
+            body.style.cssText='display:none;overflow:hidden;';
             body.innerHTML=`
-            <div style="padding:12px 14px 6px;background:rgba(20,40,70,0.82);">
-              <div style="text-align:center;margin-bottom:8px;">
-                <span id="${displayUid}-lbl" style="font-size:13px;font-weight:700;color:#fff;letter-spacing:1px;">12:00</span>
-                <span style="font-size:11px;color:rgba(255,255,255,0.5);margin-left:6px;">— desliza para ver cada hora</span>
-              </div>
-              <input type="range" id="${sliderUid}" min="0" max="${horasData.length-1}" value="${initIdx}"
-                style="width:100%;height:6px;-webkit-appearance:none;appearance:none;background:linear-gradient(90deg,#4db6ac,#1a6fc4);border-radius:3px;cursor:pointer;outline:none;">
-              <!-- marcas de hora -->
-              <div style="display:flex;justify-content:space-between;margin-top:4px;padding:0 2px;">
-                ${[0,3,6,9,12,15,18,21,23].map(h=>`<span style="font-size:9px;color:rgba(255,255,255,0.4);">${String(h).padStart(2,'0')}h</span>`).join('')}
-              </div>
-            </div>
-            <div id="${displayUid}" style="padding:16px 14px 18px;background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);">
-              <!-- se rellena por JS -->
-            </div>`;
-
-            // Función que actualiza el panel de datos al mover el slider
-            function renderHourPanel(d, containerId) {
-                const el = document.getElementById(containerId);
-                if (!el || !d) return;
-                el.innerHTML = `
-                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;text-align:center;">
-                  <div style="background:rgba(255,255,255,0.25);border-radius:10px;padding:12px 6px;">
-                    <div style="font-size:32px;line-height:1;margin-bottom:6px;">${d.icon}</div>
-                    <div style="font-size:20px;font-weight:800;color:#1a2e44;">${d.temp}</div>
-                    <div style="font-size:10px;color:#546e7a;margin-top:2px;">Sensación ${d.feels}</div>
-                  </div>
-                  <div style="background:rgba(255,255,255,0.25);border-radius:10px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">
-                    <div style="font-size:10px;font-weight:700;color:#546e7a;text-transform:uppercase;letter-spacing:0.8px;">Lluvia</div>
-                    <div style="font-size:18px;font-weight:700;color:#3B82F6;">💧</div>
-                    <div style="font-size:15px;font-weight:700;color:#1a2e44;">${d.rain}</div>
-                  </div>
-                  <div style="background:rgba(255,255,255,0.25);border-radius:10px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">
-                    <div style="font-size:10px;font-weight:700;color:#546e7a;text-transform:uppercase;letter-spacing:0.8px;">Viento</div>
-                    <div style="font-size:15px;font-weight:700;color:#1a2e44;">${d.wind}</div>
-                    <div style="font-size:12px;color:#546e7a;">${d.wdir}</div>
-                  </div>
-                  <div style="background:rgba(255,255,255,0.25);border-radius:10px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">
-                    <div style="font-size:10px;font-weight:700;color:#546e7a;text-transform:uppercase;letter-spacing:0.8px;">Humedad</div>
-                    <div style="font-size:15px;font-weight:700;color:#1a2e44;">${d.hum}</div>
-                    <div style="font-size:11px;color:#546e7a;">Presión ${d.pres}</div>
-                  </div>
+                <div style="background:linear-gradient(180deg,#1a2a3a 0%,#0d1f2d 100%);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.2) transparent;">
+                    <div style="display:flex;min-width:max-content;">${stripCols}</div>
                 </div>`;
-            }
-
-            // Añadir listener al slider tras insertar en DOM
-            setTimeout(()=>{
-                const slider = document.getElementById(sliderUid);
-                const lblEl  = document.getElementById(displayUid+'-lbl');
-                if (!slider || !horasData.length) return;
-                renderHourPanel(horasData[initIdx], displayUid);
-                slider.addEventListener('input', function(){
-                    const idx = parseInt(this.value, 10);
-                    const d = horasData[idx];
-                    if (lblEl) lblEl.textContent = d.label;
-                    renderHourPanel(d, displayUid);
-                    // actualizar color de track
-                    const pct = idx / (horasData.length-1) * 100;
-                    this.style.background = `linear-gradient(90deg,#4db6ac ${pct}%,rgba(255,255,255,0.2) ${pct}%)`;
-                });
-            }, 100);
 
             head.addEventListener('click',function(){
                 const isOpen=body.style.display!=='none';
