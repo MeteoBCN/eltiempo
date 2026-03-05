@@ -49,7 +49,7 @@
         }
         .header-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: transparent; z-index: 0; }
         .content-section { background: #FFFFFF; padding: 0; }
-        .hero-zone { background: #0a3b66; padding: 40px 24px 32px 24px; }
+        .hero-zone { background: #ffffff; padding: 40px 24px 32px 24px; border-bottom: 1px solid #e2e8f0; }
         .content-below { padding: 24px; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
@@ -58,12 +58,12 @@
         .weather-divider { height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); margin: 32px 0 24px 0; }
         .location { font-size: 18px; margin-bottom: 12px; font-weight: 500; color: rgba(255,255,255,0.8); letter-spacing: 0.5px; }
         .icon-large { font-size: 72px; margin: 24px 0; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3)); }
-        .temperature { font-size: 72px; font-weight: 300; margin-bottom: 12px; color: #ffffff; letter-spacing: -2px; line-height: 1; }
+        .temperature { font-size: 72px; font-weight: 300; margin-bottom: 12px; color: #1E293B; letter-spacing: -2px; line-height: 1; }
         .condition { font-size: 22px; margin-bottom: 28px; font-weight: 400; color: rgba(255,255,255,0.85); letter-spacing: 0.3px; }
         .details { display: flex; justify-content: space-around; font-size: 14px; margin-top: 28px; flex-wrap: wrap; gap: 24px; }
         .detail-item { text-align: center; min-width: 90px; }
-        .detail-item > div:first-child { color: rgba(255,255,255,0.6); font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 6px; }
-        .detail-value { font-size: 16px; font-weight: 600; margin-top: 6px; color: #ffffff; }
+        .detail-item > div:first-child { color: #64748B; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 6px; }
+        .detail-value { font-size: 16px; font-weight: 600; margin-top: 6px; color: #1E293B; }
         .weather-alerts-banner { margin: 24px 0; padding: 0; animation: fadeIn 0.6s ease-out 0.4s both; }
         .alert-banner-item { padding: 16px 18px; border-left: 4px solid; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 10px; background: transparent; border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0; box-shadow: none; }
         .alert-banner-item:last-child { margin-bottom: 0; }
@@ -101,13 +101,30 @@
         .divulgacion-link a:hover { border-bottom-color: var(--color-primary); color: var(--color-primary); }
         .loading { text-align: center; padding: 40px; color: var(--color-text-tertiary); }
         .error { text-align: center; padding: 20px; color: #EF4444; }
-        .wi-day-sunny, .wi-night-clear, .wi-day-sunny-overcast, .wi-mostly-clear-day,
-        .wi-night-alt-cloudy, .wi-day-cloudy, .wi-cloudy, .wi-fog, .wi-night-fog,
-        .wi-sprinkle, .wi-night-alt-sprinkle, .wi-rain, .wi-night-alt-rain,
-        .wi-rain-wind, .wi-night-alt-rain-wind, .wi-snow, .wi-night-alt-snow,
-        .wi-snow-wind, .wi-night-alt-snow-wind, .wi-showers, .wi-night-alt-showers,
-        .wi-storm-showers, .wi-night-alt-storm-showers, .wi-thunderstorm,
-        .wi-night-alt-thunderstorm, .wi-raindrop { color: #2C3E50; }
+        /* Sol / despejado */
+        .wi-day-sunny, .wi-day-sunny-overcast { color: #F59E0B; }
+        /* Parcialmente nublado día */
+        .wi-day-cloudy, .wi-mostly-clear-day { color: #F59E0B; }
+        /* Noche despejada / nublada */
+        .wi-night-clear { color: #94A3B8; }
+        .wi-night-alt-cloudy { color: #94A3B8; }
+        /* Nublado total */
+        .wi-cloudy { color: #78909C; }
+        /* Niebla */
+        .wi-fog, .wi-night-fog { color: #B0BEC5; }
+        /* Llovizna */
+        .wi-sprinkle, .wi-night-alt-sprinkle { color: #60A5FA; }
+        /* Lluvia */
+        .wi-rain, .wi-night-alt-rain, .wi-raindrop { color: #3B82F6; }
+        .wi-rain-wind, .wi-night-alt-rain-wind { color: #2563EB; }
+        /* Nieve */
+        .wi-snow, .wi-night-alt-snow { color: #BAE6FD; }
+        .wi-snow-wind, .wi-night-alt-snow-wind { color: #7DD3FC; }
+        /* Chubascos */
+        .wi-showers, .wi-night-alt-showers { color: #3B82F6; }
+        .wi-storm-showers, .wi-night-alt-storm-showers { color: #8B5CF6; }
+        /* Tormenta */
+        .wi-thunderstorm, .wi-night-alt-thunderstorm { color: #7C3AED; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .weather-table-container { margin: 40px auto; overflow-x: auto; animation: fadeIn 0.6s ease-out 0.6s both; max-width: 600px; width: 100%; -webkit-overflow-scrolling: touch; }
         #weather-table { width: 100%; min-width: 100%; border-collapse: collapse; background: var(--color-bg-card); border-radius: 0; overflow: hidden; box-shadow: var(--shadow-md); backdrop-filter: blur(10px); }
@@ -545,7 +562,7 @@
 
             <div class="hero-zone">
                 <div class="current-weather">
-                <div style="font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">Tiempo Actual</div>
+                <div style="font-size: 13px; font-weight: 700; color: #64748B; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">Tiempo Actual</div>
                 <div class="icon-large" id="current-icon">☀️</div>
                 <div class="temperature" id="current-temp">--°</div>
                 <div class="details">
@@ -567,18 +584,26 @@
                     </div>
                     <div class="detail-item">
                         <div>Calidad Aire</div>
-                        <div class="detail-value" id="air-quality-current" style="color: #ffffff;">--</div>
+                        <div class="detail-value" id="air-quality-current" style="color: #1E293B;">--</div>
                     </div>
                     <div class="detail-item">
                         <div>UVI actual</div>
                         <div class="detail-value" id="uvi-current">--</div>
                     </div>
+                    <div class="detail-item">
+                        <div>Máx. hoy</div>
+                        <div class="detail-value" id="tmax-today" style="color:#EF4444;">--°</div>
+                    </div>
+                    <div class="detail-item">
+                        <div>Mín. hoy</div>
+                        <div class="detail-value" id="tmin-today" style="color:#3B82F6;">--°</div>
+                    </div>
                 </div>
 
                 <!-- BLOQUE DE AVISOS -->
-                <div class="aviso-box" style="width: 100%; background: rgba(255,255,255,0.1); border-radius: 12px; margin: 28px 0 0 0; padding: 20px 24px; border: 1px solid rgba(255,255,255,0.15);">
+                <div class="aviso-box" style="width: 100%; background: #F0FDF4; border-radius: 12px; margin: 28px 0 0 0; padding: 20px 24px; border: 1px solid #BBF7D0;">
                     <div style="color: #7eeba0; font-size: 14px; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.3px;">SIN AVISOS ACTIVOS</div>
-                    <div style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 500; line-height: 1.5;">No hay fenómenos adversos previstos</div>
+                    <div style="color: #15803D; font-size: 12px; font-weight: 500; line-height: 1.5;">No hay fenómenos adversos previstos</div>
                 </div>
 
                 </div><!-- fin current-weather -->
@@ -1348,6 +1373,21 @@
             document.getElementById('humidity').textContent=current.relative_humidity_2m+'%';
             document.getElementById('wind').textContent=Math.round(current.wind_speed_10m)+' km/h';
             document.getElementById('precip-today').textContent=(precipToday||0).toFixed(1)+' mm';
+            // Tmax y Tmin registradas desde medianoche hasta ahora
+            if (hourly?.time && hourly?.temperature_2m) {
+                let tmax=-999, tmin=999;
+                for (let i=0;i<hourly.time.length;i++) {
+                    const ht=new Date(hourly.time[i]);
+                    if (ht.getDate()===now.getDate()&&ht.getMonth()===now.getMonth()&&ht<=now) {
+                        const t=hourly.temperature_2m[i];
+                        if(t!==null&&t!==undefined){if(t>tmax)tmax=t;if(t<tmin)tmin=t;}
+                    }
+                }
+                const elMax=document.getElementById('tmax-today');
+                const elMin=document.getElementById('tmin-today');
+                if(elMax&&tmax>-999) elMax.textContent=Math.round(tmax)+'°';
+                if(elMin&&tmin<999)  elMin.textContent=Math.round(tmin)+'°';
+            }
             if (hourly?.time && hourly?.uv_index) {
                 const idx=hourly.time.findIndex(t=>Math.abs(new Date(t)-now)<30*60*1000);
                 if (idx!==-1&&hourly.uv_index[idx]!==undefined) {
