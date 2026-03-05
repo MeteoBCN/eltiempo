@@ -616,7 +616,7 @@
         ═══════════════════════════════════════════════ -->
         <div class="hourly-section">
             <div class="hourly-header">
-                <span class="hourly-header-title" id="hourly-header-title">⏱ Previsión por horas</span>
+                <span class="hourly-header-title" id="hourly-header-title">⏱ Previsión de hoy</span>
             </div>
             <div class="hourly-scroll-wrap">
                 <div class="hourly-inner" id="hourly-forecast-strip">
@@ -694,30 +694,22 @@
         })();
 
         const weatherIcons = {
-            0:'<i class="wi wi-day-sunny"></i>',1:'<i class="wi wi-day-sunny-overcast"></i>',
-            2:'<i class="wi wi-day-cloudy"></i>',3:'<i class="wi wi-cloudy"></i>',
-            45:'<i class="wi wi-fog"></i>',48:'<i class="wi wi-fog"></i>',
-            51:'<i class="wi wi-sprinkle"></i>',53:'<i class="wi wi-sprinkle"></i>',
-            55:'<i class="wi wi-rain"></i>',61:'<i class="wi wi-rain"></i>',
-            63:'<i class="wi wi-rain"></i>',65:'<i class="wi wi-rain-wind"></i>',
-            71:'<i class="wi wi-snow"></i>',73:'<i class="wi wi-snow"></i>',
-            75:'<i class="wi wi-snow-wind"></i>',80:'<i class="wi wi-showers"></i>',
-            81:'<i class="wi wi-showers"></i>',82:'<i class="wi wi-storm-showers"></i>',
-            95:'<i class="wi wi-thunderstorm"></i>',96:'<i class="wi wi-thunderstorm"></i>',
-            99:'<i class="wi wi-thunderstorm"></i>'
+            0:'☀️',1:'🌤️',2:'⛅',3:'☁️',
+            45:'🌫️',48:'🌫️',
+            51:'🌦️',53:'🌦️',55:'🌧️',
+            61:'🌧️',63:'🌧️',65:'🌧️',
+            71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',
+            80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',
+            95:'⛈️',96:'⛈️',99:'⛈️'
         };
         const weatherIconsNight = {
-            0:'<i class="wi wi-night-clear"></i>',1:'<i class="wi wi-night-alt-cloudy"></i>',
-            2:'<i class="wi wi-night-alt-cloudy"></i>',3:'<i class="wi wi-cloudy"></i>',
-            45:'<i class="wi wi-night-fog"></i>',48:'<i class="wi wi-night-fog"></i>',
-            51:'<i class="wi wi-night-alt-sprinkle"></i>',53:'<i class="wi wi-night-alt-sprinkle"></i>',
-            55:'<i class="wi wi-night-alt-rain"></i>',61:'<i class="wi wi-night-alt-rain"></i>',
-            63:'<i class="wi wi-night-alt-rain"></i>',65:'<i class="wi wi-night-alt-rain-wind"></i>',
-            71:'<i class="wi wi-night-alt-snow"></i>',73:'<i class="wi wi-night-alt-snow"></i>',
-            75:'<i class="wi wi-night-alt-snow-wind"></i>',80:'<i class="wi wi-night-alt-showers"></i>',
-            81:'<i class="wi wi-night-alt-showers"></i>',82:'<i class="wi wi-night-alt-storm-showers"></i>',
-            95:'<i class="wi wi-night-alt-thunderstorm"></i>',96:'<i class="wi wi-night-alt-thunderstorm"></i>',
-            99:'<i class="wi wi-night-alt-thunderstorm"></i>'
+            0:'🌙',1:'🌙',2:'☁️',3:'☁️',
+            45:'🌫️',48:'🌫️',
+            51:'🌧️',53:'🌧️',55:'🌧️',
+            61:'🌧️',63:'🌧️',65:'🌧️',
+            71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',
+            80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',
+            95:'⛈️',96:'⛈️',99:'⛈️'
         };
         const weatherDescriptions = {
             0:'Despejado',1:'Principalmente despejado',2:'Parcialmente nublado',3:'Nublado',
@@ -743,8 +735,8 @@
                 const rc = (cloudData.cloud_cover_low||0)+((cloudData.cloud_cover_mid||0)*0.5);
                 if (rc<15) code=1; else if (rc<35) code=2; else code=3;
             }
-            if (dateTime && isNightTime(dateTime)) return weatherIconsNight[code]||'<i class="wi wi-night-clear"></i>';
-            return weatherIcons[code]||'<i class="wi wi-day-sunny"></i>';
+            if (dateTime && isNightTime(dateTime)) return weatherIconsNight[code]||'🌙';
+            return weatherIcons[code]||'☀️';
         }
 
         function getDayName(ds) {
@@ -1192,8 +1184,9 @@
             const now = new Date();
             const DIAS_ES = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
             const hoyNombre = DIAS_ES[now.getDay()];
-            const titleEl = document.getElementById('hourly-header-title');
-            if (titleEl) titleEl.textContent = '⏱ Previsión de hoy — ' + hoyNombre.toUpperCase();
+            // Actualizar título barra oscura con día dinámico
+            const titleEl2 = document.getElementById('hourly-header-title');
+            if (titleEl2) titleEl2.textContent = '⏱ Previsión de hoy — ' + hoyNombre.toUpperCase();
 
             // Solo horas de hoy: desde la hora actual hasta las 23:00 de hoy
             let startIdx = -1;
@@ -1254,35 +1247,7 @@
             const hoyFechaStr=now.getDate()+' '+['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][now.getMonth()];
             const SKY_IMG_HOY=typeof SKY_IMG!=='undefined'?SKY_IMG:'';
 
-            // Insertar cabecera estática (no desplegable) encima del strip
-            const hoySection = document.getElementById('hourly-section-wrap') || strip.parentElement.parentElement;
-            let hoyHead = document.getElementById('hoy-daily-head');
-            if (!hoyHead) {
-                hoyHead = document.createElement('div');
-                hoyHead.id = 'hoy-daily-head';
-                hoyHead.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:18px 14px;background:#fff;border-bottom:1px solid #e9ecef;';
-                strip.parentElement.parentElement.insertBefore(hoyHead, strip.parentElement);
-            }
-            hoyHead.innerHTML=`
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="font-size:42px;line-height:1;">${hoyNowIcon}</div>
-                    <div>
-                        <div style="font-size:19px;font-weight:700;color:#2C3E50;letter-spacing:0.5px;">${hoyNombre.toUpperCase()} <span style="font-size:14px;font-weight:400;color:#94A3B8;">${hoyFechaStr}</span></div>
-                        <div style="font-size:13px;color:#64748B;margin-top:5px;line-height:1.7;">
-                            <span style="color:#3B82F6;font-weight:700;font-size:22px;">${hoyMinT}°</span>
-                            <span style="margin:0 4px;opacity:0.4;">/</span>
-                            <span style="color:#EF4444;font-weight:700;font-size:22px;">${hoyMaxT}°</span>
-                            <span style="margin:0 5px;opacity:0.4;">|</span>
-                            <span>Lluvia prevista: ${hoyTp} mm${hoyRainHoursStr}</span>
-                            <span style="margin:0 5px;opacity:0.4;">|</span>
-                            <span>${hoyAw} km/h ${hoyWindDir(hoyAwd)}</span>
-                            <br>
-                            <span style="font-size:11px;">SOL: ${hoySr} / ${hoySs}</span>
-                            <span style="margin:0 5px;opacity:0.4;">|</span>
-                            <span style="font-size:11px;">UVI ${hoyUv!==null?Math.round(hoyUv):'--'} (${hoyUviLevel(hoyUv).lbl})</span>
-                        </div>
-                    </div>
-                </div>`;
+
 
             let html = '';
             slots.forEach((idx, pos) => {
