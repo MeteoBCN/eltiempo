@@ -1203,16 +1203,25 @@
                 const precipStr = precip >= 0.1 ? precip.toFixed(1) + 'mm' : '—';
                 const precipClass = precip >= 0.1 ? '' : ' no-rain';
 
+                const feels = Math.round(hourly.apparent_temperature?.[idx] ?? hourly.temperature_2m?.[idx] ?? 0);
+                const hum = hourly.relative_humidity_2m?.[idx] ?? '--';
+                const pres = hourly.pressure_msl?.[idx] !== undefined ? Math.round(hourly.pressure_msl[idx]) : '--';
                 const nightClass = night && !isNow ? ' is-night' : '';
                 html += `<div class="hourly-col${isNow?' is-now':''}${nightClass}">
                     <div class="hourly-time">${hh}</div>
                     <div class="hourly-icon">${icon}</div>
                     <div class="hourly-temp">${temp}°</div>
                     <div class="hourly-divider"></div>
-                    <span class="hourly-wind-arrow">${dirArrow}</span>
+                    <div style="font-size:10px;color:rgba(255,255,255,0.42);margin-bottom:2px;line-height:1;">sens.</div>
+                    <div style="font-size:11px;font-weight:600;color:#80cbc4;margin-bottom:6px;line-height:1;">${feels}°</div>
+                    <div style="font-size:10px;color:rgba(255,255,255,0.42);margin-bottom:2px;line-height:1;">hum.</div>
+                    <div style="font-size:11px;font-weight:600;color:#80cbc4;margin-bottom:6px;line-height:1;">${hum}%</div>
+                    <div class="hourly-divider"></div>
                     <div class="hourly-wind-spd">${ws}km/h</div>
                     <div class="hourly-wind-dir">${dirLabel}</div>
-                    <div class="hourly-precip${precipClass}">💧${precipStr}</div>
+                    <div style="font-size:10px;color:rgba(255,255,255,0.42);margin-top:4px;margin-bottom:2px;line-height:1;">pres.</div>
+                    <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.55);line-height:1.2;text-align:center;">${pres} hPa</div>
+                    <div class="hourly-precip${precipClass}" style="margin-top:6px;">💧${precipStr}</div>
                 </div>`;
             });
 
