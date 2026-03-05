@@ -615,9 +615,6 @@
              PREVISIÓN HORARIA
         ═══════════════════════════════════════════════ -->
         <div class="hourly-section">
-            <div class="hourly-header">
-                <span class="hourly-header-title" id="hourly-header-title">⏱ Previsión de hoy</span>
-            </div>
             <div class="hourly-scroll-wrap">
                 <div class="hourly-inner" id="hourly-forecast-strip">
                     <div style="padding:20px;color:rgba(255,255,255,0.3);font-size:13px;text-align:center;width:100%;">Cargando…</div>
@@ -879,7 +876,7 @@
                 if(aqi<=80)return'Desfavorable';if(aqi<=100)return'Muy desfavorable';return'Extremadamente desfavorable';
             }
             const el=document.getElementById('air-quality-current');
-            el.textContent=lvl(ac.european_aqi||0); el.style.color='#ffffff';
+            el.textContent=lvl(ac.european_aqi||0); el.style.color='#1E293B';
         }
 
         function updatePlayasTable(marine, daily, marineHourly, weatherHourly) {
@@ -1184,10 +1181,6 @@
             const now = new Date();
             const DIAS_ES = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
             const hoyNombre = DIAS_ES[now.getDay()];
-            // Actualizar título barra oscura con día dinámico
-            const titleEl2 = document.getElementById('hourly-header-title');
-            if (titleEl2) titleEl2.textContent = '⏱ Previsión de hoy — ' + hoyNombre.toUpperCase();
-
             // Solo horas de hoy: desde la hora actual hasta las 23:00 de hoy
             let startIdx = -1;
             for (let i = 0; i < hourly.time.length; i++) {
@@ -1247,7 +1240,34 @@
             const hoyFechaStr=now.getDate()+' '+['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][now.getMonth()];
             const SKY_IMG_HOY=typeof SKY_IMG!=='undefined'?SKY_IMG:'';
 
-
+            // Insertar cabecera de HOY (icono + min/max + lluvia + sol + UVI)
+            let hoyHead = document.getElementById('hoy-daily-head');
+            if (!hoyHead) {
+                hoyHead = document.createElement('div');
+                hoyHead.id = 'hoy-daily-head';
+                hoyHead.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:18px 14px;background:#fff;border-bottom:1px solid #e9ecef;';
+                strip.parentElement.parentElement.insertBefore(hoyHead, strip.parentElement);
+            }
+            hoyHead.innerHTML=`
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="font-size:42px;line-height:1;">${hoyNowIcon}</div>
+                    <div>
+                        <div style="font-size:19px;font-weight:700;color:#2C3E50;letter-spacing:0.5px;">${hoyNombre.toUpperCase()} <span style="font-size:14px;font-weight:400;color:#94A3B8;">${hoyFechaStr}</span></div>
+                        <div style="font-size:13px;color:#64748B;margin-top:5px;line-height:1.7;">
+                            <span style="color:#3B82F6;font-weight:700;font-size:22px;">${hoyMinT}°</span>
+                            <span style="margin:0 4px;opacity:0.4;">/</span>
+                            <span style="color:#EF4444;font-weight:700;font-size:22px;">${hoyMaxT}°</span>
+                            <span style="margin:0 5px;opacity:0.4;">|</span>
+                            <span>Lluvia prevista: ${hoyTp} mm${hoyRainHoursStr}</span>
+                            <span style="margin:0 5px;opacity:0.4;">|</span>
+                            <span>${hoyAw} km/h ${hoyWindDir(hoyAwd)}</span>
+                            <br>
+                            <span style="font-size:11px;">SOL: ${hoySr} / ${hoySs}</span>
+                            <span style="margin:0 5px;opacity:0.4;">|</span>
+                            <span style="font-size:11px;">UVI ${hoyUv!==null?Math.round(hoyUv):'--'} (${hoyUviLevel(hoyUv).lbl})</span>
+                        </div>
+                    </div>
+                </div>`;
 
             let html = '';
             slots.forEach((idx, pos) => {
@@ -1357,7 +1377,7 @@
                 const idx=hourly.time.findIndex(t=>Math.abs(new Date(t)-now)<30*60*1000);
                 if (idx!==-1&&hourly.uv_index[idx]!==undefined) {
                     const el=document.getElementById('uvi-current');
-                    el.textContent=hourly.uv_index[idx].toFixed(1); el.style.color='#ffffff';
+                    el.textContent=hourly.uv_index[idx].toFixed(1); el.style.color='#1E293B';
                 }
             }
         }
