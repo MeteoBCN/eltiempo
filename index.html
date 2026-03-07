@@ -2215,6 +2215,50 @@
 
         window.rmSetURL = function(url) { document.getElementById('rm-url-input').value = url; };
 
+        // Cargar radar desde fuente predefinida via proxy
+        window.rmLoadSource = async function(src) {
+            if (!PROXY_URL) {
+                alert('Configura el PROXY_URL en el código para usar fuentes automáticas.');
+                return;
+            }
+            const url = PROXY_URL + '/radar?src=' + src;
+            await window.rmFetchAndAnalyze(url);
+        };
+
+        // Cargar y analizar imagen desde cualquier URL
+        window.rmFetchAndAnalyze = async function(url) {
+            const btn = document.getElementById('rm-auto-btn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="rain-spinner"></span>Cargando…'; }
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const blob = await res.blob();
+                const reader = new FileReader();
+                reader.onload = async e => {
+                    rmImage = e.target.result;
+                    rmTab('upload');
+                    const img = document.getElementById('rm-preview');
+                    img.src = rmImage; img.style.display = 'block';
+                    document.getElementById('rm-upload-area').style.display = 'none';
+                    document.getElementById('rm-analyze-btn').disabled = false;
+                    if (btn) { btn.disabled = false; btn.textContent = '📡 AEMET Nacional'; }
+                    await window.rmAnalyze();
+                };
+                reader.readAsDataURL(blob);
+            } catch(e) {
+                if (btn) { btn.disabled = false; btn.textContent = '📡 AEMET Nacional'; }
+                alert('No se pudo cargar: ' + e.message);
+            }
+        };
+
+        // Auto-recarga periódica
+        window.rmStartAuto = function(minutes) {
+            if (autoInterval) clearInterval(autoInterval);
+            autoMinutes = minutes;
+            if (!minutes || !PROXY_URL) return;
+            autoInterval = setInterval(() => window.rmLoadSource('barcelona'), minutes * 60 * 1000);
+        };
+
         window.rmAnalyzeURL = async function() {
             const url = document.getElementById('rm-url-input').value.trim();
             if (!url) return;
