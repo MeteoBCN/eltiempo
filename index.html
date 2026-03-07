@@ -96,6 +96,117 @@
         .radar-frame { width: 100%; height: 400px; background: #d0d0d0; border-radius: var(--border-radius); overflow: hidden; }
         .radar-frame iframe { width: 100%; height: 100%; border: none; }
         .update-time { text-align: center; font-size: 13px; color: var(--color-text-tertiary); margin-top: 36px; padding-bottom: 12px; font-weight: 500; letter-spacing: 0.3px; }
+
+        /* ══════ MÓDULO RADAR IA + NOTIFICACIONES ══════ */
+        .rain-module { max-width: 600px; margin: 0 auto 0 auto; background: #fff; }
+        .rain-module-header {
+            background: url('ff.jpg') center/cover no-repeat;
+            padding: 18px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: relative;
+        }
+        .rain-module-header::before {
+            content: ''; position: absolute; inset: 0;
+            background: rgba(30,41,59,0.55);
+        }
+        .rain-module-header-title {
+            position: relative; z-index: 1;
+            font-size: 13px; font-weight: 700; color: #fff;
+            text-transform: uppercase; letter-spacing: 1.2px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .rain-module-header-title span { font-size: 18px; }
+        .rain-module-notif-btn {
+            position: relative; z-index: 1;
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.35);
+            color: #fff; border-radius: 20px; padding: 6px 14px;
+            font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+            cursor: pointer; transition: all 0.2s; white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+        }
+        .rain-module-notif-btn:hover { background: rgba(255,255,255,0.28); }
+        .rain-module-notif-btn.active { background: #10B981; border-color: #10B981; }
+        .rain-module-body { padding: 20px; }
+
+        /* Banner alerta lluvia */
+        .rain-alert-strip {
+            border-radius: 10px; padding: 14px 16px;
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 16px; transition: all 0.4s ease;
+            border-left: 4px solid #10B981; background: #F0FDF4;
+        }
+        .rain-alert-strip.warning { border-left-color: #F59E0B; background: #FFFBEB; }
+        .rain-alert-strip.danger  { border-left-color: #EF4444; background: #FEF2F2; animation: rain-blink 1.2s ease-in-out infinite; }
+        @keyframes rain-blink {
+            0%,100% { box-shadow: 0 0 0 rgba(239,68,68,0); }
+            50% { box-shadow: 0 0 16px rgba(239,68,68,0.25); }
+        }
+        .rain-alert-icon { font-size: 26px; flex-shrink: 0; }
+        .rain-alert-text { flex: 1; }
+        .rain-alert-title { font-size: 14px; font-weight: 700; color: #15803D; margin-bottom: 2px; }
+        .rain-alert-strip.warning .rain-alert-title { color: #B45309; }
+        .rain-alert-strip.danger  .rain-alert-title { color: #B91C1C; }
+        .rain-alert-desc { font-size: 12px; color: #64748B; line-height: 1.4; }
+
+        /* Tabs internos */
+        .rain-tabs { display: flex; gap: 0; border: 1px solid #E2E8F0; border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+        .rain-tab { flex: 1; padding: 9px 6px; background: #F8FAFC; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s; }
+        .rain-tab:not(:last-child) { border-right: 1px solid #E2E8F0; }
+        .rain-tab.active { background: #3B82F6; color: #fff; }
+        .rain-tab-content { display: none; }
+        .rain-tab-content.active { display: block; }
+
+        /* Upload */
+        .rain-upload {
+            border: 2px dashed #CBD5E1; border-radius: 10px;
+            padding: 28px 16px; text-align: center; cursor: pointer;
+            transition: all 0.2s; position: relative; overflow: hidden;
+        }
+        .rain-upload:hover { border-color: #3B82F6; background: #EFF6FF; }
+        .rain-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        .rain-upload-icon { font-size: 32px; margin-bottom: 8px; }
+        .rain-upload-text { font-size: 13px; font-weight: 600; color: #1E293B; margin-bottom: 3px; }
+        .rain-upload-sub { font-size: 11px; color: #94A3B8; }
+
+        /* Preview */
+        .rain-preview { width: 100%; border-radius: 8px; display: none; margin-bottom: 10px; border: 1px solid #E2E8F0; }
+        .rain-preview-wrap { position: relative; }
+        .rain-scanline { display: none; position: absolute; left: 0; width: 100%; height: 3px; background: linear-gradient(transparent, rgba(59,130,246,0.4), transparent); animation: scanline 1.8s linear infinite; }
+        @keyframes scanline { 0% { top: -5%; } 100% { top: 105%; } }
+
+        /* Resultado análisis */
+        .rain-result {
+            display: none; background: #F8FAFC; border: 1px solid #E2E8F0;
+            border-radius: 10px; padding: 14px; margin-top: 12px;
+        }
+        .rain-result-label { font-size: 10px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+        .rain-result-text { font-size: 13px; color: #1E293B; line-height: 1.6; }
+        .rain-intensity-bar { margin-top: 10px; height: 5px; background: #E2E8F0; border-radius: 3px; overflow: hidden; }
+        .rain-intensity-fill { height: 100%; border-radius: 3px; transition: width 1s ease; background: linear-gradient(90deg, #10B981, #F59E0B, #EF4444); }
+
+        /* Input y botones */
+        .rain-input { width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; color: #1E293B; font-family: 'Inter', sans-serif; font-size: 12px; outline: none; transition: border-color 0.2s; margin-bottom: 8px; }
+        .rain-input:focus { border-color: #3B82F6; }
+        .rain-input::placeholder { color: #CBD5E1; }
+        .rain-btn { width: 100%; padding: 11px; border-radius: 8px; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; transition: all 0.2s; }
+        .rain-btn-primary { background: #3B82F6; color: #fff; margin-top: 4px; }
+        .rain-btn-primary:hover { background: #2563EB; box-shadow: 0 4px 12px rgba(59,130,246,0.35); }
+        .rain-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+        .rain-btn-sm { width: auto; padding: 8px 14px; font-size: 11px; }
+
+        /* Historial */
+        .rain-history-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #F1F5F9; }
+        .rain-history-item:last-child { border-bottom: none; }
+        .rain-history-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .rain-history-time { font-size: 10px; color: #94A3B8; min-width: 42px; font-weight: 500; }
+        .rain-history-desc { font-size: 12px; color: #334155; flex: 1; }
+        .rain-hint { font-size: 10px; color: #94A3B8; line-height: 1.5; margin-top: 6px; }
+        .rain-hint a { color: #3B82F6; text-decoration: none; }
+
+        /* Spinner */
+        .rain-spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 5px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        /* ══════ FIN ESTILOS MÓDULO ══════ */
         .divulgacion-link { text-align: center; padding: 24px 0 36px; }
         .divulgacion-link a { color: var(--color-text-secondary); text-decoration: none; font-size: 15px; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.3s ease; letter-spacing: 0.3px; padding-bottom: 2px; }
         .divulgacion-link a:hover { border-bottom-color: var(--color-primary); color: var(--color-primary); }
@@ -645,6 +756,77 @@
                 <div style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando previsión marina…</div>
             </div>
         </div>
+
+        <!-- ══════════════════════════════════════════════
+             MÓDULO RADAR IA + ALERTAS PUSH
+        ══════════════════════════════════════════════ -->
+        <div class="rain-module">
+            <div class="rain-module-header">
+                <div class="rain-module-header-title">
+                    <span>🌧️</span> Radar IA · Aviso de lluvia
+                </div>
+                <button class="rain-module-notif-btn" id="rm-notif-btn" onclick="rmRequestNotif()">
+                    🔔 Activar alertas
+                </button>
+            </div>
+            <div class="rain-module-body">
+                <!-- Banner estado lluvia -->
+                <div class="rain-alert-strip" id="rm-alert-strip">
+                    <div class="rain-alert-icon" id="rm-alert-icon">🟢</div>
+                    <div class="rain-alert-text">
+                        <div class="rain-alert-title" id="rm-alert-title">Sin alertas activas</div>
+                        <div class="rain-alert-desc" id="rm-alert-desc">Sube una imagen de radar o activa la API para recibir avisos.</div>
+                    </div>
+                </div>
+                <!-- Tabs -->
+                <div class="rain-tabs">
+                    <button class="rain-tab active" onclick="rmTab('upload')">📡 Radar IA</button>
+                    <button class="rain-tab" onclick="rmTab('url')">🔗 URL Radar</button>
+                    <button class="rain-tab" onclick="rmTab('history')">📋 Historial</button>
+                </div>
+                <!-- TAB: Subir imagen -->
+                <div class="rain-tab-content active" id="rm-tab-upload">
+                    <div class="rain-preview-wrap">
+                        <img class="rain-preview" id="rm-preview" alt="Radar">
+                        <div class="rain-scanline" id="rm-scanline"></div>
+                    </div>
+                    <div class="rain-upload" id="rm-upload-area">
+                        <input type="file" id="rm-file-input" accept="image/*">
+                        <div class="rain-upload-icon">📡</div>
+                        <div class="rain-upload-text">Sube una captura del radar</div>
+                        <div class="rain-upload-sub">PNG o JPG · Captura de AEMET, Meteocat, Windy…</div>
+                    </div>
+                    <div class="rain-result" id="rm-result">
+                        <div class="rain-result-label">🔍 Análisis IA</div>
+                        <div class="rain-result-text" id="rm-result-text"></div>
+                        <div class="rain-intensity-bar">
+                            <div class="rain-intensity-fill" id="rm-intensity-fill" style="width:0%"></div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin-top:3px;">
+                            <span style="font-size:9px;color:#CBD5E1">Sin lluvia</span>
+                            <span style="font-size:9px;color:#CBD5E1">Muy intensa</span>
+                        </div>
+                    </div>
+                    <button class="rain-btn rain-btn-primary" id="rm-analyze-btn" onclick="rmAnalyze()" disabled>
+                        Analizar imagen con IA
+                    </button>
+                </div>
+                <!-- TAB: URL -->
+                <div class="rain-tab-content" id="rm-tab-url">
+                    <input class="rain-input" type="text" id="rm-url-input" placeholder="URL imagen radar (ej: https://radar.example.com/img.png)">
+                    <p class="rain-hint">Ejemplos: <a href="#" onclick="rmSetURL('https://www.aemet.es/imagenes/radar/r8_spc.gif');return false;">AEMET Nacional</a> · <a href="#" onclick="rmSetURL('https://opendata.aemet.es/opendata/api/red/radar/nacional');return false;">AEMET API</a></p>
+                    <button class="rain-btn rain-btn-primary" onclick="rmAnalyzeURL()" style="margin-top:10px">Cargar y analizar</button>
+                    <p class="rain-hint" style="margin-top:8px">⚠️ Si la imagen no carga por CORS, descárgala y súbela en la pestaña anterior.</p>
+                </div>
+                <!-- TAB: Historial -->
+                <div class="rain-tab-content" id="rm-tab-history">
+                    <div id="rm-history-list">
+                        <div style="text-align:center;padding:24px 0;font-size:12px;color:#94A3B8">Sin alertas registradas aún.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ══════ FIN MÓDULO RADAR IA ══════ -->
 
         <!-- TABLA PRECIPITACIONES 7 DÍAS -->
         <div id="rain-7days-container" style="max-width:600px;margin:40px auto 0;"></div>
@@ -1902,5 +2084,170 @@
         })();
         /* ══════ FIN WIDGET ══════ */
     </script>
+
+    <!-- MÓDULO RADAR IA + NOTIFICACIONES PUSH -->
+    <script>
+    (function() {
+        'use strict';
+        let rmImage = null;
+        let rmNotifPerm = (typeof Notification !== 'undefined') ? Notification.permission : 'default';
+        let rmHistory = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('rm-file-input');
+            if (!fileInput) return;
+
+            fileInput.addEventListener('change', e => {
+                const file = e.target.files[0];
+                if (file) rmLoadFile(file);
+            });
+            const uploadArea = document.getElementById('rm-upload-area');
+            uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.style.borderColor = '#3B82F6'; });
+            uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = ''; });
+            uploadArea.addEventListener('drop', e => {
+                e.preventDefault(); uploadArea.style.borderColor = '';
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) rmLoadFile(file);
+            });
+
+            if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                rmNotifPerm = 'granted';
+                rmUpdateNotifBtn();
+            }
+        });
+
+        function rmLoadFile(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                rmImage = e.target.result;
+                const img = document.getElementById('rm-preview');
+                img.src = rmImage; img.style.display = 'block';
+                document.getElementById('rm-upload-area').style.display = 'none';
+                document.getElementById('rm-analyze-btn').disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.rmTab = function(tab) {
+            const tabs = ['upload','url','history'];
+            document.querySelectorAll('.rain-tab').forEach((t, i) => t.classList.toggle('active', tabs[i] === tab));
+            tabs.forEach(t => document.getElementById('rm-tab-' + t).classList.toggle('active', t === tab));
+        };
+
+        window.rmAnalyze = async function() {
+            if (!rmImage) return;
+            const btn = document.getElementById('rm-analyze-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="rain-spinner"></span>Analizando…';
+            document.getElementById('rm-scanline').style.display = 'block';
+            try {
+                const base64 = rmImage.split(',')[1];
+                const mime   = rmImage.split(';')[0].split(':')[1];
+                const res = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-20250514', max_tokens: 1000,
+                        messages: [{ role: 'user', content: [
+                            { type: 'image', source: { type: 'base64', media_type: mime, data: base64 } },
+                            { type: 'text', text: 'Analiza esta imagen de radar meteorol\u00f3gico. Responde SOLO con JSON sin backticks: {"rain_detected":true,"intensity":"ninguna|ligera|moderada|intensa|muy_intensa","intensity_percent":0,"level":"safe|warning|danger","area_coverage":"ninguna|puntual|parcial|extensa|total","description":"descripcion en espanol","recommendation":"recomendacion breve"}' }
+                        ]}]
+                    })
+                });
+                const data = await res.json();
+                const text = data.content.map(i => i.text || '').join('').replace(/```json|```/g,'').trim();
+                const r = JSON.parse(text);
+                rmShowResult(r);
+                rmUpdateAlert(r.level, r.description, r.recommendation);
+                rmAddHistory('Radar IA', r.level, r.description);
+                rmPushNotif(r);
+            } catch(err) {
+                rmShowResult({ intensity: '—', intensity_percent: 0, description: 'Error al analizar. Comprueba la conexión.', recommendation: '' });
+            }
+            document.getElementById('rm-scanline').style.display = 'none';
+            btn.disabled = false;
+            btn.textContent = 'Analizar imagen con IA';
+        };
+
+        function rmShowResult(r) {
+            const el = document.getElementById('rm-result');
+            el.style.display = 'block';
+            document.getElementById('rm-result-text').innerHTML =
+                '<strong>' + r.description + '</strong>' +
+                (r.recommendation ? '<br><span style="color:#64748B;font-size:11px">' + r.recommendation + '</span>' : '') +
+                '<br><span style="color:#3B82F6;font-size:11px">Intensidad: ' + (r.intensity || '—') + '</span>';
+            setTimeout(() => { document.getElementById('rm-intensity-fill').style.width = (r.intensity_percent || 0) + '%'; }, 100);
+        }
+
+        window.rmSetURL = function(url) { document.getElementById('rm-url-input').value = url; };
+
+        window.rmAnalyzeURL = async function() {
+            const url = document.getElementById('rm-url-input').value.trim();
+            if (!url) return;
+            try {
+                const res = await fetch(url);
+                const blob = await res.blob();
+                const reader = new FileReader();
+                reader.onload = async e => {
+                    rmImage = e.target.result;
+                    rmTab('upload');
+                    const img = document.getElementById('rm-preview');
+                    img.src = rmImage; img.style.display = 'block';
+                    document.getElementById('rm-upload-area').style.display = 'none';
+                    document.getElementById('rm-analyze-btn').disabled = false;
+                    await window.rmAnalyze();
+                };
+                reader.readAsDataURL(blob);
+            } catch(e) { alert('No se pudo cargar la imagen (CORS). Descárgala y súbela manualmente.'); }
+        };
+
+        function rmUpdateAlert(level, desc, rec) {
+            const strip = document.getElementById('rm-alert-strip');
+            strip.className = 'rain-alert-strip' + (level !== 'safe' ? ' ' + level : '');
+            document.getElementById('rm-alert-icon').textContent = level === 'danger' ? '\uD83D\uDD34' : level === 'warning' ? '\uD83D\uDFE1' : '\uD83D\uDFE2';
+            document.getElementById('rm-alert-title').textContent = level === 'danger' ? '\u00a1Alerta de lluvia intensa!' : level === 'warning' ? 'Aviso de lluvia' : 'Sin alertas activas';
+            document.getElementById('rm-alert-desc').textContent = desc + (rec ? ' \u00b7 ' + rec : '');
+        }
+
+        window.rmRequestNotif = async function() {
+            if (!('Notification' in window)) { alert('Tu navegador no soporta notificaciones.'); return; }
+            const perm = await Notification.requestPermission();
+            rmNotifPerm = perm;
+            rmUpdateNotifBtn();
+            if (perm === 'granted') new Notification('RainAlert activado', { body: 'Recibirás avisos de lluvia en Barcelona.' });
+        };
+
+        function rmUpdateNotifBtn() {
+            const btn = document.getElementById('rm-notif-btn');
+            if (!btn) return;
+            if (rmNotifPerm === 'granted') { btn.textContent = '\u2705 Alertas activas'; btn.classList.add('active'); btn.disabled = true; }
+            else if (rmNotifPerm === 'denied') { btn.textContent = '\u26d4 Bloqueadas'; btn.disabled = true; }
+        }
+
+        function rmPushNotif(r) {
+            if (rmNotifPerm !== 'granted') return;
+            if (r.level === 'danger') new Notification('\uD83D\uDEA8 Lluvia intensa – Barcelona', { body: r.description, tag: 'rain-alert', renotify: true });
+            else if (r.level === 'warning') new Notification('\u26a0\ufe0f Aviso lluvia – Barcelona', { body: r.description, tag: 'rain-alert', renotify: true });
+        }
+
+        function rmAddHistory(source, level, desc) {
+            const t = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            rmHistory.unshift({ source, level, desc, t });
+            if (rmHistory.length > 15) rmHistory.pop();
+            rmRenderHistory();
+        }
+
+        function rmRenderHistory() {
+            const colors = { safe: '#10B981', warning: '#F59E0B', danger: '#EF4444' };
+            const el = document.getElementById('rm-history-list');
+            if (!el) return;
+            if (!rmHistory.length) { el.innerHTML = '<div style="text-align:center;padding:24px 0;font-size:12px;color:#94A3B8">Sin alertas registradas aún.</div>'; return; }
+            el.innerHTML = rmHistory.map(h =>
+                '<div class="rain-history-item"><div class="rain-history-dot" style="background:' + (colors[h.level]||'#94A3B8') + '"></div><div class="rain-history-time">' + h.t + '</div><div class="rain-history-desc">' + h.desc.substring(0,70) + (h.desc.length>70?'…':'') + '</div></div>'
+            ).join('');
+        }
+    })();
+    </script>
+    <!-- FIN MÓDULO RADAR IA -->
 </body>
 </html>
