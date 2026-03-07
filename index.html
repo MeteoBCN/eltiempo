@@ -786,9 +786,11 @@
                 </div>
                 <!-- TAB: Subir imagen -->
                 <div class="rain-tab-content active" id="rm-tab-upload">
-                    <div class="rain-preview-wrap">
-                        <img class="rain-preview" id="rm-preview" alt="Radar">
+                    <div class="rain-preview-wrap" style="position:relative">
+                        <canvas id="rm-canvas" width="512" height="512" style="width:100%;border-radius:8px;display:none;border:1px solid #E2E8F0"></canvas>
+                        <img class="rain-preview" id="rm-preview" alt="Radar" style="display:none">
                         <div class="rain-scanline" id="rm-scanline"></div>
+                        <div id="rm-radar-time" style="display:none;position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.55);color:#fff;font-size:11px;font-family:monospace;padding:2px 8px;border-radius:4px"></div>
                     </div>
                     <div class="rain-upload" id="rm-upload-area">
                         <input type="file" id="rm-file-input" accept="image/*">
@@ -2225,31 +2227,62 @@
             await window.rmFetchAndAnalyze(url);
         };
 
-        // Cargar y analizar imagen desde cualquier URL
-        window.rmFetchAndAnalyze = async function(url) {
+        // Cargar y analizar imagen desde proxy (con mapa de fondo)
+        window.rmFetchAndAnalyze = async function(radarUrl) {
             const btn = document.getElementById('rm-auto-btn');
             if (btn) { btn.disabled = true; btn.innerHTML = '<span class="rain-spinner"></span>Cargando…'; }
             try {
-                const res = await fetch(url);
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                const blob = await res.blob();
-                const reader = new FileReader();
-                reader.onload = async e => {
-                    rmImage = e.target.result;
-                    rmTab('upload');
-                    const img = document.getElementById('rm-preview');
-                    img.src = rmImage; img.style.display = 'block';
-                    document.getElementById('rm-upload-area').style.display = 'none';
-                    document.getElementById('rm-analyze-btn').disabled = false;
-                    if (btn) { btn.disabled = false; btn.textContent = '📡 AEMET Nacional'; }
-                    await window.rmAnalyze();
-                };
-                reader.readAsDataURL(blob);
+                // Tile OSM de fondo — Barcelona z=7 x=64 y=48
+                const osmUrl = 'https://tile.openstreetmap.org/7/64/48.png';
+
+                // Cargar ambas imágenes en paralelo
+                const [osmImg, radarImg] = await Promise.all([
+                    rmLoadImage(osmUrl),
+                    rmLoadImage(radarUrl)
+                ]);
+
+                // Dibujar en canvas
+                const canvas = document.getElementById('rm-canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, 512, 512);
+                ctx.drawImage(osmImg, 0, 0, 512, 512);
+                ctx.globalAlpha = 0.75;
+                ctx.drawImage(radarImg, 0, 0, 512, 512);
+                ctx.globalAlpha = 1.0;
+
+                // Timestamp
+                const now = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                const timeEl = document.getElementById('rm-radar-time');
+                timeEl.textContent = '⏱ ' + now;
+                timeEl.style.display = 'block';
+
+                // Mostrar canvas
+                canvas.style.display = 'block';
+                document.getElementById('rm-upload-area').style.display = 'none';
+                document.getElementById('rm-analyze-btn').disabled = false;
+
+                // Convertir canvas a base64 para análisis IA
+                rmImage = canvas.toDataURL('image/png');
+                rmTab('upload');
+
+                if (btn) { btn.disabled = false; btn.innerHTML = '📡 AEMET Nacional'; }
+                await window.rmAnalyze();
+
             } catch(e) {
-                if (btn) { btn.disabled = false; btn.textContent = '📡 AEMET Nacional'; }
-                alert('No se pudo cargar: ' + e.message);
+                if (btn) { btn.disabled = false; btn.innerHTML = '📡 AEMET Nacional'; }
+                alert('No se pudo cargar el radar: ' + e.message);
             }
         };
+
+        function rmLoadImage(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error('No se pudo cargar: ' + url));
+                img.src = url;
+            });
+        }
 
         // Auto-recarga periódica
         window.rmStartAuto = function(minutes) {
