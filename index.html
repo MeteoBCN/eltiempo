@@ -600,11 +600,8 @@
                     </div>
                 </div>
 
-                <!-- BLOQUE DE AVISOS -->
-                <div class="aviso-box" style="width: 100%; background: #F0FDF4; border-radius: 12px; margin: 28px 0 0 0; padding: 20px 24px; border: 1px solid #BBF7D0;">
-                    <div style="color: #7eeba0; font-size: 14px; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.3px;">SIN AVISOS ACTIVOS</div>
-                    <div style="color: #15803D; font-size: 12px; font-weight: 500; line-height: 1.5;">No hay fenómenos adversos previstos</div>
-                </div>
+                <!-- BLOQUE DE AVISOS AEMET -->
+                <div id="aemet-avisos-box" style="width: 100%; border-radius: 12px; margin: 28px 0 0 0; overflow: hidden;"></div>
 
                 </div><!-- fin current-weather -->
             </div><!-- fin hero-zone -->
@@ -1749,6 +1746,201 @@
 
         loadWeatherData();
         setInterval(loadWeatherData, 600000);
+
+        /* ══════════════════════════════════════════════
+           AVISOS AEMET — Barcelona
+           Endpoint: /avisos_cap/ultimoelaborado/area/6
+           El área 6 = Cataluña. Filtramos por zonas BCN.
+        ══════════════════════════════════════════════ */
+        (async function loadAvisosAEMET() {
+            const AEMET_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsb2phc2VyZ2lAZ21haWwuY29tIiwianRpIjoiNzNlZjE2MjQtMGJkYi00N2NhLTkwMDUtMmYxZGEwMTdmMTg4IiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE3NzI5MTc3NDAsInVzZXJJZCI6IjczZWYxNjI0LTBiZGItNDdjYS05MDA1LTJmMWRhMDE3ZjE4OCIsInJvbGUiOiIifQ.kI4DRMesFcdSgjwixBHjChNvvsFAzAWpebmGA_b91rc';
+            const box = document.getElementById('aemet-avisos-box');
+            if (!box) return;
+
+            // Zonas AEMET correspondientes a Barcelona (plan Meteoalerta)
+            // CAT08xxxx = provincia de Barcelona; también zonas costeras BCN
+            const ZONAS_BCN = [
+                'CAT080', // Barcelona interior genérica
+                'CAT081', 'CAT082', 'CAT083', 'CAT084', 'CAT085',
+                'CAT086', 'CAT087', 'CAT088', 'CAT089',
+            ];
+
+            // Colores y etiquetas por nivel
+            const NIVELES = {
+                'Amarillo': { bg: '#FFFBEB', border: '#F59E0B', badge: '#F59E0B', dot: '🟡' },
+                'Naranja':  { bg: '#FFF7ED', border: '#F97316', badge: '#F97316', dot: '🟠' },
+                'Rojo':     { bg: '#FEF2F2', border: '#EF4444', badge: '#EF4444', dot: '🔴' },
+                'Verde':    { bg: '#F0FDF4', border: '#10B981', badge: '#10B981', dot: '🟢' },
+            };
+
+            // Iconos por tipo de fenómeno
+            function phenomenonIcon(event) {
+                const e = (event || '').toLowerCase();
+                if (e.includes('lluvia') || e.includes('precip') || e.includes('rain')) return '🌧️';
+                if (e.includes('nieve') || e.includes('snow')) return '❄️';
+                if (e.includes('viento') || e.includes('wind')) return '💨';
+                if (e.includes('tormenta') || e.includes('thunder')) return '⛈️';
+                if (e.includes('niebla') || e.includes('fog')) return '🌫️';
+                if (e.includes('calor') || e.includes('heat') || e.includes('tempe')) return '🌡️';
+                if (e.includes('mar') || e.includes('coast') || e.includes('ola') || e.includes('wave')) return '🌊';
+                if (e.includes('nieve') || e.includes('helada') || e.includes('frost')) return '🧊';
+                return '⚠️';
+            }
+
+            function formatDate(iso) {
+                if (!iso) return '';
+                try {
+                    const d = new Date(iso);
+                    return d.toLocaleString('es-ES', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+                } catch { return iso; }
+            }
+
+            function renderAvisos(avisos) {
+                if (!avisos.length) {
+                    box.innerHTML = `
+                        <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:18px 22px;display:flex;align-items:center;gap:12px;">
+                            <div style="width:10px;height:10px;border-radius:50%;background:#10B981;flex-shrink:0;animation:pulse 2s ease-in-out infinite;"></div>
+                            <div>
+                                <div style="color:#15803D;font-size:13px;font-weight:700;letter-spacing:0.3px;">SIN AVISOS ACTIVOS</div>
+                                <div style="color:#15803D;font-size:11px;font-weight:500;margin-top:2px;opacity:0.8;">No hay fenómenos adversos previstos para Barcelona · Fuente: AEMET</div>
+                            </div>
+                        </div>`;
+                    return;
+                }
+
+                let html = '';
+                avisos.forEach(a => {
+                    const n = NIVELES[a.nivel] || NIVELES['Amarillo'];
+                    const icon = phenomenonIcon(a.evento);
+                    html += `
+                        <div style="background:${n.bg};border-left:4px solid ${n.border};border-radius:0 10px 10px 0;padding:14px 16px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;">
+                            <div style="font-size:26px;flex-shrink:0;margin-top:2px;">${icon}</div>
+                            <div style="flex:1;">
+                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px;">
+                                    <span style="font-size:13px;font-weight:800;color:#1E293B;">${a.evento}</span>
+                                    <span style="background:${n.badge};color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:0.5px;">${a.nivel}</span>
+                                </div>
+                                <div style="font-size:12px;color:#475569;line-height:1.5;margin-bottom:4px;">${a.zona}</div>
+                                ${a.descripcion ? `<div style="font-size:12px;color:#64748B;line-height:1.5;margin-bottom:4px;">${a.descripcion}</div>` : ''}
+                                <div style="font-size:11px;color:#94A3B8;margin-top:4px;">
+                                    ${a.inicio ? '⏱ Desde: ' + formatDate(a.inicio) : ''}
+                                    ${a.fin ? ' · Hasta: ' + formatDate(a.fin) : ''}
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                html += `<div style="font-size:10px;color:#94A3B8;text-align:right;padding-top:4px;padding-right:4px;">Fuente: AEMET Meteoalerta</div>`;
+                box.innerHTML = html;
+            }
+
+            function esZonaBarcelona(areaDesc) {
+                if (!areaDesc) return false;
+                const d = areaDesc.toUpperCase();
+                // Nombre explícito de Barcelona en el texto de zona
+                if (d.includes('BARCELONA')) return true;
+                // Código de zona CAT08 (provincia 08 = Barcelona)
+                if (/\bCAT08\d/.test(d)) return true;
+                return false;
+            }
+
+            try {
+                // Paso 1: obtener URL de los datos CAP (area 6 = Cataluña)
+                const metaResp = await fetch(
+                    `https://opendata.aemet.es/opendata/api/avisos_cap/ultimoelaborado/area/6`,
+                    { headers: { 'api_key': AEMET_KEY } }
+                );
+                if (!metaResp.ok) throw new Error('Meta ' + metaResp.status);
+                const meta = await metaResp.json();
+
+                // AEMET devuelve un objeto con campo "datos" que es la URL real
+                const dataUrl = meta.datos;
+                if (!dataUrl) throw new Error('Sin URL de datos');
+
+                // Paso 2: descargar el XML CAP
+                const xmlResp = await fetch(dataUrl, { headers: { 'api_key': AEMET_KEY } });
+                if (!xmlResp.ok) throw new Error('XML ' + xmlResp.status);
+                const xmlText = await xmlResp.text();
+
+                // Paso 3: parsear XML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xmlText, 'text/xml');
+
+                // Cada <alert> contiene uno o más <info>
+                const alerts = Array.from(doc.getElementsByTagNameNS('*', 'alert'));
+
+                const avisosBCN = [];
+                const ns = 'urn:oasis:names:tc:emergency:cap:1.2';
+
+                function getVal(parent, tag) {
+                    // Try with namespace, fallback without
+                    const el = parent.getElementsByTagNameNS(ns, tag)[0]
+                               || parent.getElementsByTagName(tag)[0];
+                    return el ? el.textContent.trim() : '';
+                }
+
+                alerts.forEach(alert => {
+                    const infos = Array.from(alert.getElementsByTagNameNS('*', 'info'));
+                    // Filtrar sólo idioma español
+                    const infoES = infos.find(i => {
+                        const lang = getVal(i, 'language');
+                        return !lang || lang === 'es' || lang.startsWith('es');
+                    }) || infos[0];
+
+                    if (!infoES) return;
+
+                    // Extraer zona
+                    const areas = Array.from(infoES.getElementsByTagNameNS('*', 'area'));
+                    const zonaTextos = areas.map(a => getVal(a, 'areaDesc')).filter(Boolean);
+
+                    // Comprobar si alguna zona es de Barcelona
+                    const esBCN = zonaTextos.some(esZonaBarcelona);
+                    if (!esBCN) return;
+
+                    // Nivel (severity)
+                    const severityRaw = getVal(infoES, 'severity').toLowerCase();
+                    let nivel = 'Amarillo';
+                    if (severityRaw === 'extreme') nivel = 'Rojo';
+                    else if (severityRaw === 'severe') nivel = 'Naranja';
+                    else if (severityRaw === 'moderate') nivel = 'Amarillo';
+                    else if (severityRaw === 'minor' || severityRaw === 'unknown') nivel = 'Verde';
+
+                    // Evento
+                    const evento = getVal(infoES, 'event') || getVal(infoES, 'headline') || 'Aviso';
+
+                    // Descripción corta
+                    let descripcion = getVal(infoES, 'description');
+                    if (descripcion.length > 200) descripcion = descripcion.slice(0, 200) + '…';
+
+                    // Fechas
+                    const inicio = getVal(infoES, 'onset') || getVal(alert, 'sent');
+                    const fin = getVal(infoES, 'expires');
+
+                    avisosBCN.push({
+                        nivel,
+                        evento,
+                        zona: zonaTextos.filter(esZonaBarcelona).join(', '),
+                        descripcion,
+                        inicio,
+                        fin,
+                    });
+                });
+
+                renderAvisos(avisosBCN);
+
+            } catch (err) {
+                console.warn('AEMET avisos error:', err);
+                // Fallback silencioso: mostrar "sin avisos"
+                box.innerHTML = `
+                    <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:18px 22px;display:flex;align-items:center;gap:12px;">
+                        <div style="width:10px;height:10px;border-radius:50%;background:#10B981;flex-shrink:0;"></div>
+                        <div>
+                            <div style="color:#15803D;font-size:13px;font-weight:700;">SIN AVISOS ACTIVOS</div>
+                            <div style="color:#15803D;font-size:11px;font-weight:500;margin-top:2px;opacity:0.7;">No se pudieron cargar los avisos AEMET · <a href="https://www.aemet.es/es/eltiempo/prediccion/avisos?k=cat" target="_blank" style="color:#15803D;">Ver en AEMET</a></div>
+                        </div>
+                    </div>`;
+            }
+        })();
+        /* ══════ FIN AVISOS AEMET ══════ */
 
         /* ══════ WIDGET PREVISIÓN 3 DÍAS ══════ */
         (function(){
