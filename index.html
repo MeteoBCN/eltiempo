@@ -662,6 +662,21 @@
 
 
 
+        <!-- ══════════════════════════════════════════════
+             OBSERVACIÓN AEMET — Estación Barcelona Aeropuerto (0076)
+        ═══════════════════════════════════════════════ -->
+        <div id="aemet-observacion-section" style="max-width:600px;margin:0 auto 0;"></div>
+
+        <!-- ══════════════════════════════════════════════
+             PREDICCIÓN MUNICIPAL AEMET — Barcelona (08019)
+        ═══════════════════════════════════════════════ -->
+        <div id="aemet-municipal-section" style="max-width:600px;margin:0 auto 0;"></div>
+
+        <!-- ══════════════════════════════════════════════
+             PREDICCIÓN PLAYA AEMET — La Barceloneta (0801905)
+        ═══════════════════════════════════════════════ -->
+        <div id="aemet-playa-section" style="max-width:600px;margin:0 auto 0;"></div>
+
         <div class="update-time" id="update-time">Actualizado: --:--</div>
 
         <div class="divulgacion-link">
@@ -1941,6 +1956,294 @@
             }
         })();
         /* ══════ FIN AVISOS AEMET ══════ */
+
+        /* ══════════════════════════════════════════════
+           AEMET — Observación en tiempo real
+           Estación Barcelona Aeropuerto (0076)
+        ══════════════════════════════════════════════ */
+        (async function loadAemetObservacion() {
+            const AEMET_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsb2phc2VyZ2lAZ21haWwuY29tIiwianRpIjoiNzNlZjE2MjQtMGJkYi00N2NhLTkwMDUtMmYxZGEwMTdmMTg4IiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE3NzI5MTc3NDAsInVzZXJJZCI6IjczZWYxNjI0LTBiZGItNDdjYS05MDA1LTJmMWRhMDE3ZjE4OCIsInJvbGUiOiIifQ.kI4DRMesFcdSgjwixBHjChNvvsFAzAWpebmGA_b91rc';
+            const section = document.getElementById('aemet-observacion-section');
+            if (!section) return;
+
+            function ms(v, u) { return v != null && v !== '' ? `<span style="font-weight:700;color:#1E293B;">${v}</span> <span style="font-size:10px;color:#94A3B8;">${u}</span>` : '<span style="color:#94A3B8;">—</span>'; }
+
+            try {
+                const meta = await fetch(`https://opendata.aemet.es/opendata/api/observacion/convencional/datos/estacion/0076`, { headers: { 'api_key': AEMET_KEY } });
+                const metaJson = await meta.json();
+                const dataResp = await fetch(metaJson.datos, { headers: { 'api_key': AEMET_KEY } });
+                const obs = await dataResp.json();
+
+                // Último registro disponible
+                const last = obs[obs.length - 1];
+                if (!last) return;
+
+                const hora = last.fint ? new Date(last.fint).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                const temp = last.ta != null ? last.ta : null;
+                const hum  = last.hr != null ? last.hr : null;
+                const pres = last.pres != null ? last.pres : null;
+                const vv   = last.vv != null ? Math.round(last.vv * 3.6) : null;   // m/s → km/h
+                const vmax = last.vmax != null ? Math.round(last.vmax * 3.6) : null;
+                const prec = last.prec != null ? last.prec : null;
+
+                section.innerHTML = `
+                <div style="max-width:600px;margin:40px auto 0;">
+                    <div class="rain-header-bg" style="padding:0 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;min-height:48px;display:flex;align-items:center;justify-content:center;">
+                        Observación AEMET · Aeropuerto Barcelona · ${hora}h
+                    </div>
+                    <div style="border:1px solid #e2e8f0;border-top:none;background:#fff;display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;">
+                        ${[
+                            ['🌡️ Temperatura', ms(temp, '°C')],
+                            ['💧 Humedad', ms(hum, '%')],
+                            ['📊 Presión', ms(pres, 'hPa')],
+                            ['💨 Viento medio', ms(vv, 'km/h')],
+                            ['💨 Racha máx.', ms(vmax, 'km/h')],
+                            ['🌧️ Precip. hora', ms(prec, 'mm')],
+                        ].map(([lbl, val], i) => `
+                            <div style="padding:16px 12px;text-align:center;border-right:${i%3<2?'1px solid #e2e8f0':'none'};border-bottom:${i<3?'1px solid #e2e8f0':'none'};">
+                                <div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">${lbl}</div>
+                                <div style="font-size:18px;">${val}</div>
+                            </div>`).join('')}
+                    </div>
+                    <div style="font-size:10px;color:#94A3B8;text-align:right;padding:4px 4px 0;border:1px solid #e2e8f0;border-top:none;background:#fafafa;">Fuente: AEMET · Estación 0076 · El Prat de Llobregat</div>
+                </div>`;
+            } catch(e) {
+                console.warn('AEMET observacion error:', e);
+            }
+        })();
+
+        /* ══════════════════════════════════════════════
+           AEMET — Predicción municipal diaria
+           Municipio Barcelona (08019) — 7 días
+        ══════════════════════════════════════════════ */
+        (async function loadAemetMunicipal() {
+            const AEMET_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsb2phc2VyZ2lAZ21haWwuY29tIiwianRpIjoiNzNlZjE2MjQtMGJkYi00N2NhLTkwMDUtMmYxZGEwMTdmMTg4IiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE3NzI5MTc3NDAsInVzZXJJZCI6IjczZWYxNjI0LTBiZGItNDdjYS05MDA1LTJmMWRhMDE3ZjE4OCIsInJvbGUiOiIifQ.kI4DRMesFcdSgjwixBHjChNvvsFAzAWpebmGA_b91rc';
+            const section = document.getElementById('aemet-municipal-section');
+            if (!section) return;
+
+            const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+            const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+            // Tabla de estados del cielo AEMET → emoji
+            function cieloIcon(c) {
+                const n = parseInt(c);
+                if (n <= 11) return '☀️';
+                if (n <= 16) return '🌤️';
+                if (n <= 27) return '⛅';
+                if (n <= 36) return '☁️';
+                if (n === 51 || n === 52) return '🌦️';
+                if (n >= 61 && n <= 64) return '🌧️';
+                if (n >= 71 && n <= 74) return '⛈️';
+                if (n >= 81 && n <= 84) return '❄️';
+                return '🌡️';
+            }
+
+            try {
+                const meta = await fetch(`https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/08019`, { headers: { 'api_key': AEMET_KEY } });
+                const metaJson = await meta.json();
+                const dataResp = await fetch(metaJson.datos, { headers: { 'api_key': AEMET_KEY } });
+                const data = await dataResp.json();
+
+                const pred = data[0]?.prediccion?.dia;
+                if (!pred || !pred.length) return;
+
+                let rows = '';
+                pred.slice(0, 7).forEach(dia => {
+                    const d = new Date(dia.fecha);
+                    const diaNom = DIAS[d.getDay()];
+                    const fechaLbl = d.getDate() + ' ' + MESES[d.getMonth()];
+                    const tmax = dia.temperatura?.maxima ?? '—';
+                    const tmin = dia.temperatura?.minima ?? '—';
+
+                    // Probabilidad de precipitación: coger el valor más alto del día
+                    let probMax = 0;
+                    if (Array.isArray(dia.probPrecipitacion)) {
+                        dia.probPrecipitacion.forEach(p => { if (parseInt(p.value) > probMax) probMax = parseInt(p.value); });
+                    }
+
+                    // Racha máxima de viento
+                    let rachaMax = null;
+                    if (Array.isArray(dia.rachaMax)) {
+                        dia.rachaMax.forEach(r => { const v = parseInt(r.value); if (!isNaN(v) && v > (rachaMax||0)) rachaMax = v; });
+                    }
+
+                    // Estado del cielo representativo (franja de 12-18h si existe, si no el primero)
+                    let cielo = '';
+                    if (Array.isArray(dia.estadoCielo)) {
+                        const tarde = dia.estadoCielo.find(e => e.periodo === '1218' || e.periodo === '1224');
+                        const rep = tarde || dia.estadoCielo.find(e => e.value && e.value !== '');
+                        cielo = rep ? cieloIcon(rep.value) : '🌡️';
+                    }
+
+                    const probColor = probMax >= 70 ? '#EF4444' : probMax >= 40 ? '#F97316' : probMax >= 20 ? '#F59E0B' : '#10B981';
+
+                    rows += `
+                        <tr style="border-bottom:1px solid #f1f5f9;">
+                            <td style="padding:12px 14px;">
+                                <div style="font-size:14px;font-weight:700;color:#2C3E50;">${diaNom} <span style="font-weight:400;color:#64748B;">${fechaLbl}</span></div>
+                            </td>
+                            <td style="padding:12px 8px;text-align:center;font-size:26px;">${cielo}</td>
+                            <td style="padding:12px 8px;text-align:center;">
+                                <span style="color:#EF4444;font-weight:700;font-size:16px;">${tmax}°</span>
+                                <span style="color:#94A3B8;margin:0 3px;">/</span>
+                                <span style="color:#3B82F6;font-weight:700;font-size:16px;">${tmin}°</span>
+                            </td>
+                            <td style="padding:12px 8px;text-align:center;">
+                                <span style="font-size:13px;font-weight:700;color:${probColor};">${probMax}%</span>
+                            </td>
+                            <td style="padding:12px 8px;text-align:center;">
+                                <span style="font-size:13px;font-weight:600;color:#64748B;">${rachaMax != null ? rachaMax + ' km/h' : '—'}</span>
+                            </td>
+                        </tr>`;
+                });
+
+                section.innerHTML = `
+                <div style="max-width:600px;margin:40px auto 0;">
+                    <div class="rain-header-bg" style="padding:0 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;min-height:48px;display:flex;align-items:center;justify-content:center;">
+                        Predicción AEMET · Barcelona · 7 días
+                    </div>
+                    <div style="border:1px solid #e2e8f0;border-top:none;background:#fff;overflow:hidden;">
+                        <table style="width:100%;border-collapse:collapse;">
+                            <thead>
+                                <tr style="background:#f1f5f9;">
+                                    <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;">Día</th>
+                                    <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;">Cielo</th>
+                                    <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;">Temp.</th>
+                                    <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;">Prob. lluvia</th>
+                                    <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;">Racha máx.</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                    <div style="font-size:10px;color:#94A3B8;text-align:right;padding:4px 4px 0;border:1px solid #e2e8f0;border-top:none;background:#fafafa;">Fuente: AEMET · Predicción municipal 08019</div>
+                </div>`;
+            } catch(e) {
+                console.warn('AEMET municipal error:', e);
+            }
+        })();
+
+        /* ══════════════════════════════════════════════
+           AEMET — Predicción de playa
+           La Barceloneta (0801905)
+        ══════════════════════════════════════════════ */
+        (async function loadAemetPlaya() {
+            const AEMET_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsb2phc2VyZ2lAZ21haWwuY29tIiwianRpIjoiNzNlZjE2MjQtMGJkYi00N2NhLTkwMDUtMmYxZGEwMTdmMTg4IiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE3NzI5MTc3NDAsInVzZXJJZCI6IjczZWYxNjI0LTBiZGItNDdjYS05MDA1LTJmMWRhMDE3ZjE4OCIsInJvbGUiOiIifQ.kI4DRMesFcdSgjwixBHjChNvvsFAzAWpebmGA_b91rc';
+            const section = document.getElementById('aemet-playa-section');
+            if (!section) return;
+
+            const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+            const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+            // Cielo playa: descripción AEMET → emoji
+            function cieloPlayaIcon(c) {
+                const n = parseInt(c);
+                if (n <= 11) return '☀️';
+                if (n <= 16) return '🌤️';
+                if (n <= 27) return '⛅';
+                if (n <= 36) return '☁️';
+                if (n >= 51) return '🌦️';
+                return '🌡️';
+            }
+
+            // Estado del mar por código AEMET
+            function estadoMar(c) {
+                const estados = { '1':'Calma','2':'Rizada','3':'Marejadilla','4':'Marejada','5':'Fuerte marejada','6':'Mar gruesa' };
+                return estados[String(c)] || '—';
+            }
+
+            function marColor(c) {
+                const n = parseInt(c);
+                if (n <= 2) return '#10B981';
+                if (n === 3) return '#F59E0B';
+                if (n === 4) return '#F97316';
+                return '#EF4444';
+            }
+
+            // Viento playa: descripción por velocidad
+            function vientoDesc(v) {
+                const n = parseInt(v);
+                if (isNaN(n)) return '—';
+                if (n < 6)  return 'Calma';
+                if (n < 12) return 'Flojo';
+                if (n < 20) return 'Moderado';
+                if (n < 29) return 'Brisa fresca';
+                if (n < 39) return 'Viento fresco';
+                return 'Fuerte';
+            }
+
+            try {
+                const meta = await fetch(`https://opendata.aemet.es/opendata/api/prediccion/especifica/playa/0801905`, { headers: { 'api_key': AEMET_KEY } });
+                const metaJson = await meta.json();
+                const dataResp = await fetch(metaJson.datos, { headers: { 'api_key': AEMET_KEY } });
+                const data = await dataResp.json();
+
+                const dias = data[0]?.prediccion?.dia;
+                if (!dias || !dias.length) return;
+
+                let cards = '';
+                dias.slice(0, 4).forEach(dia => {
+                    const d = new Date(dia.fecha);
+                    const diaNom = DIAS[d.getDay()];
+                    const fechaLbl = d.getDate() + ' ' + MESES[d.getMonth()];
+
+                    // Franjas: mañana (m) y tarde (t)
+                    const franjas = [
+                        { lbl: 'Mañana', cieloVal: dia.cieloManana?.value, vientoVal: dia.vientoAndRachaManana, estadoMarVal: dia.estadoCieloManana?.value, precipVal: dia.precipitacionManana?.value },
+                        { lbl: 'Tarde',  cieloVal: dia.cieloTarde?.value,  vientoVal: dia.vientoAndRachaTarde,  estadoMarVal: dia.estadoCieloTarde?.value,  precipVal: dia.precipitacionTarde?.value  },
+                    ];
+
+                    // Temperatura máxima y mínima
+                    const tmax = dia.temperatura?.maxima ?? '—';
+                    const tmin = dia.temperatura?.minima ?? '—';
+
+                    // Estado del mar
+                    const mar = dia.estadoMar?.[0]?.value ?? null;
+
+                    cards += `
+                        <div style="border-bottom:1px solid #e2e8f0;padding:16px 16px 14px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                                <div style="font-size:15px;font-weight:700;color:#2C3E50;">${diaNom} <span style="font-size:13px;font-weight:400;color:#94A3B8;">${fechaLbl}</span></div>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="color:#EF4444;font-weight:700;">${tmax}°</span>
+                                    <span style="color:#94A3B8;font-size:12px;">/</span>
+                                    <span style="color:#3B82F6;font-weight:700;">${tmin}°</span>
+                                    ${mar ? `<span style="font-size:11px;font-weight:700;color:#fff;background:${marColor(mar)};padding:2px 8px;border-radius:4px;">${estadoMar(mar)}</span>` : ''}
+                                </div>
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                                ${franjas.map(f => {
+                                    const icon = f.cieloVal ? cieloPlayaIcon(f.cieloVal) : '—';
+                                    const viento = Array.isArray(f.vientoVal) && f.vientoVal[0] ? f.vientoVal[0].velocidad + ' km/h' : '—';
+                                    const precip = f.precipVal && parseInt(f.precipVal) > 0 ? parseInt(f.precipVal) + '%' : 'Sin lluvia';
+                                    const precipColor = f.precipVal && parseInt(f.precipVal) >= 40 ? '#3B82F6' : '#10B981';
+                                    return `
+                                        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px;border:1px solid #e2e8f0;">
+                                            <div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">${f.lbl}</div>
+                                            <div style="font-size:24px;margin-bottom:4px;">${icon}</div>
+                                            <div style="font-size:12px;color:#475569;">💨 ${viento}</div>
+                                            <div style="font-size:12px;font-weight:600;color:${precipColor};margin-top:2px;">🌧️ ${precip}</div>
+                                        </div>`;
+                                }).join('')}
+                            </div>
+                        </div>`;
+                });
+
+                section.innerHTML = `
+                <div style="max-width:600px;margin:40px auto 0;">
+                    <div class="rain-header-bg" style="padding:0 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;min-height:48px;display:flex;align-items:center;justify-content:center;">
+                        Predicción playa AEMET · La Barceloneta
+                    </div>
+                    <div style="border:1px solid #e2e8f0;border-top:none;background:#fff;overflow:hidden;">
+                        ${cards}
+                    </div>
+                    <div style="font-size:10px;color:#94A3B8;text-align:right;padding:4px 4px 0;border:1px solid #e2e8f0;border-top:none;background:#fafafa;">Fuente: AEMET · Predicción playa 0801905 · La Barceloneta</div>
+                </div>`;
+            } catch(e) {
+                console.warn('AEMET playa error:', e);
+            }
+        })();
+        /* ══════ FIN AEMET PLAYA ══════ */
 
         /* ══════ WIDGET PREVISIÓN 3 DÍAS ══════ */
         (function(){
