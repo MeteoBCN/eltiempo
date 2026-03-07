@@ -811,12 +811,29 @@
                         Analizar imagen con IA
                     </button>
                 </div>
-                <!-- TAB: URL -->
+                <!-- TAB: URL / Auto -->
                 <div class="rain-tab-content" id="rm-tab-url">
-                    <input class="rain-input" type="text" id="rm-url-input" placeholder="URL imagen radar (ej: https://radar.example.com/img.png)">
-                    <p class="rain-hint">Ejemplos: <a href="#" onclick="rmSetURL('https://www.aemet.es/imagenes/radar/r8_spc.gif');return false;">AEMET Nacional</a> · <a href="#" onclick="rmSetURL('https://opendata.aemet.es/opendata/api/red/radar/nacional');return false;">AEMET API</a></p>
-                    <button class="rain-btn rain-btn-primary" onclick="rmAnalyzeURL()" style="margin-top:10px">Cargar y analizar</button>
-                    <p class="rain-hint" style="margin-top:8px">⚠️ Si la imagen no carga por CORS, descárgala y súbela en la pestaña anterior.</p>
+                    <!-- Botones de fuente rápida (requieren Worker) -->
+                    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+                        <button class="rain-btn rain-btn-primary rain-btn-sm" onclick="rmLoadSource('aemet')" id="rm-auto-btn">📡 AEMET Nacional</button>
+                        <button class="rain-btn rain-btn-primary rain-btn-sm" onclick="rmLoadSource('aemet-cat')">📡 AEMET Cataluña</button>
+                        <button class="rain-btn rain-btn-primary rain-btn-sm" onclick="rmLoadSource('meteocat')">📡 Meteocat</button>
+                    </div>
+                    <!-- Auto-recarga -->
+                    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px 12px">
+                        <span style="font-size:12px;color:#64748B;font-weight:600;flex:1">🔄 Auto-recarga</span>
+                        <select id="rm-interval-sel" onchange="rmStartAuto(parseInt(this.value))" style="font-size:11px;border:1px solid #E2E8F0;border-radius:6px;padding:4px 8px;background:#fff;color:#334155;font-family:inherit">
+                            <option value="0">Desactivada</option>
+                            <option value="10">Cada 10 min</option>
+                            <option value="30" selected>Cada 30 min</option>
+                            <option value="60">Cada hora</option>
+                        </select>
+                    </div>
+                    <div style="height:1px;background:#E2E8F0;margin-bottom:12px"></div>
+                    <!-- URL manual -->
+                    <input class="rain-input" type="text" id="rm-url-input" placeholder="O pega una URL de imagen de radar…">
+                    <button class="rain-btn rain-btn-primary" onclick="rmAnalyzeURL()" style="margin-top:6px">Cargar y analizar URL</button>
+                    <p class="rain-hint" style="margin-top:8px">⚙️ Los botones rápidos requieren el <strong>Cloudflare Worker</strong> configurado. Ver guía de instalación.</p>
                 </div>
                 <!-- TAB: Historial -->
                 <div class="rain-tab-content" id="rm-tab-history">
@@ -2089,6 +2106,23 @@
     <script>
     (function() {
         'use strict';
+
+        // ══ CONFIGURACIÓN: pega aquí tu URL de Cloudflare Worker ══
+        // Ejemplo: 'https://radar-proxy.TU-USUARIO.workers.dev'
+        // Déjalo vacío ('') si aún no tienes el Worker configurado.
+        const PROXY_URL = '';
+
+        // Fuentes de radar disponibles a través del proxy
+        const RADAR_SOURCES = [
+            { label: 'AEMET Nacional',  src: 'aemet',     desc: 'Radar nacional España' },
+            { label: 'AEMET Cataluña',  src: 'aemet-cat', desc: 'Radar Cataluña' },
+            { label: 'Meteocat',        src: 'meteocat',  desc: 'Radar Meteocat' },
+        ];
+
+        // Intervalo de recarga automática en minutos (0 = desactivado)
+        let autoInterval = null;
+        let autoMinutes  = 0;
+
         let rmImage = null;
         let rmNotifPerm = (typeof Notification !== 'undefined') ? Notification.permission : 'default';
         let rmHistory = [];
