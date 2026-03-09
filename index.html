@@ -581,24 +581,12 @@
                         <div class="detail-value" id="wind">-- km/h</div>
                     </div>
                     <div class="detail-item">
-                        <div>Precip. hoy</div>
-                        <div class="detail-value" id="precip-today">-- mm</div>
-                    </div>
-                    <div class="detail-item">
                         <div>Calidad Aire</div>
                         <div class="detail-value" id="air-quality-current" style="color: #1E293B;">--</div>
                     </div>
                     <div class="detail-item">
                         <div>UVI actual</div>
                         <div class="detail-value" id="uvi-current">--</div>
-                    </div>
-                    <div class="detail-item">
-                        <div>Máx. hoy</div>
-                        <div class="detail-value" id="tmax-today" style="color:#EF4444;">--°</div>
-                    </div>
-                    <div class="detail-item">
-                        <div>Mín. hoy</div>
-                        <div class="detail-value" id="tmin-today" style="color:#3B82F6;">--°</div>
                     </div>
                 </div>
 
@@ -1389,7 +1377,7 @@
                 const idx=hourly.time.findIndex(t=>Math.abs(new Date(t)-now)<30*60*1000);
                 if (idx!==-1&&hourly.uv_index[idx]!==undefined) {
                     const el=document.getElementById('uvi-current');
-                    el.textContent=hourly.uv_index[idx].toFixed(1); el.style.color='#1E293B';
+                    el.textContent=Math.round(hourly.uv_index[idx]); el.style.color='#1E293B';
                 }
             }
         }
