@@ -1237,7 +1237,7 @@
                     const wmo=hourly.weather_code?.[i]??0;
                     if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd:{cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]}};
                 }
-                return best?(best.wmo===45||best.wmo===48?getWiIcon(45,best.ht,null,'1.6em','#1E3A5F'):getWiIcon(best.wmo,best.ht,best.cd,'1.6em','#1E3A5F')):'—';
+                return best?(best.wmo===45||best.wmo===48?getWiIcon(45,best.ht,null,'1.2em','#1E3A5F'):getWiIcon(best.wmo,best.ht,best.cd,'1.2em','#1E3A5F')):'—';
             }
             const hoyIconManana=hoyIconForRange(8,13);
             const hoyIconTarde=hoyIconForRange(13,18);
@@ -1299,7 +1299,7 @@
                 const effectiveWmo = (isRainCode && precipProb < 50) ? 3 : wmo;
                 const night = isNightTime(ht);
                 const iconMap = night ? WMO_EMOJI_NIGHT : WMO_EMOJI_DAY;
-                const icon = getWiIcon(isFog ? 45 : effectiveWmo, ht, null, '1.3em', '#60A5FA');
+                const icon = getWiIcon(isFog ? 45 : effectiveWmo, ht, null, '1.3em', '#ffffff');
                 const temp = Math.round(hourly.temperature_2m?.[idx] ?? 0);
                 const ws = Math.round(hourly.wind_speed_10m?.[idx] ?? 0);
                 const wd = hourly.wind_direction_10m?.[idx] ?? 0;
@@ -1460,8 +1460,8 @@
                 // Usar el WMO más severo del rango
                 const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
                 const best=codes.reduce((a,b)=>severity.indexOf(b.wmo)>severity.indexOf(a.wmo)?b:a);
-                if(best.wmo===45||best.wmo===48) return getWiIcon(45, best.ht, null, '1.6em', '#1E3A5F');
-                return getWiIcon(best.wmo, best.ht, best.cd, '1.6em', '#1E3A5F');
+                if(best.wmo===45||best.wmo===48) return getWiIcon(45, best.ht, null, '1.2em', '#1E3A5F');
+                return getWiIcon(best.wmo, best.ht, best.cd, '1.2em', '#1E3A5F');
             }
             const iconManana = iconForRange(8, 13);
             const iconTarde  = iconForRange(13, 18);
@@ -1523,7 +1523,7 @@
                 const isRainCode=(wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
                 const effectiveWmo=(isRainCode&&precipProb<50)?3:wmo;
                 const iconMap=isNight?{0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'}:{0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
-                const ico=getWiIcon(isFog?45:effectiveWmo,ht,null,'1.3em','#60A5FA');
+                const ico=getWiIcon(isFog?45:effectiveWmo,ht,null,'1.3em','#ffffff');
                 const temp=hourly.temperature_2m?.[i]!==undefined?Math.round(hourly.temperature_2m[i])+'°':'--';
                 const feels=hourly.apparent_temperature?.[i]!==undefined?Math.round(hourly.apparent_temperature[i])+'°':'--';
                 const hum=hourly.relative_humidity_2m?.[i]!==undefined?hourly.relative_humidity_2m[i]+'%':'--';
