@@ -729,12 +729,12 @@
             95:'wi-night-thunderstorm', 96:'wi-night-thunderstorm', 99:'wi-night-thunderstorm'
         };
 
-        function getWiIcon(code, dateTime, cloudData, size='1.6em', color='inherit') {
+        function getWiIcon(code, dateTime, cloudData, size='1.6em', color='inherit', forceNight=null) {
             if (cloudData && (code===1||code===2||code===3)) {
                 const rc = (cloudData.cloud_cover_low||0)+((cloudData.cloud_cover_mid||0)*0.5);
                 if (rc<15) code=1; else if (rc<35) code=2; else code=3;
             }
-            const night = dateTime && isNightTime(dateTime);
+            const night = forceNight !== null ? forceNight : (dateTime && isNightTime(dateTime));
             const cls = (night ? WI_NIGHT[code] : WI_DAY[code]) || (night ? 'wi-night-clear' : 'wi-day-sunny');
             const colorStyle = color ? `color:${color};` : '';
             return `<i class="wi ${cls}" style="font-size:${size};${colorStyle}"></i>`;
@@ -1229,15 +1229,21 @@
             // Iconos de HOY por franja: mañana (07-13) y tarde (13-20)
             function hoyIconForRange(fromH, toH) {
                 const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
-                let best=null;
+                let best=null, maxProb=0;
                 for(let i=0;i<hourly.time.length;i++){
                     const ht=new Date(hourly.time[i]);
                     if(ht.getDate()!==now.getDate()||ht.getMonth()!==now.getMonth()) continue;
                     if(ht.getHours()<fromH||ht.getHours()>=toH) continue;
                     const wmo=hourly.weather_code?.[i]??0;
+                    const prob=hourly.precipitation_probability?.[i]??0;
+                    if(prob>maxProb) maxProb=prob;
                     if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd:{cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]}};
                 }
-                return best?(best.wmo===45||best.wmo===48?getWiIcon(45,best.ht,null,'1.2em','#1E3A5F'):getWiIcon(best.wmo,best.ht,best.cd,'1.2em','#1E3A5F')):'—';
+                if(!best) return '—';
+                const isRain=(best.wmo>=51&&best.wmo<=82)||(best.wmo>=85&&best.wmo<=86)||(best.wmo>=95&&best.wmo<=99);
+                const effectiveWmo=(isRain&&maxProb<50)?3:best.wmo;
+                if(effectiveWmo===45||effectiveWmo===48) return getWiIcon(45,best.ht,null,'1.2em','#1E3A5F');
+                return getWiIcon(effectiveWmo,best.ht,best.cd,'1.2em','#1E3A5F');
             }
             const hoyIconManana=hoyIconForRange(8,13);
             const hoyIconTarde=hoyIconForRange(13,18);
@@ -1448,20 +1454,23 @@
 
             // Iconos representativos por franja: mañana (07-13) y tarde (13-20)
             function iconForRange(fromH, toH) {
-                const codes = [];
+                const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
+                let best=null, maxProb=0;
                 for(let i=0;i<hourly.time.length;i++){
                     const ht=new Date(hourly.time[i]);
                     if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()&&ht.getHours()>=fromH&&ht.getHours()<toH){
+                        const wmo=hourly.weather_code?.[i]??0;
+                        const prob=hourly.precipitation_probability?.[i]??0;
+                        if(prob>maxProb) maxProb=prob;
                         const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
-                        codes.push({wmo:hourly.weather_code?.[i]??0, ht, cd});
+                        if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd};
                     }
                 }
-                if(!codes.length) return '—';
-                // Usar el WMO más severo del rango
-                const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
-                const best=codes.reduce((a,b)=>severity.indexOf(b.wmo)>severity.indexOf(a.wmo)?b:a);
-                if(best.wmo===45||best.wmo===48) return getWiIcon(45, best.ht, null, '1.2em', '#1E3A5F');
-                return getWiIcon(best.wmo, best.ht, best.cd, '1.2em', '#1E3A5F');
+                if(!best) return '—';
+                const isRain=(best.wmo>=51&&best.wmo<=82)||(best.wmo>=85&&best.wmo<=86)||(best.wmo>=95&&best.wmo<=99);
+                const effectiveWmo=(isRain&&maxProb<50)?3:best.wmo;
+                if(effectiveWmo===45||effectiveWmo===48) return getWiIcon(45, best.ht, null, '1.2em', '#1E3A5F');
+                return getWiIcon(effectiveWmo, best.ht, best.cd, '1.2em', '#1E3A5F');
             }
             const iconManana = iconForRange(8, 13);
             const iconTarde  = iconForRange(13, 18);
@@ -1516,14 +1525,15 @@
             // Construir columnas HTML idénticas al strip de horas
             let stripCols='';
             daySlots.forEach(({h,i,ht})=>{
-                const isNight=isNightTime(ht);
+                const isNight = (h < 8 || h >= 21);
                 const wmo=hourly.weather_code?.[i]??0;
                 const precipProb=hourly.precipitation_probability?.[i]??0;
                 const isFog=(wmo===45||wmo===48);
                 const isRainCode=(wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
                 const effectiveWmo=(isRainCode&&precipProb<50)?3:wmo;
                 const iconMap=isNight?{0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'}:{0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
-                const ico=getWiIcon(isFog?45:effectiveWmo,ht,null,'1.3em','#ffffff');
+                const slotDt = new Date(tDay.getFullYear(), tDay.getMonth(), tDay.getDate(), h, 0, 0);
+                const ico=getWiIcon(isFog?45:effectiveWmo, null, null,'1.3em','#ffffff', isNight);
                 const temp=hourly.temperature_2m?.[i]!==undefined?Math.round(hourly.temperature_2m[i])+'°':'--';
                 const feels=hourly.apparent_temperature?.[i]!==undefined?Math.round(hourly.apparent_temperature[i])+'°':'--';
                 const hum=hourly.relative_humidity_2m?.[i]!==undefined?hourly.relative_humidity_2m[i]+'%':'--';
