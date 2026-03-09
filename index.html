@@ -1357,22 +1357,7 @@
             document.getElementById('pressure').textContent=Math.round(current.pressure_msl)+' hPa';
             document.getElementById('humidity').textContent=current.relative_humidity_2m+'%';
             document.getElementById('wind').textContent=Math.round(current.wind_speed_10m)+' km/h';
-            document.getElementById('precip-today').textContent=(precipToday||0).toFixed(1)+' mm';
-            // Tmax y Tmin registradas desde medianoche hasta ahora
-            if (hourly?.time && hourly?.temperature_2m) {
-                let tmax=-999, tmin=999;
-                for (let i=0;i<hourly.time.length;i++) {
-                    const ht=new Date(hourly.time[i]);
-                    if (ht.getDate()===now.getDate()&&ht.getMonth()===now.getMonth()&&ht<=now) {
-                        const t=hourly.temperature_2m[i];
-                        if(t!==null&&t!==undefined){if(t>tmax)tmax=t;if(t<tmin)tmin=t;}
-                    }
-                }
-                const elMax=document.getElementById('tmax-today');
-                const elMin=document.getElementById('tmin-today');
-                if(elMax&&tmax>-999) elMax.textContent=Math.round(tmax)+'°';
-                if(elMin&&tmin<999)  elMin.textContent=Math.round(tmin)+'°';
-            }
+
             if (hourly?.time && hourly?.uv_index) {
                 const idx=hourly.time.findIndex(t=>Math.abs(new Date(t)-now)<30*60*1000);
                 if (idx!==-1&&hourly.uv_index[idx]!==undefined) {
