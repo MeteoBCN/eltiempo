@@ -1234,6 +1234,7 @@
                     const ht=new Date(hourly.time[i]);
                     if(ht.getDate()!==now.getDate()||ht.getMonth()!==now.getMonth()) continue;
                     if(ht.getHours()<8||ht.getHours()>=20) continue;
+                    if(ht < now) continue; // solo horas futuras
                     const wmo=hourly.weather_code?.[i]??0;
                     const prob=hourly.precipitation_probability?.[i]??0;
                     if(prob>maxProb) maxProb=prob;
