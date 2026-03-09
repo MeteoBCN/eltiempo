@@ -1265,7 +1265,7 @@
                             <span style="margin:0 4px;opacity:0.4;">/</span>
                             <span style="color:#EF4444;font-weight:700;font-size:22px;">${hoyMaxT}°</span>
                             <span style="margin:0 5px;opacity:0.4;">|</span>
-                            <span>Lluvia prevista: ${hoyTp} mm${hoyRainHoursStr}</span>
+                            <span>Lluvia prevista: ${hoyTp} mm</span>
                             <span style="margin:0 5px;opacity:0.4;">|</span>
                             <span>${hoyAw} km/h ${hoyWindDir(hoyAwd)}</span>
                             <br>
@@ -1324,7 +1324,7 @@
 
         async function loadWeatherData() {
             // ── Peticiones independientes: si una falla, las demás siguen ──
-            const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum&timezone=Europe/Madrid&forecast_days=7`;
+            const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max&timezone=Europe/Madrid&forecast_days=7`;
             const aqUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=Europe/Madrid`;
             const marineUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
 
@@ -1558,7 +1558,7 @@
                             <span class="day-sep" style="margin:0 4px;opacity:0.4;">/</span>
                             <span class="day-temp-max" style="color:#EF4444;font-weight:700;font-size:22px;transition:color 0.4s;">${maxT}°</span>
                             <span class="day-sep" style="margin:0 5px;opacity:0.4;">|</span>
-                            <span class="day-rain-lbl" style="transition:color 0.4s;">Lluvia prevista: ${tp} mm${rainHoursStr}</span>
+                            <span class="day-rain-lbl" style="transition:color 0.4s;">Lluvia prevista: ${tp} mm</span>
                             <span class="day-sep" style="margin:0 5px;opacity:0.4;">|</span>
                             <span class="day-wind-lbl" style="transition:color 0.4s;">${aw} km/h ${getWindDir(awd)}</span>
                             <br>
@@ -1651,20 +1651,22 @@
                 const diaNom = DIAS[d.getDay()];
                 const fechaLabel = d.getDate() + ' ' + MESES[d.getMonth()];
 
-                let rainHours = [];
-                for (let i = 0; i < hourly.time.length; i++) {
-                    if (!hourly.time[i].startsWith(dateStr)) continue;
-                    const pr = hourly.precipitation[i] || 0;
-                    if (pr > 0) rainHours.push(parseInt(hourly.time[i].slice(11,13), 10));
+                let rainProb = daily.precipitation_probability_max?.[off] ?? null;
+                // Si no hay dato en daily, calcular máximo de probabilidad horaria
+                if (rainProb === null && hourly.precipitation_probability) {
+                    const probs = [];
+                    for (let i = 0; i < hourly.time.length; i++) {
+                        if (!hourly.time[i].startsWith(dateStr)) continue;
+                        if (hourly.precipitation_probability[i] != null) probs.push(hourly.precipitation_probability[i]);
+                    }
+                    rainProb = probs.length ? Math.max(...probs) : null;
                 }
                 // Usar precipitation_sum del daily (evita sobreestimación del modelo horario)
                 const tp = Math.round((daily.precipitation_sum?.[off] || 0) * 10) / 10;
                 totalAcum += tp;
 
-                const horasStr = groupRainHours(rainHours);
                 const hasRain = tp > 0;
-
-                rows.push({ diaNom, fechaLabel, tp, horasStr, hasRain, isToday: off === 0 });
+                rows.push({ diaNom, fechaLabel, tp, rainProb, hasRain, isToday: off === 0 });
             }
             totalAcum = Math.round(totalAcum * 10) / 10;
 
@@ -1692,7 +1694,7 @@
                         <tr style="background:#f1f5f9;">
                             <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;width:38%;">Día</th>
                             <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;width:16%;">Total</th>
-                            <th style="padding:10px 8px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;">Horas con lluvia</th>
+                            <th style="padding:10px 8px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;">Prob. lluvia</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1702,9 +1704,16 @@
                 const bg = r.isToday ? 'background:#f8faff;' : (idx % 2 === 0 ? '' : 'background:#fafafa;');
                 const todayMark = r.isToday ? '<span style="font-size:9px;background:#3b82f6;color:#fff;padding:1px 5px;border-radius:3px;margin-left:5px;vertical-align:middle;">HOY</span>' : '';
                 const mmColor = r.tp === 0 ? '#94a3b8' : r.tp < 5 ? '#3b82f6' : r.tp < 15 ? '#1d4ed8' : '#7c3aed';
-                const horasCell = r.hasRain
-                    ? `<span style="font-size:12px;color:#1e293b;font-weight:500;">${r.horasStr}</span>`
-                    : `<span style="font-size:12px;color:#94a3b8;font-style:italic;">Sin lluvia</span>`;
+                const prob = r.rainProb !== null ? r.rainProb : null;
+                const probColor = prob === null ? '#94a3b8' : prob < 20 ? '#94a3b8' : prob < 50 ? '#60a5fa' : prob < 75 ? '#3b82f6' : '#1d4ed8';
+                const probCell = prob !== null
+                    ? `<div style="display:flex;align-items:center;gap:8px;">
+                         <div style="flex:1;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;">
+                           <div style="height:100%;width:${prob}%;background:${probColor};border-radius:3px;"></div>
+                         </div>
+                         <span style="font-size:13px;font-weight:700;color:${probColor};min-width:32px;text-align:right;">${prob}%</span>
+                       </div>`
+                    : `<span style="font-size:12px;color:#94a3b8;font-style:italic;">—</span>`;
 
                 html += `
                 <tr style="${bg}border-bottom:1px solid #f1f5f9;">
@@ -1718,7 +1727,7 @@
                         <div style="font-size:16px;font-weight:800;color:${mmColor};">${r.tp > 0 ? r.tp : '—'}</div>
                         ${r.tp > 0 ? '<div style="font-size:10px;color:#94a3b8;margin-top:1px;">mm</div>' : ''}
                     </td>
-                    <td style="padding:11px 8px;">${horasCell}</td>
+                    <td style="padding:11px 8px;">${probCell}</td>
                 </tr>`;
             });
 
