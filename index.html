@@ -1225,7 +1225,7 @@
                     const wmo=hourly.weather_code?.[i]??0;
                     if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd:{cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]}};
                 }
-                return best?(best.wmo===45||best.wmo===48?getWeatherIcon(3,best.ht,best.cd):getWeatherIcon(best.wmo,best.ht,best.cd)):'—';
+                return best?(best.wmo===45||best.wmo===48?'<i class="wi wi-fog" style="font-size:1.3em;color:#B0BEC5;"></i>':getWeatherIcon(best.wmo,best.ht,best.cd)):'—';
             }
             const hoyIconManana=hoyIconForRange(8,13);
             const hoyIconTarde=hoyIconForRange(13,18);
@@ -1282,12 +1282,12 @@
                 const wmo = hourly.weather_code?.[idx] ?? 0;
                 const precipProb = hourly.precipitation_probability?.[idx] ?? 0;
                 // Si el código implica precipitación pero la probabilidad es <50%, usar nublado
-                const isRainCode = (wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
                 const isFog = (wmo===45||wmo===48);
-                const effectiveWmo = isFog ? 3 : (isRainCode && precipProb < 50) ? 3 : wmo;
+                const isRainCode = (wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
+                const effectiveWmo = (isRainCode && precipProb < 50) ? 3 : wmo;
                 const night = isNightTime(ht);
                 const iconMap = night ? WMO_EMOJI_NIGHT : WMO_EMOJI_DAY;
-                const icon = iconMap[effectiveWmo] || (night ? '🌙' : '🌡️');
+                const icon = isFog ? '<i class="wi wi-fog" style="font-size:1.4em;color:#B0BEC5;"></i>' : (iconMap[effectiveWmo] || (night ? '🌙' : '🌡️'));
                 const temp = Math.round(hourly.temperature_2m?.[idx] ?? 0);
                 const ws = Math.round(hourly.wind_speed_10m?.[idx] ?? 0);
                 const wd = hourly.wind_direction_10m?.[idx] ?? 0;
@@ -1448,7 +1448,7 @@
                 // Usar el WMO más severo del rango
                 const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
                 const best=codes.reduce((a,b)=>severity.indexOf(b.wmo)>severity.indexOf(a.wmo)?b:a);
-                if(best.wmo===45||best.wmo===48) best.wmo=3;
+                if(best.wmo===45||best.wmo===48) return '<i class="wi wi-fog" style="font-size:1.3em;color:#B0BEC5;"></i>';
                 return getWeatherIcon(best.wmo, best.ht, best.cd);
             }
             const iconManana = iconForRange(8, 13);
@@ -1507,11 +1507,11 @@
                 const isNight=isNightTime(ht);
                 const wmo=hourly.weather_code?.[i]??0;
                 const precipProb=hourly.precipitation_probability?.[i]??0;
-                const isRainCode=(wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
                 const isFog=(wmo===45||wmo===48);
-                const effectiveWmo=isFog?3:(isRainCode&&precipProb<50)?3:wmo;
+                const isRainCode=(wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
+                const effectiveWmo=(isRainCode&&precipProb<50)?3:wmo;
                 const iconMap=isNight?{0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'}:{0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
-                const ico=iconMap[effectiveWmo]||(isNight?'🌙':'🌡️');
+                const ico=isFog?'<i class="wi wi-fog" style="font-size:1.4em;color:#B0BEC5;"></i>':(iconMap[effectiveWmo]||(isNight?'🌙':'🌡️'));
                 const temp=hourly.temperature_2m?.[i]!==undefined?Math.round(hourly.temperature_2m[i])+'°':'--';
                 const feels=hourly.apparent_temperature?.[i]!==undefined?Math.round(hourly.apparent_temperature[i])+'°':'--';
                 const hum=hourly.relative_humidity_2m?.[i]!==undefined?hourly.relative_humidity_2m[i]+'%':'--';
