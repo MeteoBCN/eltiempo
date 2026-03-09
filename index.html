@@ -1241,17 +1241,17 @@
                     const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
                     if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd};
                 }
-                if(!best) return '—';
+                if(!best) return {icon:'—', maxProb:0};
                 const isRain=(best.wmo>=51&&best.wmo<=82)||(best.wmo>=85&&best.wmo<=86)||(best.wmo>=95&&best.wmo<=99);
                 let effectiveWmo;
-                if(isRain && maxProb>=50 && hasSun) effectiveWmo=80; // chubascos (sol+lluvia)
+                if(isRain && maxProb>=50 && hasSun) effectiveWmo=80;
                 else if(isRain && maxProb>=50) effectiveWmo=best.wmo;
                 else if(isRain && maxProb<50) effectiveWmo=3;
                 else effectiveWmo=best.wmo;
-                if(effectiveWmo===45||effectiveWmo===48) return getWiIcon(45,best.ht,null,'1.4em','#1E3A5F');
-                return getWiIcon(effectiveWmo,best.ht,best.cd,'1.4em','#1E3A5F');
+                const icon=(effectiveWmo===45||effectiveWmo===48)?getWiIcon(45,best.ht,null,'1.4em','#1E3A5F'):getWiIcon(effectiveWmo,best.ht,best.cd,'1.4em','#1E3A5F');
+                return {icon, maxProb};
             }
-            const hoyIconDiurno=hoyIconDia();
+            const {icon:hoyIconDiurno, maxProb:hoyMaxProb}=hoyIconDia();
 
             // Lluvia horas restantes
             function hoyGroupRainHours(hours){
@@ -1285,7 +1285,7 @@
                             <span style="margin:0 4px;opacity:0.4;">/</span>
                             <span style="color:#EF4444;font-weight:700;font-size:22px;">${hoyMaxT}°</span>
                             <br>
-                            <span>Lluvia prevista: ${hoyTp} mm</span>
+                            <span>Prob. lluvia: ${hoyMaxProb}%</span>
                             <br>
                             <span>${hoyAw} km/h ${hoyWindDir(hoyAwd)}</span>
                             <br>
@@ -1471,17 +1471,17 @@
                     const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
                     if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd};
                 }
-                if(!best) return '—';
+                if(!best) return {icon:'—', maxProb:0};
                 const isRain=(best.wmo>=51&&best.wmo<=82)||(best.wmo>=85&&best.wmo<=86)||(best.wmo>=95&&best.wmo<=99);
                 let effectiveWmo;
-                if(isRain && maxProb>=50 && hasSun) effectiveWmo=80; // chubascos (sol+lluvia)
+                if(isRain && maxProb>=50 && hasSun) effectiveWmo=80;
                 else if(isRain && maxProb>=50) effectiveWmo=best.wmo;
                 else if(isRain && maxProb<50) effectiveWmo=3;
                 else effectiveWmo=best.wmo;
-                if(effectiveWmo===45||effectiveWmo===48) return getWiIcon(45, best.ht, null, '1.4em', '#1E3A5F');
-                return getWiIcon(effectiveWmo, best.ht, best.cd, '1.4em', '#1E3A5F');
+                const icon=(effectiveWmo===45||effectiveWmo===48)?getWiIcon(45,best.ht,null,'1.4em','#1E3A5F'):getWiIcon(effectiveWmo,best.ht,best.cd,'1.4em','#1E3A5F');
+                return {icon, maxProb};
             }
-            const iconDiurno = iconDia();
+            const {icon:iconDiurno, maxProb:diaMaxProb} = iconDia();
             const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
 
             // Totales del día
@@ -1593,7 +1593,7 @@
                             <span class="day-sep" style="margin:0 4px;opacity:0.4;">/</span>
                             <span class="day-temp-max" style="color:#EF4444;font-weight:700;font-size:22px;transition:color 0.4s;">${maxT}°</span>
                             <br>
-                            <span class="day-rain-lbl" style="transition:color 0.4s;">Lluvia prevista: ${tp} mm</span>
+                            <span class="day-rain-lbl" style="transition:color 0.4s;">Prob. lluvia: ${diaMaxProb}%</span>
                             <br>
                             <span class="day-wind-lbl" style="transition:color 0.4s;">${aw} km/h ${getWindDir(awd)}</span>
                             <br>
