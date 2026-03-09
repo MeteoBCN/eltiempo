@@ -1225,10 +1225,10 @@
                     const wmo=hourly.weather_code?.[i]??0;
                     if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd:{cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]}};
                 }
-                return best?getWeatherIcon(best.wmo,best.ht,best.cd):'—';
+                return best?(best.wmo===45||best.wmo===48?getWeatherIcon(3,best.ht,best.cd):getWeatherIcon(best.wmo,best.ht,best.cd)):'—';
             }
-            const hoyIconManana=hoyIconForRange(7,13);
-            const hoyIconTarde=hoyIconForRange(13,20);
+            const hoyIconManana=hoyIconForRange(8,13);
+            const hoyIconTarde=hoyIconForRange(13,18);
 
             // Lluvia horas restantes
             function hoyGroupRainHours(hours){
@@ -1252,17 +1252,9 @@
             }
             hoyHead.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-                        <div style="display:flex;gap:6px;">
-                            <div style="display:flex;flex-direction:column;align-items:center;">
-                                <span style="font-size:9px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">mañana</span>
-                                <span style="font-size:36px;line-height:1;">${hoyIconManana}</span>
-                            </div>
-                            <div style="display:flex;flex-direction:column;align-items:center;">
-                                <span style="font-size:9px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">tarde</span>
-                                <span style="font-size:36px;line-height:1;">${hoyIconTarde}</span>
-                            </div>
-                        </div>
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <span style="font-size:36px;line-height:1;">${hoyIconManana}</span>
+                        <span style="font-size:36px;line-height:1;">${hoyIconTarde}</span>
                     </div>
                     <div>
                         <div style="font-size:19px;font-weight:700;color:#2C3E50;letter-spacing:0.5px;">${hoyNombre.toUpperCase()} <span style="font-size:14px;font-weight:400;color:#94A3B8;">${hoyFechaStr}</span></div>
@@ -1452,10 +1444,11 @@
                 // Usar el WMO más severo del rango
                 const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
                 const best=codes.reduce((a,b)=>severity.indexOf(b.wmo)>severity.indexOf(a.wmo)?b:a);
+                if(best.wmo===45||best.wmo===48) best.wmo=3;
                 return getWeatherIcon(best.wmo, best.ht, best.cd);
             }
-            const iconManana = iconForRange(7, 13);
-            const iconTarde  = iconForRange(13, 20);
+            const iconManana = iconForRange(8, 13);
+            const iconTarde  = iconForRange(13, 18);
             const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
 
             // Totales del día
@@ -1553,17 +1546,9 @@
             head.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:18px 14px;cursor:pointer;background:#fff;user-select:none;transition:background 0.4s;';
             head.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div class="day-head-icon" style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-                        <div style="display:flex;gap:6px;">
-                            <div style="display:flex;flex-direction:column;align-items:center;">
-                                <span style="font-size:9px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;transition:color 0.4s;">mañana</span>
-                                <span style="font-size:36px;line-height:1;">${iconManana}</span>
-                            </div>
-                            <div style="display:flex;flex-direction:column;align-items:center;">
-                                <span style="font-size:9px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;transition:color 0.4s;">tarde</span>
-                                <span style="font-size:36px;line-height:1;">${iconTarde}</span>
-                            </div>
-                        </div>
+                    <div class="day-head-icon" style="display:flex;gap:6px;align-items:center;">
+                        <span style="font-size:36px;line-height:1;">${iconManana}</span>
+                        <span style="font-size:36px;line-height:1;">${iconTarde}</span>
                     </div>
                     <div>
                         <div class="day-head-title" style="font-size:19px;font-weight:700;color:#2C3E50;transition:color 0.4s;letter-spacing:0.5px;">${dn.toUpperCase()} <span class="day-head-date" style="font-size:14px;font-weight:400;color:#94A3B8;transition:color 0.4s;">${fechaStr}</span></div>
