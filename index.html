@@ -1290,9 +1290,9 @@
                 const wd = hourly.wind_direction_10m?.[idx] ?? 0;
                 const dirArrow = windDir8(wd);
                 const dirLabel = ['N','NE','E','SE','S','SO','O','NO'][Math.round(wd/45)%8];
-                const precip = hourly.precipitation?.[idx] ?? 0;
-                const precipStr = precip >= 0.1 ? precip.toFixed(1) + 'mm' : '—';
-                const precipClass = precip >= 0.1 ? '' : ' no-rain';
+                const precipProb = hourly.precipitation_probability?.[idx] ?? 0;
+                const precipStr = precipProb > 0 ? precipProb + '%' : '—';
+                const precipClass = precipProb > 0 ? '' : ' no-rain';
 
                 const feels = Math.round(hourly.apparent_temperature?.[idx] ?? hourly.temperature_2m?.[idx] ?? 0);
                 const hum = hourly.relative_humidity_2m?.[idx] ?? '--';
@@ -1516,9 +1516,9 @@
                 const wd=hourly.wind_direction_10m?.[i]??0;
                 const arrow=windDir8(wd);
                 const dirLbl=['N','NE','E','SE','S','SO','O','NO'][Math.round(wd/45)%8];
-                const precip=hourly.precipitation?.[i]??0;
-                const precipStr=precip>=0.1?precip.toFixed(1)+'mm':'—';
-                const precipCls=precip>=0.1?'':'no-rain';
+                const precipProb=hourly.precipitation_probability?.[i]??0;
+                const precipStr=precipProb>0?precipProb+'%':'—';
+                const precipCls=precipProb>0?'':'no-rain';
                 const nightCls=isNight?' is-night':'';
                 const hh=String(h).padStart(2,'0')+':00';
                 stripCols+=`<div class="hourly-col${nightCls}">
