@@ -1283,7 +1283,8 @@
                 const precipProb = hourly.precipitation_probability?.[idx] ?? 0;
                 // Si el código implica precipitación pero la probabilidad es <50%, usar nublado
                 const isRainCode = (wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
-                const effectiveWmo = (isRainCode && precipProb < 50) ? 3 : wmo;
+                const isFog = (wmo===45||wmo===48);
+                const effectiveWmo = isFog ? 3 : (isRainCode && precipProb < 50) ? 3 : wmo;
                 const night = isNightTime(ht);
                 const iconMap = night ? WMO_EMOJI_NIGHT : WMO_EMOJI_DAY;
                 const icon = iconMap[effectiveWmo] || (night ? '🌙' : '🌡️');
@@ -1507,7 +1508,8 @@
                 const wmo=hourly.weather_code?.[i]??0;
                 const precipProb=hourly.precipitation_probability?.[i]??0;
                 const isRainCode=(wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
-                const effectiveWmo=(isRainCode&&precipProb<50)?3:wmo;
+                const isFog=(wmo===45||wmo===48);
+                const effectiveWmo=isFog?3:(isRainCode&&precipProb<50)?3:wmo;
                 const iconMap=isNight?{0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'}:{0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
                 const ico=iconMap[effectiveWmo]||(isNight?'🌙':'🌡️');
                 const temp=hourly.temperature_2m?.[i]!==undefined?Math.round(hourly.temperature_2m[i])+'°':'--';
