@@ -57,7 +57,7 @@
         @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         .weather-divider { height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); margin: 32px 0 24px 0; }
         .location { font-size: 18px; margin-bottom: 12px; font-weight: 500; color: rgba(255,255,255,0.8); letter-spacing: 0.5px; }
-        .icon-large { font-size: 72px; margin: 24px 0; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3)); }
+        .icon-large { font-size: 38px; margin: 10px 0; }
         .temperature { font-size: 72px; font-weight: 300; margin-bottom: 12px; color: #1E293B; letter-spacing: -2px; line-height: 1; }
         .condition { font-size: 22px; margin-bottom: 28px; font-weight: 400; color: rgba(255,255,255,0.85); letter-spacing: 0.3px; }
         .details { display: flex; justify-content: space-around; font-size: 14px; margin-top: 28px; flex-wrap: wrap; gap: 24px; }
@@ -103,34 +103,9 @@
         .divulgacion-link a:hover { border-bottom-color: var(--color-primary); color: var(--color-primary); }
         .loading { text-align: center; padding: 40px; color: var(--color-text-tertiary); }
         .error { text-align: center; padding: 20px; color: #EF4444; }
-        /* ── Weather Icons colores globales ── */
-        .wi-day-sunny, .wi-day-sunny-overcast { color: #F59E0B; }
-        .wi-day-cloudy, .wi-day-partly-cloudy { color: #F59E0B; }
-        .wi-night-clear, .wi-night-alt-partly-cloudy { color: #94A3B8; }
-        .wi-night-alt-cloudy { color: #94A3B8; }
-        .wi-cloudy { color: #78909C; }
-        .wi-fog, .wi-night-fog { color: #B0BEC5; }
-        .wi-sprinkle, .wi-night-alt-sprinkle,
-        .wi-rain, .wi-night-alt-rain,
-        .wi-rain-wind, .wi-night-alt-rain-wind,
-        .wi-showers, .wi-night-alt-showers { color: #60A5FA; }
-        .wi-storm-showers, .wi-night-alt-storm-showers,
-        .wi-thunderstorm, .wi-night-alt-thunderstorm { color: #8B5CF6; }
-        .wi-snow, .wi-night-alt-snow,
-        .wi-snow-wind, .wi-night-alt-snow-wind { color: #BAE6FD; }
-        /* Llovizna */
-        .wi-sprinkle, .wi-night-alt-sprinkle { color: #60A5FA; }
-        /* Lluvia */
-        .wi-rain, .wi-night-alt-rain, .wi-raindrop { color: #3B82F6; }
-        .wi-rain-wind, .wi-night-alt-rain-wind { color: #2563EB; }
-        /* Nieve */
-        .wi-snow, .wi-night-alt-snow { color: #BAE6FD; }
-        .wi-snow-wind, .wi-night-alt-snow-wind { color: #7DD3FC; }
-        /* Chubascos */
-        .wi-showers, .wi-night-alt-showers { color: #3B82F6; }
-        .wi-storm-showers, .wi-night-alt-storm-showers { color: #8B5CF6; }
-        /* Tormenta */
-        .wi-thunderstorm, .wi-night-alt-thunderstorm { color: #7C3AED; }
+        /* ── Weather Icons: color azul oscuro por defecto ── */
+        .wi { color: #1E3A5F; }
+        /* En strips oscuros el color inline lo sobreescribe */
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .weather-table-container { margin: 40px auto; overflow-x: auto; animation: fadeIn 0.6s ease-out 0.6s both; max-width: 600px; width: 100%; -webkit-overflow-scrolling: touch; }
         #weather-table { width: 100%; min-width: 100%; border-collapse: collapse; background: var(--color-bg-card); border-radius: 0; overflow: hidden; box-shadow: var(--shadow-md); backdrop-filter: blur(10px); }
@@ -761,7 +736,8 @@
             }
             const night = dateTime && isNightTime(dateTime);
             const cls = (night ? WI_NIGHT[code] : WI_DAY[code]) || (night ? 'wi-night-clear' : 'wi-day-sunny');
-            return `<i class="wi ${cls}" style="font-size:${size};color:${color};"></i>`;
+            const colorStyle = color ? `color:${color};` : '';
+            return `<i class="wi ${cls}" style="font-size:${size};${colorStyle}"></i>`;
         }
 
         function getDayName(ds) {
@@ -1261,7 +1237,7 @@
                     const wmo=hourly.weather_code?.[i]??0;
                     if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd:{cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]}};
                 }
-                return best?(best.wmo===45||best.wmo===48?getWiIcon(45,best.ht,null,'2.2em','#B0BEC5'):getWiIcon(best.wmo,best.ht,best.cd,'2.2em','inherit')):'—';
+                return best?(best.wmo===45||best.wmo===48?getWiIcon(45,best.ht,null,'1.6em','#1E3A5F'):getWiIcon(best.wmo,best.ht,best.cd,'1.6em','#1E3A5F')):'—';
             }
             const hoyIconManana=hoyIconForRange(8,13);
             const hoyIconTarde=hoyIconForRange(13,18);
@@ -1323,7 +1299,7 @@
                 const effectiveWmo = (isRainCode && precipProb < 50) ? 3 : wmo;
                 const night = isNightTime(ht);
                 const iconMap = night ? WMO_EMOJI_NIGHT : WMO_EMOJI_DAY;
-                const icon = isFog ? getWiIcon(45, ht, null, '1.6em', '#B0BEC5') : getWiIcon(effectiveWmo, ht, null, '1.6em', 'inherit');
+                const icon = getWiIcon(isFog ? 45 : effectiveWmo, ht, null, '1.3em', '#60A5FA');
                 const temp = Math.round(hourly.temperature_2m?.[idx] ?? 0);
                 const ws = Math.round(hourly.wind_speed_10m?.[idx] ?? 0);
                 const wd = hourly.wind_direction_10m?.[idx] ?? 0;
@@ -1403,7 +1379,7 @@
         function updateCurrentWeather(current, weatherCode, precipToday, hourly) {
             const now=new Date();
             document.getElementById('current-temp').textContent=Math.round(current.temperature_2m)+'°';
-            document.getElementById('current-icon').innerHTML=getWiIcon(weatherCode,now,{cloud_cover:current.cloud_cover},'72px','');
+            document.getElementById('current-icon').innerHTML=getWiIcon(weatherCode,now,{cloud_cover:current.cloud_cover},'38px','');
             document.getElementById('pressure').textContent=Math.round(current.pressure_msl)+' hPa';
             document.getElementById('humidity').textContent=current.relative_humidity_2m+'%';
             document.getElementById('wind').textContent=Math.round(current.wind_speed_10m)+' km/h';
@@ -1484,8 +1460,8 @@
                 // Usar el WMO más severo del rango
                 const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
                 const best=codes.reduce((a,b)=>severity.indexOf(b.wmo)>severity.indexOf(a.wmo)?b:a);
-                if(best.wmo===45||best.wmo===48) return getWiIcon(45, best.ht, null, '2.2em', '#B0BEC5');
-                return getWiIcon(best.wmo, best.ht, best.cd, '2.2em', 'inherit');
+                if(best.wmo===45||best.wmo===48) return getWiIcon(45, best.ht, null, '1.6em', '#1E3A5F');
+                return getWiIcon(best.wmo, best.ht, best.cd, '1.6em', '#1E3A5F');
             }
             const iconManana = iconForRange(8, 13);
             const iconTarde  = iconForRange(13, 18);
@@ -1547,7 +1523,7 @@
                 const isRainCode=(wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
                 const effectiveWmo=(isRainCode&&precipProb<50)?3:wmo;
                 const iconMap=isNight?{0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'}:{0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
-                const ico=isFog?getWiIcon(45,ht,null,'1.6em','#B0BEC5'):getWiIcon(effectiveWmo,ht,null,'1.6em','inherit');
+                const ico=getWiIcon(isFog?45:effectiveWmo,ht,null,'1.3em','#60A5FA');
                 const temp=hourly.temperature_2m?.[i]!==undefined?Math.round(hourly.temperature_2m[i])+'°':'--';
                 const feels=hourly.apparent_temperature?.[i]!==undefined?Math.round(hourly.apparent_temperature[i])+'°':'--';
                 const hum=hourly.relative_humidity_2m?.[i]!==undefined?hourly.relative_humidity_2m[i]+'%':'--';
