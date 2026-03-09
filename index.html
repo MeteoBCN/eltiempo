@@ -1214,14 +1214,21 @@
             function hoyWindDir(deg){return['N','NE','E','SE','S','SO','O','NO'][Math.round((deg||0)/45)%8];}
             function hoyUviLevel(v){if(!v&&v!==0)return{lbl:'--'};const n=Math.round(v);if(n<=2)return{lbl:'Bajo'};if(n<=5)return{lbl:'Moderado'};if(n<=7)return{lbl:'Alto'};if(n<=10)return{lbl:'Muy alto'};return{lbl:'Extremo'};}
 
-            // Icono representativo de ahora
-            const hoyNowIdx = slots[0];
-            const hoyNowHt = hoyNowIdx!=null ? new Date(hourly.time[hoyNowIdx]) : now;
-            const hoyNowWmo = hoyNowIdx!=null ? (hourly.weather_code?.[hoyNowIdx]??0) : 0;
-            const hoyNowNight = isNightTime(hoyNowHt);
-            const hoyIconMapD={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
-            const hoyIconMapN={0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
-            const hoyNowIcon=(hoyNowNight?hoyIconMapN:hoyIconMapD)[hoyNowWmo]||(hoyNowNight?'🌙':'🌡️');
+            // Iconos de HOY por franja: mañana (07-13) y tarde (13-20)
+            function hoyIconForRange(fromH, toH) {
+                const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
+                let best=null;
+                for(let i=0;i<hourly.time.length;i++){
+                    const ht=new Date(hourly.time[i]);
+                    if(ht.getDate()!==now.getDate()||ht.getMonth()!==now.getMonth()) continue;
+                    if(ht.getHours()<fromH||ht.getHours()>=toH) continue;
+                    const wmo=hourly.weather_code?.[i]??0;
+                    if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd:{cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]}};
+                }
+                return best?getWeatherIcon(best.wmo,best.ht,best.cd):'—';
+            }
+            const hoyIconManana=hoyIconForRange(7,13);
+            const hoyIconTarde=hoyIconForRange(13,20);
 
             // Lluvia horas restantes
             function hoyGroupRainHours(hours){
@@ -1245,7 +1252,18 @@
             }
             hoyHead.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="font-size:42px;line-height:1;">${hoyNowIcon}</div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                        <div style="display:flex;gap:6px;">
+                            <div style="display:flex;flex-direction:column;align-items:center;">
+                                <span style="font-size:9px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">mañana</span>
+                                <span style="font-size:36px;line-height:1;">${hoyIconManana}</span>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;">
+                                <span style="font-size:9px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">tarde</span>
+                                <span style="font-size:36px;line-height:1;">${hoyIconTarde}</span>
+                            </div>
+                        </div>
+                    </div>
                     <div>
                         <div style="font-size:19px;font-weight:700;color:#2C3E50;letter-spacing:0.5px;">${hoyNombre.toUpperCase()} <span style="font-size:14px;font-weight:400;color:#94A3B8;">${hoyFechaStr}</span></div>
                         <div style="font-size:13px;color:#64748B;margin-top:5px;line-height:1.9;">
@@ -1420,12 +1438,24 @@
             const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
             const fechaStr=tDay.getDate()+' '+MESES[tDay.getMonth()];
 
-            // Icono representativo (hora 12)
-            let h12=-1;
-            for(let i=0;i<hourly.time.length;i++){const ht=new Date(hourly.time[i]);if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()&&ht.getHours()===12){h12=i;break;}}
-            const mc=h12!==-1?hourly.weather_code[h12]:(daily.weather_code?.[off]||0);
-            const cdMain=h12!==-1?{cloud_cover:hourly.cloud_cover?.[h12],cloud_cover_low:hourly.cloud_cover_low?.[h12],cloud_cover_mid:hourly.cloud_cover_mid?.[h12]}:null;
-            const icon=getWeatherIcon(mc,h12!==-1?new Date(hourly.time[h12]):tDay,cdMain);
+            // Iconos representativos por franja: mañana (07-13) y tarde (13-20)
+            function iconForRange(fromH, toH) {
+                const codes = [];
+                for(let i=0;i<hourly.time.length;i++){
+                    const ht=new Date(hourly.time[i]);
+                    if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()&&ht.getHours()>=fromH&&ht.getHours()<toH){
+                        const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
+                        codes.push({wmo:hourly.weather_code?.[i]??0, ht, cd});
+                    }
+                }
+                if(!codes.length) return '—';
+                // Usar el WMO más severo del rango
+                const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
+                const best=codes.reduce((a,b)=>severity.indexOf(b.wmo)>severity.indexOf(a.wmo)?b:a);
+                return getWeatherIcon(best.wmo, best.ht, best.cd);
+            }
+            const iconManana = iconForRange(7, 13);
+            const iconTarde  = iconForRange(13, 20);
             const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
 
             // Totales del día
@@ -1523,7 +1553,18 @@
             head.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:18px 14px;cursor:pointer;background:#fff;user-select:none;transition:background 0.4s;';
             head.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div class="day-head-icon" style="font-size:42px;line-height:1;">${icon}</div>
+                    <div class="day-head-icon" style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                        <div style="display:flex;gap:6px;">
+                            <div style="display:flex;flex-direction:column;align-items:center;">
+                                <span style="font-size:9px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;transition:color 0.4s;">mañana</span>
+                                <span style="font-size:36px;line-height:1;">${iconManana}</span>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;">
+                                <span style="font-size:9px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;transition:color 0.4s;">tarde</span>
+                                <span style="font-size:36px;line-height:1;">${iconTarde}</span>
+                            </div>
+                        </div>
+                    </div>
                     <div>
                         <div class="day-head-title" style="font-size:19px;font-weight:700;color:#2C3E50;transition:color 0.4s;letter-spacing:0.5px;">${dn.toUpperCase()} <span class="day-head-date" style="font-size:14px;font-weight:400;color:#94A3B8;transition:color 0.4s;">${fechaStr}</span></div>
                         <div class="day-head-meta" style="font-size:13px;color:#64748B;margin-top:5px;line-height:1.7;transition:color 0.4s;">
