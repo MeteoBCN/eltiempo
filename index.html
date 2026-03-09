@@ -1226,27 +1226,32 @@
             function hoyWindDir(deg){return['N','NE','E','SE','S','SO','O','NO'][Math.round((deg||0)/45)%8];}
             function hoyUviLevel(v){if(!v&&v!==0)return{lbl:'--'};const n=Math.round(v);if(n<=2)return{lbl:'Bajo'};if(n<=5)return{lbl:'Moderado'};if(n<=7)return{lbl:'Alto'};if(n<=10)return{lbl:'Muy alto'};return{lbl:'Extremo'};}
 
-            // Iconos de HOY por franja: mañana (07-13) y tarde (13-20)
-            function hoyIconForRange(fromH, toH) {
+            // Icono único del día: representa el período diurno 8-20h
+            function hoyIconDia() {
                 const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
-                let best=null, maxProb=0;
+                let best=null, maxProb=0, hasSun=false;
                 for(let i=0;i<hourly.time.length;i++){
                     const ht=new Date(hourly.time[i]);
                     if(ht.getDate()!==now.getDate()||ht.getMonth()!==now.getMonth()) continue;
-                    if(ht.getHours()<fromH||ht.getHours()>=toH) continue;
+                    if(ht.getHours()<8||ht.getHours()>=20) continue;
                     const wmo=hourly.weather_code?.[i]??0;
                     const prob=hourly.precipitation_probability?.[i]??0;
                     if(prob>maxProb) maxProb=prob;
-                    if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd:{cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]}};
+                    if(wmo<=2) hasSun=true;
+                    const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
+                    if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd};
                 }
                 if(!best) return '—';
                 const isRain=(best.wmo>=51&&best.wmo<=82)||(best.wmo>=85&&best.wmo<=86)||(best.wmo>=95&&best.wmo<=99);
-                const effectiveWmo=(isRain&&maxProb<50)?3:best.wmo;
-                if(effectiveWmo===45||effectiveWmo===48) return getWiIcon(45,best.ht,null,'1.2em','#1E3A5F');
-                return getWiIcon(effectiveWmo,best.ht,best.cd,'1.2em','#1E3A5F');
+                let effectiveWmo;
+                if(isRain && maxProb>=50 && hasSun) effectiveWmo=80; // chubascos (sol+lluvia)
+                else if(isRain && maxProb>=50) effectiveWmo=best.wmo;
+                else if(isRain && maxProb<50) effectiveWmo=3;
+                else effectiveWmo=best.wmo;
+                if(effectiveWmo===45||effectiveWmo===48) return getWiIcon(45,best.ht,null,'1.4em','#1E3A5F');
+                return getWiIcon(effectiveWmo,best.ht,best.cd,'1.4em','#1E3A5F');
             }
-            const hoyIconManana=hoyIconForRange(8,13);
-            const hoyIconTarde=hoyIconForRange(13,18);
+            const hoyIconDiurno=hoyIconDia();
 
             // Lluvia horas restantes
             function hoyGroupRainHours(hours){
@@ -1270,9 +1275,8 @@
             }
             hoyHead.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-                        <span style="font-size:36px;line-height:1;">${hoyIconManana}</span>
-                        <span style="font-size:36px;line-height:1;">${hoyIconTarde}</span>
+                    <div style="display:flex;align-items:center;">
+                        <span style="font-size:36px;line-height:1;">${hoyIconDiurno}</span>
                     </div>
                     <div>
                         <div style="font-size:19px;font-weight:700;color:#2C3E50;letter-spacing:0.5px;">${hoyNombre.toUpperCase()} <span style="font-size:14px;font-weight:400;color:#94A3B8;">${hoyFechaStr}</span></div>
@@ -1452,28 +1456,32 @@
             const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
             const fechaStr=tDay.getDate()+' '+MESES[tDay.getMonth()];
 
-            // Iconos representativos por franja: mañana (07-13) y tarde (13-20)
-            function iconForRange(fromH, toH) {
+            // Icono único del día: representa el período diurno 8-20h
+            function iconDia() {
                 const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
-                let best=null, maxProb=0;
+                let best=null, maxProb=0, hasSun=false;
                 for(let i=0;i<hourly.time.length;i++){
                     const ht=new Date(hourly.time[i]);
-                    if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()&&ht.getHours()>=fromH&&ht.getHours()<toH){
-                        const wmo=hourly.weather_code?.[i]??0;
-                        const prob=hourly.precipitation_probability?.[i]??0;
-                        if(prob>maxProb) maxProb=prob;
-                        const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
-                        if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd};
-                    }
+                    if(ht.getDate()!==tDay.getDate()||ht.getMonth()!==tDay.getMonth()) continue;
+                    if(ht.getHours()<8||ht.getHours()>=20) continue;
+                    const wmo=hourly.weather_code?.[i]??0;
+                    const prob=hourly.precipitation_probability?.[i]??0;
+                    if(prob>maxProb) maxProb=prob;
+                    if(wmo<=2) hasSun=true;
+                    const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
+                    if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd};
                 }
                 if(!best) return '—';
                 const isRain=(best.wmo>=51&&best.wmo<=82)||(best.wmo>=85&&best.wmo<=86)||(best.wmo>=95&&best.wmo<=99);
-                const effectiveWmo=(isRain&&maxProb<50)?3:best.wmo;
-                if(effectiveWmo===45||effectiveWmo===48) return getWiIcon(45, best.ht, null, '1.2em', '#1E3A5F');
-                return getWiIcon(effectiveWmo, best.ht, best.cd, '1.2em', '#1E3A5F');
+                let effectiveWmo;
+                if(isRain && maxProb>=50 && hasSun) effectiveWmo=80; // chubascos (sol+lluvia)
+                else if(isRain && maxProb>=50) effectiveWmo=best.wmo;
+                else if(isRain && maxProb<50) effectiveWmo=3;
+                else effectiveWmo=best.wmo;
+                if(effectiveWmo===45||effectiveWmo===48) return getWiIcon(45, best.ht, null, '1.4em', '#1E3A5F');
+                return getWiIcon(effectiveWmo, best.ht, best.cd, '1.4em', '#1E3A5F');
             }
-            const iconManana = iconForRange(8, 13);
-            const iconTarde  = iconForRange(13, 18);
+            const iconDiurno = iconDia();
             const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
 
             // Totales del día
@@ -1575,9 +1583,8 @@
             head.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:18px 14px;cursor:pointer;background:#fff;user-select:none;transition:background 0.4s;';
             head.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div class="day-head-icon" style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-                        <span style="font-size:36px;line-height:1;">${iconManana}</span>
-                        <span style="font-size:36px;line-height:1;">${iconTarde}</span>
+                    <div class="day-head-icon" style="display:flex;align-items:center;">
+                        <span style="font-size:36px;line-height:1;">${iconDiurno}</span>
                     </div>
                     <div>
                         <div class="day-head-title" style="font-size:19px;font-weight:700;color:#2C3E50;transition:color 0.4s;letter-spacing:0.5px;">${dn.toUpperCase()} <span class="day-head-date" style="font-size:14px;font-weight:400;color:#94A3B8;transition:color 0.4s;">${fechaStr}</span></div>
