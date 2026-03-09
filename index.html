@@ -103,17 +103,21 @@
         .divulgacion-link a:hover { border-bottom-color: var(--color-primary); color: var(--color-primary); }
         .loading { text-align: center; padding: 40px; color: var(--color-text-tertiary); }
         .error { text-align: center; padding: 20px; color: #EF4444; }
-        /* Sol / despejado */
+        /* ── Weather Icons colores globales ── */
         .wi-day-sunny, .wi-day-sunny-overcast { color: #F59E0B; }
-        /* Parcialmente nublado día */
-        .wi-day-cloudy, .wi-mostly-clear-day { color: #F59E0B; }
-        /* Noche despejada / nublada */
-        .wi-night-clear { color: #94A3B8; }
+        .wi-day-cloudy, .wi-day-partly-cloudy { color: #F59E0B; }
+        .wi-night-clear, .wi-night-alt-partly-cloudy { color: #94A3B8; }
         .wi-night-alt-cloudy { color: #94A3B8; }
-        /* Nublado total */
         .wi-cloudy { color: #78909C; }
-        /* Niebla */
         .wi-fog, .wi-night-fog { color: #B0BEC5; }
+        .wi-sprinkle, .wi-night-alt-sprinkle,
+        .wi-rain, .wi-night-alt-rain,
+        .wi-rain-wind, .wi-night-alt-rain-wind,
+        .wi-showers, .wi-night-alt-showers { color: #60A5FA; }
+        .wi-storm-showers, .wi-night-alt-storm-showers,
+        .wi-thunderstorm, .wi-night-alt-thunderstorm { color: #8B5CF6; }
+        .wi-snow, .wi-night-alt-snow,
+        .wi-snow-wind, .wi-night-alt-snow-wind { color: #BAE6FD; }
         /* Llovizna */
         .wi-sprinkle, .wi-night-alt-sprinkle { color: #60A5FA; }
         /* Lluvia */
@@ -728,6 +732,38 @@
             return weatherIcons[code]||'☀️';
         }
 
+        // Mapa WMO → clase Weather Icons
+        const WI_DAY = {
+            0:'wi-day-sunny', 1:'wi-day-sunny-overcast', 2:'wi-day-cloudy', 3:'wi-cloudy',
+            45:'wi-fog', 48:'wi-fog',
+            51:'wi-sprinkle', 53:'wi-sprinkle', 55:'wi-rain',
+            61:'wi-rain', 63:'wi-rain', 65:'wi-rain-wind',
+            71:'wi-snow', 73:'wi-snow', 75:'wi-snow-wind', 77:'wi-snow',
+            80:'wi-showers', 81:'wi-showers', 82:'wi-storm-showers',
+            85:'wi-snow', 86:'wi-snow-wind',
+            95:'wi-thunderstorm', 96:'wi-thunderstorm', 99:'wi-thunderstorm'
+        };
+        const WI_NIGHT = {
+            0:'wi-night-clear', 1:'wi-night-alt-partly-cloudy', 2:'wi-night-alt-cloudy', 3:'wi-cloudy',
+            45:'wi-night-fog', 48:'wi-night-fog',
+            51:'wi-night-alt-sprinkle', 53:'wi-night-alt-sprinkle', 55:'wi-night-alt-rain',
+            61:'wi-night-alt-rain', 63:'wi-night-alt-rain', 65:'wi-night-alt-rain-wind',
+            71:'wi-night-alt-snow', 73:'wi-night-alt-snow', 75:'wi-night-alt-snow-wind', 77:'wi-night-alt-snow',
+            80:'wi-night-alt-showers', 81:'wi-night-alt-showers', 82:'wi-night-alt-storm-showers',
+            85:'wi-night-alt-snow', 86:'wi-night-alt-snow-wind',
+            95:'wi-night-alt-thunderstorm', 96:'wi-night-alt-thunderstorm', 99:'wi-night-alt-thunderstorm'
+        };
+
+        function getWiIcon(code, dateTime, cloudData, size='1.6em', color='inherit') {
+            if (cloudData && (code===1||code===2||code===3)) {
+                const rc = (cloudData.cloud_cover_low||0)+((cloudData.cloud_cover_mid||0)*0.5);
+                if (rc<15) code=1; else if (rc<35) code=2; else code=3;
+            }
+            const night = dateTime && isNightTime(dateTime);
+            const cls = (night ? WI_NIGHT[code] : WI_DAY[code]) || (night ? 'wi-night-clear' : 'wi-day-sunny');
+            return `<i class="wi ${cls}" style="font-size:${size};color:${color};"></i>`;
+        }
+
         function getDayName(ds) {
             return ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][new Date(ds).getDay()];
         }
@@ -1225,7 +1261,7 @@
                     const wmo=hourly.weather_code?.[i]??0;
                     if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd:{cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]}};
                 }
-                return best?(best.wmo===45||best.wmo===48?'<i class="wi wi-fog" style="font-size:1.3em;color:#B0BEC5;"></i>':getWeatherIcon(best.wmo,best.ht,best.cd)):'—';
+                return best?(best.wmo===45||best.wmo===48?getWiIcon(45,best.ht,null,'2.2em','#B0BEC5'):getWiIcon(best.wmo,best.ht,best.cd,'2.2em','inherit')):'—';
             }
             const hoyIconManana=hoyIconForRange(8,13);
             const hoyIconTarde=hoyIconForRange(13,18);
@@ -1287,7 +1323,7 @@
                 const effectiveWmo = (isRainCode && precipProb < 50) ? 3 : wmo;
                 const night = isNightTime(ht);
                 const iconMap = night ? WMO_EMOJI_NIGHT : WMO_EMOJI_DAY;
-                const icon = isFog ? '<i class="wi wi-fog" style="font-size:1.4em;color:#B0BEC5;"></i>' : (iconMap[effectiveWmo] || (night ? '🌙' : '🌡️'));
+                const icon = isFog ? getWiIcon(45, ht, null, '1.6em', '#B0BEC5') : getWiIcon(effectiveWmo, ht, null, '1.6em', 'inherit');
                 const temp = Math.round(hourly.temperature_2m?.[idx] ?? 0);
                 const ws = Math.round(hourly.wind_speed_10m?.[idx] ?? 0);
                 const wd = hourly.wind_direction_10m?.[idx] ?? 0;
@@ -1367,7 +1403,7 @@
         function updateCurrentWeather(current, weatherCode, precipToday, hourly) {
             const now=new Date();
             document.getElementById('current-temp').textContent=Math.round(current.temperature_2m)+'°';
-            document.getElementById('current-icon').innerHTML=getWeatherIcon(weatherCode,now,{cloud_cover:current.cloud_cover});
+            document.getElementById('current-icon').innerHTML=getWiIcon(weatherCode,now,{cloud_cover:current.cloud_cover},'72px','');
             document.getElementById('pressure').textContent=Math.round(current.pressure_msl)+' hPa';
             document.getElementById('humidity').textContent=current.relative_humidity_2m+'%';
             document.getElementById('wind').textContent=Math.round(current.wind_speed_10m)+' km/h';
@@ -1448,8 +1484,8 @@
                 // Usar el WMO más severo del rango
                 const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
                 const best=codes.reduce((a,b)=>severity.indexOf(b.wmo)>severity.indexOf(a.wmo)?b:a);
-                if(best.wmo===45||best.wmo===48) return '<i class="wi wi-fog" style="font-size:1.3em;color:#B0BEC5;"></i>';
-                return getWeatherIcon(best.wmo, best.ht, best.cd);
+                if(best.wmo===45||best.wmo===48) return getWiIcon(45, best.ht, null, '2.2em', '#B0BEC5');
+                return getWiIcon(best.wmo, best.ht, best.cd, '2.2em', 'inherit');
             }
             const iconManana = iconForRange(8, 13);
             const iconTarde  = iconForRange(13, 18);
@@ -1511,7 +1547,7 @@
                 const isRainCode=(wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
                 const effectiveWmo=(isRainCode&&precipProb<50)?3:wmo;
                 const iconMap=isNight?{0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'}:{0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
-                const ico=isFog?'<i class="wi wi-fog" style="font-size:1.4em;color:#B0BEC5;"></i>':(iconMap[effectiveWmo]||(isNight?'🌙':'🌡️'));
+                const ico=isFog?getWiIcon(45,ht,null,'1.6em','#B0BEC5'):getWiIcon(effectiveWmo,ht,null,'1.6em','inherit');
                 const temp=hourly.temperature_2m?.[i]!==undefined?Math.round(hourly.temperature_2m[i])+'°':'--';
                 const feels=hourly.apparent_temperature?.[i]!==undefined?Math.round(hourly.apparent_temperature[i])+'°':'--';
                 const hum=hourly.relative_humidity_2m?.[i]!==undefined?hourly.relative_humidity_2m[i]+'%':'--';
