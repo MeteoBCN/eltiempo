@@ -1230,17 +1230,32 @@
             function hoyIconDia() {
                 const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
                 let best=null, maxProb=0, hasSun=false;
+                // Primero intentar solo horas futuras
                 for(let i=0;i<hourly.time.length;i++){
                     const ht=new Date(hourly.time[i]);
                     if(ht.getDate()!==now.getDate()||ht.getMonth()!==now.getMonth()) continue;
                     if(ht.getHours()<8||ht.getHours()>=20) continue;
-                    if(ht < now) continue; // solo horas futuras
+                    if(ht < now) continue;
                     const wmo=hourly.weather_code?.[i]??0;
                     const prob=hourly.precipitation_probability?.[i]??0;
                     if(prob>maxProb) maxProb=prob;
                     if(wmo<=2) hasSun=true;
                     const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
                     if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd};
+                }
+                // Fallback: si no hay horas futuras diurnas, usar el día completo
+                if(!best){
+                    for(let i=0;i<hourly.time.length;i++){
+                        const ht=new Date(hourly.time[i]);
+                        if(ht.getDate()!==now.getDate()||ht.getMonth()!==now.getMonth()) continue;
+                        if(ht.getHours()<8||ht.getHours()>=20) continue;
+                        const wmo=hourly.weather_code?.[i]??0;
+                        const prob=hourly.precipitation_probability?.[i]??0;
+                        if(prob>maxProb) maxProb=prob;
+                        if(wmo<=2) hasSun=true;
+                        const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
+                        if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd};
+                    }
                 }
                 if(!best) return {icon:'—', maxProb:0};
                 const isRain=(best.wmo>=51&&best.wmo<=82)||(best.wmo>=85&&best.wmo<=86)||(best.wmo>=95&&best.wmo<=99);
