@@ -57,7 +57,7 @@
         @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         .weather-divider { height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); margin: 32px 0 24px 0; }
         .location { font-size: 18px; margin-bottom: 12px; font-weight: 500; color: rgba(255,255,255,0.8); letter-spacing: 0.5px; }
-        .icon-large { font-size: 72px; margin: 24px 0; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3)); }
+        .icon-large { font-size: 1.8em; margin: 24px 0; }
         .temperature { font-size: 72px; font-weight: 300; margin-bottom: 12px; color: #1E293B; letter-spacing: -2px; line-height: 1; }
         .condition { font-size: 22px; margin-bottom: 28px; font-weight: 400; color: rgba(255,255,255,0.85); letter-spacing: 0.3px; }
         .details { display: flex; justify-content: space-around; font-size: 14px; margin-top: 28px; flex-wrap: wrap; gap: 24px; }
@@ -266,6 +266,8 @@
         .hourly-col.is-night .hourly-time { color: rgba(190,170,255,0.65); }
         .hourly-col.is-now .hourly-time { color: #4db6ac; }
         .hourly-icon { font-size: 26px; line-height: 1; margin-bottom: 6px; }
+        /* Forzar iconos WI en blanco dentro del strip horario */
+        .hourly-icon .wi { color: #ffffff !important; }
         .hourly-temp { font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 8px; line-height: 1; }
         .hourly-divider { width: 30px; height: 1px; background: rgba(255,255,255,0.1); margin-bottom: 8px; }
         .hourly-wind-arrow { font-size: 14px; margin-bottom: 2px; display: block; }
@@ -546,7 +548,7 @@
             .content-section { padding: 16px; }
             body { overflow-x: hidden; max-width: 100vw; }
             .temperature { font-size: 64px; }
-            .icon-large { font-size: 64px; }
+            .icon-large { font-size: 1.8em; }
             .radar-frame { height: 300px; }
             #weather-table th, #weather-table td { padding: 12px 6px; font-size: 12px; }
             #weather-table .table-icon { font-size: 26px; }
@@ -1423,7 +1425,7 @@
         function updateCurrentWeather(current, weatherCode, precipToday, hourly) {
             const now=new Date();
             document.getElementById('current-temp').textContent=Math.round(current.temperature_2m)+'°';
-            document.getElementById('current-icon').innerHTML=getWiIcon(weatherCode,now,{cloud_cover:current.cloud_cover},'72px','#1e3a5f');
+            document.getElementById('current-icon').innerHTML=getWiIcon(weatherCode,now,{cloud_cover:current.cloud_cover},'1.8em','inherit');
             document.getElementById('pressure').textContent=Math.round(current.pressure_msl)+' hPa';
             document.getElementById('humidity').textContent=current.relative_humidity_2m+'%';
             document.getElementById('wind').textContent=Math.round(current.wind_speed_10m)+' km/h';
