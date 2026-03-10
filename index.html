@@ -1282,8 +1282,8 @@
                 codes.forEach(c=>{ freq[c.wmo]=(freq[c.wmo]||0)+1; });
                 const dominantWmo=parseInt(Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0]);
                 const usedCode=codes.find(c=>c.wmo===dominantWmo)||codes[Math.floor(codes.length/2)];
-                if(usedCode.wmo===45||usedCode.wmo===48) return getWiIcon(45,usedCode.ht,null,'2.6em','#B0BEC5');
-                return getWiIcon(usedCode.wmo,usedCode.ht,usedCode.cd,'2.6em','inherit');
+                if(usedCode.wmo===45||usedCode.wmo===48) return getWiIcon(45,usedCode.ht,null,'1.8em','#B0BEC5');
+                return getWiIcon(usedCode.wmo,usedCode.ht,usedCode.cd,'1.8em','inherit');
             }
             const hoyIconDia=hoyIconForDay();
 
@@ -1310,7 +1310,7 @@
             hoyHead.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div style="display:flex;gap:6px;align-items:center;">
-                        <span style="font-size:42px;line-height:1;">${hoyIconDia}</span>
+                        <span style="font-size:28px;line-height:1;">${hoyIconDia}</span>
                     </div>
                     <div>
                         <div style="font-size:19px;font-weight:700;color:#2C3E50;letter-spacing:0.5px;">${hoyNombre.toUpperCase()} <span style="font-size:14px;font-weight:400;color:#94A3B8;">${hoyFechaStr}</span></div>
@@ -1423,7 +1423,7 @@
         function updateCurrentWeather(current, weatherCode, precipToday, hourly) {
             const now=new Date();
             document.getElementById('current-temp').textContent=Math.round(current.temperature_2m)+'°';
-            document.getElementById('current-icon').innerHTML=getWiIcon(weatherCode,now,{cloud_cover:current.cloud_cover},'72px','');
+            document.getElementById('current-icon').innerHTML=getWiIcon(weatherCode,now,{cloud_cover:current.cloud_cover},'72px','#1e3a5f');
             document.getElementById('pressure').textContent=Math.round(current.pressure_msl)+' hPa';
             document.getElementById('humidity').textContent=current.relative_humidity_2m+'%';
             document.getElementById('wind').textContent=Math.round(current.wind_speed_10m)+' km/h';
@@ -1513,8 +1513,8 @@
                 codes.forEach(c=>{ freq[c.wmo]=(freq[c.wmo]||0)+1; });
                 const dominantWmo=parseInt(Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0]);
                 const usedCode=codes.find(c=>c.wmo===dominantWmo)||codes[Math.floor(codes.length/2)];
-                if(usedCode.wmo===45||usedCode.wmo===48) return getWiIcon(45, usedCode.ht, null, '2.6em', '#B0BEC5');
-                return getWiIcon(usedCode.wmo, usedCode.ht, usedCode.cd, '2.6em', 'inherit');
+                if(usedCode.wmo===45||usedCode.wmo===48) return getWiIcon(45, usedCode.ht, null, '1.8em', '#B0BEC5');
+                return getWiIcon(usedCode.wmo, usedCode.ht, usedCode.cd, '1.8em', 'inherit');
             }
             const iconDia = iconForDay();
             const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
@@ -1618,7 +1618,7 @@
             head.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div class="day-head-icon" style="display:flex;gap:6px;align-items:center;">
-                        <span style="font-size:42px;line-height:1;">${iconDia}</span>
+                        <span style="font-size:28px;line-height:1;">${iconDia}</span>
                     </div>
                     <div>
                         <div class="day-head-title" style="font-size:19px;font-weight:700;color:#2C3E50;transition:color 0.4s;letter-spacing:0.5px;">${dn.toUpperCase()} <span class="day-head-date" style="font-size:14px;font-weight:400;color:#94A3B8;transition:color 0.4s;">${fechaStr}</span></div>
