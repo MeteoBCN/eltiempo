@@ -1262,10 +1262,30 @@
                     const wmo=hourly.weather_code?.[i]??0;
                     if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd:{cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]}};
                 }
-                return best?(best.wmo===45||best.wmo===48?getWiIcon(45,best.ht,null,'2.2em','#B0BEC5'):getWiIcon(best.wmo,best.ht,best.cd,'2.2em','inherit')):'—';
+                return best?(best.wmo===45||best.wmo===48?getWiIcon(45,best.ht,null,'1.4em','#1e3a5f'):getWiIcon(best.wmo,best.ht,best.cd,'1.4em','#1e3a5f')):'—';
             }
             const hoyIconManana=hoyIconForRange(8,13);
             const hoyIconTarde=hoyIconForRange(13,18);
+
+            // Icono único HOY: código más frecuente entre 08h y 18h
+            function hoyIconForDay() {
+                const codes=[];
+                for(let i=0;i<hourly.time.length;i++){
+                    const ht=new Date(hourly.time[i]);
+                    if(ht.getDate()!==now.getDate()||ht.getMonth()!==now.getMonth()) continue;
+                    if(ht.getHours()<8||ht.getHours()>=18) continue;
+                    const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
+                    codes.push({wmo:hourly.weather_code?.[i]??0,ht,cd});
+                }
+                if(!codes.length) return '—';
+                const freq={};
+                codes.forEach(c=>{ freq[c.wmo]=(freq[c.wmo]||0)+1; });
+                const dominantWmo=parseInt(Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0]);
+                const usedCode=codes.find(c=>c.wmo===dominantWmo)||codes[Math.floor(codes.length/2)];
+                if(usedCode.wmo===45||usedCode.wmo===48) return getWiIcon(45,usedCode.ht,null,'2.6em','#B0BEC5');
+                return getWiIcon(usedCode.wmo,usedCode.ht,usedCode.cd,'2.6em','inherit');
+            }
+            const hoyIconDia=hoyIconForDay();
 
             // Lluvia horas restantes
             function hoyGroupRainHours(hours){
@@ -1290,8 +1310,7 @@
             hoyHead.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div style="display:flex;gap:6px;align-items:center;">
-                        <span style="font-size:36px;line-height:1;">${hoyIconManana}</span>
-                        <span style="font-size:36px;line-height:1;">${hoyIconTarde}</span>
+                        <span style="font-size:42px;line-height:1;">${hoyIconDia}</span>
                     </div>
                     <div>
                         <div style="font-size:19px;font-weight:700;color:#2C3E50;letter-spacing:0.5px;">${hoyNombre.toUpperCase()} <span style="font-size:14px;font-weight:400;color:#94A3B8;">${hoyFechaStr}</span></div>
@@ -1300,7 +1319,7 @@
                             <span style="margin:0 4px;opacity:0.4;">/</span>
                             <span style="color:#EF4444;font-weight:700;font-size:22px;">${hoyMaxT}°</span>
                             <br>
-                            <span>Lluvia prevista: ${hoyTp} mm</span>
+                            <span>Prob. lluvia: ${daily?.precipitation_probability_max?.[0]??'--'}%</span>
                             <br>
                             <span>${hoyAw} km/h ${hoyWindDir(hoyAwd)}</span>
                             <br>
@@ -1324,7 +1343,7 @@
                 const effectiveWmo = (isRainCode && precipProb < 50) ? 3 : wmo;
                 const night = isNightTime(ht);
                 const iconMap = night ? WMO_EMOJI_NIGHT : WMO_EMOJI_DAY;
-                const icon = isFog ? getWiIcon(45, ht, null, '1.6em', '#B0BEC5') : getWiIcon(effectiveWmo, ht, null, '1.6em', 'inherit');
+                const icon = isFog ? getWiIcon(45, ht, null, '1.6em', '#ffffff') : getWiIcon(effectiveWmo, ht, null, '1.6em', '#ffffff');
                 const temp = Math.round(hourly.temperature_2m?.[idx] ?? 0);
                 const ws = Math.round(hourly.wind_speed_10m?.[idx] ?? 0);
                 const wd = hourly.wind_direction_10m?.[idx] ?? 0;
@@ -1479,25 +1498,25 @@
             const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
             const fechaStr=tDay.getDate()+' '+MESES[tDay.getMonth()];
 
-            // Iconos representativos por franja: mañana (07-13) y tarde (13-20)
-            function iconForRange(fromH, toH) {
+            // Icono único representativo: código más frecuente entre 08h y 18h
+            function iconForDay() {
                 const codes = [];
                 for(let i=0;i<hourly.time.length;i++){
                     const ht=new Date(hourly.time[i]);
-                    if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()&&ht.getHours()>=fromH&&ht.getHours()<toH){
+                    if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()&&ht.getHours()>=8&&ht.getHours()<18){
                         const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
                         codes.push({wmo:hourly.weather_code?.[i]??0, ht, cd});
                     }
                 }
                 if(!codes.length) return '—';
-                // Usar el WMO más severo del rango
-                const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
-                const best=codes.reduce((a,b)=>severity.indexOf(b.wmo)>severity.indexOf(a.wmo)?b:a);
-                if(best.wmo===45||best.wmo===48) return getWiIcon(45, best.ht, null, '2.2em', '#B0BEC5');
-                return getWiIcon(best.wmo, best.ht, best.cd, '2.2em', 'inherit');
+                const freq={};
+                codes.forEach(c=>{ freq[c.wmo]=(freq[c.wmo]||0)+1; });
+                const dominantWmo=parseInt(Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0]);
+                const usedCode=codes.find(c=>c.wmo===dominantWmo)||codes[Math.floor(codes.length/2)];
+                if(usedCode.wmo===45||usedCode.wmo===48) return getWiIcon(45, usedCode.ht, null, '2.6em', '#B0BEC5');
+                return getWiIcon(usedCode.wmo, usedCode.ht, usedCode.cd, '2.6em', 'inherit');
             }
-            const iconManana = iconForRange(8, 13);
-            const iconTarde  = iconForRange(13, 18);
+            const iconDia = iconForDay();
             const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
 
             // Totales del día
@@ -1556,7 +1575,7 @@
                 const isRainCode=(wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
                 const effectiveWmo=(isRainCode&&precipProb<50)?3:wmo;
                 const iconMap=isNight?{0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'}:{0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
-                const ico=isFog?getWiIcon(45,ht,null,'1.6em','#B0BEC5'):getWiIcon(effectiveWmo,ht,null,'1.6em','inherit');
+                const ico=isFog?getWiIcon(45,ht,null,'1.6em','#ffffff'):getWiIcon(effectiveWmo,ht,null,'1.6em','#ffffff');
                 const temp=hourly.temperature_2m?.[i]!==undefined?Math.round(hourly.temperature_2m[i])+'°':'--';
                 const feels=hourly.apparent_temperature?.[i]!==undefined?Math.round(hourly.apparent_temperature[i])+'°':'--';
                 const hum=hourly.relative_humidity_2m?.[i]!==undefined?hourly.relative_humidity_2m[i]+'%':'--';
@@ -1599,8 +1618,7 @@
             head.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div class="day-head-icon" style="display:flex;gap:6px;align-items:center;">
-                        <span style="font-size:36px;line-height:1;">${iconManana}</span>
-                        <span style="font-size:36px;line-height:1;">${iconTarde}</span>
+                        <span style="font-size:42px;line-height:1;">${iconDia}</span>
                     </div>
                     <div>
                         <div class="day-head-title" style="font-size:19px;font-weight:700;color:#2C3E50;transition:color 0.4s;letter-spacing:0.5px;">${dn.toUpperCase()} <span class="day-head-date" style="font-size:14px;font-weight:400;color:#94A3B8;transition:color 0.4s;">${fechaStr}</span></div>
@@ -1609,7 +1627,7 @@
                             <span class="day-sep" style="margin:0 4px;opacity:0.4;">/</span>
                             <span class="day-temp-max" style="color:#EF4444;font-weight:700;font-size:22px;transition:color 0.4s;">${maxT}°</span>
                             <br>
-                            <span class="day-rain-lbl" style="transition:color 0.4s;">Lluvia prevista: ${tp} mm</span>
+                            <span class="day-rain-lbl" style="transition:color 0.4s;">Prob. lluvia: ${daily.precipitation_probability_max?.[off]??'--'}%</span>
                             <br>
                             <span class="day-wind-lbl" style="transition:color 0.4s;">${aw} km/h ${getWindDir(awd)}</span>
                             <br>
