@@ -1218,7 +1218,7 @@
             const now = new Date();
             const DIAS_ES = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
             const hoyNombre = DIAS_ES[now.getDay()];
-            // Solo horas de hoy: desde la hora actual hasta las 23:00 de hoy
+            // Desde la hora actual hasta las próximas 30 horas
             let startIdx = -1;
             for (let i = 0; i < hourly.time.length; i++) {
                 const ht = new Date(hourly.time[i]);
@@ -1227,9 +1227,9 @@
             if (startIdx === -1) startIdx = 0;
 
             const slots = [];
-            const todayLocalStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+            const endMs = now.getTime() + 30 * 3600 * 1000;
             for (let i = startIdx; i < hourly.time.length; i++) {
-                if (!hourly.time[i].startsWith(todayLocalStr)) break;
+                if (new Date(hourly.time[i]).getTime() > endMs) break;
                 slots.push(i);
             }
 
@@ -1339,8 +1339,18 @@
                 </div>`;
 
             let html = '';
+            let lastDate = null;
             slots.forEach((idx, pos) => {
                 const ht = new Date(hourly.time[idx]);
+                const dateStr = hourly.time[idx].slice(0,10);
+                // Separador de día
+                if (dateStr !== lastDate) {
+                    const dName = DIAS_ES[ht.getDay()].toUpperCase();
+                    html += `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:44px;padding:0 4px;border-right:2px solid rgba(77,182,172,0.4);background:rgba(77,182,172,0.08);">
+                        <span style="font-size:8px;font-weight:800;color:#4db6ac;letter-spacing:1.5px;writing-mode:vertical-lr;transform:rotate(180deg);">${dName}</span>
+                    </div>`;
+                    lastDate = dateStr;
+                }
                 const hh = String(ht.getHours()).padStart(2,'0') + ':00';
                 const isNow = pos === 0;
                 const wmo = hourly.weather_code?.[idx] ?? 0;
