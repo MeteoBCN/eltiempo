@@ -728,8 +728,11 @@
 
         function getWeatherIcon(code, dateTime, cloudData) {
             if (cloudData && (code===1||code===2||code===3)) {
-                const rc = (cloudData.cloud_cover_low||0)+((cloudData.cloud_cover_mid||0)*0.5);
-                if (rc<15) code=1; else if (rc<35) code=2; else code=3;
+                const low = cloudData.cloud_cover_low||0;
+                const mid = (cloudData.cloud_cover_mid||0)*0.6;
+                const high = (cloudData.cloud_cover_high||0)*0.2;
+                const rc = low + mid + high;
+                if (rc<10) code=1; else if (rc<40) code=2; else code=3;
             }
             if (dateTime && isNightTime(dateTime)) return weatherIconsNight[code]||'🌙';
             return weatherIcons[code]||'☀️';
@@ -759,8 +762,11 @@
 
         function getWiIcon(code, dateTime, cloudData, size='1.6em', color='inherit') {
             if (cloudData && (code===1||code===2||code===3)) {
-                const rc = (cloudData.cloud_cover_low||0)+((cloudData.cloud_cover_mid||0)*0.5);
-                if (rc<15) code=1; else if (rc<35) code=2; else code=3;
+                const low = cloudData.cloud_cover_low||0;
+                const mid = (cloudData.cloud_cover_mid||0)*0.6;
+                const high = (cloudData.cloud_cover_high||0)*0.2;
+                const rc = low + mid + high;
+                if (rc<10) code=1; else if (rc<40) code=2; else code=3;
             }
             const night = dateTime && isNightTime(dateTime);
             const cls = (night ? WI_NIGHT[code] : WI_DAY[code]) || (night ? 'wi-night-clear' : 'wi-day-sunny');
@@ -1425,7 +1431,19 @@
         function updateCurrentWeather(current, weatherCode, precipToday, hourly) {
             const now=new Date();
             document.getElementById('current-temp').textContent=Math.round(current.temperature_2m)+'°';
-            document.getElementById('current-icon').innerHTML=getWiIcon(weatherCode,now,{cloud_cover:current.cloud_cover},'1.8em','inherit');
+            // Buscar índice horario más cercano para obtener desglose de nubosidad
+            const nowMs = now.getTime();
+            let closestIdx = 0, minDiff = Infinity;
+            if (hourly?.time) {
+                hourly.time.forEach((t, i) => { const d = Math.abs(new Date(t) - nowMs); if (d < minDiff) { minDiff = d; closestIdx = i; } });
+            }
+            const cloudNow = hourly ? {
+                cloud_cover: current.cloud_cover,
+                cloud_cover_low: hourly.cloud_cover_low?.[closestIdx],
+                cloud_cover_mid: hourly.cloud_cover_mid?.[closestIdx],
+                cloud_cover_high: hourly.cloud_cover_high?.[closestIdx]
+            } : {cloud_cover: current.cloud_cover};
+            document.getElementById('current-icon').innerHTML=getWiIcon(weatherCode,now,cloudNow,'1.8em','inherit');
             document.getElementById('pressure').textContent=Math.round(current.pressure_msl)+' hPa';
             document.getElementById('humidity').textContent=current.relative_humidity_2m+'%';
             document.getElementById('wind').textContent=Math.round(current.wind_speed_10m)+' km/h';
