@@ -1219,9 +1219,9 @@
             if (startIdx === -1) startIdx = 0;
 
             const slots = [];
+            const todayLocalStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
             for (let i = startIdx; i < hourly.time.length; i++) {
-                const ht = new Date(hourly.time[i]);
-                if (ht.getDate() !== now.getDate() || ht.getMonth() !== now.getMonth()) break;
+                if (!hourly.time[i].startsWith(todayLocalStr)) break;
                 slots.push(i);
             }
 
@@ -1810,12 +1810,6 @@
 
         function updateDaysTable(hourly, daily) {
             const container=document.getElementById('days-detailed-container'); if(!container) return; container.innerHTML='';
-            // Título de sección
-            const title=document.createElement('div');
-            title.className = 'rain-header-bg';
-            title.style.cssText='padding:0 10px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;';
-            title.textContent='Previsión próximos 7 días';
-            container.appendChild(title);
             // Wrapper con borde
             const box=document.createElement('div');
             box.style.cssText='border:1px solid #e9ecef;border-top:none;background:#fff;';
