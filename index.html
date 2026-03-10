@@ -57,7 +57,7 @@
         @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         .weather-divider { height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); margin: 32px 0 24px 0; }
         .location { font-size: 18px; margin-bottom: 12px; font-weight: 500; color: rgba(255,255,255,0.8); letter-spacing: 0.5px; }
-        .icon-large { font-size: 38px; margin: 10px 0; }
+        .icon-large { font-size: 72px; margin: 24px 0; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3)); }
         .temperature { font-size: 72px; font-weight: 300; margin-bottom: 12px; color: #1E293B; letter-spacing: -2px; line-height: 1; }
         .condition { font-size: 22px; margin-bottom: 28px; font-weight: 400; color: rgba(255,255,255,0.85); letter-spacing: 0.3px; }
         .details { display: flex; justify-content: space-around; font-size: 14px; margin-top: 28px; flex-wrap: wrap; gap: 24px; }
@@ -103,9 +103,34 @@
         .divulgacion-link a:hover { border-bottom-color: var(--color-primary); color: var(--color-primary); }
         .loading { text-align: center; padding: 40px; color: var(--color-text-tertiary); }
         .error { text-align: center; padding: 20px; color: #EF4444; }
-        /* ── Weather Icons: color azul oscuro por defecto ── */
-        .wi { color: #1E3A5F; }
-        /* En strips oscuros el color inline lo sobreescribe */
+        /* ── Weather Icons colores globales ── */
+        .wi-day-sunny, .wi-day-sunny-overcast { color: #F59E0B; }
+        .wi-day-cloudy, .wi-day-partly-cloudy { color: #F59E0B; }
+        .wi-night-clear, .wi-night-alt-partly-cloudy { color: #94A3B8; }
+        .wi-night-alt-cloudy { color: #94A3B8; }
+        .wi-cloudy { color: #78909C; }
+        .wi-fog, .wi-night-fog { color: #B0BEC5; }
+        .wi-sprinkle, .wi-night-alt-sprinkle,
+        .wi-rain, .wi-night-alt-rain,
+        .wi-rain-wind, .wi-night-alt-rain-wind,
+        .wi-showers, .wi-night-alt-showers { color: #60A5FA; }
+        .wi-storm-showers, .wi-night-alt-storm-showers,
+        .wi-thunderstorm, .wi-night-alt-thunderstorm { color: #8B5CF6; }
+        .wi-snow, .wi-night-alt-snow,
+        .wi-snow-wind, .wi-night-alt-snow-wind { color: #BAE6FD; }
+        /* Llovizna */
+        .wi-sprinkle, .wi-night-alt-sprinkle { color: #60A5FA; }
+        /* Lluvia */
+        .wi-rain, .wi-night-alt-rain, .wi-raindrop { color: #3B82F6; }
+        .wi-rain-wind, .wi-night-alt-rain-wind { color: #2563EB; }
+        /* Nieve */
+        .wi-snow, .wi-night-alt-snow { color: #BAE6FD; }
+        .wi-snow-wind, .wi-night-alt-snow-wind { color: #7DD3FC; }
+        /* Chubascos */
+        .wi-showers, .wi-night-alt-showers { color: #3B82F6; }
+        .wi-storm-showers, .wi-night-alt-storm-showers { color: #8B5CF6; }
+        /* Tormenta */
+        .wi-thunderstorm, .wi-night-alt-thunderstorm { color: #7C3AED; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .weather-table-container { margin: 40px auto; overflow-x: auto; animation: fadeIn 0.6s ease-out 0.6s both; max-width: 600px; width: 100%; -webkit-overflow-scrolling: touch; }
         #weather-table { width: 100%; min-width: 100%; border-collapse: collapse; background: var(--color-bg-card); border-radius: 0; overflow: hidden; box-shadow: var(--shadow-md); backdrop-filter: blur(10px); }
@@ -548,6 +573,10 @@
                 <div class="temperature" id="current-temp">--°</div>
                 <div class="details">
                     <div class="detail-item">
+                        <div>Sensación</div>
+                        <div class="detail-value" id="feels-like">--°</div>
+                    </div>
+                    <div class="detail-item">
                         <div>Presión</div>
                         <div class="detail-value" id="pressure">-- hPa</div>
                     </div>
@@ -616,9 +645,6 @@
         </div>
 
 
-
-        <!-- TABLA PRECIPITACIONES 7 DÍAS -->
-        <div id="rain-7days-container" style="max-width:600px;margin:40px auto 0;"></div>
 
         <div class="webcam-container">
             <span class="webcam-label">WEBCAM / VILA OLÍMPICA</span>
@@ -719,25 +745,24 @@
             95:'wi-thunderstorm', 96:'wi-thunderstorm', 99:'wi-thunderstorm'
         };
         const WI_NIGHT = {
-            0:'wi-night-clear', 1:'wi-night-cloudy', 2:'wi-night-cloudy', 3:'wi-cloudy',
+            0:'wi-night-clear', 1:'wi-night-alt-partly-cloudy', 2:'wi-night-alt-cloudy', 3:'wi-cloudy',
             45:'wi-night-fog', 48:'wi-night-fog',
-            51:'wi-night-sprinkle', 53:'wi-night-sprinkle', 55:'wi-night-rain',
-            61:'wi-night-rain', 63:'wi-night-rain', 65:'wi-night-rain-wind',
-            71:'wi-night-snow', 73:'wi-night-snow', 75:'wi-night-snow-wind', 77:'wi-night-snow',
-            80:'wi-night-showers', 81:'wi-night-showers', 82:'wi-night-storm-showers',
-            85:'wi-night-snow', 86:'wi-night-snow-wind',
-            95:'wi-night-thunderstorm', 96:'wi-night-thunderstorm', 99:'wi-night-thunderstorm'
+            51:'wi-night-alt-sprinkle', 53:'wi-night-alt-sprinkle', 55:'wi-night-alt-rain',
+            61:'wi-night-alt-rain', 63:'wi-night-alt-rain', 65:'wi-night-alt-rain-wind',
+            71:'wi-night-alt-snow', 73:'wi-night-alt-snow', 75:'wi-night-alt-snow-wind', 77:'wi-night-alt-snow',
+            80:'wi-night-alt-showers', 81:'wi-night-alt-showers', 82:'wi-night-alt-storm-showers',
+            85:'wi-night-alt-snow', 86:'wi-night-alt-snow-wind',
+            95:'wi-night-alt-thunderstorm', 96:'wi-night-alt-thunderstorm', 99:'wi-night-alt-thunderstorm'
         };
 
-        function getWiIcon(code, dateTime, cloudData, size='1.6em', color='inherit', forceNight=null) {
+        function getWiIcon(code, dateTime, cloudData, size='1.6em', color='inherit') {
             if (cloudData && (code===1||code===2||code===3)) {
                 const rc = (cloudData.cloud_cover_low||0)+((cloudData.cloud_cover_mid||0)*0.5);
                 if (rc<15) code=1; else if (rc<35) code=2; else code=3;
             }
-            const night = forceNight !== null ? forceNight : (dateTime && isNightTime(dateTime));
+            const night = dateTime && isNightTime(dateTime);
             const cls = (night ? WI_NIGHT[code] : WI_DAY[code]) || (night ? 'wi-night-clear' : 'wi-day-sunny');
-            const colorStyle = color ? `color:${color};` : '';
-            return `<i class="wi ${cls}" style="font-size:${size};${colorStyle}"></i>`;
+            return `<i class="wi ${cls}" style="font-size:${size};color:${color};"></i>`;
         }
 
         function getDayName(ds) {
@@ -1226,48 +1251,21 @@
             function hoyWindDir(deg){return['N','NE','E','SE','S','SO','O','NO'][Math.round((deg||0)/45)%8];}
             function hoyUviLevel(v){if(!v&&v!==0)return{lbl:'--'};const n=Math.round(v);if(n<=2)return{lbl:'Bajo'};if(n<=5)return{lbl:'Moderado'};if(n<=7)return{lbl:'Alto'};if(n<=10)return{lbl:'Muy alto'};return{lbl:'Extremo'};}
 
-            // Icono único del día: representa el período diurno 8-20h
-            function hoyIconDia() {
+            // Iconos de HOY por franja: mañana (07-13) y tarde (13-20)
+            function hoyIconForRange(fromH, toH) {
                 const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
-                let best=null, maxProb=0, hasSun=false;
-                // Primero intentar solo horas futuras
+                let best=null;
                 for(let i=0;i<hourly.time.length;i++){
                     const ht=new Date(hourly.time[i]);
                     if(ht.getDate()!==now.getDate()||ht.getMonth()!==now.getMonth()) continue;
-                    if(ht.getHours()<8||ht.getHours()>=20) continue;
-                    if(ht < now) continue;
+                    if(ht.getHours()<fromH||ht.getHours()>=toH) continue;
                     const wmo=hourly.weather_code?.[i]??0;
-                    const prob=hourly.precipitation_probability?.[i]??0;
-                    if(prob>maxProb) maxProb=prob;
-                    if(wmo<=2) hasSun=true;
-                    const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
-                    if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd};
+                    if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd:{cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]}};
                 }
-                // Fallback: si no hay horas futuras diurnas, usar el día completo
-                if(!best){
-                    for(let i=0;i<hourly.time.length;i++){
-                        const ht=new Date(hourly.time[i]);
-                        if(ht.getDate()!==now.getDate()||ht.getMonth()!==now.getMonth()) continue;
-                        if(ht.getHours()<8||ht.getHours()>=20) continue;
-                        const wmo=hourly.weather_code?.[i]??0;
-                        const prob=hourly.precipitation_probability?.[i]??0;
-                        if(prob>maxProb) maxProb=prob;
-                        if(wmo<=2) hasSun=true;
-                        const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
-                        if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd};
-                    }
-                }
-                if(!best) return {icon:'—', maxProb:0};
-                const isRain=(best.wmo>=51&&best.wmo<=82)||(best.wmo>=85&&best.wmo<=86)||(best.wmo>=95&&best.wmo<=99);
-                let effectiveWmo;
-                if(isRain && maxProb>=50 && hasSun) effectiveWmo=80;
-                else if(isRain && maxProb>=50) effectiveWmo=best.wmo;
-                else if(isRain && maxProb<50) effectiveWmo=3;
-                else effectiveWmo=best.wmo;
-                const icon=(effectiveWmo===45||effectiveWmo===48)?getWiIcon(45,best.ht,null,'1.4em','#1E3A5F'):getWiIcon(effectiveWmo,best.ht,best.cd,'1.4em','#1E3A5F');
-                return {icon, maxProb};
+                return best?(best.wmo===45||best.wmo===48?getWiIcon(45,best.ht,null,'2.2em','#B0BEC5'):getWiIcon(best.wmo,best.ht,best.cd,'2.2em','inherit')):'—';
             }
-            const {icon:hoyIconDiurno, maxProb:hoyMaxProb}=hoyIconDia();
+            const hoyIconManana=hoyIconForRange(8,13);
+            const hoyIconTarde=hoyIconForRange(13,18);
 
             // Lluvia horas restantes
             function hoyGroupRainHours(hours){
@@ -1291,8 +1289,9 @@
             }
             hoyHead.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="display:flex;align-items:center;">
-                        <span style="font-size:36px;line-height:1;">${hoyIconDiurno}</span>
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <span style="font-size:36px;line-height:1;">${hoyIconManana}</span>
+                        <span style="font-size:36px;line-height:1;">${hoyIconTarde}</span>
                     </div>
                     <div>
                         <div style="font-size:19px;font-weight:700;color:#2C3E50;letter-spacing:0.5px;">${hoyNombre.toUpperCase()} <span style="font-size:14px;font-weight:400;color:#94A3B8;">${hoyFechaStr}</span></div>
@@ -1301,7 +1300,7 @@
                             <span style="margin:0 4px;opacity:0.4;">/</span>
                             <span style="color:#EF4444;font-weight:700;font-size:22px;">${hoyMaxT}°</span>
                             <br>
-                            <span>Prob. lluvia: ${hoyMaxProb}%</span>
+                            <span>Lluvia prevista: ${hoyTp} mm</span>
                             <br>
                             <span>${hoyAw} km/h ${hoyWindDir(hoyAwd)}</span>
                             <br>
@@ -1325,7 +1324,7 @@
                 const effectiveWmo = (isRainCode && precipProb < 50) ? 3 : wmo;
                 const night = isNightTime(ht);
                 const iconMap = night ? WMO_EMOJI_NIGHT : WMO_EMOJI_DAY;
-                const icon = getWiIcon(isFog ? 45 : effectiveWmo, ht, null, '1.3em', '#ffffff');
+                const icon = isFog ? getWiIcon(45, ht, null, '1.6em', '#B0BEC5') : getWiIcon(effectiveWmo, ht, null, '1.6em', 'inherit');
                 const temp = Math.round(hourly.temperature_2m?.[idx] ?? 0);
                 const ws = Math.round(hourly.wind_speed_10m?.[idx] ?? 0);
                 const wd = hourly.wind_direction_10m?.[idx] ?? 0;
@@ -1405,10 +1404,18 @@
         function updateCurrentWeather(current, weatherCode, precipToday, hourly) {
             const now=new Date();
             document.getElementById('current-temp').textContent=Math.round(current.temperature_2m)+'°';
-            document.getElementById('current-icon').innerHTML=getWiIcon(weatherCode,now,{cloud_cover:current.cloud_cover},'38px','');
+            document.getElementById('current-icon').innerHTML=getWiIcon(weatherCode,now,{cloud_cover:current.cloud_cover},'72px','');
             document.getElementById('pressure').textContent=Math.round(current.pressure_msl)+' hPa';
             document.getElementById('humidity').textContent=current.relative_humidity_2m+'%';
             document.getElementById('wind').textContent=Math.round(current.wind_speed_10m)+' km/h';
+            if (current.apparent_temperature !== undefined) {
+                document.getElementById('feels-like').textContent=Math.round(current.apparent_temperature)+'°';
+            } else if (hourly?.apparent_temperature && hourly?.time) {
+                const idx2=hourly.time.findIndex(t=>Math.abs(new Date(t)-now)<30*60*1000);
+                if (idx2!==-1&&hourly.apparent_temperature[idx2]!==undefined) {
+                    document.getElementById('feels-like').textContent=Math.round(hourly.apparent_temperature[idx2])+'°';
+                }
+            }
 
             if (hourly?.time && hourly?.uv_index) {
                 const idx=hourly.time.findIndex(t=>Math.abs(new Date(t)-now)<30*60*1000);
@@ -1472,32 +1479,25 @@
             const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
             const fechaStr=tDay.getDate()+' '+MESES[tDay.getMonth()];
 
-            // Icono único del día: representa el período diurno 8-20h
-            function iconDia() {
-                const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
-                let best=null, maxProb=0, hasSun=false;
+            // Iconos representativos por franja: mañana (07-13) y tarde (13-20)
+            function iconForRange(fromH, toH) {
+                const codes = [];
                 for(let i=0;i<hourly.time.length;i++){
                     const ht=new Date(hourly.time[i]);
-                    if(ht.getDate()!==tDay.getDate()||ht.getMonth()!==tDay.getMonth()) continue;
-                    if(ht.getHours()<8||ht.getHours()>=20) continue;
-                    const wmo=hourly.weather_code?.[i]??0;
-                    const prob=hourly.precipitation_probability?.[i]??0;
-                    if(prob>maxProb) maxProb=prob;
-                    if(wmo<=2) hasSun=true;
-                    const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
-                    if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd};
+                    if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()&&ht.getHours()>=fromH&&ht.getHours()<toH){
+                        const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
+                        codes.push({wmo:hourly.weather_code?.[i]??0, ht, cd});
+                    }
                 }
-                if(!best) return {icon:'—', maxProb:0};
-                const isRain=(best.wmo>=51&&best.wmo<=82)||(best.wmo>=85&&best.wmo<=86)||(best.wmo>=95&&best.wmo<=99);
-                let effectiveWmo;
-                if(isRain && maxProb>=50 && hasSun) effectiveWmo=80;
-                else if(isRain && maxProb>=50) effectiveWmo=best.wmo;
-                else if(isRain && maxProb<50) effectiveWmo=3;
-                else effectiveWmo=best.wmo;
-                const icon=(effectiveWmo===45||effectiveWmo===48)?getWiIcon(45,best.ht,null,'1.4em','#1E3A5F'):getWiIcon(effectiveWmo,best.ht,best.cd,'1.4em','#1E3A5F');
-                return {icon, maxProb};
+                if(!codes.length) return '—';
+                // Usar el WMO más severo del rango
+                const severity=[0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
+                const best=codes.reduce((a,b)=>severity.indexOf(b.wmo)>severity.indexOf(a.wmo)?b:a);
+                if(best.wmo===45||best.wmo===48) return getWiIcon(45, best.ht, null, '2.2em', '#B0BEC5');
+                return getWiIcon(best.wmo, best.ht, best.cd, '2.2em', 'inherit');
             }
-            const {icon:iconDiurno, maxProb:diaMaxProb} = iconDia();
+            const iconManana = iconForRange(8, 13);
+            const iconTarde  = iconForRange(13, 18);
             const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
 
             // Totales del día
@@ -1549,15 +1549,14 @@
             // Construir columnas HTML idénticas al strip de horas
             let stripCols='';
             daySlots.forEach(({h,i,ht})=>{
-                const isNight = (h < 8 || h >= 21);
+                const isNight=isNightTime(ht);
                 const wmo=hourly.weather_code?.[i]??0;
                 const precipProb=hourly.precipitation_probability?.[i]??0;
                 const isFog=(wmo===45||wmo===48);
                 const isRainCode=(wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
                 const effectiveWmo=(isRainCode&&precipProb<50)?3:wmo;
                 const iconMap=isNight?{0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'}:{0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
-                const slotDt = new Date(tDay.getFullYear(), tDay.getMonth(), tDay.getDate(), h, 0, 0);
-                const ico=getWiIcon(isFog?45:effectiveWmo, null, null,'1.3em','#ffffff', isNight);
+                const ico=isFog?getWiIcon(45,ht,null,'1.6em','#B0BEC5'):getWiIcon(effectiveWmo,ht,null,'1.6em','inherit');
                 const temp=hourly.temperature_2m?.[i]!==undefined?Math.round(hourly.temperature_2m[i])+'°':'--';
                 const feels=hourly.apparent_temperature?.[i]!==undefined?Math.round(hourly.apparent_temperature[i])+'°':'--';
                 const hum=hourly.relative_humidity_2m?.[i]!==undefined?hourly.relative_humidity_2m[i]+'%':'--';
@@ -1599,8 +1598,9 @@
             head.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:18px 14px;cursor:pointer;background:#fff;user-select:none;transition:background 0.4s;';
             head.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div class="day-head-icon" style="display:flex;align-items:center;">
-                        <span style="font-size:36px;line-height:1;">${iconDiurno}</span>
+                    <div class="day-head-icon" style="display:flex;gap:6px;align-items:center;">
+                        <span style="font-size:36px;line-height:1;">${iconManana}</span>
+                        <span style="font-size:36px;line-height:1;">${iconTarde}</span>
                     </div>
                     <div>
                         <div class="day-head-title" style="font-size:19px;font-weight:700;color:#2C3E50;transition:color 0.4s;letter-spacing:0.5px;">${dn.toUpperCase()} <span class="day-head-date" style="font-size:14px;font-weight:400;color:#94A3B8;transition:color 0.4s;">${fechaStr}</span></div>
@@ -1609,7 +1609,7 @@
                             <span class="day-sep" style="margin:0 4px;opacity:0.4;">/</span>
                             <span class="day-temp-max" style="color:#EF4444;font-weight:700;font-size:22px;transition:color 0.4s;">${maxT}°</span>
                             <br>
-                            <span class="day-rain-lbl" style="transition:color 0.4s;">Prob. lluvia: ${diaMaxProb}%</span>
+                            <span class="day-rain-lbl" style="transition:color 0.4s;">Lluvia prevista: ${tp} mm</span>
                             <br>
                             <span class="day-wind-lbl" style="transition:color 0.4s;">${aw} km/h ${getWindDir(awd)}</span>
                             <br>
