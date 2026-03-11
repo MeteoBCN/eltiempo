@@ -143,7 +143,7 @@
         #weather-table tbody tr:last-child { border-bottom: none; }
         #weather-table td { padding: 16px 10px; text-align: center; color: var(--color-text-primary); font-size: 14px; font-weight: 500; }
         #weather-table .table-hour { font-weight: 700; color: #2C3E50; font-size: 15px; letter-spacing: 0.3px; }
-        #weather-table .table-icon { font-size: 32px; }
+        #weather-table .table-icon { vertical-align:middle; }
         #weather-table .table-temp { font-weight: 600; font-size: 16px; color: #2C3E50; }
         #weather-table .table-rain { color: #2C3E50; font-weight: 600; }
         #weather-table .table-wind { color: #2C3E50; font-weight: 500; }
@@ -197,8 +197,8 @@
         .franja-col { padding: 14px 6px 16px; border-right: 1px solid rgba(255,255,255,0.15); text-align: center; }
         .franja-col:last-child { border-right: none; }
         .franja-nombre { font-size: 9px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        .franja-icon { font-size: 1.7rem; margin-bottom: 6px; line-height: 1; }
-        .franja-icon i, .franja-icon i.wi { font-size: 1.7rem !important; color: #ffffff !important; }
+        .franja-icon { margin-bottom: 6px; line-height: 1; display:flex; justify-content:center; align-items:center; }
+
         .franja-temp { font-size: 19px; font-weight: 800; color: #ffffff; margin-bottom: 8px; line-height: 1; }
         .franja-temp-label { font-size: 8px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
         .franja-temp.es-min { color: #7ec8e3; }
@@ -265,9 +265,9 @@
         .hourly-col.is-night { background: rgba(20, 15, 50, 0.4); }
         .hourly-col.is-night .hourly-time { color: rgba(190,170,255,0.65); }
         .hourly-col.is-now .hourly-time { color: #4db6ac; }
-        .hourly-icon { font-size: 26px; line-height: 1; margin-bottom: 6px; }
+        .hourly-icon { line-height: 1; margin-bottom: 4px; display:flex; justify-content:center; align-items:center; }
         /* Forzar iconos WI en blanco dentro del strip horario */
-        .hourly-icon .wi { color: #ffffff !important; }
+
         .hourly-temp { font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 8px; line-height: 1; }
         .hourly-divider { width: 30px; height: 1px; background: rgba(255,255,255,0.1); margin-bottom: 8px; }
         .hourly-wind-arrow { font-size: 14px; margin-bottom: 2px; display: block; }
@@ -551,7 +551,7 @@
             .icon-large { font-size: 1.8em; }
             .radar-frame { height: 300px; }
             #weather-table th, #weather-table td { padding: 12px 6px; font-size: 12px; }
-            #weather-table .table-icon { font-size: 26px; }
+            #weather-table .table-icon { vertical-align:middle; }
             .alert-banner-item { flex-direction: column; align-items: flex-start; gap: 10px; }
             .alert-banner-left { width: 100%; }
             .alert-banner-level { align-self: flex-start; }
@@ -955,7 +955,7 @@
                 const esNoche = (f.tipo === 'noche' || f.tipo === 'madrugada');
                 const iconDt = new Date(f.fecha + 'T' + (esNoche ? '23' : String(Math.floor((f.h0+f.h1)/2)).padStart(2,'0')) + ':00:00');
                 const cd = { cloud_cover: hourly.cloud_cover?.[mi], cloud_cover_low: hourly.cloud_cover_low?.[mi], cloud_cover_mid: hourly.cloud_cover_mid?.[mi] };
-                const icon = getWeatherIcon(hourly.weather_code?.[mi] ?? 0, iconDt, cd);
+                const icon = getSvgIcon(hourly.weather_code?.[mi] ?? 0, 40);
 
                 // Lluvia total
                 const precip = ids.reduce((s,i) => s + (hourly.precipitation?.[i]||0), 0).toFixed(1);
@@ -1386,7 +1386,7 @@
                     const wmo=hourly.weather_code?.[i]??0;
                     if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd:{cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]}};
                 }
-                return best?(best.wmo===45||best.wmo===48?getWiIcon(45,best.ht,null,'1.4em','#1e3a5f'):getWiIcon(best.wmo,best.ht,best.cd,'1.4em','#1e3a5f')):'—';
+                return best ? getSvgIcon(best.wmo, 32) : '—';
             }
             const hoyIconManana=hoyIconForRange(8,13);
             const hoyIconTarde=hoyIconForRange(13,18);
@@ -1481,7 +1481,7 @@
                 }
                 const night = isNightTime(ht);
                 const iconMap = night ? WMO_EMOJI_NIGHT : WMO_EMOJI_DAY;
-                const icon = isFog ? getWiIcon(45, ht, null, '1.6em', '#ffffff') : getWiIcon(effectiveWmo, ht, null, '1.6em', '#ffffff');
+                const icon = getSvgIcon(isFog ? 45 : effectiveWmo, 36);
                 const temp = Math.round(hourly.temperature_2m?.[idx] ?? 0);
                 const ws = Math.round(hourly.wind_speed_10m?.[idx] ?? 0);
                 const wd = hourly.wind_direction_10m?.[idx] ?? 0;
@@ -1573,7 +1573,7 @@
                 cloud_cover_mid: hourly.cloud_cover_mid?.[closestIdx],
                 cloud_cover_high: hourly.cloud_cover_high?.[closestIdx]
             } : {cloud_cover: current.cloud_cover};
-            document.getElementById('current-icon').innerHTML=getWiIcon(weatherCode,now,cloudNow,'1.8em','inherit');
+            document.getElementById('current-icon').innerHTML=getSvgIcon(weatherCode, 72);
             document.getElementById('pressure').textContent=Math.round(current.pressure_msl)+' hPa';
             document.getElementById('humidity').textContent=current.relative_humidity_2m+'%';
             document.getElementById('wind').textContent=Math.round(current.wind_speed_10m)+' km/h';
@@ -1605,7 +1605,7 @@
                 const ht=new Date(hourly.time[idx]);
                 const cd={cloud_cover:hourly.cloud_cover?.[idx],cloud_cover_low:hourly.cloud_cover_low?.[idx],cloud_cover_mid:hourly.cloud_cover_mid?.[idx]};
                 const row=document.createElement('tr');
-                row.innerHTML=`<td class="table-hour">${formatHour(hourly.time[idx])}</td><td class="table-icon">${getWeatherIcon(hourly.weather_code[idx],ht,cd)}</td><td class="table-temp">${Math.round(hourly.temperature_2m[idx])}°C</td><td class="table-rain">${(hourly.precipitation?.[idx]||0).toFixed(1)} mm</td><td class="table-wind">${Math.round(hourly.wind_speed_10m[idx])} km/h</td>`;
+                row.innerHTML=`<td class="table-hour">${formatHour(hourly.time[idx])}</td><td class="table-icon">${getSvgIcon(hourly.weather_code[idx], 36)}</td><td class="table-temp">${Math.round(hourly.temperature_2m[idx])}°C</td><td class="table-rain">${(hourly.precipitation?.[idx]||0).toFixed(1)} mm</td><td class="table-wind">${Math.round(hourly.wind_speed_10m[idx])} km/h</td>`;
                 tbody.appendChild(row);
             }
         }
@@ -1756,7 +1756,7 @@
                     else if(isRainCode&&precipProb<50) effectiveWmo=3;
                 }
                 const iconMap=isNight?{0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'}:{0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
-                const ico=isFog?getWiIcon(45,ht,null,'1.6em','#ffffff'):getWiIcon(effectiveWmo,ht,null,'1.6em','#ffffff');
+                const ico=getSvgIcon(isFog?45:effectiveWmo, 36);
                 const temp=hourly.temperature_2m?.[i]!==undefined?Math.round(hourly.temperature_2m[i])+'°':'--';
                 const feels=hourly.apparent_temperature?.[i]!==undefined?Math.round(hourly.apparent_temperature[i])+'°':'--';
                 const hum=hourly.relative_humidity_2m?.[i]!==undefined?hourly.relative_humidity_2m[i]+'%':'--';
