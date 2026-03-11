@@ -767,21 +767,21 @@
             const svg = (content, vb=`0 0 ${s} ${s}`) =>
                 `<svg width="${s}" height="${s}" viewBox="${vb}" fill="none" xmlns="http://www.w3.org/2000/svg">${content}</svg>`;
 
-            // ── Luna ─────────────────────────────────────────────────────────
+            // ── Luna creciente ────────────────────────────────────────────────
             const moonSvg = () => svg(`
-                <path d="M${h*1.1} ${s*0.18} Q${s*0.95} ${h} ${h*1.1} ${s*0.82} Q${s*0.18} ${s*0.78} ${s*0.22} ${h} Q${s*0.18} ${s*0.22} ${h*1.1} ${s*0.18}Z"
+                <path d="M ${h} ${s*0.12}
+                    A ${s*0.38} ${s*0.38} 0 1 1 ${h} ${s*0.88}
+                    A ${s*0.26} ${s*0.26} 0 1 0 ${h} ${s*0.12} Z"
                     fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.045}" stroke-linejoin="round"/>
-                <circle cx="${s*0.38}" cy="${s*0.35}" r="${s*0.045}" fill="#F9A825" opacity="0.5"/>
-                <circle cx="${s*0.28}" cy="${s*0.55}" r="${s*0.03}" fill="#F9A825" opacity="0.4"/>
-                <circle cx="${s*0.48}" cy="${s*0.62}" r="${s*0.035}" fill="#F9A825" opacity="0.45"/>
             `);
 
-            // ── Luna + nube (noche nublada) ───────────────────────────────────
+            // ── Luna creciente + nube ─────────────────────────────────────────
             const moonCloudSvg = () => svg(`
-                <path d="M${s*0.62} ${s*0.12} Q${s*0.88} ${s*0.18} ${s*0.84} ${s*0.42} Q${s*0.62} ${s*0.38} ${s*0.62} ${s*0.12}Z"
-                    fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.04}"/>
-                <path d="M${s*0.14} ${s*0.68} Q${s*0.10} ${s*0.68} ${s*0.10} ${s*0.58} Q${s*0.10} ${s*0.48} ${s*0.22} ${s*0.48} Q${s*0.24} ${s*0.38} ${s*0.36} ${s*0.38} Q${s*0.46} ${s*0.30} ${s*0.56} ${s*0.36} Q${s*0.66} ${s*0.30} ${s*0.72} ${s*0.38} Q${s*0.82} ${s*0.38} ${s*0.82} ${s*0.48} Q${s*0.90} ${s*0.48} ${s*0.90} ${s*0.58} Q${s*0.90} ${s*0.68} ${s*0.78} ${s*0.68}Z"
-                    fill="#BBDEFB" stroke="#37474F" stroke-width="${s*0.042}" stroke-linejoin="round"/>
+                <path d="M ${s*0.58} ${s*0.08}
+                    A ${s*0.28} ${s*0.28} 0 1 1 ${s*0.58} ${s*0.56}
+                    A ${s*0.19} ${s*0.19} 0 1 0 ${s*0.58} ${s*0.08} Z"
+                    fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.04}" stroke-linejoin="round"/>
+                ${cloudPath(s*0.46, s*0.68, 0.88)}
             `);
 
             // ── Sol ──────────────────────────────────────────────────────────
@@ -817,9 +817,11 @@
 
             // ── Poco nublado noche ────────────────────────────────────────────
             const fewCloudsNightSvg = () => svg(`
-                <path d="M${s*0.55} ${s*0.14} Q${s*0.78} ${s*0.20} ${s*0.74} ${s*0.40} Q${s*0.55} ${s*0.36} ${s*0.55} ${s*0.14}Z"
-                    fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.04}"/>
-                ${cloudPath(s*0.52,s*0.62,0.88)}
+                <path d="M ${s*0.62} ${s*0.10}
+                    A ${s*0.22} ${s*0.22} 0 1 1 ${s*0.62} ${s*0.54}
+                    A ${s*0.15} ${s*0.15} 0 1 0 ${s*0.62} ${s*0.10} Z"
+                    fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.04}" stroke-linejoin="round"/>
+                ${cloudPath(s*0.46,s*0.65,0.88)}
             `);
 
             // ── Nublado ───────────────────────────────────────────────────────
