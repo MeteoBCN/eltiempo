@@ -606,14 +606,9 @@
         </div><!-- fin content-section -->
 
         <!-- PRÓXIMA LLUVIA -->
-        <div id="proxima-lluvia-section" style="max-width:600px;margin:0 auto;background:#fff;border-bottom:1px solid #e2e8f0;">
-            <div id="proxima-lluvia-box" style="padding:14px 20px;display:flex;align-items:center;gap:14px;">
-                <div style="font-size:28px;line-height:1;">🌧️</div>
-                <div>
-                    <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;">PRÓXIMA LLUVIA</div>
-                    <div id="proxima-lluvia-txt" style="font-size:14px;font-weight:600;color:#1e293b;">Calculando…</div>
-                </div>
-            </div>
+        <div id="proxima-lluvia-section" style="max-width:600px;margin:0 auto;background:linear-gradient(135deg,#1a3a5c 0%,#1e4976 50%,#1a3a5c 100%);padding:18px 20px;text-align:center;">
+            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">🌧️ PRÓXIMA LLUVIA</div>
+            <div id="proxima-lluvia-txt" style="font-size:16px;font-weight:600;color:#fff;">Calculando…</div>
         </div>
 
         <!-- ══════════════════════════════════════════════
@@ -1828,67 +1823,34 @@
 
         function updateProximaLluvia(hourly) {
             const el = document.getElementById('proxima-lluvia-txt');
-            const box = document.getElementById('proxima-lluvia-box');
             if (!el || !hourly?.time) return;
 
             const now = new Date();
-            const UMBRAL_PROB = 50;   // % mínimo para considerar lluvia
-            const UMBRAL_MM   = 0.1;  // mm mínimos
-
             let found = null;
             for (let i = 0; i < hourly.time.length; i++) {
                 const ht = new Date(hourly.time[i]);
                 if (ht < now) continue;
                 const prob = hourly.precipitation_probability?.[i] ?? 0;
                 const mm   = hourly.precipitation?.[i] ?? 0;
-                if (prob >= UMBRAL_PROB || mm >= UMBRAL_MM) {
-                    found = { ht, prob, mm };
-                    break;
-                }
+                if (prob >= 50 || mm >= 0.1) { found = ht; break; }
             }
 
             if (!found) {
                 el.textContent = 'Sin lluvia prevista en los próximos 7 días';
-                el.style.color = '#10b981';
-                box.querySelector('div').textContent = '☀️';
                 return;
             }
 
-            const diffMs = found.ht - now;
-            const diffH  = diffMs / 3600000;
-            const diffD  = Math.floor(diffH / 24);
-            const remH   = Math.round(diffH % 24);
+            const diffH = (found - now) / 3600000;
+            const diffD = Math.floor(diffH / 24);
+            const remH  = Math.round(diffH % 24);
 
-            // Formato tiempo relativo
-            let cuando = '';
-            if (diffH < 1) {
-                cuando = 'en menos de 1 hora';
-            } else if (diffH < 2) {
-                cuando = 'en aproximadamente 1 hora';
-            } else if (diffH < 24) {
-                cuando = `en ${Math.round(diffH)} horas`;
-            } else if (diffD === 1) {
-                cuando = remH > 0 ? `mañana (en 1 día y ${remH}h)` : 'mañana';
-            } else {
-                cuando = remH > 0 ? `en ${diffD} días y ${remH}h` : `en ${diffD} días`;
-            }
+            let cuando;
+            if (diffH < 1)       cuando = 'menos de 1 hora';
+            else if (diffH < 24) cuando = `${Math.round(diffH)} horas`;
+            else if (diffD === 1) cuando = remH > 0 ? `1 día y ${remH} horas` : '1 día';
+            else                  cuando = remH > 0 ? `${diffD} días y ${remH} horas` : `${diffD} días`;
 
-            // Hora exacta
-            const hora = found.ht.toLocaleTimeString('es-ES', { weekday:'short', hour:'2-digit', minute:'2-digit' });
-            const diaSem = found.ht.toLocaleDateString('es-ES', { weekday:'long' });
-            const horaStr = found.ht.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
-
-            const mmStr = found.mm >= 0.1 ? ` · ${found.mm.toFixed(1)} mm` : '';
-            el.innerHTML = `<span style="color:#1e293b;">${cuando}</span> <span style="color:#94a3b8;font-weight:400;font-size:12px;">(${diaSem} ${horaStr} · ${found.prob}%${mmStr})</span>`;
-
-            // Color según urgencia
-            if (diffH < 3) {
-                el.querySelector('span').style.color = '#ef4444';
-            } else if (diffH < 12) {
-                el.querySelector('span').style.color = '#f59e0b';
-            } else {
-                el.querySelector('span').style.color = '#3b82f6';
-            }
+            el.textContent = `Se espera lluvia en ${cuando}`;
         }
         async function loadWeatherData() {
             // ── Peticiones independientes: si una falla, las demás siguen ──
