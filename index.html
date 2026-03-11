@@ -1574,7 +1574,7 @@
 
             const dpr = window.devicePixelRatio || 1;
             const W = canvas.parentElement.clientWidth - 24;
-            const H = 130;
+            const H = 150;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -1582,7 +1582,8 @@
             const ctx = canvas.getContext('2d');
             ctx.scale(dpr, dpr);
 
-            const PAD = { top: 18, bottom: 32, left: 28, right: 10 };
+            // Padding: izquierda para eje temp, derecha para eje lluvia
+            const PAD = { top: 20, bottom: 32, left: 32, right: 36 };
             const cw = W - PAD.left - PAD.right;
             const ch = H - PAD.top - PAD.bottom;
 
@@ -1590,20 +1591,28 @@
             const tMin = Math.floor(Math.min(...temps)) - 1;
             const tMax = Math.ceil(Math.max(...temps)) + 1;
 
-            const xPos = (i) => PAD.left + (i / (slots.length - 1)) * cw;
+            const xPos  = (i) => PAD.left + (i / (slots.length - 1)) * cw;
             const yTemp = (t) => PAD.top + ch - ((t - tMin) / (tMax - tMin)) * ch;
+            const yProb = (p) => PAD.top + ch - (p / 100) * ch;
 
-            // ── Barras de prob lluvia ────────────────────────────────────────
-            const barW = Math.max(2, cw / slots.length - 2);
+            // ── Barras de prob lluvia — azul claro ───────────────────────────
+            const barW = Math.max(3, cw / slots.length - 1.5);
             slots.forEach((s, i) => {
                 if (!s.prob) return;
                 const barH = (s.prob / 100) * ch;
                 const x = xPos(i) - barW / 2;
-                ctx.fillStyle = `rgba(59,130,246,${0.15 + (s.prob/100)*0.35})`;
-                ctx.fillRect(x, PAD.top + ch - barH, barW, barH);
+                // Degradado azul claro
+                const gBar = ctx.createLinearGradient(0, PAD.top + ch - barH, 0, PAD.top + ch);
+                gBar.addColorStop(0, 'rgba(147,210,255,0.85)');
+                gBar.addColorStop(1, 'rgba(96,165,250,0.40)');
+                ctx.fillStyle = gBar;
+                ctx.beginPath();
+                ctx.roundRect ? ctx.roundRect(x, PAD.top + ch - barH, barW, barH, [2,2,0,0])
+                              : ctx.rect(x, PAD.top + ch - barH, barW, barH);
+                ctx.fill();
             });
 
-            // ── Línea temperatura — área rellena ────────────────────────────
+            // ── Área rellena temperatura ─────────────────────────────────────
             ctx.beginPath();
             ctx.moveTo(xPos(0), yTemp(slots[0].temp));
             for (let i = 1; i < slots.length; i++) {
@@ -1614,11 +1623,12 @@
             ctx.lineTo(xPos(0), PAD.top + ch);
             ctx.closePath();
             const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + ch);
-            grad.addColorStop(0, 'rgba(251,146,60,0.45)');
+            grad.addColorStop(0, 'rgba(251,146,60,0.50)');
             grad.addColorStop(1, 'rgba(251,146,60,0.04)');
             ctx.fillStyle = grad;
             ctx.fill();
 
+            // ── Línea temperatura ────────────────────────────────────────────
             ctx.beginPath();
             ctx.moveTo(xPos(0), yTemp(slots[0].temp));
             for (let i = 1; i < slots.length; i++) {
@@ -1630,32 +1640,29 @@
             ctx.lineJoin = 'round';
             ctx.stroke();
 
-            // ── Etiquetas hora + temp ────────────────────────────────────────
-            ctx.font = `bold ${10}px Inter,sans-serif`;
+            // ── Puntos + etiquetas hora + temp ───────────────────────────────
+            ctx.font = `bold 10px Inter,sans-serif`;
             ctx.textAlign = 'center';
             const step = Math.ceil(slots.length / 8);
             slots.forEach((s, i) => {
                 if (i % step !== 0 && i !== slots.length - 1) return;
                 const x = xPos(i), y = yTemp(s.temp);
-                // Punto
                 ctx.beginPath();
                 ctx.arc(x, y, 3, 0, Math.PI*2);
                 ctx.fillStyle = '#fb923c';
                 ctx.fill();
-                // Temp
                 ctx.fillStyle = '#ffffff';
                 ctx.fillText(Math.round(s.temp) + '°', x, y - 7);
-                // Hora
                 ctx.fillStyle = 'rgba(255,255,255,0.45)';
                 ctx.fillText(s.label, x, H - 6);
             });
 
-            // ── Eje temp izquierdo ───────────────────────────────────────────
+            // ── Eje temperatura izquierdo (naranja) ──────────────────────────
             ctx.textAlign = 'right';
-            ctx.fillStyle = 'rgba(255,255,255,0.3)';
-            ctx.font = `${9}px Inter,sans-serif`;
+            ctx.font = '9px Inter,sans-serif';
             [tMin, Math.round((tMin+tMax)/2), tMax].forEach(t => {
                 const y = yTemp(t);
+                ctx.fillStyle = 'rgba(251,146,60,0.7)';
                 ctx.fillText(t + '°', PAD.left - 4, y + 3);
                 ctx.beginPath();
                 ctx.moveTo(PAD.left, y);
@@ -1664,6 +1671,23 @@
                 ctx.lineWidth = 1;
                 ctx.stroke();
             });
+
+            // ── Eje prob lluvia derecho (azul claro) ─────────────────────────
+            ctx.textAlign = 'left';
+            ctx.font = '9px Inter,sans-serif';
+            [0, 50, 100].forEach(p => {
+                const y = yProb(p);
+                ctx.fillStyle = 'rgba(147,210,255,0.75)';
+                ctx.fillText(p + '%', PAD.left + cw + 4, y + 3);
+            });
+
+            // ── Leyenda ──────────────────────────────────────────────────────
+            ctx.font = 'bold 9px Inter,sans-serif';
+            ctx.fillStyle = 'rgba(251,146,60,0.8)';
+            ctx.textAlign = 'left';
+            ctx.fillText('● Temp', PAD.left, 12);
+            ctx.fillStyle = 'rgba(147,210,255,0.85)';
+            ctx.fillText('■ Lluvia %', PAD.left + 52, 12);
         }
 
         function drawWindSection(hourly) {
