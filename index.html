@@ -1519,24 +1519,24 @@
             const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
             const fechaStr=tDay.getDate()+' '+MESES[tDay.getMonth()];
 
-            // Icono único representativo: código más frecuente entre 08h y 18h
+            // Icono único representativo: código más severo entre 08h y 18h (usando strings para evitar UTC)
             function iconForDay() {
-                const codes = [];
+                const tDayStr = daily.time[off]; // "YYYY-MM-DD"
+                const severity = [0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
+                let best = null;
                 for(let i=0;i<hourly.time.length;i++){
-                    const ht=new Date(hourly.time[i]);
-                    if(ht.getDate()===tDay.getDate()&&ht.getMonth()===tDay.getMonth()&&ht.getHours()>=8&&ht.getHours()<18){
-                        const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
-                        codes.push({wmo:hourly.weather_code?.[i]??0, ht, cd});
+                    if(!hourly.time[i].startsWith(tDayStr)) continue;
+                    const h = parseInt(hourly.time[i].slice(11,13), 10);
+                    if(h < 8 || h >= 18) continue;
+                    const wmo = hourly.weather_code?.[i] ?? 0;
+                    if(!best || severity.indexOf(wmo) > severity.indexOf(best.wmo)){
+                        best = { wmo, i };
                     }
                 }
-                if(!codes.length) return '—';
-                const freq={};
-                codes.forEach(c=>{ freq[c.wmo]=(freq[c.wmo]||0)+1; });
-                const dominantWmo=parseInt(Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0]);
-                const usedCode=codes.find(c=>c.wmo===dominantWmo)||codes[Math.floor(codes.length/2)];
-                if(usedCode.wmo===45||usedCode.wmo===48) return getWiIcon(45, usedCode.ht, null, '1.8em', '#B0BEC5');
-                // No pasar cloudData: evita que la lógica de nubes rebaje códigos de lluvia/tormenta a soleado
-                return getWiIcon(usedCode.wmo, usedCode.ht, null, '1.8em', 'inherit');
+                if(!best) return '—';
+                const ht = new Date(now.getFullYear(), tDay.getMonth(), tDay.getDate(), parseInt(hourly.time[best.i].slice(11,13),10));
+                if(best.wmo===45||best.wmo===48) return getWiIcon(45, ht, null, '1.8em', '#B0BEC5');
+                return getWiIcon(best.wmo, ht, null, '1.8em', 'inherit');
             }
             const iconDia = iconForDay();
             const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
