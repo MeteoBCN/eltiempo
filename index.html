@@ -606,6 +606,16 @@
                     </div>
                 </div>
 
+                <!-- ÍNDICE DE CONFORT -->
+                <div id="confort-block" style="margin-top:18px;padding-top:16px;border-top:1px solid #e2e8f0;width:100%;">
+                    <div style="font-size:10px;font-weight:700;color:#64748B;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;text-align:center;">ÍNDICE DE CONFORT</div>
+                    <div style="background:#f1f5f9;border-radius:8px;height:8px;overflow:hidden;margin-bottom:8px;">
+                        <div id="confort-bar" style="height:100%;border-radius:8px;width:0%;transition:width 0.6s ease;"></div>
+                    </div>
+                    <div id="confort-label" style="font-size:15px;font-weight:700;text-align:center;color:#1E293B;">--</div>
+                    <div id="confort-detail" style="font-size:11px;color:#94A3B8;text-align:center;margin-top:3px;">--</div>
+                </div>
+
                 </div><!-- fin current-weather -->
             </div><!-- fin hero-zone -->
 
@@ -1720,6 +1730,47 @@
 
             el.textContent = cuando;
         }
+
+        function updateConfort(temp, humidity, windSpeed, apparentTemp) {
+            const bar   = document.getElementById('confort-bar');
+            const label = document.getElementById('confort-label');
+            const det   = document.getElementById('confort-detail');
+            if (!bar || temp == null) return;
+
+            // ── Puntuación base (0-100) desde sensación térmica ───────────────
+            // Rango ideal ~18-24°C → 100 pts, alejarse reduce
+            let score = 100 - Math.abs(apparentTemp - 21) * 4;
+
+            // ── Penalización por humedad ──────────────────────────────────────
+            if (humidity > 70)       score -= (humidity - 70) * 0.8;
+            else if (humidity < 30)  score -= (30 - humidity) * 0.5;
+
+            // ── Ajuste por viento ─────────────────────────────────────────────
+            if (temp > 22) {
+                // Calor: brisa ayuda, viento fuerte perjudica
+                if (windSpeed >= 10 && windSpeed <= 25) score += 5;
+                else if (windSpeed > 40)                score -= (windSpeed - 40) * 0.4;
+            } else {
+                // Frío: cualquier viento perjudica
+                score -= windSpeed * 0.3;
+            }
+
+            score = Math.max(0, Math.min(100, Math.round(score)));
+
+            // ── Nivel según puntuación ────────────────────────────────────────
+            let lvlLabel, color;
+            if      (score >= 80) { lvlLabel = 'Muy confortable'; color = '#3B82F6'; }
+            else if (score >= 60) { lvlLabel = 'Confortable';     color = '#10b981'; }
+            else if (score >= 40) { lvlLabel = 'Aceptable';       color = '#F59E0B'; }
+            else if (score >= 20) { lvlLabel = 'Incómodo';        color = '#f97316'; }
+            else                  { lvlLabel = 'Muy incómodo';    color = '#EF4444'; }
+
+            bar.style.width = score + '%';
+            bar.style.background = color;
+            label.textContent = lvlLabel;
+            label.style.color = color;
+            det.textContent = `${score}/100 · ${Math.round(apparentTemp)}° sensación · ${humidity}% humedad · ${Math.round(windSpeed)} km/h viento`;
+        }
         async function loadWeatherData() {
             // ── Peticiones independientes: si una falla, las demás siguen ──
             const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max&timezone=Europe/Madrid&forecast_days=7`;
@@ -1747,6 +1798,7 @@
                     }
                 }
                 updateCurrentWeather(data.current, data.current.weather_code, precipToday, data.hourly);
+                updateConfort(data.current.temperature_2m, data.current.relative_humidity_2m, data.current.wind_speed_10m, data.current.apparent_temperature);
                 updateHourlyStrip(data.hourly, data.daily);
                 updateFranjasTable(data.hourly, data.daily);
                 updateTodayTable(data.daily, data.hourly);
