@@ -767,29 +767,19 @@
             const svg = (content, vb=`0 0 ${s} ${s}`) =>
                 `<svg width="${s}" height="${s}" viewBox="${vb}" fill="none" xmlns="http://www.w3.org/2000/svg">${content}</svg>`;
 
-            // ── Estrella de 5 puntas ──────────────────────────────────────────
-            const star = (cx, cy, ro, ri) => {
-                const pts = [];
-                for(let k=0; k<10; k++){
-                    const ang = (k*Math.PI/5) - Math.PI/2;
-                    const r = k%2===0 ? ro : ri;
-                    pts.push(`${(cx+r*Math.cos(ang)).toFixed(1)},${(cy+r*Math.sin(ang)).toFixed(1)}`);
-                }
-                return `<polygon points="${pts.join(' ')}" fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.03}" stroke-linejoin="round"/>`;
-            };
-
-            // ── Cielo nocturno despejado: 3 estrellas ────────────────────────
+            // ── Luna llena gris ───────────────────────────────────────────────
             const moonSvg = () => svg(`
-                ${star(s*0.20, s*0.22, s*0.11, s*0.045)}
-                ${star(s*0.70, s*0.18, s*0.14, s*0.056)}
-                ${star(s*0.50, s*0.62, s*0.09, s*0.036)}
+                <circle cx="${h}" cy="${h}" r="${s*0.36}" fill="#E8E8E8" stroke="#9E9E9E" stroke-width="${s*0.04}"/>
+                <circle cx="${s*0.38}" cy="${s*0.36}" r="${s*0.07}" fill="#CACACA" opacity="0.7"/>
+                <circle cx="${s*0.60}" cy="${s*0.54}" r="${s*0.05}" fill="#CACACA" opacity="0.6"/>
+                <circle cx="${s*0.34}" cy="${s*0.60}" r="${s*0.04}" fill="#CACACA" opacity="0.5"/>
             `);
 
-            // ── Luna creciente + nube ─────────────────────────────────────────
-            // ── Noche nublada: 1 estrella + nube ─────────────────────────────
+            // ── Noche nublada: luna + nube ────────────────────────────────────
             const moonCloudSvg = () => svg(`
-                ${star(s*0.72, s*0.20, s*0.10, s*0.04)}
-                ${cloudPath(s*0.46, s*0.65, 0.92)}
+                <circle cx="${s*0.68}" cy="${s*0.28}" r="${s*0.20}" fill="#E8E8E8" stroke="#9E9E9E" stroke-width="${s*0.04}"/>
+                <circle cx="${s*0.61}" cy="${s*0.23}" r="${s*0.06}" fill="#CACACA" opacity="0.6"/>
+                ${cloudPath(s*0.44, s*0.67, 0.90)}
             `);
             // ── Sol ──────────────────────────────────────────────────────────
             const sunSvg = () => svg(`
@@ -822,12 +812,11 @@
                 ${cloudPath(s*0.57,s*0.6,0.9)}
             `);
 
-            // ── Poco nublado noche ────────────────────────────────────────────
-            // ── Poco nublado noche: 2 estrellas + nube ───────────────────────
+            // ── Poco nublado noche: luna pequeña + nube ─────────────────────
             const fewCloudsNightSvg = () => svg(`
-                ${star(s*0.22, s*0.18, s*0.09, s*0.036)}
-                ${star(s*0.65, s*0.15, s*0.11, s*0.044)}
-                ${cloudPath(s*0.50, s*0.63, 0.88)}
+                <circle cx="${s*0.70}" cy="${s*0.26}" r="${s*0.16}" fill="#E8E8E8" stroke="#9E9E9E" stroke-width="${s*0.04}"/>
+                <circle cx="${s*0.64}" cy="${s*0.21}" r="${s*0.05}" fill="#CACACA" opacity="0.6"/>
+                ${cloudPath(s*0.46, s*0.65, 0.88)}
             `);
             // ── Nublado ───────────────────────────────────────────────────────
             const cloudySvg   = () => svg(`${cloudPath(h,h*1.05)}`);
