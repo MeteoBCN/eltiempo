@@ -761,115 +761,135 @@
         };
 
 
-        // ══════ SVG ICONOS CABECERA (estilo ilustración moderna) ══════
-        function getSvgIcon(wmo, size=48) {
+        // ══════ SVG ICONOS (estilo ilustración moderna, día/noche) ══════
+        function getSvgIcon(wmo, size=48, night=false) {
             const s = size, h = s/2;
-            // Helpers
             const svg = (content, vb=`0 0 ${s} ${s}`) =>
                 `<svg width="${s}" height="${s}" viewBox="${vb}" fill="none" xmlns="http://www.w3.org/2000/svg">${content}</svg>`;
+
+            // ── Luna ─────────────────────────────────────────────────────────
+            const moonSvg = () => svg(`
+                <path d="M${h*1.1} ${s*0.18} Q${s*0.95} ${h} ${h*1.1} ${s*0.82} Q${s*0.18} ${s*0.78} ${s*0.22} ${h} Q${s*0.18} ${s*0.22} ${h*1.1} ${s*0.18}Z"
+                    fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.045}" stroke-linejoin="round"/>
+                <circle cx="${s*0.38}" cy="${s*0.35}" r="${s*0.045}" fill="#F9A825" opacity="0.5"/>
+                <circle cx="${s*0.28}" cy="${s*0.55}" r="${s*0.03}" fill="#F9A825" opacity="0.4"/>
+                <circle cx="${s*0.48}" cy="${s*0.62}" r="${s*0.035}" fill="#F9A825" opacity="0.45"/>
+            `);
+
+            // ── Luna + nube (noche nublada) ───────────────────────────────────
+            const moonCloudSvg = () => svg(`
+                <path d="M${s*0.62} ${s*0.12} Q${s*0.88} ${s*0.18} ${s*0.84} ${s*0.42} Q${s*0.62} ${s*0.38} ${s*0.62} ${s*0.12}Z"
+                    fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.04}"/>
+                <path d="M${s*0.14} ${s*0.68} Q${s*0.10} ${s*0.68} ${s*0.10} ${s*0.58} Q${s*0.10} ${s*0.48} ${s*0.22} ${s*0.48} Q${s*0.24} ${s*0.38} ${s*0.36} ${s*0.38} Q${s*0.46} ${s*0.30} ${s*0.56} ${s*0.36} Q${s*0.66} ${s*0.30} ${s*0.72} ${s*0.38} Q${s*0.82} ${s*0.38} ${s*0.82} ${s*0.48} Q${s*0.90} ${s*0.48} ${s*0.90} ${s*0.58} Q${s*0.90} ${s*0.68} ${s*0.78} ${s*0.68}Z"
+                    fill="#BBDEFB" stroke="#37474F" stroke-width="${s*0.042}" stroke-linejoin="round"/>
+            `);
 
             // ── Sol ──────────────────────────────────────────────────────────
             const sunSvg = () => svg(`
                 <circle cx="${h}" cy="${h}" r="${s*0.22}" fill="#FFD54F" stroke="#E65100" stroke-width="${s*0.045}"/>
                 ${[0,45,90,135,180,225,270,315].map(a=>{
-                    const r1=s*0.32, r2=s*0.42, rad=a*Math.PI/180;
-                    const x1=h+r1*Math.cos(rad), y1=h+r1*Math.sin(rad);
-                    const x2=h+r2*Math.cos(rad), y2=h+r2*Math.sin(rad);
+                    const r1=s*0.32,r2=s*0.42,rad=a*Math.PI/180;
+                    const x1=h+r1*Math.cos(rad),y1=h+r1*Math.sin(rad);
+                    const x2=h+r2*Math.cos(rad),y2=h+r2*Math.sin(rad);
                     return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#E65100" stroke-width="${s*0.045}" stroke-linecap="round"/>`;
                 }).join('')}
             `);
 
-            // ── Nube base (reutilizable) ──────────────────────────────────────
+            // ── Nube base ─────────────────────────────────────────────────────
             const cloudPath = (cx,cy,sc=1.0) => {
                 const u=s*sc*0.01;
-                const x=cx, y=cy;
+                const x=cx,y=cy;
                 return `<path d="M${x-18*u} ${y+10*u} Q${x-22*u} ${y+10*u} ${x-22*u} ${y+4*u} Q${x-22*u} ${y-4*u} ${x-14*u} ${y-4*u} Q${x-13*u} ${y-12*u} ${x-4*u} ${y-12*u} Q${x+4*u} ${y-18*u} ${x+12*u} ${y-14*u} Q${x+20*u} ${y-16*u} ${x+22*u} ${y-8*u} Q${x+28*u} ${y-8*u} ${x+28*u} ${y+2*u} Q${x+28*u} ${y+10*u} ${x+18*u} ${y+10*u} Z"
                     fill="#BBDEFB" stroke="#37474F" stroke-width="${s*0.042}" stroke-linejoin="round"/>`;
             };
 
-            // ── Poco nublado (sol + nube) ────────────────────────────────────
+            // ── Poco nublado día ──────────────────────────────────────────────
             const fewCloudsSvg = () => svg(`
                 <circle cx="${s*0.32}" cy="${s*0.35}" r="${s*0.18}" fill="#FFD54F" stroke="#E65100" stroke-width="${s*0.042}"/>
                 ${[0,60,120,180,240,300].map(a=>{
-                    const r1=s*0.24, r2=s*0.31, rad=a*Math.PI/180;
-                    const x1=s*0.32+r1*Math.cos(rad), y1=s*0.35+r1*Math.sin(rad);
-                    const x2=s*0.32+r2*Math.cos(rad), y2=s*0.35+r2*Math.sin(rad);
+                    const r1=s*0.24,r2=s*0.31,rad=a*Math.PI/180;
+                    const x1=s*0.32+r1*Math.cos(rad),y1=s*0.35+r1*Math.sin(rad);
+                    const x2=s*0.32+r2*Math.cos(rad),y2=s*0.35+r2*Math.sin(rad);
                     return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#E65100" stroke-width="${s*0.042}" stroke-linecap="round"/>`;
                 }).join('')}
-                ${cloudPath(s*0.57, s*0.6, 0.9)}
+                ${cloudPath(s*0.57,s*0.6,0.9)}
             `);
 
-            // ── Nublado (una nube grande) ────────────────────────────────────
-            const cloudySvg = () => svg(`${cloudPath(h, h*1.05)}`);
+            // ── Poco nublado noche ────────────────────────────────────────────
+            const fewCloudsNightSvg = () => svg(`
+                <path d="M${s*0.55} ${s*0.14} Q${s*0.78} ${s*0.20} ${s*0.74} ${s*0.40} Q${s*0.55} ${s*0.36} ${s*0.55} ${s*0.14}Z"
+                    fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.04}"/>
+                ${cloudPath(s*0.52,s*0.62,0.88)}
+            `);
 
-            // ── Muy nublado (dos nubes) ──────────────────────────────────────
+            // ── Nublado ───────────────────────────────────────────────────────
+            const cloudySvg   = () => svg(`${cloudPath(h,h*1.05)}`);
+
+            // ── Muy nublado ───────────────────────────────────────────────────
             const overcastSvg = () => svg(`
-                ${cloudPath(s*0.42, s*0.48, 0.85)}
-                ${cloudPath(s*0.58, s*0.62, 0.95)}
+                ${cloudPath(s*0.42,s*0.48,0.85)}
+                ${cloudPath(s*0.58,s*0.62,0.95)}
             `);
 
-            // ── Lluvia ───────────────────────────────────────────────────────
-            const rainDrops = (n=3, x0, y0, gap=10) => Array.from({length:n},(_,i)=>
+            // ── Gotas de lluvia ───────────────────────────────────────────────
+            const rainDrops = (n,x0,y0,gap) => Array.from({length:n},(_,i)=>
                 `<line x1="${(x0+i*gap).toFixed(1)}" y1="${y0.toFixed(1)}" x2="${(x0+i*gap-3).toFixed(1)}" y2="${(y0+s*0.18).toFixed(1)}" stroke="#1E88E5" stroke-width="${s*0.055}" stroke-linecap="round"/>`
             ).join('');
 
-            const rainSvg = () => svg(`
-                ${cloudPath(h, s*0.42)}
-                ${rainDrops(3, s*0.28, s*0.63, s*0.16)}
-            `);
+            const rainSvg    = () => svg(`${cloudPath(h,s*0.42)}${rainDrops(3,s*0.28,s*0.63,s*0.16)}`);
+            const showersSvg = () => svg(`${cloudPath(h,s*0.40)}${rainDrops(4,s*0.2,s*0.63,s*0.14)}`);
 
-            // ── Chubascos ────────────────────────────────────────────────────
-            const showersSvg = () => svg(`
-                ${cloudPath(h, s*0.40)}
-                ${rainDrops(4, s*0.2, s*0.63, s*0.14)}
-            `);
-
-            // ── Llovizna ─────────────────────────────────────────────────────
+            // ── Llovizna ──────────────────────────────────────────────────────
             const drizzleSvg = () => svg(`
-                ${cloudPath(h, s*0.42)}
+                ${cloudPath(h,s*0.42)}
                 ${Array.from({length:4},(_,i)=>
                     `<circle cx="${(s*0.22+i*s*0.19).toFixed(1)}" cy="${(s*0.72).toFixed(1)}" r="${s*0.035}" fill="#64B5F6"/>`
                 ).join('')}
             `);
 
-            // ── Tormenta ─────────────────────────────────────────────────────
+            // ── Tormenta ──────────────────────────────────────────────────────
             const thunderSvg = () => svg(`
-                ${cloudPath(h, s*0.38)}
+                ${cloudPath(h,s*0.38)}
                 <polygon points="${h},${s*0.58} ${h-s*0.1},${s*0.75} ${h+s*0.04},${s*0.72} ${h-s*0.06},${s*0.92} ${h+s*0.14},${s*0.68} ${h},${s*0.72}"
                     fill="#FFD54F" stroke="#E65100" stroke-width="${s*0.03}" stroke-linejoin="round"/>
             `);
 
-            // ── Nieve ────────────────────────────────────────────────────────
+            // ── Nieve ─────────────────────────────────────────────────────────
             const snowSvg = () => svg(`
-                ${cloudPath(h, s*0.42)}
+                ${cloudPath(h,s*0.42)}
                 ${Array.from({length:3},(_,i)=>{
-                    const cx=s*0.25+i*s*0.25, cy=s*0.73, r=s*0.055;
+                    const cx=s*0.25+i*s*0.25,cy=s*0.73,r=s*0.055;
                     return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#90CAF9" stroke="#1565C0" stroke-width="${s*0.03}"/>
                     <line x1="${cx}" y1="${cy-r*2}" x2="${cx}" y2="${cy+r*2}" stroke="#90CAF9" stroke-width="${s*0.035}" stroke-linecap="round"/>
                     <line x1="${cx-r*1.6}" y1="${cy}" x2="${cx+r*1.6}" y2="${cy}" stroke="#90CAF9" stroke-width="${s*0.035}" stroke-linecap="round"/>`;
                 }).join('')}
             `);
 
-            // ── Niebla ───────────────────────────────────────────────────────
+            // ── Niebla ────────────────────────────────────────────────────────
             const fogSvg = () => svg(`
                 ${[0,1,2,3,4].map(i=>{
-                    const y=s*0.28+i*s*0.11, w=i%2===0?0.7:0.55, xo=i%2===0?0.15:0.22;
+                    const y=s*0.28+i*s*0.11,w=i%2===0?0.7:0.55,xo=i%2===0?0.15:0.22;
                     return `<line x1="${s*xo}" y1="${y}" x2="${s*(xo+w)}" y2="${y}" stroke="#B0BEC5" stroke-width="${s*0.055}" stroke-linecap="round"/>`;
                 }).join('')}
             `);
 
-            // ── Mapa WMO → icono ─────────────────────────────────────────────
-            if(wmo===0)                          return sunSvg();
-            if(wmo===1)                          return fewCloudsSvg();
-            if(wmo===2)                          return fewCloudsSvg();
-            if(wmo===3)                          return overcastSvg();
-            if(wmo===45||wmo===48)               return fogSvg();
-            if(wmo>=51&&wmo<=55)                 return drizzleSvg();
-            if(wmo>=61&&wmo<=65)                 return rainSvg();
-            if(wmo>=71&&wmo<=77)                 return snowSvg();
-            if(wmo>=80&&wmo<=82)                 return showersSvg();
-            if(wmo>=85&&wmo<=86)                 return snowSvg();
-            if(wmo>=95&&wmo<=99)                 return thunderSvg();
+            // ── Mapa WMO → icono (día/noche) ──────────────────────────────────
+            if(wmo===45||wmo===48) return fogSvg();
+            if(wmo>=71&&wmo<=77)   return snowSvg();
+            if(wmo>=85&&wmo<=86)   return snowSvg();
+            if(wmo>=95&&wmo<=99)   return thunderSvg();
+            if(wmo>=51&&wmo<=55)   return drizzleSvg();
+            if(wmo>=61&&wmo<=65)   return rainSvg();
+            if(wmo>=80&&wmo<=82)   return showersSvg();
+            // Códigos cielo: varían según noche
+            if(night){
+                if(wmo===0)        return moonSvg();
+                if(wmo===1||wmo===2) return fewCloudsNightSvg();
+                return moonCloudSvg();
+            }
+            if(wmo===0)            return sunSvg();
+            if(wmo===1||wmo===2)   return fewCloudsSvg();
+            if(wmo===3)            return overcastSvg();
             return cloudySvg();
         }
         // ══════ FIN SVG ICONOS ══════
@@ -955,7 +975,8 @@
                 const esNoche = (f.tipo === 'noche' || f.tipo === 'madrugada');
                 const iconDt = new Date(f.fecha + 'T' + (esNoche ? '23' : String(Math.floor((f.h0+f.h1)/2)).padStart(2,'0')) + ':00:00');
                 const cd = { cloud_cover: hourly.cloud_cover?.[mi], cloud_cover_low: hourly.cloud_cover_low?.[mi], cloud_cover_mid: hourly.cloud_cover_mid?.[mi] };
-                const icon = getSvgIcon(hourly.weather_code?.[mi] ?? 0, 40);
+                const esNocheIcon = (f.tipo==='noche'||f.tipo==='madrugada');
+                const icon = getSvgIcon(hourly.weather_code?.[mi] ?? 0, 40, esNocheIcon);
 
                 // Lluvia total
                 const precip = ids.reduce((s,i) => s + (hourly.precipitation?.[i]||0), 0).toFixed(1);
@@ -1386,7 +1407,7 @@
                     const wmo=hourly.weather_code?.[i]??0;
                     if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd:{cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]}};
                 }
-                return best ? getSvgIcon(best.wmo, 32) : '—';
+                return best ? getSvgIcon(best.wmo, 32, isNightTime(best.ht)) : '—';
             }
             const hoyIconManana=hoyIconForRange(8,13);
             const hoyIconTarde=hoyIconForRange(13,18);
@@ -1481,7 +1502,7 @@
                 }
                 const night = isNightTime(ht);
                 const iconMap = night ? WMO_EMOJI_NIGHT : WMO_EMOJI_DAY;
-                const icon = getSvgIcon(isFog ? 45 : effectiveWmo, 36);
+                const icon = getSvgIcon(isFog ? 45 : effectiveWmo, 36, night);
                 const temp = Math.round(hourly.temperature_2m?.[idx] ?? 0);
                 const ws = Math.round(hourly.wind_speed_10m?.[idx] ?? 0);
                 const wd = hourly.wind_direction_10m?.[idx] ?? 0;
@@ -1573,7 +1594,7 @@
                 cloud_cover_mid: hourly.cloud_cover_mid?.[closestIdx],
                 cloud_cover_high: hourly.cloud_cover_high?.[closestIdx]
             } : {cloud_cover: current.cloud_cover};
-            document.getElementById('current-icon').innerHTML=getSvgIcon(weatherCode, 72);
+            document.getElementById('current-icon').innerHTML=getSvgIcon(weatherCode, 72, isNightTime(now));
             document.getElementById('pressure').textContent=Math.round(current.pressure_msl)+' hPa';
             document.getElementById('humidity').textContent=current.relative_humidity_2m+'%';
             document.getElementById('wind').textContent=Math.round(current.wind_speed_10m)+' km/h';
@@ -1605,7 +1626,7 @@
                 const ht=new Date(hourly.time[idx]);
                 const cd={cloud_cover:hourly.cloud_cover?.[idx],cloud_cover_low:hourly.cloud_cover_low?.[idx],cloud_cover_mid:hourly.cloud_cover_mid?.[idx]};
                 const row=document.createElement('tr');
-                row.innerHTML=`<td class="table-hour">${formatHour(hourly.time[idx])}</td><td class="table-icon">${getSvgIcon(hourly.weather_code[idx], 36)}</td><td class="table-temp">${Math.round(hourly.temperature_2m[idx])}°C</td><td class="table-rain">${(hourly.precipitation?.[idx]||0).toFixed(1)} mm</td><td class="table-wind">${Math.round(hourly.wind_speed_10m[idx])} km/h</td>`;
+                row.innerHTML=`<td class="table-hour">${formatHour(hourly.time[idx])}</td><td class="table-icon">${getSvgIcon(hourly.weather_code[idx], 36, isNightTime(ht))}</td><td class="table-temp">${Math.round(hourly.temperature_2m[idx])}°C</td><td class="table-rain">${(hourly.precipitation?.[idx]||0).toFixed(1)} mm</td><td class="table-wind">${Math.round(hourly.wind_speed_10m[idx])} km/h</td>`;
                 tbody.appendChild(row);
             }
         }
@@ -1756,7 +1777,7 @@
                     else if(isRainCode&&precipProb<50) effectiveWmo=3;
                 }
                 const iconMap=isNight?{0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'}:{0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
-                const ico=getSvgIcon(isFog?45:effectiveWmo, 36);
+                const ico=getSvgIcon(isFog?45:effectiveWmo, 36, isNight);
                 const temp=hourly.temperature_2m?.[i]!==undefined?Math.round(hourly.temperature_2m[i])+'°':'--';
                 const feels=hourly.apparent_temperature?.[i]!==undefined?Math.round(hourly.apparent_temperature[i])+'°':'--';
                 const hum=hourly.relative_humidity_2m?.[i]!==undefined?hourly.relative_humidity_2m[i]+'%':'--';
