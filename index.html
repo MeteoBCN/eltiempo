@@ -1286,12 +1286,12 @@
                     if(ht.getHours()<8||ht.getHours()>=18) continue;
                     const wmoRaw=hourly.weather_code?.[i]??0;
                     const precipProb=hourly.precipitation_probability?.[i]??0;
-                    const isRainCode=(wmoRaw>=51&&wmoRaw<=82)||(wmoRaw>=85&&wmoRaw<=86)||(wmoRaw>=95&&wmoRaw<=99);
+                    const isRainCodeRaw=(wmoRaw>=51&&wmoRaw<=82)||(wmoRaw>=85&&wmoRaw<=86)||(wmoRaw>=95&&wmoRaw<=99);
                     const isFogRaw=(wmoRaw===45||wmoRaw===48);
                     let wmo=wmoRaw;
                     if(!isFogRaw){
-                        if(!isRainCode&&precipProb>=50) wmo=80;
-                        else if(isRainCode&&precipProb<50) wmo=3;
+                        if(!isRainCodeRaw&&precipProb>=50) wmo=80;
+                        else if(isRainCodeRaw&&precipProb<50) wmo=3;
                     }
                     const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
                     codes.push({wmo,ht,cd});
@@ -1301,8 +1301,8 @@
                 codes.forEach(c=>{ freq[c.wmo]=(freq[c.wmo]||0)+1; });
                 const dominantWmo=parseInt(Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0]);
                 const usedCode=codes.find(c=>c.wmo===dominantWmo)||codes[Math.floor(codes.length/2)];
-                if(usedCode.wmo===45||usedCode.wmo===48) return getWiIcon(45,usedCode.ht,null,'1.8em','#B0BEC5');
-                return getWiIcon(usedCode.wmo,usedCode.ht,null,'1.8em','inherit');
+                if(usedCode.wmo===45||usedCode.wmo===48) return getWiIcon(45,usedCode.ht,null,'2.4em','#B0BEC5');
+                return getWiIcon(usedCode.wmo,usedCode.ht,null,'2.4em','inherit');
             }
             const hoyIconDia=hoyIconForDay();
 
@@ -1329,7 +1329,7 @@
             hoyHead.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div style="display:flex;gap:6px;align-items:center;">
-                        <span style="font-size:28px;line-height:1;">${hoyIconDia}</span>
+                        <span style="font-size:1px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">${hoyIconDia}</span>
                     </div>
                     <div>
                         <div style="font-size:19px;font-weight:700;color:#2C3E50;letter-spacing:0.5px;">${hoyNombre.toUpperCase()} <span style="font-size:14px;font-weight:400;color:#94A3B8;">${hoyFechaStr}</span></div>
@@ -1356,13 +1356,12 @@
                 const isNow = pos === 0;
                 const wmo = hourly.weather_code?.[idx] ?? 0;
                 const precipProb = hourly.precipitation_probability?.[idx] ?? 0;
-                // Si el código implica precipitación pero la probabilidad es <50%, usar nublado
                 const isFog = (wmo===45||wmo===48);
                 const isRainCode = (wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
-                let effectiveWmo=wmo;
+                let effectiveWmo = wmo;
                 if(!isFog){
-                    if(!isRainCode&&precipProb>=50) effectiveWmo=80;
-                    else if(isRainCode&&precipProb<50) effectiveWmo=3;
+                    if(!isRainCode && precipProb>=50) effectiveWmo=80;
+                    else if(isRainCode && precipProb<50) effectiveWmo=3;
                 }
                 const night = isNightTime(ht);
                 const iconMap = night ? WMO_EMOJI_NIGHT : WMO_EMOJI_DAY;
@@ -1544,12 +1543,12 @@
                     if(h < 8 || h >= 18) continue;
                     const wmoRaw = hourly.weather_code?.[i] ?? 0;
                     const precipProb = hourly.precipitation_probability?.[i] ?? 0;
-                    const isRainCode = (wmoRaw>=51&&wmoRaw<=82)||(wmoRaw>=85&&wmoRaw<=86)||(wmoRaw>=95&&wmoRaw<=99);
+                    const isRainCodeRaw = (wmoRaw>=51&&wmoRaw<=82)||(wmoRaw>=85&&wmoRaw<=86)||(wmoRaw>=95&&wmoRaw<=99);
                     const isFogRaw = (wmoRaw===45||wmoRaw===48);
                     let wmo = wmoRaw;
                     if(!isFogRaw){
-                        if(!isRainCode && precipProb>=50) wmo=80;
-                        else if(isRainCode && precipProb<50) wmo=3;
+                        if(!isRainCodeRaw && precipProb>=50) wmo=80;
+                        else if(isRainCodeRaw && precipProb<50) wmo=3;
                     }
                     if(!best || severity.indexOf(wmo) > severity.indexOf(best.wmo)){
                         best = { wmo, i };
@@ -1557,8 +1556,8 @@
                 }
                 if(!best) return '—';
                 const ht = new Date(now.getFullYear(), tDay.getMonth(), tDay.getDate(), parseInt(hourly.time[best.i].slice(11,13),10));
-                if(best.wmo===45||best.wmo===48) return getWiIcon(45, ht, null, '1.8em', '#B0BEC5');
-                return getWiIcon(best.wmo, ht, null, '1.8em', 'inherit');
+                if(best.wmo===45||best.wmo===48) return getWiIcon(45, ht, null, '2.4em', '#B0BEC5');
+                return getWiIcon(best.wmo, ht, null, '2.4em', 'inherit');
             }
             const iconDia = iconForDay();
             const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
@@ -1666,7 +1665,7 @@
             head.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div class="day-head-icon" style="display:flex;gap:6px;align-items:center;">
-                        <span style="font-size:28px;line-height:1;">${iconDia}</span>
+                        <span style="font-size:1px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">${iconDia}</span>
                     </div>
                     <div>
                         <div class="day-head-title" style="font-size:19px;font-weight:700;color:#2C3E50;transition:color 0.4s;letter-spacing:0.5px;">${dn.toUpperCase()} <span class="day-head-date" style="font-size:14px;font-weight:400;color:#94A3B8;transition:color 0.4s;">${fechaStr}</span></div>
