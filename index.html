@@ -605,6 +605,17 @@
 
         </div><!-- fin content-section -->
 
+        <!-- PRÓXIMA LLUVIA -->
+        <div id="proxima-lluvia-section" style="max-width:600px;margin:0 auto;background:#fff;border-bottom:1px solid #e2e8f0;">
+            <div id="proxima-lluvia-box" style="padding:14px 20px;display:flex;align-items:center;gap:14px;">
+                <div style="font-size:28px;line-height:1;">🌧️</div>
+                <div>
+                    <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;">PRÓXIMA LLUVIA</div>
+                    <div id="proxima-lluvia-txt" style="font-size:14px;font-weight:600;color:#1e293b;">Calculando…</div>
+                </div>
+            </div>
+        </div>
+
         <!-- ══════════════════════════════════════════════
              PREVISIÓN HORARIA
         ═══════════════════════════════════════════════ -->
@@ -1814,6 +1825,71 @@
             tableDiv.innerHTML = rows;
         }
 
+
+        function updateProximaLluvia(hourly) {
+            const el = document.getElementById('proxima-lluvia-txt');
+            const box = document.getElementById('proxima-lluvia-box');
+            if (!el || !hourly?.time) return;
+
+            const now = new Date();
+            const UMBRAL_PROB = 50;   // % mínimo para considerar lluvia
+            const UMBRAL_MM   = 0.1;  // mm mínimos
+
+            let found = null;
+            for (let i = 0; i < hourly.time.length; i++) {
+                const ht = new Date(hourly.time[i]);
+                if (ht < now) continue;
+                const prob = hourly.precipitation_probability?.[i] ?? 0;
+                const mm   = hourly.precipitation?.[i] ?? 0;
+                if (prob >= UMBRAL_PROB || mm >= UMBRAL_MM) {
+                    found = { ht, prob, mm };
+                    break;
+                }
+            }
+
+            if (!found) {
+                el.textContent = 'Sin lluvia prevista en los próximos 7 días';
+                el.style.color = '#10b981';
+                box.querySelector('div').textContent = '☀️';
+                return;
+            }
+
+            const diffMs = found.ht - now;
+            const diffH  = diffMs / 3600000;
+            const diffD  = Math.floor(diffH / 24);
+            const remH   = Math.round(diffH % 24);
+
+            // Formato tiempo relativo
+            let cuando = '';
+            if (diffH < 1) {
+                cuando = 'en menos de 1 hora';
+            } else if (diffH < 2) {
+                cuando = 'en aproximadamente 1 hora';
+            } else if (diffH < 24) {
+                cuando = `en ${Math.round(diffH)} horas`;
+            } else if (diffD === 1) {
+                cuando = remH > 0 ? `mañana (en 1 día y ${remH}h)` : 'mañana';
+            } else {
+                cuando = remH > 0 ? `en ${diffD} días y ${remH}h` : `en ${diffD} días`;
+            }
+
+            // Hora exacta
+            const hora = found.ht.toLocaleTimeString('es-ES', { weekday:'short', hour:'2-digit', minute:'2-digit' });
+            const diaSem = found.ht.toLocaleDateString('es-ES', { weekday:'long' });
+            const horaStr = found.ht.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
+
+            const mmStr = found.mm >= 0.1 ? ` · ${found.mm.toFixed(1)} mm` : '';
+            el.innerHTML = `<span style="color:#1e293b;">${cuando}</span> <span style="color:#94a3b8;font-weight:400;font-size:12px;">(${diaSem} ${horaStr} · ${found.prob}%${mmStr})</span>`;
+
+            // Color según urgencia
+            if (diffH < 3) {
+                el.querySelector('span').style.color = '#ef4444';
+            } else if (diffH < 12) {
+                el.querySelector('span').style.color = '#f59e0b';
+            } else {
+                el.querySelector('span').style.color = '#3b82f6';
+            }
+        }
         async function loadWeatherData() {
             // ── Peticiones independientes: si una falla, las demás siguen ──
             const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max&timezone=Europe/Madrid&forecast_days=7`;
@@ -1850,6 +1926,7 @@
                 updateRainTable(data.hourly, data.daily);
                 updateDaysTable(data.hourly, data.daily);
                 updateDaysSummary(data.hourly, data.daily);
+                updateProximaLluvia(data.hourly);
                 drawTempRainChart(data.hourly);
                 drawWindSection(data.hourly);
                 updateTime();
