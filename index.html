@@ -1283,12 +1283,16 @@
                     const ht=new Date(hourly.time[i]);
                     if(ht.getDate()!==now.getDate()||ht.getMonth()!==now.getMonth()) continue;
                     if(ht.getHours()<8||ht.getHours()>=18) continue;
-                    const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
                     const wmoRaw=hourly.weather_code?.[i]??0;
-                    // Si es código de lluvia/tormenta/nieve pero prob < 50%, tratar como nublado
                     const precipProb=hourly.precipitation_probability?.[i]??0;
                     const isRainCode=(wmoRaw>=51&&wmoRaw<=82)||(wmoRaw>=85&&wmoRaw<=86)||(wmoRaw>=95&&wmoRaw<=99);
-                    const wmo=(isRainCode&&precipProb<50)?3:wmoRaw;
+                    const isFog=(wmoRaw===45||wmoRaw===48);
+                    let wmo=wmoRaw;
+                    if(!isFog){
+                        if(!isRainCode&&precipProb>=50) wmo=80;
+                        else if(isRainCode&&precipProb<50) wmo=3;
+                    }
+                    const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
                     codes.push({wmo,ht,cd});
                 }
                 if(!codes.length) return '—';
@@ -1351,10 +1355,15 @@
                 const isNow = pos === 0;
                 const wmo = hourly.weather_code?.[idx] ?? 0;
                 const precipProb = hourly.precipitation_probability?.[idx] ?? 0;
-                // Si el código implica precipitación pero la probabilidad es <50%, usar nublado
                 const isFog = (wmo===45||wmo===48);
                 const isRainCode = (wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
-                const effectiveWmo = (isRainCode && precipProb < 50) ? 3 : wmo;
+                // Si prob>=50% y el WMO no indica lluvia → forzar chubascos (80)
+                // Si prob<50% y el WMO indica lluvia → degradar a nublado (3)
+                let effectiveWmo = wmo;
+                if (!isFog) {
+                    if (!isRainCode && precipProb >= 50) effectiveWmo = 80;
+                    else if (isRainCode && precipProb < 50) effectiveWmo = 3;
+                }
                 const night = isNightTime(ht);
                 const iconMap = night ? WMO_EMOJI_NIGHT : WMO_EMOJI_DAY;
                 const icon = isFog ? getWiIcon(45, ht, null, '1.6em', '#ffffff') : getWiIcon(effectiveWmo, ht, null, '1.6em', '#ffffff');
@@ -1534,10 +1543,14 @@
                     const h = parseInt(hourly.time[i].slice(11,13), 10);
                     if(h < 8 || h >= 18) continue;
                     const wmoRaw = hourly.weather_code?.[i] ?? 0;
-                    // Si es código de lluvia/tormenta/nieve pero prob < 50%, tratar como nublado
                     const precipProb = hourly.precipitation_probability?.[i] ?? 0;
                     const isRainCode = (wmoRaw>=51&&wmoRaw<=82)||(wmoRaw>=85&&wmoRaw<=86)||(wmoRaw>=95&&wmoRaw<=99);
-                    const wmo = (isRainCode && precipProb < 50) ? 3 : wmoRaw;
+                    const isFog = (wmoRaw===45||wmoRaw===48);
+                    let wmo = wmoRaw;
+                    if(!isFog){
+                        if(!isRainCode && precipProb>=50) wmo=80;
+                        else if(isRainCode && precipProb<50) wmo=3;
+                    }
                     if(!best || severity.indexOf(wmo) > severity.indexOf(best.wmo)){
                         best = { wmo, i };
                     }
@@ -1604,7 +1617,13 @@
                 const precipProb=hourly.precipitation_probability?.[i]??0;
                 const isFog=(wmo===45||wmo===48);
                 const isRainCode=(wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
-                const effectiveWmo=(isRainCode&&precipProb<50)?3:wmo;
+                // Si prob>=50% y WMO no indica lluvia → forzar chubascos (80)
+                // Si prob<50% y WMO indica lluvia → degradar a nublado (3)
+                let effectiveWmo=wmo;
+                if(!isFog){
+                    if(!isRainCode&&precipProb>=50) effectiveWmo=80;
+                    else if(isRainCode&&precipProb<50) effectiveWmo=3;
+                }
                 const iconMap=isNight?{0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'}:{0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
                 const ico=isFog?getWiIcon(45,ht,null,'1.6em','#ffffff'):getWiIcon(effectiveWmo,ht,null,'1.6em','#ffffff');
                 const temp=hourly.temperature_2m?.[i]!==undefined?Math.round(hourly.temperature_2m[i])+'°':'--';
