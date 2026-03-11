@@ -607,7 +607,7 @@
 
         <!-- PRÓXIMA LLUVIA -->
         <div id="proxima-lluvia-section" style="max-width:600px;margin:0 auto;background:linear-gradient(135deg,#1a3a5c 0%,#1e4976 50%,#1a3a5c 100%);padding:18px 20px;text-align:center;">
-            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">🌧️ PRÓXIMA LLUVIA</div>
+            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">🌧️ SE ESPERA LLUVIA EN</div>
             <div id="proxima-lluvia-txt" style="font-size:16px;font-weight:600;color:#fff;">Calculando…</div>
         </div>
 
@@ -1836,7 +1836,8 @@
             }
 
             if (!found) {
-                el.textContent = 'Sin lluvia prevista en los próximos 7 días';
+                el.textContent = 'Sin lluvia en los próximos 7 días';
+                document.querySelector('#proxima-lluvia-section > div:first-child').textContent = '☀️ SIN LLUVIA PREVISTA';
                 return;
             }
 
@@ -1850,7 +1851,7 @@
             else if (diffD === 1) cuando = remH > 0 ? `1 día y ${remH} horas` : '1 día';
             else                  cuando = remH > 0 ? `${diffD} días y ${remH} horas` : `${diffD} días`;
 
-            el.textContent = `Se espera lluvia en ${cuando}`;
+            el.textContent = cuando;
         }
         async function loadWeatherData() {
             // ── Peticiones independientes: si una falla, las demás siguen ──
