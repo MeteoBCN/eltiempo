@@ -1284,7 +1284,12 @@
                     if(ht.getDate()!==now.getDate()||ht.getMonth()!==now.getMonth()) continue;
                     if(ht.getHours()<8||ht.getHours()>=18) continue;
                     const cd={cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]};
-                    codes.push({wmo:hourly.weather_code?.[i]??0,ht,cd});
+                    const wmoRaw=hourly.weather_code?.[i]??0;
+                    // Si es código de lluvia/tormenta/nieve pero prob < 50%, tratar como nublado
+                    const precipProb=hourly.precipitation_probability?.[i]??0;
+                    const isRainCode=(wmoRaw>=51&&wmoRaw<=82)||(wmoRaw>=85&&wmoRaw<=86)||(wmoRaw>=95&&wmoRaw<=99);
+                    const wmo=(isRainCode&&precipProb<50)?3:wmoRaw;
+                    codes.push({wmo,ht,cd});
                 }
                 if(!codes.length) return '—';
                 const freq={};
@@ -1528,7 +1533,11 @@
                     if(!hourly.time[i].startsWith(tDayStr)) continue;
                     const h = parseInt(hourly.time[i].slice(11,13), 10);
                     if(h < 8 || h >= 18) continue;
-                    const wmo = hourly.weather_code?.[i] ?? 0;
+                    const wmoRaw = hourly.weather_code?.[i] ?? 0;
+                    // Si es código de lluvia/tormenta/nieve pero prob < 50%, tratar como nublado
+                    const precipProb = hourly.precipitation_probability?.[i] ?? 0;
+                    const isRainCode = (wmoRaw>=51&&wmoRaw<=82)||(wmoRaw>=85&&wmoRaw<=86)||(wmoRaw>=95&&wmoRaw<=99);
+                    const wmo = (isRainCode && precipProb < 50) ? 3 : wmoRaw;
                     if(!best || severity.indexOf(wmo) > severity.indexOf(best.wmo)){
                         best = { wmo, i };
                     }
