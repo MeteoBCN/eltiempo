@@ -750,7 +750,7 @@
             95:'wi-thunderstorm', 96:'wi-thunderstorm', 99:'wi-thunderstorm'
         };
         const WI_NIGHT = {
-            0:'wi-night-clear', 1:'wi-night-alt-partly-cloudy', 2:'wi-night-alt-cloudy', 3:'wi-cloudy',
+            0:'wi-night-alt-cloudy', 1:'wi-night-alt-cloudy', 2:'wi-night-alt-cloudy', 3:'wi-cloudy',
             45:'wi-night-fog', 48:'wi-night-fog',
             51:'wi-night-alt-sprinkle', 53:'wi-night-alt-sprinkle', 55:'wi-night-alt-rain',
             61:'wi-night-alt-rain', 63:'wi-night-alt-rain', 65:'wi-night-alt-rain-wind',
@@ -769,7 +769,7 @@
                 if (rc<10) code=1; else if (rc<40) code=2; else code=3;
             }
             const night = dateTime && isNightTime(dateTime);
-            const cls = (night ? WI_NIGHT[code] : WI_DAY[code]) || (night ? 'wi-night-clear' : 'wi-day-sunny');
+            const cls = (night ? WI_NIGHT[code] : WI_DAY[code]) || (night ? 'wi-night-alt-cloudy' : 'wi-day-sunny');
             return `<i class="wi ${cls}" style="font-size:${size};color:${color};"></i>`;
         }
 
@@ -1292,7 +1292,7 @@
                 const dominantWmo=parseInt(Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0]);
                 const usedCode=codes.find(c=>c.wmo===dominantWmo)||codes[Math.floor(codes.length/2)];
                 if(usedCode.wmo===45||usedCode.wmo===48) return getWiIcon(45,usedCode.ht,null,'1.8em','#B0BEC5');
-                return getWiIcon(usedCode.wmo,usedCode.ht,usedCode.cd,'1.8em','inherit');
+                return getWiIcon(usedCode.wmo,usedCode.ht,null,'1.8em','inherit');
             }
             const hoyIconDia=hoyIconForDay();
 
@@ -1535,7 +1535,8 @@
                 const dominantWmo=parseInt(Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0]);
                 const usedCode=codes.find(c=>c.wmo===dominantWmo)||codes[Math.floor(codes.length/2)];
                 if(usedCode.wmo===45||usedCode.wmo===48) return getWiIcon(45, usedCode.ht, null, '1.8em', '#B0BEC5');
-                return getWiIcon(usedCode.wmo, usedCode.ht, usedCode.cd, '1.8em', 'inherit');
+                // No pasar cloudData: evita que la lógica de nubes rebaje códigos de lluvia/tormenta a soleado
+                return getWiIcon(usedCode.wmo, usedCode.ht, null, '1.8em', 'inherit');
             }
             const iconDia = iconForDay();
             const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
