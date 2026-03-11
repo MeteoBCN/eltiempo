@@ -767,29 +767,30 @@
             const svg = (content, vb=`0 0 ${s} ${s}`) =>
                 `<svg width="${s}" height="${s}" viewBox="${vb}" fill="none" xmlns="http://www.w3.org/2000/svg">${content}</svg>`;
 
-            // ── Luna creciente (clipPath) ─────────────────────────────────────
-            const moonSvg = () => { const id='mc'+Math.random().toString(36).slice(2,7); return svg(`
-                <defs>
-                  <clipPath id="${id}">
-                    <circle cx="${h}" cy="${h}" r="${s*0.36}"/>
-                  </clipPath>
-                </defs>
-                <circle cx="${h}" cy="${h}" r="${s*0.36}" fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.045}"/>
-                <circle cx="${h*1.55}" cy="${h}" r="${s*0.32}" fill="#1a2a3a" clip-path="url(#${id})"/>
-            `);};
+            // ── Estrella de 5 puntas ──────────────────────────────────────────
+            const star = (cx, cy, ro, ri) => {
+                const pts = [];
+                for(let k=0; k<10; k++){
+                    const ang = (k*Math.PI/5) - Math.PI/2;
+                    const r = k%2===0 ? ro : ri;
+                    pts.push(`${(cx+r*Math.cos(ang)).toFixed(1)},${(cy+r*Math.sin(ang)).toFixed(1)}`);
+                }
+                return `<polygon points="${pts.join(' ')}" fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.03}" stroke-linejoin="round"/>`;
+            };
+
+            // ── Cielo nocturno despejado: 3 estrellas ────────────────────────
+            const moonSvg = () => svg(`
+                ${star(s*0.20, s*0.22, s*0.11, s*0.045)}
+                ${star(s*0.70, s*0.18, s*0.14, s*0.056)}
+                ${star(s*0.50, s*0.62, s*0.09, s*0.036)}
+            `);
 
             // ── Luna creciente + nube ─────────────────────────────────────────
-            const moonCloudSvg = () => { const id='mc'+Math.random().toString(36).slice(2,7); return svg(`
-                <defs>
-                  <clipPath id="${id}">
-                    <circle cx="${s*0.62}" cy="${s*0.3}" r="${s*0.24}"/>
-                  </clipPath>
-                </defs>
-                <circle cx="${s*0.62}" cy="${s*0.3}" r="${s*0.24}" fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.04}"/>
-                <circle cx="${s*0.78}" cy="${s*0.3}" r="${s*0.21}" fill="#1a2a3a" clip-path="url(#${id})"/>
-                ${cloudPath(s*0.46, s*0.68, 0.88)}
-            `);};
-
+            // ── Noche nublada: 1 estrella + nube ─────────────────────────────
+            const moonCloudSvg = () => svg(`
+                ${star(s*0.72, s*0.20, s*0.10, s*0.04)}
+                ${cloudPath(s*0.46, s*0.65, 0.92)}
+            `);
             // ── Sol ──────────────────────────────────────────────────────────
             const sunSvg = () => svg(`
                 <circle cx="${h}" cy="${h}" r="${s*0.22}" fill="#FFD54F" stroke="#E65100" stroke-width="${s*0.045}"/>
@@ -822,17 +823,12 @@
             `);
 
             // ── Poco nublado noche ────────────────────────────────────────────
-            const fewCloudsNightSvg = () => { const id='mc'+Math.random().toString(36).slice(2,7); return svg(`
-                <defs>
-                  <clipPath id="${id}">
-                    <circle cx="${s*0.65}" cy="${s*0.28}" r="${s*0.2}"/>
-                  </clipPath>
-                </defs>
-                <circle cx="${s*0.65}" cy="${s*0.28}" r="${s*0.2}" fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.04}"/>
-                <circle cx="${s*0.79}" cy="${s*0.28}" r="${s*0.17}" fill="#1a2a3a" clip-path="url(#${id})"/>
-                ${cloudPath(s*0.46,s*0.65,0.88)}
-            `);};
-
+            // ── Poco nublado noche: 2 estrellas + nube ───────────────────────
+            const fewCloudsNightSvg = () => svg(`
+                ${star(s*0.22, s*0.18, s*0.09, s*0.036)}
+                ${star(s*0.65, s*0.15, s*0.11, s*0.044)}
+                ${cloudPath(s*0.50, s*0.63, 0.88)}
+            `);
             // ── Nublado ───────────────────────────────────────────────────────
             const cloudySvg   = () => svg(`${cloudPath(h,h*1.05)}`);
 
