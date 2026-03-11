@@ -767,22 +767,28 @@
             const svg = (content, vb=`0 0 ${s} ${s}`) =>
                 `<svg width="${s}" height="${s}" viewBox="${vb}" fill="none" xmlns="http://www.w3.org/2000/svg">${content}</svg>`;
 
-            // ── Luna creciente ────────────────────────────────────────────────
-            const moonSvg = () => svg(`
-                <path d="M ${h} ${s*0.12}
-                    A ${s*0.38} ${s*0.38} 0 1 1 ${h} ${s*0.88}
-                    A ${s*0.26} ${s*0.26} 0 1 0 ${h} ${s*0.12} Z"
-                    fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.045}" stroke-linejoin="round"/>
-            `);
+            // ── Luna creciente (clipPath) ─────────────────────────────────────
+            const moonSvg = () => { const id='mc'+Math.random().toString(36).slice(2,7); return svg(`
+                <defs>
+                  <clipPath id="${id}">
+                    <circle cx="${h}" cy="${h}" r="${s*0.36}"/>
+                  </clipPath>
+                </defs>
+                <circle cx="${h}" cy="${h}" r="${s*0.36}" fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.045}"/>
+                <circle cx="${h*1.55}" cy="${h}" r="${s*0.32}" fill="#1a2a3a" clip-path="url(#${id})"/>
+            `);};
 
             // ── Luna creciente + nube ─────────────────────────────────────────
-            const moonCloudSvg = () => svg(`
-                <path d="M ${s*0.58} ${s*0.08}
-                    A ${s*0.28} ${s*0.28} 0 1 1 ${s*0.58} ${s*0.56}
-                    A ${s*0.19} ${s*0.19} 0 1 0 ${s*0.58} ${s*0.08} Z"
-                    fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.04}" stroke-linejoin="round"/>
+            const moonCloudSvg = () => { const id='mc'+Math.random().toString(36).slice(2,7); return svg(`
+                <defs>
+                  <clipPath id="${id}">
+                    <circle cx="${s*0.62}" cy="${s*0.3}" r="${s*0.24}"/>
+                  </clipPath>
+                </defs>
+                <circle cx="${s*0.62}" cy="${s*0.3}" r="${s*0.24}" fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.04}"/>
+                <circle cx="${s*0.78}" cy="${s*0.3}" r="${s*0.21}" fill="#1a2a3a" clip-path="url(#${id})"/>
                 ${cloudPath(s*0.46, s*0.68, 0.88)}
-            `);
+            `);};
 
             // ── Sol ──────────────────────────────────────────────────────────
             const sunSvg = () => svg(`
@@ -816,13 +822,16 @@
             `);
 
             // ── Poco nublado noche ────────────────────────────────────────────
-            const fewCloudsNightSvg = () => svg(`
-                <path d="M ${s*0.62} ${s*0.10}
-                    A ${s*0.22} ${s*0.22} 0 1 1 ${s*0.62} ${s*0.54}
-                    A ${s*0.15} ${s*0.15} 0 1 0 ${s*0.62} ${s*0.10} Z"
-                    fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.04}" stroke-linejoin="round"/>
+            const fewCloudsNightSvg = () => { const id='mc'+Math.random().toString(36).slice(2,7); return svg(`
+                <defs>
+                  <clipPath id="${id}">
+                    <circle cx="${s*0.65}" cy="${s*0.28}" r="${s*0.2}"/>
+                  </clipPath>
+                </defs>
+                <circle cx="${s*0.65}" cy="${s*0.28}" r="${s*0.2}" fill="#FFF9C4" stroke="#F9A825" stroke-width="${s*0.04}"/>
+                <circle cx="${s*0.79}" cy="${s*0.28}" r="${s*0.17}" fill="#1a2a3a" clip-path="url(#${id})"/>
                 ${cloudPath(s*0.46,s*0.65,0.88)}
-            `);
+            `);};
 
             // ── Nublado ───────────────────────────────────────────────────────
             const cloudySvg   = () => svg(`${cloudPath(h,h*1.05)}`);
