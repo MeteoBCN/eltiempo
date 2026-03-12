@@ -715,13 +715,12 @@
             <canvas id="temp-rain-chart" style="width:100%;display:block;"></canvas>
         </div>
 
-        <!-- DESPLEGABLE LLUVIA -->
+        <!-- LLUVIA (siempre visible) -->
         <div style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <div id="toggle-rain" onclick="toggleChart('rain')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#1a2a3a;cursor:pointer;user-select:none;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#1a2a3a;">
                 <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">LLUVIA</span>
-                <span id="arrow-rain" style="color:rgba(255,255,255,0.5);font-size:12px;transition:transform 0.3s;">▼</span>
             </div>
-            <div id="panel-rain" style="display:none;background:#1a2a3a;padding:0 12px 12px;">
+            <div id="panel-rain" style="display:block;background:#1a2a3a;padding:0 12px 12px;">
                 <canvas id="rain-chart" style="width:100%;display:block;"></canvas>
             </div>
         </div>
@@ -2015,6 +2014,7 @@
                 updateDaysSummary(data.hourly, data.daily);
                 updateProximaLluvia(data.hourly);
                 drawTempRainChart(data.hourly);
+                drawRainChart(data.hourly);
                 _hourlyCache = data.hourly;
                 updateTime();
             } catch(e) { console.error('Error procesando datos:',e); }
@@ -2665,7 +2665,7 @@
                 const lblEl = document.getElementById('aqi-label'); if (lblEl) { lblEl.textContent = level.label; lblEl.style.color = level.color; }
                 const badgeEl = document.getElementById('aqi-badge'); if (badgeEl) { badgeEl.style.background = level.bg; badgeEl.style.borderColor = level.color+'60'; }
                 const subEl = document.getElementById('aqi-sublabel'); if (subEl) subEl.textContent = level.sublabel;
-                const advEl = document.getElementById('aqi-advice'); if (advEl) { advEl.textContent = '💡 '+level.advice; advEl.style.borderLeftColor = level.color; }
+                const advEl = document.getElementById('aqi-advice'); if (advEl) { advEl.textContent = level.advice; advEl.style.borderLeftColor = level.color; }
                 setLight('aqi-light-red',    '#7f1d1d', null);
                 setLight('aqi-light-yellow', '#713f12', null);
                 setLight('aqi-light-green',  '#14532d', null);
