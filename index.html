@@ -2767,72 +2767,87 @@
             setInterval(loadAQI, 5*60*1000);
         })();
         /* ══════ FIN SEMÁFORO ══════ */
-        /* ══════ FASE LUNAR + MAREAS ══════ */
+        /* ══════ FASE LUNAR ══════ */
         (function() {
-            // Cálculo de fase lunar (algoritmo astronómico simplificado)
             function getMoonPhase(date) {
-                const known = new Date(2000, 0, 6, 18, 14, 0); // Luna nueva conocida
+                const known = new Date(2000, 0, 6, 18, 14, 0); // Luna nueva de referencia verificada
                 const diff  = (date - known) / (1000 * 60 * 60 * 24);
                 const cycle = 29.53058867;
                 const age   = ((diff % cycle) + cycle) % cycle;
+                // Iluminación: 0% en luna nueva, 100% en luna llena, correcto matemáticamente
                 const illum = Math.round((1 - Math.cos(2 * Math.PI * age / cycle)) / 2 * 100);
 
-                let name, shadow;
-                if      (age < 1.85)  { name = 'Luna nueva';        shadow = 'full'; }
-                else if (age < 7.38)  { name = 'Cuarto creciente';  shadow = 'waxing'; }
-                else if (age < 9.22)  { name = 'Luna llena';        shadow = 'none'; }
-                else if (age < 14.77) { name = 'Cuarto menguante';  shadow = 'waning'; }
-                else if (age < 16.61) { name = 'Luna llena';        shadow = 'none'; }
-                else if (age < 22.15) { name = 'Cuarto menguante';  shadow = 'waning'; }
-                else if (age < 23.99) { name = 'Luna nueva';        shadow = 'full'; }
-                else                  { name = 'Cuarto creciente';  shadow = 'waxing'; }
+                // Fases con umbrales correctos sobre el ciclo de 29.53 días:
+                // 0-1.85   → Luna nueva       (ilum ~0%)
+                // 1.85-7.38 → Creciente       (ilum 1-49%)
+                // 7.38-8.07 → Cuarto creciente (ilum ~50%)
+                // 8.07-14.19 → Gibosa creciente (ilum 51-99%)
+                // 14.19-15.38 → Luna llena    (ilum ~100%)
+                // 15.38-21.48 → Gibosa menguante (ilum 99-51%)
+                // 21.48-22.15 → Cuarto menguante (ilum ~50%)
+                // 22.15-27.68 → Menguante     (ilum 49-1%)
+                // 27.68-29.53 → Luna nueva    (ilum ~0%)
 
-                // Días para próxima luna llena / nueva
-                const toFull = cycle / 2 - (age % (cycle / 2));
-                return { age, illum, name, shadow, toFull: Math.round(toFull) };
+                let name, shadow;
+                if      (age < 1.85)   { name = 'Luna nueva';         shadow = 'new'; }
+                else if (age < 7.38)   { name = 'Luna creciente';     shadow = 'waxing'; }
+                else if (age < 8.07)   { name = 'Cuarto creciente';   shadow = 'waxing'; }
+                else if (age < 14.19)  { name = 'Gibosa creciente';   shadow = 'waxing'; }
+                else if (age < 15.38)  { name = 'Luna llena';         shadow = 'full'; }
+                else if (age < 21.48)  { name = 'Gibosa menguante';   shadow = 'waning'; }
+                else if (age < 22.15)  { name = 'Cuarto menguante';   shadow = 'waning'; }
+                else if (age < 27.68)  { name = 'Luna menguante';     shadow = 'waning'; }
+                else                   { name = 'Luna nueva';         shadow = 'new'; }
+
+                const daysToFull = age < 14.77 ? 14.77 - age : 14.77 + (cycle - age);
+                const daysToNew  = age < 29.53 ? cycle - age : 0;
+                return { age, illum, name, shadow, daysToFull: Math.round(daysToFull), daysToNew: Math.round(daysToNew) };
             }
 
             function drawMoonShadow(phase) {
                 const el = document.getElementById('moon-shadow');
                 if (!el) return;
                 const cx = 35, cy = 35, r = 28;
-                if (phase.shadow === 'none') { el.innerHTML = ''; return; }
-                if (phase.shadow === 'full') { el.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(5,10,25,0.92)"/>`; return; }
-                // Sombra parcial con elipse
-                const frac = phase.illum / 100;
-                const rx   = r * Math.abs(1 - 2 * frac);
-                const side = phase.shadow === 'waxing' ? 1 : -1;
-                el.innerHTML = `
-                    <rect x="${cx - r}" y="${cy - r}" width="${r}" height="${r * 2}" fill="rgba(5,10,25,0.92)"/>
-                    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${r}" fill="rgba(5,10,25,0.92)" transform="scale(${side},1) translate(${-cx*(side-1)},0)"/>`;
+
+                if (phase.shadow === 'new') {
+                    // Luna nueva: totalmente oscura
+                    el.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(5,10,25,0.93)"/>`;
+                    return;
+                }
+                if (phase.shadow === 'full') {
+                    // Luna llena: sin sombra
+                    el.innerHTML = '';
+                    return;
+                }
+
+                // Creciente (waxing): iluminado el lado derecho
+                // Menguante (waning): iluminado el lado izquierdo
+                // La elipse de sombra tiene rx proporcional a lo NO iluminado
+                const frac = phase.illum / 100; // 0=nueva, 1=llena
+                // rx de la elipse oscura: máximo en nueva (r), 0 en llena
+                const rx = r * Math.abs(0.5 - frac) * 2;
+
+                if (phase.shadow === 'waxing') {
+                    // Sombra cubre el lado izquierdo + elipse en el centro
+                    el.innerHTML = `
+                        <rect x="${cx - r}" y="${cy - r}" width="${r}" height="${r * 2}" fill="rgba(5,10,25,0.93)"/>
+                        <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${r}" fill="rgba(5,10,25,0.93)"/>`;
+                } else {
+                    // Menguante: sombra cubre el lado derecho + elipse en el centro
+                    el.innerHTML = `
+                        <rect x="${cx}" y="${cy - r}" width="${r}" height="${r * 2}" fill="rgba(5,10,25,0.93)"/>
+                        <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${r}" fill="rgba(5,10,25,0.93)"/>`;
+                }
             }
 
             function moonAdvice(phase) {
-                if (phase.shadow === 'none') return 'Luna llena esta noche. Iluminación máxima, ideal para actividades nocturnas en la costa.';
-                if (phase.shadow === 'full') return 'Luna nueva. Cielo nocturno oscuro, excelente para observación de estrellas.';
-                if (phase.age < 14.77) return `Luna en cuarto creciente. Próxima luna llena en unos ${phase.toFull} días.`;
-                return 'Luna en cuarto menguante. El cielo nocturno irá oscureciéndose en los próximos días.';
-            }
-
-            // Mareas simplificadas para Barcelona (Mediterráneo semidiurno muy pequeño)
-            function calcTides(date) {
-                const known = new Date(2000, 0, 6, 18, 14, 0);
-                const diff  = (date - known) / (1000 * 60 * 60 * 24);
-                const cycle = 29.53058867;
-                const age   = ((diff % cycle) + cycle) % cycle;
-                // Periodo semidiurno ~12h 25min + modulación lunar
-                const base  = 12.42; // horas
-                const t0    = (age / cycle) * 24; // hora de pleamar referencia
-                const tides = [];
-                for (let i = 0; i < 4; i++) {
-                    const h = (t0 + i * base) % 24;
-                    const isHigh = i % 2 === 0;
-                    // Amplitud lunar: ±15-25cm en Barcelona
-                    const amp = isHigh ? +(0.15 + (Math.sin(age / cycle * 2 * Math.PI) * 0.05)).toFixed(2)
-                                       : -(0.10 + (Math.sin(age / cycle * 2 * Math.PI) * 0.03)).toFixed(2);
-                    tides.push({ h: Math.floor(h), m: Math.round((h % 1) * 60), type: isHigh ? 'pleamar' : 'bajamar', cm: Math.round(Math.abs(amp) * 100) });
+                switch(phase.shadow) {
+                    case 'new':    return `Luna nueva. Noche muy oscura, ideal para observar estrellas. Próxima luna llena en ${phase.daysToFull} días.`;
+                    case 'full':   return 'Luna llena. Iluminación máxima, el cielo nocturno estará muy brillante.';
+                    case 'waxing': return `Luna en fase creciente (${phase.illum}% iluminada). Luna llena en ${phase.daysToFull} días.`;
+                    case 'waning': return `Luna en fase menguante (${phase.illum}% iluminada). Luna nueva en ${phase.daysToNew} días.`;
+                    default:       return '';
                 }
-                return tides.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
             }
 
             function pad(n) { return String(n).padStart(2, '0'); }
