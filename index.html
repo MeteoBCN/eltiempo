@@ -694,19 +694,6 @@
 
 
         <!-- ══════════════════════════════════════════════
-             SECCIÓN POLEN Y ALERGIAS
-        ═══════════════════════════════════════════════ -->
-        <div id="pollen-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;background:linear-gradient(180deg,#f0fdf4 0%,#dcfce7 40%,#f0fdf4 100%);">
-            <div style="padding:14px 20px 16px;">
-                <div style="font-size:10px;font-weight:700;color:#14532d;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;text-align:center;">Polen &amp; Alergias</div>
-                <div id="pollen-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-                    <div style="text-align:center;color:#86efac;font-size:12px;grid-column:1/-1;padding:8px;">Cargando datos de polen…</div>
-                </div>
-                <div id="pollen-advice" style="margin-top:12px;font-size:11px;color:#14532d;line-height:1.5;border-left:3px solid #4ade80;padding-left:8px;display:none;"></div>
-            </div>
-        </div>
-
-        <!-- ══════════════════════════════════════════════
              PREVISIÓN HORARIA
         ═══════════════════════════════════════════════ -->
         <div class="hourly-section">
@@ -767,6 +754,51 @@
             </div>
         </div>
         <!-- ══════════════════════════════════════════════
+             FASE LUNAR
+        ═══════════════════════════════════════════════ -->
+        <div id="luna-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;background:linear-gradient(180deg,#0a0f1e 0%,#0f1a2e 50%,#0a0f1e 100%);">
+            <div style="padding:14px 20px 18px;">
+                <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;text-align:center;">Fase Lunar</div>
+                <div style="display:flex;align-items:center;gap:20px;">
+                    <!-- Luna SVG -->
+                    <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px;">
+                        <svg id="moon-svg" width="70" height="70" viewBox="0 0 70 70">
+                            <defs>
+                                <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#fef9c3"/>
+                                    <stop offset="100%" stop-color="#fbbf24"/>
+                                </radialGradient>
+                                <clipPath id="moonClip"><circle cx="35" cy="35" r="28"/></clipPath>
+                            </defs>
+                            <circle cx="35" cy="35" r="33" fill="none" stroke="rgba(251,191,36,0.12)" stroke-width="4"/>
+                            <circle cx="35" cy="35" r="28" fill="url(#moonGlow)" opacity="0.95"/>
+                            <g id="moon-shadow" clip-path="url(#moonClip)"></g>
+                            <circle cx="28" cy="30" r="4" fill="rgba(0,0,0,0.06)"/>
+                            <circle cx="42" cy="40" r="3" fill="rgba(0,0,0,0.05)"/>
+                            <circle cx="34" cy="44" r="2" fill="rgba(0,0,0,0.04)"/>
+                        </svg>
+                        <div id="moon-phase-name" style="font-size:10px;font-weight:700;color:#fbbf24;text-align:center;letter-spacing:0.5px;">--</div>
+                        <div id="moon-illumination" style="font-size:9px;color:rgba(255,255,255,0.35);">Iluminación: --%</div>
+                    </div>
+                    <!-- Datos lunares -->
+                    <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:9px;text-align:center;">
+                                <div style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Salida luna</div>
+                                <div id="moonrise-val" style="font-size:16px;font-weight:800;color:#fbbf24;">--:--</div>
+                            </div>
+                            <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:9px;text-align:center;">
+                                <div style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Puesta luna</div>
+                                <div id="moonset-val" style="font-size:16px;font-weight:800;color:#94a3b8;">--:--</div>
+                            </div>
+                        </div>
+                        <div id="moon-advice" style="font-size:11px;color:#94a3b8;line-height:1.4;border-left:3px solid rgba(251,191,36,0.4);padding-left:8px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════
              PREVISIÓN PRÓXIMOS DÍAS
         ═══════════════════════════════════════════════ -->
         <div class="weather-table-container" style="margin-top: 0;">
@@ -797,61 +829,6 @@
         </div>
 
 
-
-        <!-- ══════════════════════════════════════════════
-             FASE LUNAR + MAREAS
-        ═══════════════════════════════════════════════ -->
-        <div id="luna-mareas-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;background:linear-gradient(180deg,#0a0f1e 0%,#0f1a2e 50%,#0a0f1e 100%);">
-            <div style="padding:14px 20px 18px;">
-                <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;text-align:center;">Fase Lunar &amp; Mareas</div>
-
-                <div style="display:flex;align-items:center;gap:20px;margin-bottom:18px;">
-
-                    <!-- Luna SVG -->
-                    <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px;">
-                        <svg id="moon-svg" width="70" height="70" viewBox="0 0 70 70">
-                            <defs>
-                                <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
-                                    <stop offset="0%" stop-color="#fef9c3"/>
-                                    <stop offset="100%" stop-color="#fbbf24"/>
-                                </radialGradient>
-                                <clipPath id="moonClip"><circle cx="35" cy="35" r="28"/></clipPath>
-                            </defs>
-                            <circle cx="35" cy="35" r="33" fill="none" stroke="rgba(251,191,36,0.12)" stroke-width="4"/>
-                            <circle cx="35" cy="35" r="28" fill="url(#moonGlow)" opacity="0.95"/>
-                            <g id="moon-shadow" clip-path="url(#moonClip)"></g>
-                            <circle cx="28" cy="30" r="4" fill="rgba(0,0,0,0.06)"/>
-                            <circle cx="42" cy="40" r="3" fill="rgba(0,0,0,0.05)"/>
-                            <circle cx="34" cy="44" r="2" fill="rgba(0,0,0,0.04)"/>
-                        </svg>
-                        <div id="moon-phase-name" style="font-size:10px;font-weight:700;color:#fbbf24;text-align:center;letter-spacing:0.5px;">--</div>
-                        <div id="moon-illumination" style="font-size:9px;color:rgba(255,255,255,0.35);">Iluminación: --%</div>
-                    </div>
-
-                    <!-- Datos lunares -->
-                    <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                            <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:9px;text-align:center;">
-                                <div style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Salida luna</div>
-                                <div id="moonrise-val" style="font-size:16px;font-weight:800;color:#fbbf24;">--:--</div>
-                            </div>
-                            <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:9px;text-align:center;">
-                                <div style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Puesta luna</div>
-                                <div id="moonset-val" style="font-size:16px;font-weight:800;color:#94a3b8;">--:--</div>
-                            </div>
-                        </div>
-                        <div id="moon-advice" style="font-size:11px;color:#94a3b8;line-height:1.4;border-left:3px solid rgba(251,191,36,0.4);padding-left:8px;"></div>
-                    </div>
-                </div>
-
-                <!-- Mareas -->
-                <div style="font-size:9px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Mareas hoy — Puerto de Barcelona</div>
-                <div id="mareas-strip" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
-                    <div style="text-align:center;color:rgba(255,255,255,0.2);font-size:11px;grid-column:1/-1;padding:4px;">Calculando…</div>
-                </div>
-                <div style="margin-top:10px;font-size:10px;color:rgba(255,255,255,0.2);text-align:center;font-style:italic;">* Mareas estimadas. El Mediterráneo tiene rango de marea muy reducido (±20 cm).</div>
-            </div>
-        </div>
 
         <div class="webcam-container">
             <span class="webcam-label">WEBCAM / VILA OLÍMPICA</span>
@@ -1594,8 +1571,12 @@
             const hoyTp = hoyDailyIdx!==-1 && daily?.precipitation_sum
                 ? Math.round((daily.precipitation_sum[hoyDailyIdx]||0)*10)/10
                 : Math.round(slots.reduce((s,i)=>s+(hourly.precipitation?.[i]||0),0)*10)/10;
-            const hoyAw=hoyWs.length?Math.round(hoyWs.reduce((a,b)=>a+b,0)/hoyWs.length):0;
-            const hoyAwd=hoyWd.length?Math.round(hoyWd.reduce((a,b)=>a+b,0)/hoyWd.length):0;
+            const hoyAw = hoyDailyIdx!==-1 && daily?.wind_speed_10m_max?.[hoyDailyIdx] != null
+                ? Math.round(daily.wind_speed_10m_max[hoyDailyIdx])
+                : (hoyWs.length ? Math.round(Math.max(...hoyWs)) : 0);
+            const hoyAwd = hoyDailyIdx!==-1 && daily?.wind_direction_10m_dominant?.[hoyDailyIdx] != null
+                ? Math.round(daily.wind_direction_10m_dominant[hoyDailyIdx])
+                : (hoyWd.length ? Math.round(hoyWd.reduce((a,b)=>a+b,0)/hoyWd.length) : 0);
             function hoyWindDir(deg){return['N','NE','E','SE','S','SO','O','NO'][Math.round((deg||0)/45)%8];}
             function hoyUviLevel(v){if(!v&&v!==0)return{lbl:'--'};const n=Math.round(v);if(n<=2)return{lbl:'Bajo'};if(n<=5)return{lbl:'Moderado'};if(n<=7)return{lbl:'Alto'};if(n<=10)return{lbl:'Muy alto'};return{lbl:'Extremo'};}
 
@@ -1680,7 +1661,7 @@
                             <br>
                             <span>Prob. lluvia: ${daily?.precipitation_probability_max?.[0]??'--'}%</span>
                             <br>
-                            <span>${hoyAw} km/h ${hoyWindDir(hoyAwd)}</span>
+                            <span>Viento máx: ${hoyAw} km/h ${hoyWindDir(hoyAwd)}</span>
                             <br>
                             <span>SOL: ${hoySr} a ${hoySs}</span><br>
                             <span>Horas de sol: ${hoyLuzStr}</span>
@@ -2860,115 +2841,28 @@
                 const now   = new Date();
                 const phase = getMoonPhase(now);
 
-                // Nombre
                 const nameEl = document.getElementById('moon-phase-name');
                 if (nameEl) nameEl.textContent = phase.name;
 
-                // Iluminación
                 const illumEl = document.getElementById('moon-illumination');
                 if (illumEl) illumEl.textContent = `Iluminación: ${phase.illum}%`;
 
-                // Sombra
                 drawMoonShadow(phase);
 
-                // Consejo
                 const advEl = document.getElementById('moon-advice');
                 if (advEl) advEl.textContent = moonAdvice(phase);
 
-                // Salida/puesta luna (aproximación sencilla por fase)
                 const riseH  = Math.round((phase.age / 29.53) * 24 + 18) % 24;
                 const setH   = (riseH + 12) % 24;
                 const riseEl = document.getElementById('moonrise-val');
                 const setEl  = document.getElementById('moonset-val');
                 if (riseEl) riseEl.textContent = `${pad(riseH)}:00`;
                 if (setEl)  setEl.textContent  = `${pad(setH)}:00`;
-
-                // Mareas
-                const tides   = calcTides(now);
-                const stripEl = document.getElementById('mareas-strip');
-                if (stripEl) {
-                    stripEl.innerHTML = tides.map(t => {
-                        const col   = t.type === 'pleamar' ? '#38bdf8' : '#64748b';
-                        const arrow = t.type === 'pleamar' ? '▲' : '▼';
-                        return `<div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:8px 4px;text-align:center;border:1px solid rgba(255,255,255,0.06);">
-                            <div style="font-size:9px;color:${col};font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">${arrow} ${t.type}</div>
-                            <div style="font-size:15px;font-weight:800;color:#e2e8f0;">${pad(t.h)}:${pad(t.m)}</div>
-                            <div style="font-size:9px;color:rgba(255,255,255,0.25);margin-top:2px;">${t.cm} cm</div>
-                        </div>`;
-                    }).join('');
-                }
             }
 
             renderMoon();
         })();
-        /* ══════ FIN FASE LUNAR + MAREAS ══════ */
-
-        /* ══════ SECCIÓN POLEN Y ALERGIAS ══════ */
-        (function() {
-            const POLLEN_TYPES = [
-                { key: 'grass_pollen',  label: 'Gramíneas' },
-                { key: 'olive_pollen',  label: 'Olivo'     },
-                { key: 'birch_pollen',  label: 'Abedul'    },
-            ];
-
-            function getPollenLevel(val) {
-                if (val === null || val === undefined) return { label: 'Sin datos', color: '#94a3b8', bg: 'rgba(148,163,184,0.12)' };
-                if (val < 10)  return { label: 'Bajo',     color: '#22c55e', bg: 'rgba(34,197,94,0.10)'   };
-                if (val < 50)  return { label: 'Moderado', color: '#eab308', bg: 'rgba(234,179,8,0.10)'   };
-                if (val < 200) return { label: 'Alto',     color: '#f97316', bg: 'rgba(249,115,22,0.10)'  };
-                return             { label: 'Muy alto', color: '#ef4444', bg: 'rgba(239,68,68,0.10)'   };
-            }
-
-            function getOverallAdvice(entries) {
-                const maxVal = Math.max(...entries.map(e => e.val ?? 0));
-                if (maxVal < 10)  return 'Niveles de polen bajos. Día favorable para personas alérgicas.';
-                if (maxVal < 50)  return 'Polen moderado. Personas sensibles pueden notar síntomas leves.';
-                if (maxVal < 200) return 'Polen alto. Se recomienda medicación preventiva y reducir la exposición al exterior.';
-                return 'Niveles muy elevados. Evita espacios abiertos y mantén ventanas cerradas.';
-            }
-
-            async function loadPollen() {
-                const grid = document.getElementById('pollen-grid');
-                const advEl = document.getElementById('pollen-advice');
-                try {
-                    const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=grass_pollen,olive_pollen,birch_pollen&timezone=Europe/Madrid`;
-                    const res = await fetch(url);
-                    const data = await res.json();
-                    const cur = data?.current || {};
-
-                    const entries = POLLEN_TYPES.map(p => ({ ...p, val: cur[p.key] ?? null }));
-                    const hasAny = entries.some(e => e.val !== null);
-
-                    if (!hasAny) { grid.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:12px;grid-column:1/-1;padding:8px;">Datos no disponibles para esta zona.</div>'; return; }
-
-                    grid.innerHTML = entries.map(e => {
-                        const lv = getPollenLevel(e.val);
-                        const valTxt = e.val !== null ? Math.round(e.val) : '—';
-                        return `
-                        <div style="background:${lv.bg};border-radius:10px;padding:10px 8px;text-align:center;border:1px solid ${lv.color}30;">
-                            <div style="font-size:9px;font-weight:700;color:#374151;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px;">${e.label}</div>
-                            <div style="font-size:17px;font-weight:900;color:${lv.color};line-height:1;margin-bottom:4px;">${valTxt}</div>
-                            <div style="font-size:9px;color:${lv.color};font-weight:600;">${lv.label}</div>
-                        </div>`;
-                    }).join('');
-
-                    if (advEl) {
-                        advEl.textContent = getOverallAdvice(entries);
-                        advEl.style.display = 'block';
-                        const maxVal = Math.max(...entries.map(e => e.val ?? 0));
-                        advEl.style.borderLeftColor = getPollenLevel(maxVal).color;
-                        advEl.style.color = '#1a3a1a';
-                    }
-                } catch(e) {
-                    if (grid) grid.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:12px;grid-column:1/-1;padding:8px;">No se pudieron cargar los datos de polen.</div>';
-                    console.warn('Pollen load error:', e);
-                }
-            }
-
-            loadPollen();
-            setInterval(loadPollen, 10 * 60 * 1000);
-        })();
-        /* ══════ FIN SECCIÓN POLEN ══════ */
+        /* ══════ FIN FASE LUNAR ══════ */
 
     </script>
 
