@@ -753,6 +753,17 @@
                 <canvas id="pres-chart" style="width:100%;display:block;"></canvas>
             </div>
         </div>
+        <!-- DESPLEGABLE VIENTO / RACHAS -->
+        <div style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <div id="toggle-wind" onclick="toggleChart('wind')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#1a2a3a;cursor:pointer;user-select:none;">
+                <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">VIENTO Y RACHAS</span>
+                <span id="arrow-wind" style="color:rgba(255,255,255,0.5);font-size:12px;transition:transform 0.3s;">▼</span>
+            </div>
+            <div id="panel-wind" style="display:none;background:#1a2a3a;padding:0 12px 12px;">
+                <canvas id="wind-chart" style="width:100%;display:block;"></canvas>
+            </div>
+        </div>
+
         <!-- ══════════════════════════════════════════════
              FASE LUNAR
         ═══════════════════════════════════════════════ -->
@@ -1982,6 +1993,110 @@
             });
         }
 
+        // ── Gráfico viento y rachas ───────────────────────────────────────────
+        function drawWindChart(hourly) {
+            const canvas = document.getElementById('wind-chart');
+            if (!canvas || !hourly?.time) return;
+            const now = new Date();
+            const slots = [];
+            for (let i = 0; i < hourly.time.length; i++) {
+                const ht = new Date(hourly.time[i]);
+                const diffH = (ht - now) / 3600000;
+                if (diffH < -1 || diffH > 24) continue;
+                slots.push({
+                    h: ht,
+                    ws:  hourly.wind_speed_10m?.[i]  ?? null,
+                    wg:  hourly.wind_gusts_10m?.[i]  ?? null,
+                    label: String(ht.getHours()).padStart(2,'0')+'h'
+                });
+            }
+            if (slots.length < 2) return;
+            const dpr = window.devicePixelRatio || 1;
+            const W = canvas.parentElement.clientWidth - 24;
+            const H = 130;
+            canvas.width = W*dpr; canvas.height = H*dpr;
+            canvas.style.width = W+'px'; canvas.style.height = H+'px';
+            const ctx = canvas.getContext('2d'); ctx.scale(dpr, dpr);
+            const PAD = { top:18, bottom:28, left:32, right:12 };
+            const cw = W-PAD.left-PAD.right, ch = H-PAD.top-PAD.bottom;
+
+            const allVals = [...slots.map(s=>s.ws), ...slots.map(s=>s.wg)].filter(v=>v!=null);
+            const vMin = 0;
+            const vMax = Math.ceil(Math.max(...allVals) / 5) * 5 + 5;
+            const xPos = i => PAD.left+(i/(slots.length-1))*cw;
+            const yV   = v => PAD.top+ch-((v-vMin)/(vMax-vMin))*ch;
+
+            // Área rachas (fondo naranja suave)
+            ctx.beginPath(); ctx.moveTo(xPos(0), yV(slots[0].wg ?? 0));
+            for (let i=1; i<slots.length; i++) {
+                const xc=(xPos(i-1)+xPos(i))/2;
+                ctx.bezierCurveTo(xc,yV(slots[i-1].wg??0),xc,yV(slots[i].wg??0),xPos(i),yV(slots[i].wg??0));
+            }
+            ctx.lineTo(xPos(slots.length-1),PAD.top+ch); ctx.lineTo(xPos(0),PAD.top+ch); ctx.closePath();
+            const gG = ctx.createLinearGradient(0,PAD.top,0,PAD.top+ch);
+            gG.addColorStop(0,'rgba(251,146,60,0.25)'); gG.addColorStop(1,'rgba(251,146,60,0.03)');
+            ctx.fillStyle=gG; ctx.fill();
+
+            // Área velocidad (azul)
+            ctx.beginPath(); ctx.moveTo(xPos(0), yV(slots[0].ws ?? 0));
+            for (let i=1; i<slots.length; i++) {
+                const xc=(xPos(i-1)+xPos(i))/2;
+                ctx.bezierCurveTo(xc,yV(slots[i-1].ws??0),xc,yV(slots[i].ws??0),xPos(i),yV(slots[i].ws??0));
+            }
+            ctx.lineTo(xPos(slots.length-1),PAD.top+ch); ctx.lineTo(xPos(0),PAD.top+ch); ctx.closePath();
+            const gW = ctx.createLinearGradient(0,PAD.top,0,PAD.top+ch);
+            gW.addColorStop(0,'rgba(56,189,248,0.35)'); gW.addColorStop(1,'rgba(56,189,248,0.04)');
+            ctx.fillStyle=gW; ctx.fill();
+
+            // Línea rachas (naranja)
+            ctx.beginPath(); ctx.moveTo(xPos(0),yV(slots[0].wg??0));
+            for (let i=1; i<slots.length; i++) {
+                const xc=(xPos(i-1)+xPos(i))/2;
+                ctx.bezierCurveTo(xc,yV(slots[i-1].wg??0),xc,yV(slots[i].wg??0),xPos(i),yV(slots[i].wg??0));
+            }
+            ctx.strokeStyle='#fb923c'; ctx.lineWidth=1.8; ctx.setLineDash([4,3]); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Línea velocidad (azul)
+            ctx.beginPath(); ctx.moveTo(xPos(0),yV(slots[0].ws??0));
+            for (let i=1; i<slots.length; i++) {
+                const xc=(xPos(i-1)+xPos(i))/2;
+                ctx.bezierCurveTo(xc,yV(slots[i-1].ws??0),xc,yV(slots[i].ws??0),xPos(i),yV(slots[i].ws??0));
+            }
+            ctx.strokeStyle='#38bdf8'; ctx.lineWidth=2.5; ctx.stroke();
+
+            // Etiquetas de hora + valores velocidad
+            ctx.font='bold 10px Inter,sans-serif'; ctx.textAlign='center';
+            const step=Math.ceil(slots.length/8);
+            slots.forEach((s,i) => {
+                if(i%step!==0&&i!==slots.length-1) return;
+                const x=xPos(i);
+                // Punto velocidad
+                ctx.beginPath(); ctx.arc(x,yV(s.ws??0),3,0,Math.PI*2); ctx.fillStyle='#38bdf8'; ctx.fill();
+                ctx.fillStyle='#38bdf8'; ctx.fillText(Math.round(s.ws??0),x,yV(s.ws??0)-7);
+                // Valor racha encima
+                if (s.wg != null) {
+                    ctx.fillStyle='#fb923c'; ctx.fillText(Math.round(s.wg),x,yV(s.wg)-7);
+                }
+                // Hora
+                ctx.fillStyle='rgba(255,255,255,0.45)'; ctx.fillText(s.label,x,H-4);
+            });
+
+            // Eje Y
+            ctx.textAlign='right'; ctx.font='9px Inter,sans-serif';
+            [0, Math.round(vMax/2), vMax].forEach(v => {
+                const y=yV(v);
+                ctx.fillStyle='rgba(56,189,248,0.7)'; ctx.fillText(v,PAD.left-4,y+3);
+                ctx.beginPath(); ctx.moveTo(PAD.left,y); ctx.lineTo(PAD.left+cw,y);
+                ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1; ctx.stroke();
+            });
+
+            // Leyenda
+            ctx.textAlign='left'; ctx.font='bold 9px Inter,sans-serif';
+            ctx.fillStyle='#38bdf8'; ctx.fillText('— Velocidad km/h', PAD.left, 12);
+            ctx.fillStyle='#fb923c'; ctx.fillText('- - Racha máx km/h', PAD.left+110, 12);
+        }
+
         // ── Toggle desplegables ───────────────────────────────────────────────
         let _hourlyCache = null;
         function toggleChart(id) {
@@ -1996,6 +2111,7 @@
                     if (id === 'rain') drawRainChart(_hourlyCache);
                     if (id === 'hum')  drawHumChart(_hourlyCache);
                     if (id === 'pres') drawPresChart(_hourlyCache);
+                    if (id === 'wind') drawWindChart(_hourlyCache);
                 });
             }
         }
