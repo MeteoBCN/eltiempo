@@ -694,6 +694,52 @@
 
 
         <!-- ══════════════════════════════════════════════
+             SECCIÓN POLEN Y ALERGIAS
+        ═══════════════════════════════════════════════ -->
+        <div id="pollen-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;position:relative;overflow:hidden;background:linear-gradient(180deg,#f0fdf4 0%,#dcfce7 40%,#f0fdf4 100%);">
+
+            <!-- Fondo decorativo: silueta campo/naturaleza -->
+            <svg style="position:absolute;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0.12;" viewBox="0 0 600 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Hierba / tallos -->
+                <path d="M0,100 Q10,60 20,100" stroke="#16a34a" stroke-width="3" fill="none"/>
+                <path d="M15,100 Q22,50 30,100" stroke="#16a34a" stroke-width="2" fill="none"/>
+                <path d="M40,100 Q50,40 60,100" stroke="#15803d" stroke-width="3" fill="none"/>
+                <path d="M55,100 Q62,55 70,100" stroke="#16a34a" stroke-width="2" fill="none"/>
+                <path d="M80,100 Q90,45 100,100" stroke="#15803d" stroke-width="3" fill="none"/>
+                <path d="M110,100 Q118,58 126,100" stroke="#16a34a" stroke-width="2" fill="none"/>
+                <path d="M140,100 Q150,35 160,100" stroke="#15803d" stroke-width="3" fill="none"/>
+                <path d="M170,100 Q178,52 186,100" stroke="#16a34a" stroke-width="2" fill="none"/>
+                <path d="M200,100 Q210,42 220,100" stroke="#15803d" stroke-width="3" fill="none"/>
+                <path d="M230,100 Q238,56 246,100" stroke="#16a34a" stroke-width="2" fill="none"/>
+                <path d="M260,100 Q270,38 280,100" stroke="#15803d" stroke-width="3" fill="none"/>
+                <path d="M290,100 Q298,50 306,100" stroke="#16a34a" stroke-width="2" fill="none"/>
+                <path d="M320,100 Q330,43 340,100" stroke="#15803d" stroke-width="3" fill="none"/>
+                <path d="M350,100 Q358,57 366,100" stroke="#16a34a" stroke-width="2" fill="none"/>
+                <path d="M380,100 Q390,36 400,100" stroke="#15803d" stroke-width="3" fill="none"/>
+                <path d="M410,100 Q418,54 426,100" stroke="#16a34a" stroke-width="2" fill="none"/>
+                <path d="M440,100 Q450,41 460,100" stroke="#15803d" stroke-width="3" fill="none"/>
+                <path d="M470,100 Q478,58 486,100" stroke="#16a34a" stroke-width="2" fill="none"/>
+                <path d="M500,100 Q510,39 520,100" stroke="#15803d" stroke-width="3" fill="none"/>
+                <path d="M530,100 Q538,53 546,100" stroke="#16a34a" stroke-width="2" fill="none"/>
+                <path d="M560,100 Q570,44 580,100" stroke="#15803d" stroke-width="3" fill="none"/>
+                <path d="M585,100 Q592,60 600,100" stroke="#16a34a" stroke-width="2" fill="none"/>
+            </svg>
+
+            <div style="position:relative;z-index:1;padding:14px 20px 16px;">
+                <div style="font-size:10px;font-weight:700;color:#14532d;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;text-align:center;">Polen &amp; Alergias</div>
+
+                <!-- Grid de tipos de polen -->
+                <div id="pollen-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+                    <!-- Relleno dinámico por JS -->
+                    <div style="text-align:center;color:#86efac;font-size:12px;grid-column:1/-1;padding:8px;">Cargando datos de polen…</div>
+                </div>
+
+                <!-- Consejo alergias -->
+                <div id="pollen-advice" style="margin-top:12px;font-size:11px;color:#14532d;line-height:1.5;border-left:3px solid #4ade80;padding-left:8px;display:none;"></div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════
              PREVISIÓN HORARIA
         ═══════════════════════════════════════════════ -->
         <div class="hourly-section">
@@ -2718,6 +2764,82 @@
             setInterval(loadAQI, 5*60*1000);
         })();
         /* ══════ FIN SEMÁFORO ══════ */
+        /* ══════ SECCIÓN POLEN Y ALERGIAS ══════ */
+        (function() {
+            const POLLEN_TYPES = [
+                { key: 'alder_pollen',    label: 'Aliso',      emoji: '🌿' },
+                { key: 'birch_pollen',    label: 'Abedul',     emoji: '🍃' },
+                { key: 'grass_pollen',    label: 'Gramíneas',  emoji: '🌾' },
+                { key: 'mugwort_pollen',  label: 'Artemisa',   emoji: '🌱' },
+                { key: 'olive_pollen',    label: 'Olivo',      emoji: '🫒' },
+                { key: 'ragweed_pollen',  label: 'Ambrosía',   emoji: '🌼' },
+            ];
+
+            function getPollenLevel(val) {
+                if (val === null || val === undefined) return { label: 'Sin datos', color: '#94a3b8', bg: 'rgba(148,163,184,0.15)', bar: 0 };
+                if (val < 10)  return { label: 'Bajo',      color: '#22c55e', bg: 'rgba(34,197,94,0.12)',   bar: Math.min(val/10*25, 25) };
+                if (val < 50)  return { label: 'Moderado',  color: '#eab308', bg: 'rgba(234,179,8,0.12)',   bar: Math.min(25 + (val-10)/40*25, 50) };
+                if (val < 200) return { label: 'Alto',      color: '#f97316', bg: 'rgba(249,115,22,0.12)',  bar: Math.min(50 + (val-50)/150*25, 75) };
+                return             { label: 'Muy alto',   color: '#ef4444', bg: 'rgba(239,68,68,0.12)',   bar: 100 };
+            }
+
+            function getOverallAdvice(entries) {
+                const maxVal = Math.max(...entries.map(e => e.val ?? 0));
+                if (maxVal < 10)  return 'Niveles de polen bajos. Día favorable para personas alérgicas.';
+                if (maxVal < 50)  return 'Polen moderado en el ambiente. Personas sensibles pueden notar síntomas leves.';
+                if (maxVal < 200) return 'Polen alto. Se recomienda tomar la medicación preventiva y minimizar la exposición al exterior.';
+                return 'Niveles de polen muy elevados. Evita espacios abiertos, mantén ventanas cerradas y consulta a tu médico si los síntomas son intensos.';
+            }
+
+            async function loadPollen() {
+                const grid = document.getElementById('pollen-grid');
+                const advEl = document.getElementById('pollen-advice');
+                try {
+                    const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=Europe/Madrid`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    const cur = data?.current || {};
+
+                    const entries = POLLEN_TYPES.map(p => ({ ...p, val: cur[p.key] ?? null }));
+                    const hasAny = entries.some(e => e.val !== null);
+
+                    if (!hasAny) { grid.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:12px;grid-column:1/-1;padding:8px;">Datos no disponibles para esta zona.</div>'; return; }
+
+                    grid.innerHTML = entries.map(e => {
+                        const lv = getPollenLevel(e.val);
+                        const valTxt = e.val !== null ? Math.round(e.val) : '—';
+                        return `
+                        <div style="background:${lv.bg};border-radius:10px;padding:8px 6px;text-align:center;border:1px solid ${lv.color}30;">
+                            <div style="font-size:18px;margin-bottom:3px;">${e.emoji}</div>
+                            <div style="font-size:9px;font-weight:700;color:#374151;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:4px;">${e.label}</div>
+                            <div style="font-size:15px;font-weight:900;color:${lv.color};line-height:1;">${valTxt}</div>
+                            <div style="font-size:8px;color:${lv.color};font-weight:600;margin-bottom:5px;">${lv.label}</div>
+                            <div style="height:4px;background:rgba(0,0,0,0.08);border-radius:2px;overflow:hidden;">
+                                <div style="height:100%;width:${lv.bar}%;background:${lv.color};border-radius:2px;transition:width 1s ease;"></div>
+                            </div>
+                        </div>`;
+                    }).join('');
+
+                    if (advEl) {
+                        advEl.textContent = getOverallAdvice(entries);
+                        advEl.style.display = 'block';
+                        // Color del borde según nivel general
+                        const maxVal = Math.max(...entries.map(e => e.val ?? 0));
+                        const lv = getPollenLevel(maxVal);
+                        advEl.style.borderLeftColor = lv.color;
+                        advEl.style.color = '#1a3a1a';
+                    }
+                } catch(e) {
+                    if (grid) grid.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:12px;grid-column:1/-1;padding:8px;">No se pudieron cargar los datos de polen.</div>';
+                    console.warn('Pollen load error:', e);
+                }
+            }
+
+            loadPollen();
+            setInterval(loadPollen, 10 * 60 * 1000);
+        })();
+        /* ══════ FIN SECCIÓN POLEN ══════ */
+
     </script>
 
 
