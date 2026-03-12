@@ -717,6 +717,67 @@
             </div>
         </div>
 
+        <!-- ══════════════════════════════════════════════
+             VIENTO DETALLADO
+        ═══════════════════════════════════════════════ -->
+        <div id="viento-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;background:linear-gradient(180deg,#0f172a 0%,#1e293b 100%);">
+            <div style="padding:14px 20px 16px;">
+                <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;text-align:center;">Viento Detallado</div>
+
+                <!-- Fila principal: veleta + datos clave -->
+                <div style="display:flex;align-items:center;gap:20px;margin-bottom:14px;">
+
+                    <!-- Veleta SVG animada -->
+                    <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                        <div style="position:relative;width:80px;height:80px;">
+                            <!-- Rosa de los vientos base -->
+                            <svg width="80" height="80" viewBox="0 0 80 80" style="position:absolute;top:0;left:0;">
+                                <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                                <circle cx="40" cy="40" r="28" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                                <text x="40" y="8"  text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="7" font-weight="700" font-family="Inter,sans-serif">N</text>
+                                <text x="40" y="76" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="7" font-weight="700" font-family="Inter,sans-serif">S</text>
+                                <text x="74" y="43" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="7" font-weight="700" font-family="Inter,sans-serif">E</text>
+                                <text x="6"  y="43" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="7" font-weight="700" font-family="Inter,sans-serif">O</text>
+                                <line x1="40" y1="12" x2="40" y2="68" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                                <line x1="12" y1="40" x2="68" y2="40" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                            </svg>
+                            <!-- Flecha dirección (rotada por JS) -->
+                            <svg id="wind-arrow-svg" width="80" height="80" viewBox="0 0 80 80" style="position:absolute;top:0;left:0;transition:transform 1s ease;">
+                                <polygon points="40,14 46,52 40,46 34,52" fill="#38bdf8"/>
+                                <polygon points="40,66 46,28 40,34 34,28" fill="rgba(56,189,248,0.25)"/>
+                            </svg>
+                        </div>
+                        <div id="wind-dir-label" style="font-size:11px;font-weight:700;color:#38bdf8;letter-spacing:1px;">--</div>
+                    </div>
+
+                    <!-- Datos numéricos -->
+                    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:10px;text-align:center;">
+                            <div style="font-size:9px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Velocidad</div>
+                            <div id="wind-speed-val" style="font-size:22px;font-weight:900;color:#38bdf8;line-height:1;">--</div>
+                            <div style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:2px;">km/h</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:10px;text-align:center;">
+                            <div style="font-size:9px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Racha máx.</div>
+                            <div id="wind-gust-val" style="font-size:22px;font-weight:900;color:#f97316;line-height:1;">--</div>
+                            <div style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:2px;">km/h</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:10px;text-align:center;grid-column:1/-1;">
+                            <div style="font-size:9px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Escala Beaufort</div>
+                            <div id="wind-beaufort" style="font-size:13px;font-weight:700;color:#e2e8f0;line-height:1.3;">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Previsión horaria viento próximas horas -->
+                <div style="font-size:9px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Próximas horas</div>
+                <div id="wind-hourly-strip" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;"></div>
+
+                <!-- Aviso viento local -->
+                <div id="wind-local-advice" style="margin-top:12px;font-size:11px;color:#94a3b8;line-height:1.5;border-left:3px solid #38bdf8;padding-left:8px;display:none;"></div>
+            </div>
+        </div>
+
         <!-- CABECERA GRÁFICOS -->
         <div style="height:24px;background:#ffffff;"></div>
         <div style="max-width:600px;margin:0 auto;background:linear-gradient(135deg,#1a3a5c 0%,#1e4976 50%,#1a3a5c 100%);padding:10px 20px;display:flex;align-items:center;justify-content:center;">
@@ -797,6 +858,61 @@
         </div>
 
 
+
+        <!-- ══════════════════════════════════════════════
+             FASE LUNAR + MAREAS
+        ═══════════════════════════════════════════════ -->
+        <div id="luna-mareas-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;background:linear-gradient(180deg,#0a0f1e 0%,#0f1a2e 50%,#0a0f1e 100%);">
+            <div style="padding:14px 20px 18px;">
+                <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;text-align:center;">Fase Lunar &amp; Mareas</div>
+
+                <div style="display:flex;align-items:center;gap:20px;margin-bottom:18px;">
+
+                    <!-- Luna SVG -->
+                    <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px;">
+                        <svg id="moon-svg" width="70" height="70" viewBox="0 0 70 70">
+                            <defs>
+                                <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#fef9c3"/>
+                                    <stop offset="100%" stop-color="#fbbf24"/>
+                                </radialGradient>
+                                <clipPath id="moonClip"><circle cx="35" cy="35" r="28"/></clipPath>
+                            </defs>
+                            <circle cx="35" cy="35" r="33" fill="none" stroke="rgba(251,191,36,0.12)" stroke-width="4"/>
+                            <circle cx="35" cy="35" r="28" fill="url(#moonGlow)" opacity="0.95"/>
+                            <g id="moon-shadow" clip-path="url(#moonClip)"></g>
+                            <circle cx="28" cy="30" r="4" fill="rgba(0,0,0,0.06)"/>
+                            <circle cx="42" cy="40" r="3" fill="rgba(0,0,0,0.05)"/>
+                            <circle cx="34" cy="44" r="2" fill="rgba(0,0,0,0.04)"/>
+                        </svg>
+                        <div id="moon-phase-name" style="font-size:10px;font-weight:700;color:#fbbf24;text-align:center;letter-spacing:0.5px;">--</div>
+                        <div id="moon-illumination" style="font-size:9px;color:rgba(255,255,255,0.35);">Iluminación: --%</div>
+                    </div>
+
+                    <!-- Datos lunares -->
+                    <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:9px;text-align:center;">
+                                <div style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Salida luna</div>
+                                <div id="moonrise-val" style="font-size:16px;font-weight:800;color:#fbbf24;">--:--</div>
+                            </div>
+                            <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:9px;text-align:center;">
+                                <div style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Puesta luna</div>
+                                <div id="moonset-val" style="font-size:16px;font-weight:800;color:#94a3b8;">--:--</div>
+                            </div>
+                        </div>
+                        <div id="moon-advice" style="font-size:11px;color:#94a3b8;line-height:1.4;border-left:3px solid rgba(251,191,36,0.4);padding-left:8px;"></div>
+                    </div>
+                </div>
+
+                <!-- Mareas -->
+                <div style="font-size:9px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Mareas hoy — Puerto de Barcelona</div>
+                <div id="mareas-strip" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+                    <div style="text-align:center;color:rgba(255,255,255,0.2);font-size:11px;grid-column:1/-1;padding:4px;">Calculando…</div>
+                </div>
+                <div style="margin-top:10px;font-size:10px;color:rgba(255,255,255,0.2);text-align:center;font-style:italic;">* Mareas estimadas. El Mediterráneo tiene rango de marea muy reducido (±20 cm).</div>
+            </div>
+        </div>
 
         <div class="webcam-container">
             <span class="webcam-label">WEBCAM / VILA OLÍMPICA</span>
@@ -1999,7 +2115,7 @@
 
         async function loadWeatherData() {
             // ── Peticiones independientes: si una falla, las demás siguen ──
-            const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max&timezone=Europe/Madrid&forecast_days=7`;
+            const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant&timezone=Europe/Madrid&forecast_days=7`;
             const aqUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=Europe/Madrid`;
             const marineUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
 
@@ -2035,6 +2151,7 @@
                 updateDaysSummary(data.hourly, data.daily);
                 updateProximaLluvia(data.hourly);
                 _hourlyCache = data.hourly;
+                if (typeof updateWindSection === 'function') updateWindSection(data.current, data.hourly);
                 updateTime();
             } catch(e) { console.error('Error procesando datos:',e); }
         }
@@ -2731,6 +2848,212 @@
             setInterval(loadAQI, 5*60*1000);
         })();
         /* ══════ FIN SEMÁFORO ══════ */
+        /* ══════ VIENTO DETALLADO ══════ */
+        (function() {
+            function beaufort(kmh) {
+                if (kmh < 1)   return { n: 0, label: 'Calma' };
+                if (kmh < 6)   return { n: 1, label: 'Ventolina' };
+                if (kmh < 12)  return { n: 2, label: 'Brisa muy débil' };
+                if (kmh < 20)  return { n: 3, label: 'Brisa débil' };
+                if (kmh < 29)  return { n: 4, label: 'Brisa moderada' };
+                if (kmh < 39)  return { n: 5, label: 'Brisa fresca' };
+                if (kmh < 50)  return { n: 6, label: 'Viento fuerte' };
+                if (kmh < 62)  return { n: 7, label: 'Viento muy fuerte' };
+                if (kmh < 75)  return { n: 8, label: 'Temporal' };
+                if (kmh < 89)  return { n: 9, label: 'Temporal fuerte' };
+                if (kmh < 103) return { n: 10, label: 'Temporal muy fuerte' };
+                if (kmh < 118) return { n: 11, label: 'Borrasca' };
+                return             { n: 12, label: 'Huracán' };
+            }
+
+            function dir16(deg) {
+                const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+                return dirs[Math.round((deg || 0) / 22.5) % 16];
+            }
+
+            function localWindAdvice(deg, speed) {
+                const d = ((deg % 360) + 360) % 360;
+                if (speed < 10) return 'Viento sin incidencia. Condiciones tranquilas en la costa.';
+                if (d >= 315 || d < 45)  return 'Viento de componente Norte (Tramontana/Gregal). Puede agitar la mar y bajar la temperatura. Habitual en invierno.';
+                if (d >= 45 && d < 135)  return 'Viento de Levante. Trae humedad y nubes desde el mar. Puede activar precipitaciones en el litoral.';
+                if (d >= 135 && d < 225) return 'Viento del Sur (Garbí/Xaloc). Cálido y húmedo. En verano puede subir la temperatura notablemente.';
+                return 'Viento de Poniente. Generalmente seco y en descenso. Suele mejorar el tiempo.';
+            }
+
+            window.updateWindSection = function(current, hourly) {
+                const speed = Math.round(current?.wind_speed_10m ?? 0);
+                const gust  = Math.round(current?.wind_gusts_10m ?? 0);
+                const deg   = current?.wind_direction_10m ?? 0;
+                const bf    = beaufort(speed);
+                const dirLbl = dir16(deg);
+
+                const speedEl = document.getElementById('wind-speed-val');
+                const gustEl  = document.getElementById('wind-gust-val');
+                const bfEl    = document.getElementById('wind-beaufort');
+                const dirEl   = document.getElementById('wind-dir-label');
+                const arrowEl = document.getElementById('wind-arrow-svg');
+                const advEl   = document.getElementById('wind-local-advice');
+                const stripEl = document.getElementById('wind-hourly-strip');
+
+                if (speedEl) speedEl.textContent = speed;
+                if (gustEl)  gustEl.textContent  = gust || '--';
+                if (dirEl)   dirEl.textContent   = dirLbl;
+                if (bfEl)    bfEl.textContent    = `Fuerza ${bf.n} — ${bf.label}`;
+                if (arrowEl) arrowEl.style.transform = `rotate(${deg}deg)`;
+
+                if (advEl) {
+                    advEl.textContent = localWindAdvice(deg, speed);
+                    advEl.style.display = 'block';
+                    advEl.style.borderLeftColor = speed > 50 ? '#f97316' : speed > 30 ? '#eab308' : '#38bdf8';
+                    advEl.style.color = speed > 50 ? '#fed7aa' : '#94a3b8';
+                }
+
+                // Strip horario
+                if (stripEl && hourly?.time) {
+                    const now = new Date();
+                    const items = [];
+                    for (let i = 0; i < hourly.time.length; i++) {
+                        const ht = new Date(hourly.time[i]);
+                        const diff = (ht - now) / 3600000;
+                        if (diff < -0.5 || diff > 12) continue;
+                        items.push({
+                            h: String(ht.getHours()).padStart(2,'0') + 'h',
+                            ws: Math.round(hourly.wind_speed_10m?.[i] ?? 0),
+                            wg: Math.round(hourly.wind_gusts_10m?.[i] ?? 0),
+                            wd: hourly.wind_direction_10m?.[i] ?? 0
+                        });
+                    }
+                    stripEl.innerHTML = items.map(it => {
+                        const col = it.ws > 50 ? '#f97316' : it.ws > 30 ? '#eab308' : '#38bdf8';
+                        return `<div style="flex-shrink:0;background:rgba(255,255,255,0.05);border-radius:8px;padding:7px 8px;text-align:center;min-width:52px;">
+                            <div style="font-size:9px;color:rgba(255,255,255,0.35);margin-bottom:4px;">${it.h}</div>
+                            <div style="font-size:13px;font-weight:800;color:${col};">${it.ws}</div>
+                            <div style="font-size:8px;color:rgba(255,255,255,0.25);">km/h</div>
+                            <div style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:3px;">${dir16(it.wd)}</div>
+                        </div>`;
+                    }).join('');
+                }
+            };
+        })();
+        /* ══════ FIN VIENTO DETALLADO ══════ */
+
+        /* ══════ FASE LUNAR + MAREAS ══════ */
+        (function() {
+            // Cálculo de fase lunar (algoritmo astronómico simplificado)
+            function getMoonPhase(date) {
+                const known = new Date(2000, 0, 6, 18, 14, 0); // Luna nueva conocida
+                const diff  = (date - known) / (1000 * 60 * 60 * 24);
+                const cycle = 29.53058867;
+                const age   = ((diff % cycle) + cycle) % cycle;
+                const illum = Math.round((1 - Math.cos(2 * Math.PI * age / cycle)) / 2 * 100);
+
+                let name, shadow;
+                if      (age < 1.85)  { name = 'Luna nueva';        shadow = 'full'; }
+                else if (age < 7.38)  { name = 'Cuarto creciente';  shadow = 'waxing'; }
+                else if (age < 9.22)  { name = 'Luna llena';        shadow = 'none'; }
+                else if (age < 14.77) { name = 'Cuarto menguante';  shadow = 'waning'; }
+                else if (age < 16.61) { name = 'Luna llena';        shadow = 'none'; }
+                else if (age < 22.15) { name = 'Cuarto menguante';  shadow = 'waning'; }
+                else if (age < 23.99) { name = 'Luna nueva';        shadow = 'full'; }
+                else                  { name = 'Cuarto creciente';  shadow = 'waxing'; }
+
+                // Días para próxima luna llena / nueva
+                const toFull = cycle / 2 - (age % (cycle / 2));
+                return { age, illum, name, shadow, toFull: Math.round(toFull) };
+            }
+
+            function drawMoonShadow(phase) {
+                const el = document.getElementById('moon-shadow');
+                if (!el) return;
+                const cx = 35, cy = 35, r = 28;
+                if (phase.shadow === 'none') { el.innerHTML = ''; return; }
+                if (phase.shadow === 'full') { el.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(5,10,25,0.92)"/>`; return; }
+                // Sombra parcial con elipse
+                const frac = phase.illum / 100;
+                const rx   = r * Math.abs(1 - 2 * frac);
+                const side = phase.shadow === 'waxing' ? 1 : -1;
+                el.innerHTML = `
+                    <rect x="${cx - r}" y="${cy - r}" width="${r}" height="${r * 2}" fill="rgba(5,10,25,0.92)"/>
+                    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${r}" fill="rgba(5,10,25,0.92)" transform="scale(${side},1) translate(${-cx*(side-1)},0)"/>`;
+            }
+
+            function moonAdvice(phase) {
+                if (phase.shadow === 'none') return 'Luna llena esta noche. Iluminación máxima, ideal para actividades nocturnas en la costa.';
+                if (phase.shadow === 'full') return 'Luna nueva. Cielo nocturno oscuro, excelente para observación de estrellas.';
+                if (phase.age < 14.77) return `Luna en cuarto creciente. Próxima luna llena en unos ${phase.toFull} días.`;
+                return 'Luna en cuarto menguante. El cielo nocturno irá oscureciéndose en los próximos días.';
+            }
+
+            // Mareas simplificadas para Barcelona (Mediterráneo semidiurno muy pequeño)
+            function calcTides(date) {
+                const known = new Date(2000, 0, 6, 18, 14, 0);
+                const diff  = (date - known) / (1000 * 60 * 60 * 24);
+                const cycle = 29.53058867;
+                const age   = ((diff % cycle) + cycle) % cycle;
+                // Periodo semidiurno ~12h 25min + modulación lunar
+                const base  = 12.42; // horas
+                const t0    = (age / cycle) * 24; // hora de pleamar referencia
+                const tides = [];
+                for (let i = 0; i < 4; i++) {
+                    const h = (t0 + i * base) % 24;
+                    const isHigh = i % 2 === 0;
+                    // Amplitud lunar: ±15-25cm en Barcelona
+                    const amp = isHigh ? +(0.15 + (Math.sin(age / cycle * 2 * Math.PI) * 0.05)).toFixed(2)
+                                       : -(0.10 + (Math.sin(age / cycle * 2 * Math.PI) * 0.03)).toFixed(2);
+                    tides.push({ h: Math.floor(h), m: Math.round((h % 1) * 60), type: isHigh ? 'pleamar' : 'bajamar', cm: Math.round(Math.abs(amp) * 100) });
+                }
+                return tides.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
+            }
+
+            function pad(n) { return String(n).padStart(2, '0'); }
+
+            function renderMoon() {
+                const now   = new Date();
+                const phase = getMoonPhase(now);
+
+                // Nombre
+                const nameEl = document.getElementById('moon-phase-name');
+                if (nameEl) nameEl.textContent = phase.name;
+
+                // Iluminación
+                const illumEl = document.getElementById('moon-illumination');
+                if (illumEl) illumEl.textContent = `Iluminación: ${phase.illum}%`;
+
+                // Sombra
+                drawMoonShadow(phase);
+
+                // Consejo
+                const advEl = document.getElementById('moon-advice');
+                if (advEl) advEl.textContent = moonAdvice(phase);
+
+                // Salida/puesta luna (aproximación sencilla por fase)
+                const riseH  = Math.round((phase.age / 29.53) * 24 + 18) % 24;
+                const setH   = (riseH + 12) % 24;
+                const riseEl = document.getElementById('moonrise-val');
+                const setEl  = document.getElementById('moonset-val');
+                if (riseEl) riseEl.textContent = `${pad(riseH)}:00`;
+                if (setEl)  setEl.textContent  = `${pad(setH)}:00`;
+
+                // Mareas
+                const tides   = calcTides(now);
+                const stripEl = document.getElementById('mareas-strip');
+                if (stripEl) {
+                    stripEl.innerHTML = tides.map(t => {
+                        const col   = t.type === 'pleamar' ? '#38bdf8' : '#64748b';
+                        const arrow = t.type === 'pleamar' ? '▲' : '▼';
+                        return `<div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:8px 4px;text-align:center;border:1px solid rgba(255,255,255,0.06);">
+                            <div style="font-size:9px;color:${col};font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">${arrow} ${t.type}</div>
+                            <div style="font-size:15px;font-weight:800;color:#e2e8f0;">${pad(t.h)}:${pad(t.m)}</div>
+                            <div style="font-size:9px;color:rgba(255,255,255,0.25);margin-top:2px;">${t.cm} cm</div>
+                        </div>`;
+                    }).join('');
+                }
+            }
+
+            renderMoon();
+        })();
+        /* ══════ FIN FASE LUNAR + MAREAS ══════ */
+
         /* ══════ SECCIÓN POLEN Y ALERGIAS ══════ */
         (function() {
             const POLLEN_TYPES = [
