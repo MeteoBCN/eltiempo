@@ -572,6 +572,9 @@
             <span id="proxima-lluvia-txt" style="font-size:14px;font-weight:700;color:#fff;">Calculando…</span>
         </div>
 
+        <!-- DIAGNÓSTICO -->
+        <div id="diag-bar" style="display:none;padding:8px 16px;font-size:12px;font-weight:600;text-align:center;position:sticky;top:0;z-index:999;"></div>
+
         <div class="content-section">
 
             <div class="hero-zone">
@@ -1135,7 +1138,7 @@
                 if(aqi<=80)return'Desfavorable';if(aqi<=100)return'Muy desfavorable';return'Extremadamente desfavorable';
             }
             const el=document.getElementById('air-quality-current');
-            el.textContent=lvl(ac.european_aqi||0); el.style.color='#1E293B';
+            if(el){el.textContent=lvl(ac.european_aqi||0); el.style.color='#1E293B';}
         }
 
         function updatePlayasTable(marine, daily, marineHourly, weatherHourly) {
@@ -1838,7 +1841,7 @@
                 updateProximaLluvia(data.hourly);
                 drawTempRainChart(data.hourly);
                 updateTime();
-            } catch(e) { console.error('Error procesando datos:',e); }
+            } catch(e) { console.error('Error procesando datos:',e); throw e; }
         }
 
         function updateCurrentWeather(current, weatherCode, precipToday, hourly) {
@@ -2311,8 +2314,26 @@
             document.getElementById('update-time').textContent='Actualizado: '+now.getDate()+' de '+meses[now.getMonth()]+' de '+now.getFullYear();
         }
 
-        loadWeatherData();
-        setInterval(loadWeatherData, 600000);
+        // ── Diagnóstico visible ──
+        function showDiag(msg, ok) {
+            const d = document.getElementById('diag-bar');
+            if (d) { d.textContent = msg; d.style.background = ok ? '#d1fae5' : '#fee2e2'; d.style.color = ok ? '#065f46' : '#991b1b'; d.style.display='block'; }
+        }
+
+        async function loadWeatherDataSafe() {
+            showDiag('⏳ Cargando datos meteorológicos…', true);
+            try {
+                await loadWeatherData();
+                showDiag('✅ Datos cargados correctamente', true);
+                setTimeout(() => { const d=document.getElementById('diag-bar'); if(d) d.style.display='none'; }, 4000);
+            } catch(e) {
+                showDiag('❌ Error: ' + e.message, false);
+                console.error('loadWeatherData error:', e);
+            }
+        }
+
+        loadWeatherDataSafe();
+        setInterval(loadWeatherDataSafe, 600000);
 
         /* ══════ WIDGET PREVISIÓN 3 DÍAS ══════ */
         (function(){
