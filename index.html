@@ -620,73 +620,49 @@
              SEMÁFORO CALIDAD DEL AIRE
         ═══════════════════════════════════════════════ -->
         <div id="aqi-semaforo-section" style="max-width:600px;margin:0 auto;background:#fff;border-bottom:1px solid #e2e8f0;">
-            <div style="padding:20px 24px 20px;">
-                <div style="font-size:10px;font-weight:700;color:#64748B;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;text-align:center;">Calidad del Aire</div>
+            <div style="padding:14px 20px;">
+                <div style="font-size:10px;font-weight:700;color:#64748B;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;text-align:center;">Calidad del Aire</div>
 
-                <!-- Semáforo + AQI principal -->
-                <div style="display:flex;align-items:center;justify-content:center;gap:24px;margin-bottom:16px;">
+                <!-- Fila principal: semáforo + AQI + badge + consejo -->
+                <div style="display:flex;align-items:center;gap:14px;">
 
-                    <!-- Semáforo visual -->
-                    <div id="aqi-traffic-light" style="display:flex;flex-direction:column;align-items:center;background:#1a1a1a;border-radius:20px;padding:9px 11px;gap:7px;box-shadow:0 4px 16px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.08);border:2px solid #333;position:relative;flex-shrink:0;">
-                        <div id="aqi-light-red"    style="width:32px;height:32px;border-radius:50%;background:#7f1d1d;transition:all 0.5s ease;box-shadow:inset 0 2px 4px rgba(0,0,0,0.4);"></div>
-                        <div id="aqi-light-yellow" style="width:32px;height:32px;border-radius:50%;background:#713f12;transition:all 0.5s ease;box-shadow:inset 0 2px 4px rgba(0,0,0,0.4);"></div>
-                        <div id="aqi-light-green"  style="width:32px;height:32px;border-radius:50%;background:#14532d;transition:all 0.5s ease;box-shadow:inset 0 2px 4px rgba(0,0,0,0.4);"></div>
+                    <!-- Semáforo pequeño -->
+                    <div id="aqi-traffic-light" style="display:flex;flex-direction:column;align-items:center;background:#1a1a1a;border-radius:14px;padding:7px 8px;gap:5px;box-shadow:0 3px 10px rgba(0,0,0,0.35);border:2px solid #333;flex-shrink:0;">
+                        <div id="aqi-light-red"    style="width:20px;height:20px;border-radius:50%;background:#7f1d1d;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
+                        <div id="aqi-light-yellow" style="width:20px;height:20px;border-radius:50%;background:#713f12;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
+                        <div id="aqi-light-green"  style="width:20px;height:20px;border-radius:50%;background:#14532d;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
                     </div>
 
-                    <!-- Valor AQI y estado -->
-                    <div style="text-align:left;">
-                        <div id="aqi-value" style="font-size:36px;font-weight:700;line-height:1;color:#1E293B;letter-spacing:-1px;font-family:monospace;transition:color 0.5s;">--</div>
-                        <div style="font-size:10px;color:#94A3B8;font-family:monospace;margin-top:2px;">ÍNDICE AQI</div>
-                        <div style="margin-top:10px;">
-                            <div id="aqi-badge" style="display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;border-radius:16px;padding:5px 12px;border:1px solid #e2e8f0;">
-                                <span id="aqi-emoji" style="font-size:16px;">⏳</span>
-                                <span id="aqi-label" style="font-size:14px;font-weight:700;color:#1E293B;">Cargando…</span>
-                            </div>
-                            <div id="aqi-sublabel" style="font-size:11px;color:#64748B;margin-top:4px;"></div>
+                    <!-- AQI número + badge en columna -->
+                    <div style="flex-shrink:0;">
+                        <div style="display:flex;align-items:baseline;gap:5px;">
+                            <div id="aqi-value" style="font-size:28px;font-weight:700;line-height:1;color:#1E293B;font-family:monospace;transition:color 0.5s;">--</div>
+                            <div style="font-size:9px;color:#94A3B8;font-family:monospace;">AQI</div>
+                        </div>
+                        <div id="aqi-badge" style="display:inline-flex;align-items:center;gap:4px;background:#f1f5f9;border-radius:10px;padding:3px 8px;border:1px solid #e2e8f0;margin-top:4px;">
+                            <span id="aqi-emoji" style="font-size:12px;">⏳</span>
+                            <span id="aqi-label" style="font-size:12px;font-weight:700;color:#1E293B;">—</span>
                         </div>
                     </div>
+
+                    <!-- Consejo + contaminantes a la derecha -->
+                    <div style="flex:1;min-width:0;">
+                        <div id="aqi-advice" style="font-size:11px;color:#64748B;line-height:1.4;border-left:3px solid #e2e8f0;padding-left:8px;transition:border-color 0.5s;"></div>
+                    </div>
                 </div>
 
-                <!-- Consejo de salud -->
-                <div id="aqi-advice" style="background:#f8fafc;border-left:3px solid #e2e8f0;border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#64748B;line-height:1.5;margin-bottom:14px;transition:border-color 0.5s,background 0.5s;"></div>
+                <!-- Contaminantes mini en fila -->
+                <div id="aqi-pollutants" style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;"></div>
 
-                <!-- Contaminantes mini -->
-                <div id="aqi-pollutants" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
-
-                <!-- Escala de referencia -->
-                <div style="margin-top:14px;display:flex;gap:3px;align-items:stretch;">
-                    <div class="aqi-scale-item" data-min="0"   data-max="50"  style="flex:1;text-align:center;padding:6px 2px;border-radius:6px;border:1px solid transparent;">
-                        <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;margin:0 auto 3px;"></div>
-                        <div style="font-size:8px;color:#475569;line-height:1.2;">Bueno</div>
-                        <div style="font-size:7px;color:#94a3b8;font-family:monospace;">0–50</div>
-                    </div>
-                    <div class="aqi-scale-item" data-min="51"  data-max="100" style="flex:1;text-align:center;padding:6px 2px;border-radius:6px;border:1px solid transparent;">
-                        <div style="width:8px;height:8px;border-radius:50%;background:#84cc16;margin:0 auto 3px;"></div>
-                        <div style="font-size:8px;color:#475569;line-height:1.2;">Acept.</div>
-                        <div style="font-size:7px;color:#94a3b8;font-family:monospace;">51–100</div>
-                    </div>
-                    <div class="aqi-scale-item" data-min="101" data-max="150" style="flex:1;text-align:center;padding:6px 2px;border-radius:6px;border:1px solid transparent;">
-                        <div style="width:8px;height:8px;border-radius:50%;background:#eab308;margin:0 auto 3px;"></div>
-                        <div style="font-size:8px;color:#475569;line-height:1.2;">Regular</div>
-                        <div style="font-size:7px;color:#94a3b8;font-family:monospace;">101–150</div>
-                    </div>
-                    <div class="aqi-scale-item" data-min="151" data-max="200" style="flex:1;text-align:center;padding:6px 2px;border-radius:6px;border:1px solid transparent;">
-                        <div style="width:8px;height:8px;border-radius:50%;background:#f97316;margin:0 auto 3px;"></div>
-                        <div style="font-size:8px;color:#475569;line-height:1.2;">Malo</div>
-                        <div style="font-size:7px;color:#94a3b8;font-family:monospace;">151–200</div>
-                    </div>
-                    <div class="aqi-scale-item" data-min="201" data-max="300" style="flex:1;text-align:center;padding:6px 2px;border-radius:6px;border:1px solid transparent;">
-                        <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;margin:0 auto 3px;"></div>
-                        <div style="font-size:8px;color:#475569;line-height:1.2;">Muy malo</div>
-                        <div style="font-size:7px;color:#94a3b8;font-family:monospace;">201–300</div>
-                    </div>
-                    <div class="aqi-scale-item" data-min="301" data-max="999" style="flex:1;text-align:center;padding:6px 2px;border-radius:6px;border:1px solid transparent;">
-                        <div style="width:8px;height:8px;border-radius:50%;background:#7c3aed;margin:0 auto 3px;"></div>
-                        <div style="font-size:8px;color:#475569;line-height:1.2;">Peligro</div>
-                        <div style="font-size:7px;color:#94a3b8;font-family:monospace;">301+</div>
-                    </div>
+                <!-- Escala de referencia compacta -->
+                <div style="margin-top:10px;display:flex;gap:2px;">
+                    <div class="aqi-scale-item" data-min="0"   data-max="50"  style="flex:1;text-align:center;padding:4px 2px;border-radius:4px;border:1px solid transparent;"><div style="width:6px;height:6px;border-radius:50%;background:#22c55e;margin:0 auto 2px;"></div><div style="font-size:7px;color:#475569;">0–50</div></div>
+                    <div class="aqi-scale-item" data-min="51"  data-max="100" style="flex:1;text-align:center;padding:4px 2px;border-radius:4px;border:1px solid transparent;"><div style="width:6px;height:6px;border-radius:50%;background:#84cc16;margin:0 auto 2px;"></div><div style="font-size:7px;color:#475569;">51–100</div></div>
+                    <div class="aqi-scale-item" data-min="101" data-max="150" style="flex:1;text-align:center;padding:4px 2px;border-radius:4px;border:1px solid transparent;"><div style="width:6px;height:6px;border-radius:50%;background:#eab308;margin:0 auto 2px;"></div><div style="font-size:7px;color:#475569;">101–150</div></div>
+                    <div class="aqi-scale-item" data-min="151" data-max="200" style="flex:1;text-align:center;padding:4px 2px;border-radius:4px;border:1px solid transparent;"><div style="width:6px;height:6px;border-radius:50%;background:#f97316;margin:0 auto 2px;"></div><div style="font-size:7px;color:#475569;">151–200</div></div>
+                    <div class="aqi-scale-item" data-min="201" data-max="300" style="flex:1;text-align:center;padding:4px 2px;border-radius:4px;border:1px solid transparent;"><div style="width:6px;height:6px;border-radius:50%;background:#ef4444;margin:0 auto 2px;"></div><div style="font-size:7px;color:#475569;">201–300</div></div>
+                    <div class="aqi-scale-item" data-min="301" data-max="999" style="flex:1;text-align:center;padding:4px 2px;border-radius:4px;border:1px solid transparent;"><div style="width:6px;height:6px;border-radius:50%;background:#7c3aed;margin:0 auto 2px;"></div><div style="font-size:7px;color:#475569;">301+</div></div>
                 </div>
-                <div style="text-align:right;font-size:10px;color:#cbd5e1;margin-top:8px;">Fuente: Open-Meteo Air Quality</div>
             </div>
         </div>
 
@@ -1868,12 +1844,14 @@
                 const idxWd = hourly.time.findIndex(t => Math.abs(new Date(t) - nowMs) < 30*60*1000);
                 const deg = idxWd !== -1 ? hourly.wind_direction_10m[idxWd] : null;
                 if (deg != null) {
-                    const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
-                    const dirLabel = dirs[Math.round(deg / 22.5) % 16];
-                    const arrows = ['↑','↗↑','↗','↗↘','→','↘→','↘','↘↙','↓','↙↓','↙','↙←','←','←↖','↖','↖↑'];
-                    const arrow = ['↑','↗','↗','↗','→','↘','↘','↘','↓','↙','↙','↙','←','↖','↖','↖'][Math.round(deg/22.5)%16];
+                    // 16 puntos cardinales: índice 0=N, 1=NNE ... 15=NNO
+                    const dirs  = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+                    // Flecha indica hacia donde SOPLA el viento (opuesto al origen)
+                    // N(0°)→↓, NE(45°)→↙, E(90°)→←, SE(135°)→↖, S(180°)→↑, SO(225°)→↗, O(270°)→→, NO(315°)→↘
+                    const arrows = ['↓','↙','↙','↙','←','↖','↖','↖','↑','↗','↗','↗','→','↘','↘','↘'];
+                    const idx16 = Math.round(deg / 22.5) % 16;
                     const wdEl = document.getElementById('wind-direction');
-                    if (wdEl) wdEl.textContent = arrow + ' ' + dirLabel;
+                    if (wdEl) wdEl.textContent = arrows[idx16] + ' ' + dirs[idx16];
                 }
             }
             if (current.apparent_temperature !== undefined) {
@@ -2505,7 +2483,7 @@
                 const lblEl = document.getElementById('aqi-label'); if (lblEl) { lblEl.textContent = level.label; lblEl.style.color = level.color; }
                 const badgeEl = document.getElementById('aqi-badge'); if (badgeEl) { badgeEl.style.background = level.bg; badgeEl.style.borderColor = level.color+'60'; }
                 const subEl = document.getElementById('aqi-sublabel'); if (subEl) subEl.textContent = level.sublabel;
-                const advEl = document.getElementById('aqi-advice'); if (advEl) { advEl.textContent = '💡 '+level.advice; advEl.style.borderLeftColor = level.color; advEl.style.background = level.bg; advEl.style.color = '#374151'; }
+                const advEl = document.getElementById('aqi-advice'); if (advEl) { advEl.textContent = '💡 '+level.advice; advEl.style.borderLeftColor = level.color; }
                 setLight('aqi-light-red',    '#7f1d1d', null);
                 setLight('aqi-light-yellow', '#713f12', null);
                 setLight('aqi-light-green',  '#14532d', null);
@@ -2528,16 +2506,11 @@
                 container.innerHTML = items.map(item => {
                     const val = current[item.key]!=null ? Math.round(current[item.key]) : null;
                     if (val===null) return '';
-                    const pct = Math.min((val/item.max)*100,100);
                     const col = val<50?'#22c55e':val<100?'#eab308':'#ef4444';
-                    return `<div style="background:#f8fafc;border-radius:8px;padding:8px 10px;border:1px solid #e2e8f0;">
-                        <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-                            <span style="font-size:10px;color:#64748B;font-weight:700;font-family:monospace;">${item.label}</span>
-                            <span style="font-size:11px;font-weight:700;color:${col};">${val} µg/m³</span>
-                        </div>
-                        <div style="height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden;">
-                            <div style="width:${pct}%;height:100%;background:${col};border-radius:2px;transition:width 0.8s ease;"></div>
-                        </div></div>`;
+                    return `<div style="display:inline-flex;align-items:center;gap:4px;background:#f8fafc;border-radius:6px;padding:3px 7px;border:1px solid #e2e8f0;">
+                        <span style="font-size:9px;color:#94A3B8;font-weight:700;font-family:monospace;">${item.label}</span>
+                        <span style="font-size:11px;font-weight:700;color:${col};">${val}</span>
+                    </div>`;
                 }).join('');
             }
 
