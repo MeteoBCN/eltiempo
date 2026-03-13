@@ -3067,10 +3067,15 @@
         (function() {
             async function loadMetar() {
                 try {
-                    const url = 'https://aviationweather.gov/api/data/metar?ids=LEBL&format=json';
-                    const res = await fetch(url);
-                    const data = await res.json();
-                    if (!data || !data.length) return;
+                    const metarUrl = 'https://aviationweather.gov/api/data/metar?ids=LEBL&format=json';
+                    const proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(metarUrl);
+                    const res = await fetch(proxy);
+                    const outer = await res.json();
+                    const data = JSON.parse(outer.contents);
+                    if (!data || !data.length) {
+                        document.getElementById('metar-raw').textContent = 'Sin datos disponibles.';
+                        return;
+                    }
                     const m = data[0];
 
                     // Raw
@@ -3082,7 +3087,7 @@
                     if (windEl) {
                         const dir = m.wdir != null ? m.wdir + '°' : 'VRB';
                         const spd = m.wspd != null ? m.wspd + ' kt' : '--';
-                        const gust = m.wgst ? ' (ráfaga ' + m.wgst + ' kt)' : '';
+                        const gust = m.wgst ? ' (ráf. ' + m.wgst + ' kt)' : '';
                         windEl.textContent = dir + ' / ' + spd + gust;
                     }
 
@@ -3115,7 +3120,8 @@
 
                 } catch(e) {
                     const rawEl = document.getElementById('metar-raw');
-                    if (rawEl) rawEl.textContent = 'No se pudo cargar el METAR.';
+                    if (rawEl) rawEl.textContent = 'No se pudo cargar el METAR. Verifica la conexión.';
+                    console.warn('METAR error:', e);
                 }
             }
 
