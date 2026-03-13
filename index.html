@@ -616,77 +616,76 @@
         <!-- ══════════════════════════════════════════════
              SEMÁFORO CALIDAD DEL AIRE
         ═══════════════════════════════════════════════ -->
-        <div id="aqi-semaforo-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;position:relative;overflow:hidden;background:linear-gradient(180deg,#b8cfe8 0%,#c9ddf0 30%,#dce8f0 60%,#eaf0f5 100%);">
+        <div id="aqi-semaforo-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <!-- Cabecera cliclable -->
+            <div id="toggle-aqi" onclick="toggleSection('aqi')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);cursor:pointer;user-select:none;">
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">CALIDAD DEL AIRE</span>
+                <span id="arrow-aqi" style="color:#2c4a6e;font-size:12px;transition:transform 0.3s;">▼</span>
+            </div>
+            <!-- Panel desplegable -->
+            <div id="panel-aqi" style="display:none;position:relative;overflow:hidden;background:linear-gradient(180deg,#b8cfe8 0%,#c9ddf0 30%,#dce8f0 60%,#eaf0f5 100%);">
+                <!-- Capa smog: edificios silueta -->
+                <svg style="position:absolute;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0.18;" viewBox="0 0 600 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="0"   y="60"  width="35"  height="60" fill="#2c3e50"/>
+                    <rect x="5"   y="40"  width="22"  height="80" fill="#2c3e50"/>
+                    <rect x="30"  y="52"  width="28"  height="68" fill="#34495e"/>
+                    <rect x="55"  y="30"  width="18"  height="90" fill="#2c3e50"/>
+                    <rect x="70"  y="55"  width="32"  height="65" fill="#34495e"/>
+                    <rect x="98"  y="45"  width="20"  height="75" fill="#2c3e50"/>
+                    <rect x="115" y="35"  width="15"  height="85" fill="#34495e"/>
+                    <rect x="128" y="58"  width="38"  height="62" fill="#2c3e50"/>
+                    <rect x="163" y="42"  width="22"  height="78" fill="#34495e"/>
+                    <rect x="182" y="28"  width="16"  height="92" fill="#2c3e50"/>
+                    <rect x="196" y="50"  width="30"  height="70" fill="#34495e"/>
+                    <rect x="223" y="38"  width="20"  height="82" fill="#2c3e50"/>
+                    <rect x="240" y="60"  width="42"  height="60" fill="#34495e"/>
+                    <rect x="278" y="32"  width="18"  height="88" fill="#2c3e50"/>
+                    <rect x="293" y="48"  width="28"  height="72" fill="#34495e"/>
+                    <rect x="318" y="22"  width="14"  height="98" fill="#2c3e50"/>
+                    <rect x="330" y="55"  width="35"  height="65" fill="#34495e"/>
+                    <rect x="362" y="40"  width="20"  height="80" fill="#2c3e50"/>
+                    <rect x="379" y="30"  width="16"  height="90" fill="#34495e"/>
+                    <rect x="393" y="52"  width="30"  height="68" fill="#2c3e50"/>
+                    <rect x="420" y="44"  width="22"  height="76" fill="#34495e"/>
+                    <rect x="439" y="60"  width="38"  height="60" fill="#2c3e50"/>
+                    <rect x="474" y="36"  width="18"  height="84" fill="#34495e"/>
+                    <rect x="489" y="50"  width="28"  height="70" fill="#2c3e50"/>
+                    <rect x="514" y="26"  width="15"  height="94" fill="#34495e"/>
+                    <rect x="527" y="55"  width="35"  height="65" fill="#2c3e50"/>
+                    <rect x="558" y="42"  width="20"  height="78" fill="#34495e"/>
+                    <rect x="575" y="62"  width="25"  height="58" fill="#2c3e50"/>
+                </svg>
+                <!-- Capa niebla/smog superpuesta -->
+                <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(180,200,220,0.0) 0%,rgba(180,200,220,0.25) 50%,rgba(160,185,210,0.55) 100%);pointer-events:none;"></div>
 
-            <!-- Capa smog: edificios silueta -->
-            <svg style="position:absolute;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0.18;" viewBox="0 0 600 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="0"   y="60"  width="35"  height="60" fill="#2c3e50"/>
-                <rect x="5"   y="40"  width="22"  height="80" fill="#2c3e50"/>
-                <rect x="30"  y="52"  width="28"  height="68" fill="#34495e"/>
-                <rect x="55"  y="30"  width="18"  height="90" fill="#2c3e50"/>
-                <rect x="70"  y="55"  width="32"  height="65" fill="#34495e"/>
-                <rect x="98"  y="45"  width="20"  height="75" fill="#2c3e50"/>
-                <rect x="115" y="35"  width="15"  height="85" fill="#34495e"/>
-                <rect x="128" y="58"  width="38"  height="62" fill="#2c3e50"/>
-                <rect x="163" y="42"  width="22"  height="78" fill="#34495e"/>
-                <rect x="182" y="28"  width="16"  height="92" fill="#2c3e50"/>
-                <rect x="196" y="50"  width="30"  height="70" fill="#34495e"/>
-                <rect x="223" y="38"  width="20"  height="82" fill="#2c3e50"/>
-                <rect x="240" y="60"  width="42"  height="60" fill="#34495e"/>
-                <rect x="278" y="32"  width="18"  height="88" fill="#2c3e50"/>
-                <rect x="293" y="48"  width="28"  height="72" fill="#34495e"/>
-                <rect x="318" y="22"  width="14"  height="98" fill="#2c3e50"/>
-                <rect x="330" y="55"  width="35"  height="65" fill="#34495e"/>
-                <rect x="362" y="40"  width="20"  height="80" fill="#2c3e50"/>
-                <rect x="379" y="30"  width="16"  height="90" fill="#34495e"/>
-                <rect x="393" y="52"  width="30"  height="68" fill="#2c3e50"/>
-                <rect x="420" y="44"  width="22"  height="76" fill="#34495e"/>
-                <rect x="439" y="60"  width="38"  height="60" fill="#2c3e50"/>
-                <rect x="474" y="36"  width="18"  height="84" fill="#34495e"/>
-                <rect x="489" y="50"  width="28"  height="70" fill="#2c3e50"/>
-                <rect x="514" y="26"  width="15"  height="94" fill="#34495e"/>
-                <rect x="527" y="55"  width="35"  height="65" fill="#2c3e50"/>
-                <rect x="558" y="42"  width="20"  height="78" fill="#34495e"/>
-                <rect x="575" y="62"  width="25"  height="58" fill="#2c3e50"/>
-            </svg>
-            <!-- Capa niebla/smog superpuesta -->
-            <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(180,200,220,0.0) 0%,rgba(180,200,220,0.25) 50%,rgba(160,185,210,0.55) 100%);pointer-events:none;"></div>
-
-            <div style="position:relative;z-index:1;padding:14px 20px;">
-                <div style="font-size:10px;font-weight:700;color:#1e3a5f;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;text-align:center;">Calidad del Aire</div>
-
-                <!-- Fila principal: semáforo + AQI + badge + consejo -->
-                <div style="display:flex;align-items:center;gap:14px;">
-
-                    <!-- Semáforo pequeño -->
-                    <div id="aqi-traffic-light" style="display:flex;flex-direction:column;align-items:center;background:#1a1a1a;border-radius:14px;padding:7px 8px;gap:5px;box-shadow:0 3px 10px rgba(0,0,0,0.35);border:2px solid #333;flex-shrink:0;">
-                        <div id="aqi-light-red"    style="width:20px;height:20px;border-radius:50%;background:#7f1d1d;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
-                        <div id="aqi-light-yellow" style="width:20px;height:20px;border-radius:50%;background:#713f12;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
-                        <div id="aqi-light-green"  style="width:20px;height:20px;border-radius:50%;background:#14532d;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
-                    </div>
-
-                    <!-- AQI número + badge en columna -->
-                    <div style="flex-shrink:0;">
-                        <div style="display:flex;align-items:baseline;gap:5px;">
-                            <div id="aqi-value" style="font-size:28px;font-weight:900;line-height:1;color:#000000;font-family:monospace;">--</div>
-                            <div style="font-size:9px;color:#2c4a6e;font-family:monospace;opacity:0.8;">AQI</div>
+                <div style="position:relative;z-index:1;padding:14px 20px;">
+                    <!-- Fila principal: semáforo + AQI + badge + consejo -->
+                    <div style="display:flex;align-items:center;gap:14px;">
+                        <!-- Semáforo pequeño -->
+                        <div id="aqi-traffic-light" style="display:flex;flex-direction:column;align-items:center;background:#1a1a1a;border-radius:14px;padding:7px 8px;gap:5px;box-shadow:0 3px 10px rgba(0,0,0,0.35);border:2px solid #333;flex-shrink:0;">
+                            <div id="aqi-light-red"    style="width:20px;height:20px;border-radius:50%;background:#7f1d1d;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
+                            <div id="aqi-light-yellow" style="width:20px;height:20px;border-radius:50%;background:#713f12;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
+                            <div id="aqi-light-green"  style="width:20px;height:20px;border-radius:50%;background:#14532d;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
                         </div>
-                        <div id="aqi-badge" style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.75);border-radius:10px;padding:3px 8px;border:1px solid rgba(255,255,255,0.9);margin-top:4px;backdrop-filter:blur(4px);">
-                            <span id="aqi-emoji" style="font-size:12px;">⏳</span>
-                            <span id="aqi-label" style="font-size:12px;font-weight:700;color:#1E293B;">—</span>
+                        <!-- AQI número + badge en columna -->
+                        <div style="flex-shrink:0;">
+                            <div style="display:flex;align-items:baseline;gap:5px;">
+                                <div id="aqi-value" style="font-size:28px;font-weight:900;line-height:1;color:#000000;font-family:monospace;">--</div>
+                                <div style="font-size:9px;color:#2c4a6e;font-family:monospace;opacity:0.8;">AQI</div>
+                            </div>
+                            <div id="aqi-badge" style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.75);border-radius:10px;padding:3px 8px;border:1px solid rgba(255,255,255,0.9);margin-top:4px;backdrop-filter:blur(4px);">
+                                <span id="aqi-emoji" style="font-size:12px;">⏳</span>
+                                <span id="aqi-label" style="font-size:12px;font-weight:700;color:#1E293B;">—</span>
+                            </div>
+                        </div>
+                        <!-- Consejo a la derecha -->
+                        <div style="flex:1;min-width:0;">
+                            <div id="aqi-advice" style="font-size:11px;color:#1e3a5f;line-height:1.4;border-left:3px solid rgba(255,255,255,0.6);padding-left:8px;transition:border-color 0.5s;"></div>
                         </div>
                     </div>
-
-                    <!-- Consejo + contaminantes a la derecha -->
-                    <div style="flex:1;min-width:0;">
-                        <div id="aqi-advice" style="font-size:11px;color:#1e3a5f;line-height:1.4;border-left:3px solid rgba(255,255,255,0.6);padding-left:8px;transition:border-color 0.5s;"></div>
-                    </div>
+                    <!-- Contaminantes mini en fila -->
+                    <div id="aqi-pollutants" style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;"></div>
                 </div>
-
-                <!-- Contaminantes mini en fila -->
-                <div id="aqi-pollutants" style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;"></div>
-
-
             </div>
         </div>
 
@@ -696,57 +695,64 @@
         <!-- ══════════════════════════════════════════════
              FASE LUNAR
         ═══════════════════════════════════════════════ -->
-        <div id="luna-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #ccdde8;background:linear-gradient(180deg,#dce8f0 0%,#eaf0f5 60%,#f0f6fa 100%);position:relative;overflow:hidden;">
-            <!-- Estrellas decorativas -->
-            <svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0.25;" viewBox="0 0 600 110" preserveAspectRatio="none">
-                <circle cx="40" cy="18" r="1.2" fill="#2c4a6e"/>
-                <circle cx="110" cy="10" r="0.9" fill="#2c4a6e"/>
-                <circle cx="180" cy="22" r="1.4" fill="#2c4a6e"/>
-                <circle cx="260" cy="8"  r="1.0" fill="#2c4a6e"/>
-                <circle cx="340" cy="16" r="1.2" fill="#2c4a6e"/>
-                <circle cx="420" cy="6"  r="0.8" fill="#2c4a6e"/>
-                <circle cx="500" cy="20" r="1.3" fill="#2c4a6e"/>
-                <circle cx="570" cy="12" r="1.0" fill="#2c4a6e"/>
-                <circle cx="75"  cy="35" r="0.7" fill="#2c4a6e"/>
-                <circle cx="310" cy="30" r="0.9" fill="#2c4a6e"/>
-                <circle cx="460" cy="38" r="0.7" fill="#2c4a6e"/>
-            </svg>
-            <div style="position:relative;z-index:1;padding:14px 20px 18px;">
-                <div style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;text-align:center;">Fase Lunar</div>
-                <div style="display:flex;align-items:center;gap:20px;">
-                    <!-- Luna SVG -->
-                    <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px;">
-                        <svg id="moon-svg" width="70" height="70" viewBox="0 0 70 70">
-                            <defs>
-                                <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
-                                    <stop offset="0%" stop-color="#fef9c3"/>
-                                    <stop offset="100%" stop-color="#fbbf24"/>
-                                </radialGradient>
-                                <clipPath id="moonClip"><circle cx="35" cy="35" r="28"/></clipPath>
-                            </defs>
-                            <circle cx="35" cy="35" r="33" fill="none" stroke="rgba(251,191,36,0.25)" stroke-width="4"/>
-                            <circle cx="35" cy="35" r="28" fill="url(#moonGlow)" opacity="0.95"/>
-                            <g id="moon-shadow" clip-path="url(#moonClip)"></g>
-                            <circle cx="28" cy="30" r="4" fill="rgba(0,0,0,0.06)"/>
-                            <circle cx="42" cy="40" r="3" fill="rgba(0,0,0,0.05)"/>
-                            <circle cx="34" cy="44" r="2" fill="rgba(0,0,0,0.04)"/>
-                        </svg>
-                        <div id="moon-phase-name" style="font-size:10px;font-weight:700;color:#a07800;text-align:center;letter-spacing:0.5px;">--</div>
-                        <div id="moon-illumination" style="font-size:9px;color:#4a6a8a;">Iluminación: --%</div>
-                    </div>
-                    <!-- Datos lunares -->
-                    <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                            <div style="background:rgba(255,255,255,0.5);border-radius:10px;padding:9px;text-align:center;border:1px solid rgba(184,207,232,0.6);">
-                                <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Salida luna</div>
-                                <div id="moonrise-val" style="font-size:16px;font-weight:800;color:#a07800;">--:--</div>
-                            </div>
-                            <div style="background:rgba(255,255,255,0.5);border-radius:10px;padding:9px;text-align:center;border:1px solid rgba(184,207,232,0.6);">
-                                <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Puesta luna</div>
-                                <div id="moonset-val" style="font-size:16px;font-weight:800;color:#2c6a8a;">--:--</div>
-                            </div>
+        <div id="luna-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #ccdde8;">
+            <!-- Cabecera cliclable -->
+            <div id="toggle-luna" onclick="toggleSection('luna')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);cursor:pointer;user-select:none;">
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">FASE LUNAR</span>
+                <span id="arrow-luna" style="color:#2c4a6e;font-size:12px;transition:transform 0.3s;">▼</span>
+            </div>
+            <!-- Panel desplegable -->
+            <div id="panel-luna" style="display:none;position:relative;overflow:hidden;background:linear-gradient(180deg,#dce8f0 0%,#eaf0f5 60%,#f0f6fa 100%);">
+                <!-- Estrellas decorativas -->
+                <svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0.25;" viewBox="0 0 600 110" preserveAspectRatio="none">
+                    <circle cx="40" cy="18" r="1.2" fill="#2c4a6e"/>
+                    <circle cx="110" cy="10" r="0.9" fill="#2c4a6e"/>
+                    <circle cx="180" cy="22" r="1.4" fill="#2c4a6e"/>
+                    <circle cx="260" cy="8"  r="1.0" fill="#2c4a6e"/>
+                    <circle cx="340" cy="16" r="1.2" fill="#2c4a6e"/>
+                    <circle cx="420" cy="6"  r="0.8" fill="#2c4a6e"/>
+                    <circle cx="500" cy="20" r="1.3" fill="#2c4a6e"/>
+                    <circle cx="570" cy="12" r="1.0" fill="#2c4a6e"/>
+                    <circle cx="75"  cy="35" r="0.7" fill="#2c4a6e"/>
+                    <circle cx="310" cy="30" r="0.9" fill="#2c4a6e"/>
+                    <circle cx="460" cy="38" r="0.7" fill="#2c4a6e"/>
+                </svg>
+                <div style="position:relative;z-index:1;padding:14px 20px 18px;">
+                    <div style="display:flex;align-items:center;gap:20px;">
+                        <!-- Luna SVG -->
+                        <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px;">
+                            <svg id="moon-svg" width="70" height="70" viewBox="0 0 70 70">
+                                <defs>
+                                    <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#fef9c3"/>
+                                        <stop offset="100%" stop-color="#fbbf24"/>
+                                    </radialGradient>
+                                    <clipPath id="moonClip"><circle cx="35" cy="35" r="28"/></clipPath>
+                                </defs>
+                                <circle cx="35" cy="35" r="33" fill="none" stroke="rgba(251,191,36,0.25)" stroke-width="4"/>
+                                <circle cx="35" cy="35" r="28" fill="url(#moonGlow)" opacity="0.95"/>
+                                <g id="moon-shadow" clip-path="url(#moonClip)"></g>
+                                <circle cx="28" cy="30" r="4" fill="rgba(0,0,0,0.06)"/>
+                                <circle cx="42" cy="40" r="3" fill="rgba(0,0,0,0.05)"/>
+                                <circle cx="34" cy="44" r="2" fill="rgba(0,0,0,0.04)"/>
+                            </svg>
+                            <div id="moon-phase-name" style="font-size:10px;font-weight:700;color:#a07800;text-align:center;letter-spacing:0.5px;">--</div>
+                            <div id="moon-illumination" style="font-size:9px;color:#4a6a8a;">Iluminación: --%</div>
                         </div>
-                        <div id="moon-advice" style="font-size:11px;color:#2c4a6e;line-height:1.4;border-left:3px solid rgba(160,120,0,0.35);padding-left:8px;"></div>
+                        <!-- Datos lunares -->
+                        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                                <div style="background:rgba(255,255,255,0.5);border-radius:10px;padding:9px;text-align:center;border:1px solid rgba(184,207,232,0.6);">
+                                    <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Salida luna</div>
+                                    <div id="moonrise-val" style="font-size:16px;font-weight:800;color:#a07800;">--:--</div>
+                                </div>
+                                <div style="background:rgba(255,255,255,0.5);border-radius:10px;padding:9px;text-align:center;border:1px solid rgba(184,207,232,0.6);">
+                                    <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Puesta luna</div>
+                                    <div id="moonset-val" style="font-size:16px;font-weight:800;color:#2c6a8a;">--:--</div>
+                                </div>
+                            </div>
+                            <div id="moon-advice" style="font-size:11px;color:#2c4a6e;line-height:1.4;border-left:3px solid rgba(160,120,0,0.35);padding-left:8px;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2130,6 +2136,14 @@
                     if (id === 'wind') drawWindChart(_hourlyCache);
                 });
             }
+        }
+
+        function toggleSection(id) {
+            const panel = document.getElementById('panel-'+id);
+            const arrow = document.getElementById('arrow-'+id);
+            const isOpen = panel.style.display !== 'none';
+            panel.style.display = isOpen ? 'none' : 'block';
+            arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
         }
 
         function updateProximaLluvia(hourly) {
