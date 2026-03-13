@@ -626,7 +626,7 @@
                 <span id="arrow-aqi" style="color:#2c4a6e;font-size:12px;transition:transform 0.3s;">▼</span>
             </div>
             <!-- Panel desplegable -->
-            <div id="panel-aqi" style="display:none;position:relative;overflow:hidden;background:linear-gradient(180deg,#b8cfe8 0%,#c9ddf0 30%,#dce8f0 60%,#eaf0f5 100%);">
+            <div id="panel-aqi" style="display:none;position:relative;overflow:hidden;background:#f0f6fa;">
                 <!-- Capa smog: edificios silueta -->
                 <svg style="position:absolute;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0.18;" viewBox="0 0 600 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
                     <rect x="0"   y="60"  width="35"  height="60" fill="#2c3e50"/>
@@ -825,8 +825,8 @@
                     <span id="arrow-playas-hoy" style="color:rgba(255,255,255,0.7);font-size:12px;transition:transform 0.3s;">▼</span>
                 </div>
                 <div id="panel-playas-hoy" style="display:none;">
-                    <div id="marine-blocks-hoy" style="background:#f0f8ff;">
-                        <div style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
+                    <div id="marine-blocks-hoy" style="background:#0b4c90;">
+                        <div style="padding:16px;text-align:center;color:rgba(255,255,255,0.5);font-size:13px;">Cargando…</div>
                     </div>
                 </div>
             </div>
@@ -837,8 +837,8 @@
                     <span id="arrow-playas-manana" style="color:rgba(255,255,255,0.7);font-size:12px;transition:transform 0.3s;">▼</span>
                 </div>
                 <div id="panel-playas-manana" style="display:none;">
-                    <div id="marine-blocks-manana" style="background:#f0f8ff;">
-                        <div style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
+                    <div id="marine-blocks-manana" style="background:#0b4c90;">
+                        <div style="padding:16px;text-align:center;color:rgba(255,255,255,0.5);font-size:13px;">Cargando…</div>
                     </div>
                 </div>
             </div>
@@ -1600,13 +1600,13 @@
             franjasManana.forEach(f => renderStripTo(containerManana, f.label, f.sub, getSlots(f.date, f.from, f.to), false, f.uvi));
 
             const leyendaHoy = document.createElement('div');
-            leyendaHoy.style.cssText = 'padding:10px 14px 12px;background:#f0f8ff;border-top:1px solid #dbeaf5;font-size:11px;color:#64748b;line-height:1.8;';
-            leyendaHoy.innerHTML = `<strong style="color:#2c3e50;">* Calidad del baño:</strong> oleaje, viento, temperatura del agua e índice UV.`;
+            leyendaHoy.style.cssText = 'padding:10px 14px 12px;background:#0b4c90;border-top:1px solid #dbeaf5;font-size:11px;color:#64748b;line-height:1.8;';
+            leyendaHoy.innerHTML = `<strong style="color:rgba(255,255,255,0.9);">* Calidad del baño:</strong> oleaje, viento, temperatura del agua e índice UV.`;
             containerHoy.appendChild(leyendaHoy);
 
             const leyendaManana = document.createElement('div');
-            leyendaManana.style.cssText = 'padding:10px 14px 12px;background:#f0f8ff;border-top:1px solid #dbeaf5;font-size:11px;color:#64748b;line-height:1.8;';
-            leyendaManana.innerHTML = `<strong style="color:#2c3e50;">* Calidad del baño:</strong> oleaje, viento, temperatura del agua e índice UV.`;
+            leyendaManana.style.cssText = 'padding:10px 14px 12px;background:#0b4c90;border-top:1px solid #dbeaf5;font-size:11px;color:#64748b;line-height:1.8;';
+            leyendaManana.innerHTML = `<strong style="color:rgba(255,255,255,0.9);">* Calidad del baño:</strong> oleaje, viento, temperatura del agua e índice UV.`;
             containerManana.appendChild(leyendaManana);
         }
 
@@ -2990,15 +2990,15 @@
         (function() {
             async function loadMetar() {
                 try {
-                    // hawg-ops es un proxy CORS público para aviationweather.gov
-                    const res = await fetch('https://api.hawg-ops.com/v2/wx/metar/LEBL?hours=1');
+                    // geojson endpoint de aviationweather tiene CORS abierto
+                    const res = await fetch('https://aviationweather.gov/api/data/metar?ids=LEBL&format=geojson&taf=false');
                     const json = await res.json();
-                    const data = json.data || json;
-                    if (!Array.isArray(data) || !data.length) {
+                    const features = json?.features;
+                    if (!features || !features.length) {
                         document.getElementById('metar-raw').textContent = 'Sin datos disponibles.';
                         return;
                     }
-                    const m = data[0];
+                    const m = features[0].properties;
 
                     // Raw
                     const rawEl = document.getElementById('metar-raw');
