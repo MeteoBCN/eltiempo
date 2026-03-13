@@ -807,6 +807,40 @@
             </div>
         </div>
 
+        <!-- ══════════════════════════════════════════════
+             SECCIÓN PLAYAS DE BARCELONA
+        ═══════════════════════════════════════════════ -->
+        <div style="max-width:600px;margin:0 auto;border-bottom:1px solid #ccdde8;">
+            <!-- Cabecera -->
+            <div style="background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);padding:10px 20px;display:flex;align-items:center;justify-content:center;">
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">PLAYAS — ESTADO DE LA MAR</span>
+            </div>
+            <!-- Desplegable HOY -->
+            <div style="border-bottom:1px solid #ccdde8;">
+                <div id="toggle-playas-hoy" onclick="toggleSection('playas-hoy')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);cursor:pointer;user-select:none;">
+                    <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">HOY</span>
+                    <span id="arrow-playas-hoy" style="color:#2c4a6e;font-size:12px;transition:transform 0.3s;">▼</span>
+                </div>
+                <div id="panel-playas-hoy" style="display:none;">
+                    <div id="marine-blocks-hoy" style="background:#f0f8ff;">
+                        <div style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Desplegable MAÑANA -->
+            <div>
+                <div id="toggle-playas-manana" onclick="toggleSection('playas-manana')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);cursor:pointer;user-select:none;">
+                    <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">MAÑANA</span>
+                    <span id="arrow-playas-manana" style="color:#2c4a6e;font-size:12px;transition:transform 0.3s;">▼</span>
+                </div>
+                <div id="panel-playas-manana" style="display:none;">
+                    <div id="marine-blocks-manana" style="background:#f0f8ff;">
+                        <div style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
 
         <!-- ══════════════════════════════════════════════
@@ -817,22 +851,6 @@
                 <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
             </div>
             <div id="days-summary-container" style="margin-top: 0;"></div>
-        </div>
-
-
-
-        <!-- ══════════════════════════════════════════════
-             SECCIÓN PLAYAS DE BARCELONA
-        ═══════════════════════════════════════════════ -->
-        <div class="playas-section">
-            <div class="playas-header rain-header-bg">
-                <span class="playas-header-title">Playas — Estado de la mar</span>
-            </div>
-
-            <!-- Previsión marina por franjas -->
-            <div id="marine-summary-blocks" style="background:#f0f8ff; max-width: 600px; margin: 0 auto;">
-                <div style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando previsión marina…</div>
-            </div>
         </div>
 
 
@@ -1259,8 +1277,11 @@
 
             // ── Previsión por franjas día/mañana/tarde ────────────────────
             const container = document.getElementById('marine-summary-blocks');
-            if (!container || !marineHourly?.time) return;
-            container.innerHTML = '';
+            const containerHoy    = document.getElementById('marine-blocks-hoy');
+            const containerManana = document.getElementById('marine-blocks-manana');
+            if (!containerHoy || !containerManana || !marineHourly?.time) return;
+            if (containerHoy)    containerHoy.innerHTML    = '';
+            if (containerManana) containerManana.innerHTML = '';
 
             const now  = new Date();
             const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
@@ -1477,9 +1498,75 @@
                         </div>
 
                     </div>`;
-                container.appendChild(div);
+                containerHoy.appendChild(div);
             }
 
+            function renderStripTo(target, dayLabel, subLabel, slots, isActive, uviVal) {
+                if (!slots.length) return;
+                const whs  = slots.map(s=>s.wh).filter(v=>v!==null);
+                const wps  = slots.map(s=>s.wp).filter(v=>v!==null);
+                const wss  = slots.map(s=>s.ws).filter(v=>v!==null);
+                const wsds = slots.map(s=>s.wsd).filter(v=>v!==null);
+                const ssts = slots.map(s=>s.sst).filter(v=>v!==null);
+                const minWH  = whs.length ? Math.min(...whs) : null;
+                const maxWH  = whs.length ? Math.max(...whs) : null;
+                const avgWH  = whs.length ? avg(whs) : null;
+                const avgWP  = wps.length ? Math.round(avg(wps)) : null;
+                const avgWS  = wss.length  ? Math.round(avg(wss))  : null;
+                const maxWS  = wss.length  ? Math.round(Math.max(...wss)) : null;
+                const avgWSD = wsds.length ? Math.round(avg(wsds)) : null;
+                const avgSST = ssts.length ? Math.round(avg(ssts)) : null;
+                const estado   = getEstadoMar(avgWH);
+                const color    = getWaveColor(avgWH);
+                const beaufort = getBeaufort(avgWS);
+                const calidad  = getCalidadBanyo(avgWH, avgWS, avgSST, uviVal);
+                let oleajeTxt = '—';
+                if (minWH !== null && maxWH !== null) {
+                    oleajeTxt = Math.abs(maxWH - minWH) < 0.08 ? minWH.toFixed(2) + ' m' : minWH.toFixed(2) + '–' + maxWH.toFixed(2) + ' m';
+                }
+                const dirTxt    = avgWSD !== null ? getWindDir(avgWSD) : '';
+                const maxExtra  = maxWS && avgWS && maxWS > avgWS + 5 ? ` (máx ${maxWS})` : '';
+                const vientoTxt = avgWS  !== null ? `${avgWS} km/h ${dirTxt}${maxExtra} · ${beaufort}` : '—';
+                const aguaTxt   = avgSST !== null ? avgSST + ' °C' : '—';
+                const uviTxt    = uviVal  !== null ? Math.round(uviVal) : '—';
+                const seaGrads = {
+                    'Calma':'linear-gradient(135deg,#e8f4fd 0%,#f0f8ff 60%,#ffffff 100%)',
+                    'Rizada':'linear-gradient(135deg,#daeef9 0%,#edf6fc 60%,#f8fcff 100%)',
+                    'Marejadilla':'linear-gradient(135deg,#cce5f5 0%,#e4f2fb 60%,#f5fafe 100%)',
+                    'Marejada':'linear-gradient(135deg,#b8d8ef 0%,#d5ecf8 60%,#eef7fd 100%)',
+                    'Fuerte marejada':'linear-gradient(135deg,#a0c8e6 0%,#c4e0f5 60%,#e5f3fb 100%)',
+                    'Mar gruesa':'linear-gradient(135deg,#88b8da 0%,#b0d2ec 60%,#d8edf8 100%)',
+                };
+                const bgGrad = seaGrads[estado] || seaGrads['Marejadilla'];
+                const div = document.createElement('div');
+                div.style.cssText = `display:flex;align-items:stretch;border-bottom:1px solid #dbeaf5;overflow:hidden;background:${bgGrad};position:relative;`;
+                div.innerHTML = `
+                    <div style="background:rgba(44,100,150,0.12);padding:14px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:80px;flex-shrink:0;gap:4px;border-right:1px solid rgba(44,100,150,0.15);">
+                        <span style="color:#2c3e50;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;text-align:center;">${dayLabel}</span>
+                        <span style="color:#2c3e50;font-size:10px;font-weight:600;text-transform:capitalize;opacity:0.65;">${subLabel}</span>
+                        <span style="margin-top:6px;font-size:22px;">🌊</span>
+                    </div>
+                    <div style="position:relative;z-index:1;flex:1;padding:13px 15px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+                        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:-2px;">
+                            <span style="font-size:13px;font-weight:800;color:#2c3e50;">${oleajeTxt}</span>
+                            <span style="font-size:11px;color:#2c3e50;opacity:0.45;font-weight:500;">altura olas</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+                            <span style="font-size:11px;font-weight:700;color:#fff;background:${color};padding:2px 8px;border-radius:4px;">${estado}</span>
+                            ${avgWP !== null ? `<span style="font-size:12px;color:#1a6b8a;font-weight:600;">· ${avgWP}s período</span>` : ''}
+                        </div>
+                        <div style="font-size:12px;color:#2c3e50;line-height:1.75;">
+                            <span style="font-weight:600;">${vientoTxt}</span><br>
+                            Agua <span style="font-weight:700;color:#1a6b8a;">${aguaTxt}</span>
+                            &nbsp;·&nbsp; UVI <span style="font-weight:700;color:#2c3e50;">${uviTxt}</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="font-size:11px;color:#2c3e50;opacity:0.6;">Calidad del baño:</span>
+                            <span style="font-size:12px;font-weight:800;color:#fff;background:${calidad.color};padding:2px 10px;border-radius:4px;">${calidad.texto}</span>
+                        </div>
+                    </div>`;
+                target.appendChild(div);
+            }
             const hoy        = new Date(now);
             const manana     = new Date(now); manana.setDate(manana.getDate() + 1);
             const pasadoman  = new Date(now); pasadoman.setDate(pasadoman.getDate() + 2);
@@ -1502,13 +1589,21 @@
                 .filter(f => { const fin = new Date(f.date); fin.setHours(f.to, 0, 0, 0); return fin > now; })
                 .slice(0, 4);
 
-            franjas.forEach(f => renderStrip(f.label, f.sub, getSlots(f.date, f.from, f.to), false, f.uvi));
+            const franjasHoy    = todasFranjas.filter(f => f.date.toDateString() === hoy.toDateString() && (() => { const fin = new Date(f.date); fin.setHours(f.to,0,0,0); return fin > now; })());
+            const franjasManana = todasFranjas.filter(f => f.date.toDateString() === manana.toDateString());
 
-            // ── Leyenda calidad del baño ──────────────────────────────────
-            const leyenda = document.createElement('div');
-            leyenda.style.cssText = 'padding:10px 14px 12px;background:#f0f8ff;border-top:1px solid #dbeaf5;font-size:11px;color:#64748b;line-height:1.8;';
-            leyenda.innerHTML = `<strong style="color:#2c3e50;">* Calidad del baño:</strong> se valoran conjuntamente oleaje (altura e intensidad), viento (velocidad), temperatura del agua e índice UV.`;
-            container.appendChild(leyenda);
+            franjasHoy.forEach(f    => renderStripTo(containerHoy,    f.label, f.sub, getSlots(f.date, f.from, f.to), false, f.uvi));
+            franjasManana.forEach(f => renderStripTo(containerManana, f.label, f.sub, getSlots(f.date, f.from, f.to), false, f.uvi));
+
+            const leyendaHoy = document.createElement('div');
+            leyendaHoy.style.cssText = 'padding:10px 14px 12px;background:#f0f8ff;border-top:1px solid #dbeaf5;font-size:11px;color:#64748b;line-height:1.8;';
+            leyendaHoy.innerHTML = `<strong style="color:#2c3e50;">* Calidad del baño:</strong> oleaje, viento, temperatura del agua e índice UV.`;
+            containerHoy.appendChild(leyendaHoy);
+
+            const leyendaManana = document.createElement('div');
+            leyendaManana.style.cssText = 'padding:10px 14px 12px;background:#f0f8ff;border-top:1px solid #dbeaf5;font-size:11px;color:#64748b;line-height:1.8;';
+            leyendaManana.innerHTML = `<strong style="color:#2c3e50;">* Calidad del baño:</strong> oleaje, viento, temperatura del agua e índice UV.`;
+            containerManana.appendChild(leyendaManana);
         }
 
         function updateHourlyStrip(hourly, daily) {
