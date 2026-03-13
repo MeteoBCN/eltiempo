@@ -3093,7 +3093,15 @@
 
                     // Visibilidad
                     const visEl = document.getElementById('metar-vis');
-                    if (visEl) visEl.textContent = m.visib != null ? m.visib + ' SM' : '—';
+                    if (visEl) {
+                        const v = m.visib;
+                        let visStr = '—';
+                        if (v != null) {
+                            if (v >= 6) visStr = '>10 km';
+                            else visStr = Math.round(v * 1.60934) + ' km';
+                        }
+                        visEl.textContent = visStr;
+                    }
 
                     // Temp / Rocío
                     const tempEl = document.getElementById('metar-temp');
