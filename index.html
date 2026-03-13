@@ -696,72 +696,6 @@
 
 
         <!-- ══════════════════════════════════════════════
-             FASE LUNAR
-        ═══════════════════════════════════════════════ -->
-        <div id="luna-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #ccdde8;">
-            <!-- Cabecera cliclable -->
-            <div id="toggle-luna" onclick="toggleSection('luna')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);cursor:pointer;user-select:none;">
-                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">FASE LUNAR</span>
-                <span id="arrow-luna" style="color:#2c4a6e;font-size:12px;transition:transform 0.3s;">▼</span>
-            </div>
-            <!-- Panel desplegable -->
-            <div id="panel-luna" style="display:none;position:relative;overflow:hidden;background:linear-gradient(180deg,#dce8f0 0%,#eaf0f5 60%,#f0f6fa 100%);">
-                <!-- Estrellas decorativas -->
-                <svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0.25;" viewBox="0 0 600 110" preserveAspectRatio="none">
-                    <circle cx="40" cy="18" r="1.2" fill="#2c4a6e"/>
-                    <circle cx="110" cy="10" r="0.9" fill="#2c4a6e"/>
-                    <circle cx="180" cy="22" r="1.4" fill="#2c4a6e"/>
-                    <circle cx="260" cy="8"  r="1.0" fill="#2c4a6e"/>
-                    <circle cx="340" cy="16" r="1.2" fill="#2c4a6e"/>
-                    <circle cx="420" cy="6"  r="0.8" fill="#2c4a6e"/>
-                    <circle cx="500" cy="20" r="1.3" fill="#2c4a6e"/>
-                    <circle cx="570" cy="12" r="1.0" fill="#2c4a6e"/>
-                    <circle cx="75"  cy="35" r="0.7" fill="#2c4a6e"/>
-                    <circle cx="310" cy="30" r="0.9" fill="#2c4a6e"/>
-                    <circle cx="460" cy="38" r="0.7" fill="#2c4a6e"/>
-                </svg>
-                <div style="position:relative;z-index:1;padding:14px 20px 18px;">
-                    <div style="display:flex;align-items:center;gap:20px;">
-                        <!-- Luna SVG -->
-                        <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px;">
-                            <svg id="moon-svg" width="70" height="70" viewBox="0 0 70 70">
-                                <defs>
-                                    <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
-                                        <stop offset="0%" stop-color="#fef9c3"/>
-                                        <stop offset="100%" stop-color="#fbbf24"/>
-                                    </radialGradient>
-                                    <clipPath id="moonClip"><circle cx="35" cy="35" r="28"/></clipPath>
-                                </defs>
-                                <circle cx="35" cy="35" r="33" fill="none" stroke="rgba(251,191,36,0.25)" stroke-width="4"/>
-                                <circle cx="35" cy="35" r="28" fill="url(#moonGlow)" opacity="0.95"/>
-                                <g id="moon-shadow" clip-path="url(#moonClip)"></g>
-                                <circle cx="28" cy="30" r="4" fill="rgba(0,0,0,0.06)"/>
-                                <circle cx="42" cy="40" r="3" fill="rgba(0,0,0,0.05)"/>
-                                <circle cx="34" cy="44" r="2" fill="rgba(0,0,0,0.04)"/>
-                            </svg>
-                            <div id="moon-phase-name" style="font-size:10px;font-weight:700;color:#a07800;text-align:center;letter-spacing:0.5px;">--</div>
-                            <div id="moon-illumination" style="font-size:9px;color:#4a6a8a;">Iluminación: --%</div>
-                        </div>
-                        <!-- Datos lunares -->
-                        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                                <div style="background:rgba(255,255,255,0.5);border-radius:10px;padding:9px;text-align:center;border:1px solid rgba(184,207,232,0.6);">
-                                    <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Salida luna</div>
-                                    <div id="moonrise-val" style="font-size:16px;font-weight:800;color:#a07800;">--:--</div>
-                                </div>
-                                <div style="background:rgba(255,255,255,0.5);border-radius:10px;padding:9px;text-align:center;border:1px solid rgba(184,207,232,0.6);">
-                                    <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Puesta luna</div>
-                                    <div id="moonset-val" style="font-size:16px;font-weight:800;color:#2c6a8a;">--:--</div>
-                                </div>
-                            </div>
-                            <div id="moon-advice" style="font-size:11px;color:#2c4a6e;line-height:1.4;border-left:3px solid rgba(160,120,0,0.35);padding-left:8px;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ══════════════════════════════════════════════
              METAR AEROPUERTO BARCELONA
         ═══════════════════════════════════════════════ -->
         <div id="metar-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #ccdde8;">
@@ -815,60 +749,60 @@
 
         <!-- CABECERA GRÁFICOS -->
         <div style="height:24px;background:#ffffff;"></div>
-        <div style="max-width:600px;margin:0 auto;background:linear-gradient(135deg,#1a3a5c 0%,#c05a00 100%);padding:10px 20px;display:flex;align-items:center;justify-content:center;">
-            <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:2px;text-transform:uppercase;">GRÁFICOS PRÓXIMAS 24 HORAS</span>
+        <div style="max-width:600px;margin:0 auto;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);padding:10px 20px;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">GRÁFICOS PRÓXIMAS 24 HORAS</span>
         </div>
 
         <!-- DESPLEGABLE TEMPERATURA -->
         <div style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <div id="toggle-temp" onclick="toggleChart('temp')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#1a2a3a;cursor:pointer;user-select:none;">
+            <div id="toggle-temp" onclick="toggleChart('temp')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0b4c90;cursor:pointer;user-select:none;">
                 <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">TEMPERATURA</span>
                 <span id="arrow-temp" style="color:rgba(255,255,255,0.5);font-size:12px;transition:transform 0.3s;">▼</span>
             </div>
-            <div id="panel-temp" style="display:none;background:#1a2a3a;padding:0 12px 12px;">
+            <div id="panel-temp" style="display:none;background:#0b4c90;padding:0 12px 12px;">
                 <canvas id="temp-rain-chart" style="width:100%;display:block;"></canvas>
             </div>
         </div>
 
         <!-- DESPLEGABLE LLUVIA -->
         <div style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <div id="toggle-rain" onclick="toggleChart('rain')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#1a2a3a;cursor:pointer;user-select:none;">
+            <div id="toggle-rain" onclick="toggleChart('rain')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0b4c90;cursor:pointer;user-select:none;">
                 <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">LLUVIA</span>
                 <span id="arrow-rain" style="color:rgba(255,255,255,0.5);font-size:12px;transition:transform 0.3s;">▼</span>
             </div>
-            <div id="panel-rain" style="display:none;background:#1a2a3a;padding:0 12px 12px;">
+            <div id="panel-rain" style="display:none;background:#0b4c90;padding:0 12px 12px;">
                 <canvas id="rain-chart" style="width:100%;display:block;"></canvas>
             </div>
         </div>
 
         <!-- DESPLEGABLE HUMEDAD -->
         <div style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <div id="toggle-hum" onclick="toggleChart('hum')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#1a2a3a;cursor:pointer;user-select:none;">
+            <div id="toggle-hum" onclick="toggleChart('hum')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0b4c90;cursor:pointer;user-select:none;">
                 <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">HUMEDAD</span>
                 <span id="arrow-hum" style="color:rgba(255,255,255,0.5);font-size:12px;transition:transform 0.3s;">▼</span>
             </div>
-            <div id="panel-hum" style="display:none;background:#1a2a3a;padding:0 12px 12px;">
+            <div id="panel-hum" style="display:none;background:#0b4c90;padding:0 12px 12px;">
                 <canvas id="hum-chart" style="width:100%;display:block;"></canvas>
             </div>
         </div>
 
         <!-- DESPLEGABLE PRESIÓN -->
         <div style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <div id="toggle-pres" onclick="toggleChart('pres')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#1a2a3a;cursor:pointer;user-select:none;">
+            <div id="toggle-pres" onclick="toggleChart('pres')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0b4c90;cursor:pointer;user-select:none;">
                 <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">PRESIÓN</span>
                 <span id="arrow-pres" style="color:rgba(255,255,255,0.5);font-size:12px;transition:transform 0.3s;">▼</span>
             </div>
-            <div id="panel-pres" style="display:none;background:#1a2a3a;padding:0 12px 12px;">
+            <div id="panel-pres" style="display:none;background:#0b4c90;padding:0 12px 12px;">
                 <canvas id="pres-chart" style="width:100%;display:block;"></canvas>
             </div>
         </div>
         <!-- DESPLEGABLE VIENTO / RACHAS -->
         <div style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <div id="toggle-wind" onclick="toggleChart('wind')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#1a2a3a;cursor:pointer;user-select:none;">
+            <div id="toggle-wind" onclick="toggleChart('wind')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0b4c90;cursor:pointer;user-select:none;">
                 <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">VIENTO Y RACHAS</span>
                 <span id="arrow-wind" style="color:rgba(255,255,255,0.5);font-size:12px;transition:transform 0.3s;">▼</span>
             </div>
-            <div id="panel-wind" style="display:none;background:#1a2a3a;padding:0 12px 12px;">
+            <div id="panel-wind" style="display:none;background:#0b4c90;padding:0 12px 12px;">
                 <canvas id="wind-chart" style="width:100%;display:block;"></canvas>
             </div>
         </div>
@@ -2953,184 +2887,6 @@
             setInterval(loadAQI, 5*60*1000);
         })();
         /* ══════ FIN SEMÁFORO ══════ */
-        /* ══════ FASE LUNAR ══════ */
-        (function() {
-            function getMoonPhase(date) {
-                const known = new Date(2000, 0, 6, 18, 14, 0); // Luna nueva de referencia verificada
-                const diff  = (date - known) / (1000 * 60 * 60 * 24);
-                const cycle = 29.53058867;
-                const age   = ((diff % cycle) + cycle) % cycle;
-                // Iluminación: 0% en luna nueva, 100% en luna llena, correcto matemáticamente
-                const illum = Math.round((1 - Math.cos(2 * Math.PI * age / cycle)) / 2 * 100);
-
-                // Fases con umbrales correctos sobre el ciclo de 29.53 días:
-                // 0-1.85   → Luna nueva       (ilum ~0%)
-                // 1.85-7.38 → Creciente       (ilum 1-49%)
-                // 7.38-8.07 → Cuarto creciente (ilum ~50%)
-                // 8.07-14.19 → Gibosa creciente (ilum 51-99%)
-                // 14.19-15.38 → Luna llena    (ilum ~100%)
-                // 15.38-21.48 → Gibosa menguante (ilum 99-51%)
-                // 21.48-22.15 → Cuarto menguante (ilum ~50%)
-                // 22.15-27.68 → Menguante     (ilum 49-1%)
-                // 27.68-29.53 → Luna nueva    (ilum ~0%)
-
-                let name, shadow;
-                if      (age < 1.85)   { name = 'Luna nueva';         shadow = 'new'; }
-                else if (age < 7.38)   { name = 'Luna creciente';     shadow = 'waxing'; }
-                else if (age < 8.07)   { name = 'Cuarto creciente';   shadow = 'waxing'; }
-                else if (age < 14.19)  { name = 'Gibosa creciente';   shadow = 'waxing'; }
-                else if (age < 15.38)  { name = 'Luna llena';         shadow = 'full'; }
-                else if (age < 21.48)  { name = 'Gibosa menguante';   shadow = 'waning'; }
-                else if (age < 22.15)  { name = 'Cuarto menguante';   shadow = 'waning'; }
-                else if (age < 27.68)  { name = 'Luna menguante';     shadow = 'waning'; }
-                else                   { name = 'Luna nueva';         shadow = 'new'; }
-
-                const daysToFull = age < 14.77 ? 14.77 - age : 14.77 + (cycle - age);
-                const daysToNew  = age < 29.53 ? cycle - age : 0;
-                return { age, illum, name, shadow, daysToFull: Math.round(daysToFull), daysToNew: Math.round(daysToNew) };
-            }
-
-            function drawMoonShadow(phase) {
-                const el = document.getElementById('moon-shadow');
-                if (!el) return;
-                const cx = 35, cy = 35, r = 28;
-
-                if (phase.shadow === 'new') {
-                    // Luna nueva: totalmente oscura
-                    el.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(5,10,25,0.93)"/>`;
-                    return;
-                }
-                if (phase.shadow === 'full') {
-                    // Luna llena: sin sombra
-                    el.innerHTML = '';
-                    return;
-                }
-
-                // Creciente (waxing): iluminado el lado derecho
-                // Menguante (waning): iluminado el lado izquierdo
-                // La elipse de sombra tiene rx proporcional a lo NO iluminado
-                const frac = phase.illum / 100; // 0=nueva, 1=llena
-                // rx de la elipse oscura: máximo en nueva (r), 0 en llena
-                const rx = r * Math.abs(0.5 - frac) * 2;
-
-                if (phase.shadow === 'waxing') {
-                    // Sombra cubre el lado izquierdo + elipse en el centro
-                    el.innerHTML = `
-                        <rect x="${cx - r}" y="${cy - r}" width="${r}" height="${r * 2}" fill="rgba(5,10,25,0.93)"/>
-                        <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${r}" fill="rgba(5,10,25,0.93)"/>`;
-                } else {
-                    // Menguante: sombra cubre el lado derecho + elipse en el centro
-                    el.innerHTML = `
-                        <rect x="${cx}" y="${cy - r}" width="${r}" height="${r * 2}" fill="rgba(5,10,25,0.93)"/>
-                        <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${r}" fill="rgba(5,10,25,0.93)"/>`;
-                }
-            }
-
-            function moonAdvice(phase) {
-                switch(phase.shadow) {
-                    case 'new':    return `Luna nueva. Noche muy oscura, ideal para observar estrellas. Próxima luna llena en ${phase.daysToFull} días.`;
-                    case 'full':   return 'Luna llena. Iluminación máxima, el cielo nocturno estará muy brillante.';
-                    case 'waxing': return `Luna en fase creciente (${phase.illum}% iluminada). Luna llena en ${phase.daysToFull} días.`;
-                    case 'waning': return `Luna en fase menguante (${phase.illum}% iluminada). Luna nueva en ${phase.daysToNew} días.`;
-                    default:       return '';
-                }
-            }
-
-            function pad(n) { return String(n).padStart(2, '0'); }
-
-            // Cálculo astronómico de salida/puesta de luna para Barcelona (lat=41.38, lon=2.17)
-            function getMoonRiseSet(date) {
-                const LAT = 41.38, LON = 2.17;
-                const rad = Math.PI / 180;
-                const deg = 180 / Math.PI;
-
-                function julianDate(d) {
-                    return d.getTime() / 86400000 + 2440587.5;
-                }
-
-                function moonPosition(jd) {
-                    const T = (jd - 2451545.0) / 36525;
-                    let L = (218.316 + 13.176396 * (jd - 2451545)) % 360;
-                    let M = (134.963 + 13.064993 * (jd - 2451545)) % 360;
-                    let F = (93.272  + 13.229350 * (jd - 2451545)) % 360;
-                    if (L < 0) L += 360;
-                    if (M < 0) M += 360;
-                    if (F < 0) F += 360;
-                    const lon = L + 6.289 * Math.sin(M * rad);
-                    const lat = 5.128 * Math.sin(F * rad);
-                    const dist = 385001 - 20905 * Math.cos(M * rad);
-                    // Ecliptic to equatorial
-                    const eps = 23.439 - 0.0000004 * (jd - 2451545);
-                    const ra  = Math.atan2(Math.sin(lon * rad) * Math.cos(eps * rad) - Math.tan(lat * rad) * Math.sin(eps * rad), Math.cos(lon * rad)) * deg;
-                    const dec = Math.asin(Math.sin(lat * rad) * Math.cos(eps * rad) + Math.cos(lat * rad) * Math.sin(eps * rad) * Math.sin(lon * rad)) * deg;
-                    return { ra: (ra + 360) % 360, dec };
-                }
-
-                function hourAngle(dec, lat, h0) {
-                    const cosH = (Math.sin(h0 * rad) - Math.sin(lat * rad) * Math.sin(dec * rad)) / (Math.cos(lat * rad) * Math.cos(dec * rad));
-                    if (cosH < -1) return null; // no se pone
-                    if (cosH >  1) return null; // no sale
-                    return Math.acos(cosH) * deg;
-                }
-
-                const noon = new Date(date);
-                noon.setHours(12, 0, 0, 0);
-                const jd0 = julianDate(noon);
-
-                // Iterar para convergencia
-                let riseJD = jd0 - 0.25;
-                let setJD  = jd0 + 0.25;
-
-                for (let i = 0; i < 3; i++) {
-                    const mp = moonPosition(jd0);
-                    const H0 = hourAngle(mp.dec, LAT, -0.833);
-                    if (H0 === null) return { rise: '--:--', set: '--:--' };
-                    const transit = jd0 + (mp.ra - LON - ((jd0 - 2451545) * 360.985647 % 360)) / 360;
-                    riseJD = transit - H0 / 360;
-                    setJD  = transit + H0 / 360;
-                }
-
-                function jdToLocal(jd) {
-                    const d = new Date((jd - 2440587.5) * 86400000);
-                    return pad(d.getUTCHours() + 1) + ':' + pad(d.getUTCMinutes()); // UTC+1 (CET)
-                }
-
-                // Ajustar a horario de verano si aplica
-                const offset = -date.getTimezoneOffset() / 60;
-                function jdToLocalTZ(jd) {
-                    const d = new Date((jd - 2440587.5) * 86400000);
-                    const h = (d.getUTCHours() + offset + 24) % 24;
-                    const m = d.getUTCMinutes();
-                    return pad(Math.floor(h)) + ':' + pad(m);
-                }
-
-                return { rise: jdToLocalTZ(riseJD), set: jdToLocalTZ(setJD) };
-            }
-
-            function renderMoon() {
-                const now   = new Date();
-                const phase = getMoonPhase(now);
-
-                const nameEl = document.getElementById('moon-phase-name');
-                if (nameEl) nameEl.textContent = phase.name;
-
-                const illumEl = document.getElementById('moon-illumination');
-                if (illumEl) illumEl.textContent = `Iluminación: ${phase.illum}%`;
-
-                drawMoonShadow(phase);
-
-                const advEl = document.getElementById('moon-advice');
-                if (advEl) advEl.textContent = moonAdvice(phase);
-
-                const rs = getMoonRiseSet(now);
-                const riseEl = document.getElementById('moonrise-val');
-                const setEl  = document.getElementById('moonset-val');
-                if (riseEl) riseEl.textContent = rs.rise;
-                if (setEl)  setEl.textContent  = rs.set;
-            }
-
-            renderMoon();
-        })();
         /* ══════ METAR LEBL ══════ */
         (function() {
             async function loadMetar() {
