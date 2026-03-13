@@ -767,7 +767,7 @@
         <div id="metar-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #ccdde8;">
             <!-- Cabecera cliclable -->
             <div id="toggle-metar" onclick="toggleSection('metar')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);cursor:pointer;user-select:none;">
-                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">✈️ METAR — Aeropuerto Barcelona (LEBL)</span>
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">METAR — Aeropuerto Barcelona (LEBL)</span>
                 <span id="arrow-metar" style="color:#2c4a6e;font-size:12px;transition:transform 0.3s;">▼</span>
             </div>
             <!-- Panel desplegable -->
@@ -3068,12 +3068,24 @@
             async function loadMetar() {
                 try {
                     const metarUrl = 'https://aviationweather.gov/api/data/metar?ids=LEBL&format=json';
-                    const proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(metarUrl);
-                    const res = await fetch(proxy);
-                    const outer = await res.json();
-                    const data = JSON.parse(outer.contents);
-                    if (!data || !data.length) {
-                        document.getElementById('metar-raw').textContent = 'Sin datos disponibles.';
+                    const proxies = [
+                        'https://corsproxy.io/?' + encodeURIComponent(metarUrl),
+                        'https://api.allorigins.win/get?url=' + encodeURIComponent(metarUrl)
+                    ];
+
+                    let data = null;
+                    for (const proxyUrl of proxies) {
+                        try {
+                            const res = await fetch(proxyUrl);
+                            const json = await res.json();
+                            // allorigins envuelve en .contents, corsproxy devuelve directo
+                            const raw = json.contents ? JSON.parse(json.contents) : json;
+                            if (Array.isArray(raw) && raw.length) { data = raw; break; }
+                        } catch(e) { continue; }
+                    }
+
+                    if (!data) {
+                        document.getElementById('metar-raw').textContent = 'No se pudo cargar el METAR.';
                         return;
                     }
                     const m = data[0];
