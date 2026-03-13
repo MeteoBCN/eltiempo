@@ -40,7 +40,7 @@
         .header-section {
             background: #2C3E50;
             padding: 0;
-            background-image: url('banner100.png');
+            background-image: url('banner25.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -762,8 +762,49 @@
         </div>
 
         <!-- ══════════════════════════════════════════════
-             PREVISIÓN HORARIA
+             METAR AEROPUERTO BARCELONA
         ═══════════════════════════════════════════════ -->
+        <div id="metar-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #ccdde8;">
+            <!-- Cabecera cliclable -->
+            <div id="toggle-metar" onclick="toggleSection('metar')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);cursor:pointer;user-select:none;">
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">✈️ METAR — Aeropuerto Barcelona (LEBL)</span>
+                <span id="arrow-metar" style="color:#2c4a6e;font-size:12px;transition:transform 0.3s;">▼</span>
+            </div>
+            <!-- Panel desplegable -->
+            <div id="panel-metar" style="display:none;background:#f0f6fa;padding:14px 20px 18px;">
+                <!-- Código METAR raw -->
+                <div style="background:rgba(11,76,144,0.06);border-radius:10px;padding:12px 14px;margin-bottom:14px;border:1px solid rgba(11,76,144,0.12);">
+                    <div style="font-size:9px;font-weight:700;color:#4a6a8a;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Código METAR</div>
+                    <div id="metar-raw" style="font-family:monospace;font-size:12px;color:#0b4c90;line-height:1.6;word-break:break-all;">Cargando…</div>
+                </div>
+                <!-- Datos interpretados -->
+                <div id="metar-decoded" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div style="background:rgba(255,255,255,0.7);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(184,207,232,0.6);">
+                        <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Viento</div>
+                        <div id="metar-wind" style="font-size:15px;font-weight:700;color:#0b4c90;">--</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.7);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(184,207,232,0.6);">
+                        <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Visibilidad</div>
+                        <div id="metar-vis" style="font-size:15px;font-weight:700;color:#0b4c90;">--</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.7);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(184,207,232,0.6);">
+                        <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Temperatura / Rocío</div>
+                        <div id="metar-temp" style="font-size:15px;font-weight:700;color:#0b4c90;">--</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.7);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(184,207,232,0.6);">
+                        <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">QNH</div>
+                        <div id="metar-qnh" style="font-size:15px;font-weight:700;color:#0b4c90;">--</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.7);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(184,207,232,0.6);grid-column:span 2;">
+                        <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Nubes / Tiempo presente</div>
+                        <div id="metar-sky" style="font-size:13px;font-weight:600;color:#0b4c90;">--</div>
+                    </div>
+                </div>
+                <div id="metar-time" style="font-size:10px;color:#4a6a8a;text-align:right;margin-top:10px;font-style:italic;"></div>
+            </div>
+        </div>
+
+
         <div class="hourly-section">
             <div class="hourly-scroll-wrap">
                 <div class="hourly-inner" id="hourly-forecast-strip">
@@ -3022,7 +3063,75 @@
 
             renderMoon();
         })();
-        /* ══════ FIN FASE LUNAR ══════ */
+        /* ══════ METAR LEBL ══════ */
+        (function() {
+            async function loadMetar() {
+                try {
+                    const url = 'https://aviationweather.gov/api/data/metar?ids=LEBL&format=json';
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    if (!data || !data.length) return;
+                    const m = data[0];
+
+                    // Raw
+                    const rawEl = document.getElementById('metar-raw');
+                    if (rawEl) rawEl.textContent = m.rawOb || '—';
+
+                    // Viento
+                    const windEl = document.getElementById('metar-wind');
+                    if (windEl) {
+                        const dir = m.wdir != null ? m.wdir + '°' : 'VRB';
+                        const spd = m.wspd != null ? m.wspd + ' kt' : '--';
+                        const gust = m.wgst ? ' (ráfaga ' + m.wgst + ' kt)' : '';
+                        windEl.textContent = dir + ' / ' + spd + gust;
+                    }
+
+                    // Visibilidad
+                    const visEl = document.getElementById('metar-vis');
+                    if (visEl) visEl.textContent = m.visib != null ? m.visib + ' SM' : '—';
+
+                    // Temp / Rocío
+                    const tempEl = document.getElementById('metar-temp');
+                    if (tempEl) tempEl.textContent = (m.temp != null ? m.temp + '°C' : '--') + ' / ' + (m.dewp != null ? m.dewp + '°C' : '--');
+
+                    // QNH
+                    const qnhEl = document.getElementById('metar-qnh');
+                    if (qnhEl) qnhEl.textContent = m.altim != null ? Math.round(m.altim) + ' hPa' : '—';
+
+                    // Nubes
+                    const skyEl = document.getElementById('metar-sky');
+                    if (skyEl) {
+                        const skyMap = { SKC:'Despejado', CLR:'Despejado', FEW:'Poco nuboso', SCT:'Nubosidad parcial', BKN:'Muy nuboso', OVC:'Cubierto' };
+                        if (m.clouds && m.clouds.length) {
+                            skyEl.textContent = m.clouds.map(c => (skyMap[c.cover] || c.cover) + (c.base ? ' ' + c.base * 100 + 'ft' : '')).join(' · ');
+                        } else {
+                            skyEl.textContent = m.wxString || m.sky || '—';
+                        }
+                    }
+
+                    // Hora
+                    const timeEl = document.getElementById('metar-time');
+                    if (timeEl && m.reportTime) timeEl.textContent = 'Actualizado: ' + new Date(m.reportTime).toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'}) + ' UTC';
+
+                } catch(e) {
+                    const rawEl = document.getElementById('metar-raw');
+                    if (rawEl) rawEl.textContent = 'No se pudo cargar el METAR.';
+                }
+            }
+
+            // Cargar al abrir el panel
+            const origToggle = window.toggleSection;
+            window.toggleSection = function(id) {
+                origToggle(id);
+                if (id === 'metar') {
+                    const panel = document.getElementById('panel-metar');
+                    if (panel && panel.style.display !== 'none') loadMetar();
+                }
+            };
+        })();
+        /* ══════ FIN METAR ══════ */
+
+
 
     </script>
 
