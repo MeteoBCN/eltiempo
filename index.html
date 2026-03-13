@@ -40,7 +40,7 @@
         .header-section {
             background: #2C3E50;
             padding: 0;
-            background-image: url('banner100.png');
+            background-image: url('banner25.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -3109,8 +3109,9 @@
                         const v = m.visib;
                         let visStr = '—';
                         if (v != null) {
-                            if (v >= 6) visStr = '>10 km';
-                            else visStr = Math.round(v * 1.60934) + ' km';
+                            const vNum = parseFloat(String(v).replace('+',''));
+                            if (String(v).includes('+') || vNum >= 6) visStr = '>10 km';
+                            else visStr = Math.round(vNum * 1.60934) + ' km';
                         }
                         visEl.textContent = visStr;
                     }
