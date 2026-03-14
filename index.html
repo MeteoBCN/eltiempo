@@ -1271,13 +1271,14 @@
             const now  = new Date();
             const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
-            // Lookup viento atmosférico por clave "YYYY-MM-DDTHH"
+            // Lookup viento atmosférico y UV por clave "YYYY-MM-DDTHH"
             const windLookup = {};
             if (weatherHourly?.time) {
                 weatherHourly.time.forEach((t, i) => {
                     windLookup[t.slice(0,13)] = {
                         ws:  weatherHourly.wind_speed_10m?.[i]     ?? null,
                         wsd: weatherHourly.wind_direction_10m?.[i] ?? null,
+                        uv:  weatherHourly.uv_index?.[i]           ?? null,
                     };
                 });
             }
@@ -1314,6 +1315,7 @@
                         sst: marineHourly.sea_surface_temperature?.[i] ?? null,
                         ws:  w.ws,
                         wsd: w.wsd,
+                        uv:  w.uv,
                     });
                 }
                 return res;
@@ -1452,6 +1454,16 @@
                 containerHoy.appendChild(div);
             }
 
+            function getUVAdvice(uvi) {
+                if (uvi === null) return null;
+                const u = Math.round(uvi);
+                if (u <= 2)  return { nivel: 'Bajo', color: '#22c55e',  mins: 60, consejo: 'Sin protección especial necesaria.' };
+                if (u <= 5)  return { nivel: 'Moderado', color: '#eab308', mins: 30, consejo: 'Protector FPS 30+. Sombrero recomendado.' };
+                if (u <= 7)  return { nivel: 'Alto', color: '#f97316',   mins: 20, consejo: 'FPS 50+. Evitar sol entre 12h y 16h.' };
+                if (u <= 10) return { nivel: 'Muy alto', color: '#ef4444', mins: 10, consejo: 'FPS 50+. Sombra obligatoria al mediodía.' };
+                return { nivel: 'Extremo', color: '#7c3aed', mins: 5, consejo: 'Exposición mínima. Protección máxima.' };
+            }
+
             function renderStripTo(target, dayLabel, subLabel, slots, isActive, uviVal) {
                 if (!slots.length) return;
                 const whs  = slots.map(s=>s.wh).filter(v=>v!==null);
@@ -1489,6 +1501,7 @@
                     'Mar gruesa':'linear-gradient(135deg,#88b8da 0%,#b0d2ec 60%,#d8edf8 100%)',
                 };
                 const bgGrad = seaGrads[estado] || seaGrads['Marejadilla'];
+                const uvAdvice = getUVAdvice(uviVal);
                 const div = document.createElement('div');
                 div.style.cssText = `border-bottom:1px solid rgba(44,74,110,0.15);background:linear-gradient(180deg,#c9ddf0 0%,#dce8f0 100%);padding:12px;text-align:center;`;
                 div.innerHTML = `
@@ -1503,9 +1516,16 @@
                     </div>
                     <div style="font-size:10px;color:#1a3a5c;line-height:1.8;">
                         <span style="font-weight:600;">${avgWS !== null ? avgWS + ' km/h · ' + beaufort : '—'}</span><br>
-                        Agua <span style="font-weight:700;color:#0b4c90;">${aguaTxt}</span><br>
-                        UVI <span style="font-weight:700;color:#1a3a5c;">${uviTxt}</span>
+                        Agua <span style="font-weight:700;color:#0b4c90;">${aguaTxt}</span>
                     </div>
+                    ${uvAdvice ? `
+                    <div style="margin-top:8px;background:rgba(255,255,255,0.6);border-radius:6px;padding:7px 8px;border-left:3px solid ${uvAdvice.color};">
+                        <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:3px;">
+                            <span style="font-size:9px;font-weight:700;color:#fff;background:${uvAdvice.color};padding:1px 7px;border-radius:3px;">UV ${uviTxt} · ${uvAdvice.nivel}</span>
+                            <span style="font-size:9px;color:#1a3a5c;">≤${uvAdvice.mins} min sin crema</span>
+                        </div>
+                        <div style="font-size:9px;color:#2c4a6e;line-height:1.4;">${uvAdvice.consejo}</div>
+                    </div>` : ''}
                     <div style="margin-top:7px;display:flex;align-items:center;gap:5px;justify-content:center;">
                         <span style="font-size:9px;color:rgba(26,58,92,0.6);">Baño:</span>
                         <span style="font-size:10px;font-weight:800;color:#fff;background:${calidad.color};padding:2px 7px;border-radius:4px;">${calidad.texto}</span>
@@ -1545,6 +1565,102 @@
             leyenda.style.cssText = 'grid-column:span 2;padding:8px 14px;background:#dce8f0;border-top:1px solid rgba(44,74,110,0.15);font-size:10px;color:#2c4a6e;line-height:1.6;text-align:center;';
             leyenda.innerHTML = `<strong style="color:#1a3a5c;">Calidad del baño:</strong> oleaje, viento, temperatura del agua e índice UV.`;
             gridEl.appendChild(leyenda);
+
+            // ── Gráfico horario oleaje ──────────────────────────────────
+            const waveSection = document.createElement('div');
+            waveSection.style.cssText = 'grid-column:span 2;background:#dce8f0;border-top:1px solid rgba(44,74,110,0.15);padding:12px 14px 14px;';
+            waveSection.innerHTML = `
+                <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;text-align:center;">Evolución del oleaje — hoy y mañana</div>
+                <canvas id="wave-chart" style="width:100%;display:block;"></canvas>`;
+            gridEl.appendChild(waveSection);
+
+            requestAnimationFrame(() => {
+                const canvas = document.getElementById('wave-chart');
+                if (!canvas || !marineHourly?.time) return;
+
+                const pts = [];
+                const tLim = new Date(now); tLim.setDate(tLim.getDate() + 2); tLim.setHours(0,0,0,0);
+                for (let i = 0; i < marineHourly.time.length; i++) {
+                    const ht = new Date(marineHourly.time[i]);
+                    if (ht < now) continue;
+                    if (ht >= tLim) break;
+                    const h = ht.getHours();
+                    if (h < 6 || h > 22) continue;
+                    const dd = ht.getDate() === now.getDate() ? 'Hoy' : 'Mañ';
+                    pts.push({ label: dd + ' ' + String(h).padStart(2,'0') + 'h', val: marineHourly.wave_height?.[i] ?? null });
+                }
+                if (pts.length < 2) return;
+
+                const dpr = window.devicePixelRatio || 1;
+                const W = canvas.parentElement.clientWidth - 28;
+                const H = 120;
+                canvas.width = W * dpr; canvas.height = H * dpr;
+                canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+                const ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
+
+                const pad = { t: 10, r: 10, b: 30, l: 36 };
+                const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+                const vals = pts.map(p => p.val).filter(v => v !== null);
+                const maxV = Math.max(...vals, 0.5);
+                const minV = 0;
+
+                const xPos = i => pad.l + (i / (pts.length - 1)) * cw;
+                const yPos = v => pad.t + ch - ((v - minV) / (maxV - minV)) * ch;
+
+                // Relleno
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yPos(pts[0].val ?? 0));
+                for (let i = 1; i < pts.length; i++) {
+                    if (pts[i].val === null) continue;
+                    const x0 = xPos(i-1), y0 = yPos(pts[i-1].val ?? 0);
+                    const x1 = xPos(i),   y1 = yPos(pts[i].val);
+                    const mx = (x0 + x1) / 2;
+                    ctx.bezierCurveTo(mx, y0, mx, y1, x1, y1);
+                }
+                ctx.lineTo(xPos(pts.length-1), pad.t + ch);
+                ctx.lineTo(xPos(0), pad.t + ch);
+                ctx.closePath();
+                const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
+                grad.addColorStop(0, 'rgba(11,76,144,0.25)');
+                grad.addColorStop(1, 'rgba(11,76,144,0.03)');
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                // Línea
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yPos(pts[0].val ?? 0));
+                for (let i = 1; i < pts.length; i++) {
+                    if (pts[i].val === null) continue;
+                    const x0 = xPos(i-1), y0 = yPos(pts[i-1].val ?? 0);
+                    const x1 = xPos(i),   y1 = yPos(pts[i].val);
+                    const mx = (x0 + x1) / 2;
+                    ctx.bezierCurveTo(mx, y0, mx, y1, x1, y1);
+                }
+                ctx.strokeStyle = '#0b4c90';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Eje Y
+                ctx.fillStyle = '#2c4a6e';
+                ctx.font = '9px sans-serif';
+                ctx.textAlign = 'right';
+                [0, maxV/2, maxV].forEach(v => {
+                    const y = yPos(v);
+                    ctx.fillText(v.toFixed(1) + 'm', pad.l - 4, y + 3);
+                    ctx.strokeStyle = 'rgba(44,74,110,0.12)';
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
+                });
+
+                // Etiquetas X (cada 2)
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#2c4a6e';
+                pts.forEach((p, i) => {
+                    if (i % 2 !== 0) return;
+                    ctx.fillText(p.label, xPos(i), H - 6);
+                });
+            });
 
         }
 
