@@ -721,49 +721,6 @@
 
 
 
-        <!-- ══════════════════════════════════════════════
-             METAR AEROPUERTO BARCELONA
-        ═══════════════════════════════════════════════ -->
-        <div id="metar-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #ccdde8;">
-            <!-- Cabecera cliclable -->
-            <div id="toggle-metar" onclick="toggleSection('metar')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);cursor:pointer;user-select:none;">
-                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">METAR — Aeropuerto Barcelona (LEBL)</span>
-                <span id="arrow-metar" style="color:#2c4a6e;font-size:12px;transition:transform 0.3s;">▼</span>
-            </div>
-            <!-- Panel desplegable -->
-            <div id="panel-metar" style="display:none;background:#f0f6fa;padding:14px 20px 18px;">
-                <!-- Código METAR raw -->
-                <div style="background:rgba(11,76,144,0.06);border-radius:10px;padding:12px 14px;margin-bottom:14px;border:1px solid rgba(11,76,144,0.12);">
-                    <div style="font-size:9px;font-weight:700;color:#4a6a8a;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Código METAR</div>
-                    <div id="metar-raw" style="font-family:monospace;font-size:12px;color:#0b4c90;line-height:1.6;word-break:break-all;">Cargando…</div>
-                </div>
-                <!-- Datos interpretados -->
-                <div id="metar-decoded" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                    <div style="background:rgba(255,255,255,0.7);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(184,207,232,0.6);">
-                        <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Viento</div>
-                        <div id="metar-wind" style="font-size:15px;font-weight:700;color:#0b4c90;">--</div>
-                    </div>
-                    <div style="background:rgba(255,255,255,0.7);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(184,207,232,0.6);">
-                        <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Visibilidad</div>
-                        <div id="metar-vis" style="font-size:15px;font-weight:700;color:#0b4c90;">--</div>
-                    </div>
-                    <div style="background:rgba(255,255,255,0.7);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(184,207,232,0.6);">
-                        <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Temperatura / Rocío</div>
-                        <div id="metar-temp" style="font-size:15px;font-weight:700;color:#0b4c90;">--</div>
-                    </div>
-                    <div style="background:rgba(255,255,255,0.7);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(184,207,232,0.6);">
-                        <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">QNH</div>
-                        <div id="metar-qnh" style="font-size:15px;font-weight:700;color:#0b4c90;">--</div>
-                    </div>
-                    <div style="background:rgba(255,255,255,0.7);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(184,207,232,0.6);grid-column:span 2;">
-                        <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Nubes / Tiempo presente</div>
-                        <div id="metar-sky" style="font-size:13px;font-weight:600;color:#0b4c90;">--</div>
-                    </div>
-                </div>
-                <div id="metar-time" style="font-size:10px;color:#4a6a8a;text-align:right;margin-top:10px;font-style:italic;"></div>
-            </div>
-        </div>
-
 
         <div style="height:35px;background:#ffffff;"></div>
 
@@ -844,28 +801,22 @@
             <div style="background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);padding:10px 20px;display:flex;align-items:center;justify-content:center;">
                 <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">PLAYAS — ESTADO DE LA MAR</span>
             </div>
-            <!-- Desplegable HOY -->
-            <div style="border-bottom:1px solid #ccdde8;">
-                <div id="toggle-playas-hoy" onclick="toggleSection('playas-hoy')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0b4c90;cursor:pointer;user-select:none;">
-                    <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:2px;text-transform:uppercase;">HOY</span>
-                    <span id="arrow-playas-hoy" style="color:rgba(255,255,255,0.7);font-size:12px;transition:transform 0.3s;">▼</span>
+            <!-- Fila cabecera HOY / MAÑANA -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;background:#0b4c90;">
+                <div style="padding:10px;text-align:center;border-right:1px solid rgba(255,255,255,0.15);">
+                    <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:2px;text-transform:uppercase;">HOY</span>
                 </div>
-                <div id="panel-playas-hoy" style="display:none;">
-                    <div id="marine-blocks-hoy" style="background:#0b4c90;">
-                        <div style="padding:16px;text-align:center;color:rgba(255,255,255,0.5);font-size:13px;">Cargando…</div>
-                    </div>
+                <div style="padding:10px;text-align:center;">
+                    <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:2px;text-transform:uppercase;">MAÑANA</span>
                 </div>
             </div>
-            <!-- Desplegable MAÑANA -->
-            <div>
-                <div id="toggle-playas-manana" onclick="toggleSection('playas-manana')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0b4c90;cursor:pointer;user-select:none;">
-                    <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:2px;text-transform:uppercase;">MAÑANA</span>
-                    <span id="arrow-playas-manana" style="color:rgba(255,255,255,0.7);font-size:12px;transition:transform 0.3s;">▼</span>
+            <!-- Grid dos columnas -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;background:#0b4c90;gap:0;">
+                <div id="marine-blocks-hoy" style="background:#0b4c90;border-right:1px solid rgba(255,255,255,0.1);">
+                    <div style="padding:16px;text-align:center;color:rgba(255,255,255,0.5);font-size:13px;">Cargando…</div>
                 </div>
-                <div id="panel-playas-manana" style="display:none;">
-                    <div id="marine-blocks-manana" style="background:#0b4c90;">
-                        <div style="padding:16px;text-align:center;color:rgba(255,255,255,0.5);font-size:13px;">Cargando…</div>
-                    </div>
+                <div id="marine-blocks-manana" style="background:#0b4c90;">
+                    <div style="padding:16px;text-align:center;color:rgba(255,255,255,0.5);font-size:13px;">Cargando…</div>
                 </div>
             </div>
         </div>
@@ -1535,31 +1486,24 @@
                 };
                 const bgGrad = seaGrads[estado] || seaGrads['Marejadilla'];
                 const div = document.createElement('div');
-                div.style.cssText = `display:flex;align-items:stretch;border-bottom:1px solid rgba(255,255,255,0.1);overflow:hidden;background:#0b4c90;position:relative;`;
+                div.style.cssText = `border-bottom:1px solid rgba(255,255,255,0.1);background:#0b4c90;padding:12px;`;
                 div.innerHTML = `
-                    <div style="background:rgba(0,0,0,0.15);padding:14px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:80px;flex-shrink:0;gap:4px;border-right:1px solid rgba(255,255,255,0.1);">
-                        <span style="color:#fff;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;text-align:center;">${dayLabel}</span>
-                        <span style="color:rgba(255,255,255,0.65);font-size:10px;font-weight:600;text-transform:capitalize;">${subLabel}</span>
-                        <span style="margin-top:6px;font-size:22px;">🌊</span>
+                    <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">${dayLabel}</div>
+                    <div style="display:flex;align-items:baseline;gap:5px;flex-wrap:wrap;margin-bottom:5px;">
+                        <span style="font-size:14px;font-weight:800;color:#fff;">${oleajeTxt}</span>
+                        <span style="font-size:10px;color:rgba(255,255,255,0.45);">altura olas</span>
                     </div>
-                    <div style="flex:1;padding:13px 15px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
-                        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:-2px;">
-                            <span style="font-size:13px;font-weight:800;color:#fff;">${oleajeTxt}</span>
-                            <span style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:500;">altura olas</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
-                            <span style="font-size:11px;font-weight:700;color:#fff;background:${color};padding:2px 8px;border-radius:4px;">${estado}</span>
-                            ${avgWP !== null ? `<span style="font-size:12px;color:rgba(255,255,255,0.75);font-weight:600;">· ${avgWP}s período</span>` : ''}
-                        </div>
-                        <div style="font-size:12px;color:rgba(255,255,255,0.85);line-height:1.75;">
-                            <span style="font-weight:600;">${vientoTxt}</span><br>
-                            Agua <span style="font-weight:700;color:#7dd3f0;">${aguaTxt}</span>
-                            &nbsp;·&nbsp; UVI <span style="font-weight:700;color:#fff;">${uviTxt}</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <span style="font-size:11px;color:rgba(255,255,255,0.6);">Calidad del baño:</span>
-                            <span style="font-size:12px;font-weight:800;color:#fff;background:${calidad.color};padding:2px 10px;border-radius:4px;">${calidad.texto}</span>
-                        </div>
+                    <div style="margin-bottom:5px;">
+                        <span style="font-size:10px;font-weight:700;color:#fff;background:${color};padding:2px 7px;border-radius:4px;">${estado}</span>
+                        ${avgWP !== null ? `<span style="font-size:10px;color:rgba(255,255,255,0.65);margin-left:4px;">${avgWP}s</span>` : ''}
+                    </div>
+                    <div style="font-size:10px;color:rgba(255,255,255,0.8);line-height:1.7;">
+                        <span style="font-weight:600;">${avgWS !== null ? avgWS + ' km/h · ' + beaufort : '—'}</span><br>
+                        Agua <span style="font-weight:700;color:#7dd3f0;">${aguaTxt}</span> · UVI <span style="font-weight:700;">${uviTxt}</span>
+                    </div>
+                    <div style="margin-top:6px;display:flex;align-items:center;gap:5px;">
+                        <span style="font-size:9px;color:rgba(255,255,255,0.55);">Baño:</span>
+                        <span style="font-size:10px;font-weight:800;color:#fff;background:${calidad.color};padding:2px 7px;border-radius:4px;">${calidad.texto}</span>
                     </div>`;
                 target.appendChild(div);
             }
@@ -1590,16 +1534,13 @@
 
             franjasHoy.forEach(f    => renderStripTo(containerHoy,    f.label, f.sub, getSlots(f.date, f.from, f.to), false, f.uvi));
             franjasManana.forEach(f => renderStripTo(containerManana, f.label, f.sub, getSlots(f.date, f.from, f.to), false, f.uvi));
+            // Leyenda a ancho completo debajo del grid
+            const gridEl = containerHoy.parentElement;
+            const leyenda = document.createElement('div');
+            leyenda.style.cssText = 'grid-column:span 2;padding:8px 14px;background:#0b4c90;border-top:1px solid rgba(255,255,255,0.1);font-size:10px;color:rgba(255,255,255,0.6);line-height:1.6;text-align:center;';
+            leyenda.innerHTML = `<strong style="color:rgba(255,255,255,0.85);">* Calidad del baño:</strong> oleaje, viento, temperatura del agua e índice UV.`;
+            gridEl.appendChild(leyenda);
 
-            const leyendaHoy = document.createElement('div');
-            leyendaHoy.style.cssText = 'padding:10px 14px 12px;background:#0b4c90;border-top:1px solid #dbeaf5;font-size:11px;color:#64748b;line-height:1.8;';
-            leyendaHoy.innerHTML = `<strong style="color:rgba(255,255,255,0.9);">* Calidad del baño:</strong> oleaje, viento, temperatura del agua e índice UV.`;
-            containerHoy.appendChild(leyendaHoy);
-
-            const leyendaManana = document.createElement('div');
-            leyendaManana.style.cssText = 'padding:10px 14px 12px;background:#0b4c90;border-top:1px solid #dbeaf5;font-size:11px;color:#64748b;line-height:1.8;';
-            leyendaManana.innerHTML = `<strong style="color:rgba(255,255,255,0.9);">* Calidad del baño:</strong> oleaje, viento, temperatura del agua e índice UV.`;
-            containerManana.appendChild(leyendaManana);
         }
 
         function updateHourlyStrip(hourly, daily) {
@@ -2978,116 +2919,6 @@
             setInterval(loadAQI, 5*60*1000);
         })();
         /* ══════ FIN SEMÁFORO ══════ */
-        /* ══════ METAR LEBL ══════ */
-        (function() {
-            async function loadMetar() {
-                try {
-                    // El dataserver legacy de aviationweather tiene CORS habilitado
-                    const url = 'https://aviationweather.gov/api/data/metar?ids=LEBL&format=raw&taf=false&hours=1';
-                    const res = await fetch(url, {
-                        headers: { 'User-Agent': 'barcelonamet.com' }
-                    });
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
-                    const text = await res.text();
-                    const lines = text.trim().split('\n').map(l => l.trim()).filter(l => l.startsWith('LEBL'));
-                    if (!lines.length) {
-                        document.getElementById('metar-raw').textContent = 'Sin datos disponibles.';
-                        return;
-                    }
-                    const raw = lines[0].trim();
-
-                    // Raw
-                    const rawEl = document.getElementById('metar-raw');
-                    if (rawEl) rawEl.textContent = raw;
-
-                    // Parsear campos del METAR raw
-                    const tokens = raw.split(' ');
-
-                    // Viento: token tipo 18005KT o 18005G12KT o VRB03KT
-                    const windTok = tokens.find(t => /^(VRB|\d{3})\d{2,3}(G\d{2,3})?KT$/.test(t));
-                    const windEl = document.getElementById('metar-wind');
-                    if (windEl && windTok) {
-                        const m = windTok.match(/^(VRB|\d{3})(\d{2,3})(G(\d{2,3}))?KT$/);
-                        const dir = m[1] === 'VRB' ? 'VRB' : m[1] + '°';
-                        const spd = parseInt(m[2]) + ' kt';
-                        const gust = m[4] ? ' (ráf. ' + m[4] + ' kt)' : '';
-                        windEl.textContent = dir + ' / ' + spd + gust;
-                    } else if (windEl) windEl.textContent = '—';
-
-                    // Visibilidad: token 9999 o CAVOK o número SM
-                    const visEl = document.getElementById('metar-vis');
-                    if (visEl) {
-                        const cavok = tokens.includes('CAVOK');
-                        const vis9 = tokens.includes('9999');
-                        const smTok = tokens.find(t => /^\d+SM$/.test(t));
-                        if (cavok || vis9) visEl.textContent = '>10 km';
-                        else if (smTok) {
-                            const sm = parseInt(smTok);
-                            visEl.textContent = sm >= 6 ? '>10 km' : Math.round(sm * 1.60934) + ' km';
-                        } else {
-                            const visTok = tokens.find(t => /^\d{4}$/.test(t));
-                            visEl.textContent = visTok ? (parseInt(visTok) >= 9999 ? '>10 km' : parseInt(visTok) + ' m') : '—';
-                        }
-                    }
-
-                    // Temperatura/Rocío: token tipo 15/09 o M02/M05
-                    const tempTok = tokens.find(t => /^M?\d{2}\/M?\d{2}$/.test(t));
-                    const tempEl = document.getElementById('metar-temp');
-                    if (tempEl && tempTok) {
-                        const parts = tempTok.split('/');
-                        const parseT = s => (s.startsWith('M') ? -1 : 1) * parseInt(s.replace('M',''));
-                        tempEl.textContent = parseT(parts[0]) + '°C / ' + parseT(parts[1]) + '°C';
-                    } else if (tempEl) tempEl.textContent = '—';
-
-                    // QNH: token tipo Q1013
-                    const qnhTok = tokens.find(t => /^Q\d{4}$/.test(t));
-                    const qnhEl = document.getElementById('metar-qnh');
-                    if (qnhEl) qnhEl.textContent = qnhTok ? qnhTok.replace('Q','') + ' hPa' : '—';
-
-                    // Nubes: tokens FEW/SCT/BKN/OVC + CAVOK + SKC/CLR/NSC
-                    const skyEl = document.getElementById('metar-sky');
-                    if (skyEl) {
-                        const skyMap = { FEW:'Poco nuboso', SCT:'Nubosidad parcial', BKN:'Muy nuboso', OVC:'Cubierto', SKC:'Despejado', CLR:'Despejado', NSC:'Sin nubes significativas', CAVOK:'Despejado' };
-                        if (tokens.includes('CAVOK')) { skyEl.textContent = 'Despejado (CAVOK)'; }
-                        else {
-                            const clouds = tokens.filter(t => /^(FEW|SCT|BKN|OVC|SKC|CLR|NSC)\d*$/.test(t));
-                            if (clouds.length) {
-                                skyEl.textContent = clouds.map(c => {
-                                    const type = c.match(/^[A-Z]+/)[0];
-                                    const base = c.match(/\d+/);
-                                    return (skyMap[type] || type) + (base ? ' ' + parseInt(base[0]) * 100 + 'ft' : '');
-                                }).join(' · ');
-                            } else skyEl.textContent = '—';
-                        }
-                    }
-
-                    // Hora — del token de fecha/hora tipo 141630Z
-                    const timeTok = tokens.find(t => /^\d{6}Z$/.test(t));
-                    const timeEl = document.getElementById('metar-time');
-                    if (timeEl && timeTok) {
-                        const h = timeTok.slice(2,4), mn = timeTok.slice(4,6);
-                        timeEl.textContent = 'Actualizado: ' + h + ':' + mn + ' UTC';
-                    }
-
-                } catch(e) {
-                    const rawEl = document.getElementById('metar-raw');
-                    if (rawEl) rawEl.innerHTML = 'No se puede cargar automáticamente (restricción CORS).<br><a href="https://aviationweather.gov/metar/data?ids=LEBL&format=raw&hours=1&taf=off&layout=off" target="_blank" style="color:#7dd3f0;font-weight:700;">Ver METAR en AviationWeather ↗</a>';
-                    console.warn('METAR CORS error:', e);
-                }
-            }
-
-
-            // Cargar al abrir el panel
-            const origToggle = window.toggleSection;
-            window.toggleSection = function(id) {
-                origToggle(id);
-                if (id === 'metar') {
-                    const panel = document.getElementById('panel-metar');
-                    if (panel && panel.style.display !== 'none') loadMetar();
-                }
-            };
-        })();
-        /* ══════ FIN METAR ══════ */
 
 
 
