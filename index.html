@@ -805,12 +805,12 @@
             <!-- Panel desplegable -->
             <div id="panel-playas" style="display:none;">
                 <!-- Fila cabecera HOY / MAÑANA -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);">
-                    <div style="padding:10px;text-align:center;border-right:1px solid rgba(44,74,110,0.2);">
-                        <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">HOY</span>
+                <div style="display:grid;grid-template-columns:1fr 1fr;background:#0b4c90;">
+                    <div style="padding:10px;text-align:center;border-right:1px solid rgba(255,255,255,0.15);">
+                        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:2px;text-transform:uppercase;">HOY</span>
                     </div>
                     <div style="padding:10px;text-align:center;">
-                        <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">MAÑANA</span>
+                        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:2px;text-transform:uppercase;">MAÑANA</span>
                     </div>
                 </div>
                 <!-- Grid dos columnas -->
@@ -1562,16 +1562,25 @@
             // Leyenda a ancho completo debajo del grid
             const gridEl = containerHoy.parentElement;
             const leyenda = document.createElement('div');
-            leyenda.style.cssText = 'grid-column:span 2;padding:8px 14px;background:#dce8f0;border-top:1px solid rgba(44,74,110,0.15);font-size:10px;color:#2c4a6e;line-height:1.6;text-align:center;';
-            leyenda.innerHTML = `<strong style="color:#1a3a5c;">Calidad del baño:</strong> oleaje, viento, temperatura del agua e índice UV.`;
+            leyenda.style.cssText = 'grid-column:span 2;padding:12px 16px;background:#dce8f0;border-top:1px solid rgba(44,74,110,0.15);font-size:10px;color:#2c4a6e;line-height:1.8;text-align:center;';
+            leyenda.innerHTML = `
+                <strong style="color:#1a3a5c;display:block;margin-bottom:6px;">Calidad del baño</strong>
+                <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:5px;margin-bottom:6px;">
+                    <span style="background:#10b981;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;">Excelente</span>
+                    <span style="background:#10b981;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;">Buena</span>
+                    <span style="background:#f59e0b;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;">Aceptable</span>
+                    <span style="background:#f97316;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;">Mejorable</span>
+                    <span style="background:#ef4444;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;">No aconsejable</span>
+                </div>
+                <div style="font-size:9px;color:#4a6a8a;">Se valoran: altura e intensidad del oleaje · velocidad del viento · temperatura del agua · índice UV</div>`;
             gridEl.appendChild(leyenda);
 
             // ── Gráfico horario oleaje ──────────────────────────────────
             const waveSection = document.createElement('div');
-            waveSection.style.cssText = 'grid-column:span 2;background:#dce8f0;border-top:1px solid rgba(44,74,110,0.15);padding:12px 14px 14px;';
+            waveSection.style.cssText = 'grid-column:span 2;background:#dce8f0;border-top:1px solid rgba(44,74,110,0.15);padding:12px 14px 16px;';
             waveSection.innerHTML = `
-                <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;text-align:center;">Evolución del oleaje — hoy y mañana</div>
-                <canvas id="wave-chart" style="width:100%;display:block;"></canvas>`;
+                <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;text-align:center;">Evolución del oleaje — hoy y mañana</div>
+                <canvas id="wave-chart"></canvas>`;
             gridEl.appendChild(waveSection);
 
             requestAnimationFrame(() => {
@@ -1592,73 +1601,89 @@
                 if (pts.length < 2) return;
 
                 const dpr = window.devicePixelRatio || 1;
-                const W = canvas.parentElement.clientWidth - 28;
-                const H = 120;
-                canvas.width = W * dpr; canvas.height = H * dpr;
-                canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+                const W = waveSection.clientWidth - 28;
+                const H = 160;
+                canvas.width  = W * dpr;
+                canvas.height = H * dpr;
+                canvas.style.width  = W + 'px';
+                canvas.style.height = H + 'px';
                 const ctx = canvas.getContext('2d');
                 ctx.scale(dpr, dpr);
 
-                const pad = { t: 10, r: 10, b: 30, l: 36 };
-                const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+                const pad = { t: 14, r: 12, b: 36, l: 42 };
+                const cw = W - pad.l - pad.r;
+                const ch = H - pad.t - pad.b;
                 const vals = pts.map(p => p.val).filter(v => v !== null);
-                const maxV = Math.max(...vals, 0.5);
-                const minV = 0;
+                const maxV = Math.ceil(Math.max(...vals, 0.5) * 4) / 4;
 
                 const xPos = i => pad.l + (i / (pts.length - 1)) * cw;
-                const yPos = v => pad.t + ch - ((v - minV) / (maxV - minV)) * ch;
+                const yPos = v => pad.t + ch - (v / maxV) * ch;
 
-                // Relleno
+                // Líneas guía Y
+                const steps = 4;
+                ctx.textAlign = 'right';
+                ctx.font = `${9 * dpr / dpr}px sans-serif`;
+                ctx.fillStyle = '#4a6a8a';
+                for (let s = 0; s <= steps; s++) {
+                    const v = (maxV / steps) * s;
+                    const y = yPos(v);
+                    ctx.strokeStyle = 'rgba(44,74,110,0.12)';
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
+                    ctx.fillText(v.toFixed(1) + 'm', pad.l - 5, y + 3);
+                }
+
+                // Relleno bajo la curva
                 ctx.beginPath();
                 ctx.moveTo(xPos(0), yPos(pts[0].val ?? 0));
                 for (let i = 1; i < pts.length; i++) {
-                    if (pts[i].val === null) continue;
+                    const v = pts[i].val ?? pts[i-1].val ?? 0;
                     const x0 = xPos(i-1), y0 = yPos(pts[i-1].val ?? 0);
-                    const x1 = xPos(i),   y1 = yPos(pts[i].val);
-                    const mx = (x0 + x1) / 2;
-                    ctx.bezierCurveTo(mx, y0, mx, y1, x1, y1);
+                    const x1 = xPos(i),   y1 = yPos(v);
+                    ctx.bezierCurveTo((x0+x1)/2, y0, (x0+x1)/2, y1, x1, y1);
                 }
                 ctx.lineTo(xPos(pts.length-1), pad.t + ch);
                 ctx.lineTo(xPos(0), pad.t + ch);
                 ctx.closePath();
                 const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
-                grad.addColorStop(0, 'rgba(11,76,144,0.25)');
-                grad.addColorStop(1, 'rgba(11,76,144,0.03)');
+                grad.addColorStop(0, 'rgba(11,76,144,0.3)');
+                grad.addColorStop(1, 'rgba(11,76,144,0.02)');
                 ctx.fillStyle = grad;
                 ctx.fill();
 
-                // Línea
+                // Línea principal
                 ctx.beginPath();
                 ctx.moveTo(xPos(0), yPos(pts[0].val ?? 0));
                 for (let i = 1; i < pts.length; i++) {
-                    if (pts[i].val === null) continue;
+                    const v = pts[i].val ?? pts[i-1].val ?? 0;
                     const x0 = xPos(i-1), y0 = yPos(pts[i-1].val ?? 0);
-                    const x1 = xPos(i),   y1 = yPos(pts[i].val);
-                    const mx = (x0 + x1) / 2;
-                    ctx.bezierCurveTo(mx, y0, mx, y1, x1, y1);
+                    const x1 = xPos(i),   y1 = yPos(v);
+                    ctx.bezierCurveTo((x0+x1)/2, y0, (x0+x1)/2, y1, x1, y1);
                 }
                 ctx.strokeStyle = '#0b4c90';
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 2.5;
+                ctx.lineJoin = 'round';
                 ctx.stroke();
 
-                // Eje Y
-                ctx.fillStyle = '#2c4a6e';
-                ctx.font = '9px sans-serif';
-                ctx.textAlign = 'right';
-                [0, maxV/2, maxV].forEach(v => {
-                    const y = yPos(v);
-                    ctx.fillText(v.toFixed(1) + 'm', pad.l - 4, y + 3);
-                    ctx.strokeStyle = 'rgba(44,74,110,0.12)';
-                    ctx.lineWidth = 0.5;
-                    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
+                // Puntos
+                pts.forEach((p, i) => {
+                    if (p.val === null) return;
+                    ctx.beginPath();
+                    ctx.arc(xPos(i), yPos(p.val), 3, 0, Math.PI * 2);
+                    ctx.fillStyle = '#0b4c90';
+                    ctx.fill();
+                    ctx.strokeStyle = '#dce8f0';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
                 });
 
                 // Etiquetas X (cada 2)
                 ctx.textAlign = 'center';
-                ctx.fillStyle = '#2c4a6e';
+                ctx.fillStyle = '#4a6a8a';
+                ctx.font = `9px sans-serif`;
                 pts.forEach((p, i) => {
                     if (i % 2 !== 0) return;
-                    ctx.fillText(p.label, xPos(i), H - 6);
+                    ctx.fillText(p.label, xPos(i), H - 8);
                 });
             });
 
