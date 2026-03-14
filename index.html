@@ -1631,7 +1631,7 @@
             const waveSection = document.createElement('div');
             waveSection.style.cssText = 'background:#dce8f0;border-top:1px solid rgba(44,74,110,0.15);padding:14px 16px 18px;';
             waveSection.innerHTML = `
-                <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;text-align:center;">Evolución del oleaje — hoy y mañana</div>
+                <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;text-align:center;">Evolución del oleaje</div>
                 <canvas id="wave-chart" style="display:block;width:100%;"></canvas>`;
             const panelPlayas = document.getElementById('panel-playas');
             panelPlayas.appendChild(waveSection);
@@ -1652,7 +1652,7 @@
                     const h = ht.getHours();
                     if (h < 6 || h > 22) continue;
                     const dd = ht.getDate() === _waveNow.getDate() ? 'Hoy' : 'Mañ';
-                    pts.push({ label: dd + ' ' + String(h).padStart(2,'0') + 'h', val: _waveMarineHourly.wave_height?.[i] ?? null });
+                    pts.push({ label: String(h).padStart(2,'0') + 'h', val: _waveMarineHourly.wave_height?.[i] ?? null });
                 }
                 if (pts.length < 2) return;
 
