@@ -1636,26 +1636,29 @@
             const panelPlayas = document.getElementById('panel-playas');
             panelPlayas.appendChild(waveSection);
 
-            requestAnimationFrame(() => {
+            // Guardar datos para el gráfico y exponer función global
+            const _waveMarineHourly = marineHourly;
+            const _waveNow = now;
+            window.drawWaveChart = function() {
                 const canvas = document.getElementById('wave-chart');
-                if (!canvas || !marineHourly?.time) return;
+                if (!canvas || !_waveMarineHourly?.time) return;
 
                 const pts = [];
-                const tLim = new Date(now); tLim.setDate(tLim.getDate() + 2); tLim.setHours(0,0,0,0);
-                for (let i = 0; i < marineHourly.time.length; i++) {
-                    const ht = new Date(marineHourly.time[i]);
-                    if (ht < now) continue;
+                const tLim = new Date(_waveNow); tLim.setDate(tLim.getDate() + 2); tLim.setHours(0,0,0,0);
+                for (let i = 0; i < _waveMarineHourly.time.length; i++) {
+                    const ht = new Date(_waveMarineHourly.time[i]);
+                    if (ht < _waveNow) continue;
                     if (ht >= tLim) break;
                     const h = ht.getHours();
                     if (h < 6 || h > 22) continue;
-                    const dd = ht.getDate() === now.getDate() ? 'Hoy' : 'Mañ';
-                    pts.push({ label: dd + ' ' + String(h).padStart(2,'0') + 'h', val: marineHourly.wave_height?.[i] ?? null });
+                    const dd = ht.getDate() === _waveNow.getDate() ? 'Hoy' : 'Mañ';
+                    pts.push({ label: dd + ' ' + String(h).padStart(2,'0') + 'h', val: _waveMarineHourly.wave_height?.[i] ?? null });
                 }
                 if (pts.length < 2) return;
 
-                const dpr = window.devicePixelRatio || 1;
-                const W   = waveSection.clientWidth - 32;
-                const H   = 190;
+                const dpr   = window.devicePixelRatio || 1;
+                const W     = canvas.parentElement.offsetWidth - 32;
+                const H     = 190;
                 canvas.width  = W * dpr;
                 canvas.height = H * dpr;
                 canvas.style.width  = W + 'px';
@@ -1757,7 +1760,7 @@
                     ctx.fillText(p.label, 0, 0);
                     ctx.restore();
                 });
-            });
+            }; // fin drawWaveChart
 
         }
 
@@ -2368,6 +2371,9 @@
             const isOpen = panel.style.display !== 'none';
             panel.style.display = isOpen ? 'none' : 'block';
             arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+            if (!isOpen && id === 'playas') {
+                requestAnimationFrame(() => requestAnimationFrame(() => drawWaveChart()));
+            }
         }
 
         function updateProximaLluvia(hourly) {
