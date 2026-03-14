@@ -797,6 +797,58 @@
         ═══════════════════════════════════════════════ -->
         <div style="height:35px;background:#ffffff;"></div>
         <div style="max-width:600px;margin:0 auto;border-bottom:1px solid #ccdde8;">
+            <!-- Banner playa SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 140" style="display:block;width:100%;">
+                <!-- Cielo degradado -->
+                <defs>
+                    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#b8d4f0"/>
+                        <stop offset="100%" stop-color="#dceefa"/>
+                    </linearGradient>
+                    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#1a6fa8"/>
+                        <stop offset="100%" stop-color="#0b4c90"/>
+                    </linearGradient>
+                    <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#f5dfa0"/>
+                        <stop offset="100%" stop-color="#e8c870"/>
+                    </linearGradient>
+                </defs>
+                <!-- Cielo -->
+                <rect width="600" height="140" fill="url(#sky)"/>
+                <!-- Sol -->
+                <circle cx="500" cy="38" r="22" fill="#f9c940" opacity="0.9"/>
+                <circle cx="500" cy="38" r="28" fill="#f9c940" opacity="0.2"/>
+                <!-- Nubes -->
+                <ellipse cx="80"  cy="28" rx="38" ry="14" fill="white" opacity="0.7"/>
+                <ellipse cx="110" cy="22" rx="28" ry="12" fill="white" opacity="0.8"/>
+                <ellipse cx="55"  cy="30" rx="22" ry="10" fill="white" opacity="0.6"/>
+                <ellipse cx="280" cy="35" rx="30" ry="11" fill="white" opacity="0.55"/>
+                <ellipse cx="305" cy="29" rx="22" ry="10" fill="white" opacity="0.65"/>
+                <!-- Mar -->
+                <rect x="0" y="72" width="600" height="68" fill="url(#sea)"/>
+                <!-- Olas -->
+                <path d="M0,82 C40,74 80,90 120,82 C160,74 200,90 240,82 C280,74 320,90 360,82 C400,74 440,90 480,82 C520,74 560,88 600,82 L600,72 L0,72 Z" fill="white" opacity="0.18"/>
+                <path d="M0,95 C50,87 100,103 150,95 C200,87 250,103 300,95 C350,87 400,103 450,95 C500,87 550,101 600,95 L600,88 L0,88 Z" fill="white" opacity="0.12"/>
+                <!-- Arena -->
+                <path d="M0,110 C80,100 160,108 240,104 C320,100 400,112 480,106 C540,102 570,108 600,105 L600,140 L0,140 Z" fill="url(#sand)"/>
+                <!-- Sombrilla izquierda -->
+                <line x1="60" y1="108" x2="72" y2="135" stroke="#8B5E2A" stroke-width="2.5"/>
+                <ellipse cx="60" cy="107" rx="26" ry="8" fill="#e05a2b" opacity="0.9"/>
+                <ellipse cx="60" cy="107" rx="14" ry="5" fill="#f97316" opacity="0.9"/>
+                <!-- Sombrilla derecha -->
+                <line x1="520" y1="105" x2="530" y2="130" stroke="#8B5E2A" stroke-width="2.5"/>
+                <ellipse cx="520" cy="104" rx="28" ry="8" fill="#0b4c90" opacity="0.9"/>
+                <ellipse cx="520" cy="104" rx="15" ry="5" fill="#1a6fa8" opacity="0.9"/>
+                <!-- Gaviotas -->
+                <path d="M200,45 C205,40 210,45 215,40" stroke="#555" stroke-width="1.5" fill="none"/>
+                <path d="M230,38 C234,34 238,38 242,34" stroke="#555" stroke-width="1.5" fill="none"/>
+                <path d="M160,55 C163,51 167,55 171,51" stroke="#777" stroke-width="1.2" fill="none"/>
+                <!-- Velero -->
+                <line x1="370" y1="94" x2="370" y2="68" stroke="#fff" stroke-width="1.5" opacity="0.9"/>
+                <path d="M370,68 L390,90 L370,90 Z" fill="white" opacity="0.85"/>
+                <path d="M370,72 L353,86 L370,86 Z" fill="#dceefa" opacity="0.7"/>
+            </svg>
             <!-- Cabecera cliclable -->
             <div id="toggle-playas" onclick="toggleSection('playas')" style="background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
                 <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">PLAYAS — ESTADO DE LA MAR</span>
@@ -1575,13 +1627,14 @@
                 <div style="font-size:9px;color:#4a6a8a;">Se valoran: altura e intensidad del oleaje · velocidad del viento · temperatura del agua · índice UV</div>`;
             gridEl.appendChild(leyenda);
 
-            // ── Gráfico horario oleaje ──────────────────────────────────
+            // ── Gráfico oleaje ancho completo, fuera del grid ──────────
             const waveSection = document.createElement('div');
-            waveSection.style.cssText = 'grid-column:span 2;background:#dce8f0;border-top:1px solid rgba(44,74,110,0.15);padding:12px 14px 16px;';
+            waveSection.style.cssText = 'background:#dce8f0;border-top:1px solid rgba(44,74,110,0.15);padding:14px 16px 18px;';
             waveSection.innerHTML = `
-                <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;text-align:center;">Evolución del oleaje — hoy y mañana</div>
-                <canvas id="wave-chart"></canvas>`;
-            gridEl.appendChild(waveSection);
+                <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;text-align:center;">Evolución del oleaje — hoy y mañana</div>
+                <canvas id="wave-chart" style="display:block;width:100%;"></canvas>`;
+            const panelPlayas = document.getElementById('panel-playas');
+            panelPlayas.appendChild(waveSection);
 
             requestAnimationFrame(() => {
                 const canvas = document.getElementById('wave-chart');
@@ -1601,8 +1654,8 @@
                 if (pts.length < 2) return;
 
                 const dpr = window.devicePixelRatio || 1;
-                const W = waveSection.clientWidth - 28;
-                const H = 160;
+                const W   = waveSection.clientWidth - 32;
+                const H   = 190;
                 canvas.width  = W * dpr;
                 canvas.height = H * dpr;
                 canvas.style.width  = W + 'px';
@@ -1610,80 +1663,99 @@
                 const ctx = canvas.getContext('2d');
                 ctx.scale(dpr, dpr);
 
-                const pad = { t: 14, r: 12, b: 36, l: 42 };
-                const cw = W - pad.l - pad.r;
-                const ch = H - pad.t - pad.b;
+                const pad = { t: 20, r: 16, b: 42, l: 46 };
+                const cw  = W - pad.l - pad.r;
+                const ch  = H - pad.t - pad.b;
                 const vals = pts.map(p => p.val).filter(v => v !== null);
                 const maxV = Math.ceil(Math.max(...vals, 0.5) * 4) / 4;
 
-                const xPos = i => pad.l + (i / (pts.length - 1)) * cw;
-                const yPos = v => pad.t + ch - (v / maxV) * ch;
+                const xPos = i  => pad.l + (i / (pts.length - 1)) * cw;
+                const yPos = v  => pad.t + ch - (v / maxV) * ch;
 
                 // Líneas guía Y
-                const steps = 4;
-                ctx.textAlign = 'right';
-                ctx.font = `${9 * dpr / dpr}px sans-serif`;
-                ctx.fillStyle = '#4a6a8a';
-                for (let s = 0; s <= steps; s++) {
-                    const v = (maxV / steps) * s;
+                ctx.textAlign  = 'right';
+                ctx.font       = '10px sans-serif';
+                ctx.fillStyle  = '#4a6a8a';
+                for (let s = 0; s <= 4; s++) {
+                    const v = (maxV / 4) * s;
                     const y = yPos(v);
-                    ctx.strokeStyle = 'rgba(44,74,110,0.12)';
-                    ctx.lineWidth = 0.5;
+                    ctx.strokeStyle = 'rgba(44,74,110,0.15)';
+                    ctx.lineWidth   = 0.5;
                     ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
-                    ctx.fillText(v.toFixed(1) + 'm', pad.l - 5, y + 3);
+                    ctx.fillText(v.toFixed(1) + 'm', pad.l - 6, y + 4);
                 }
 
-                // Relleno bajo la curva
+                // Separador Hoy / Mañana
+                const todayCount = pts.filter(p => p.label.startsWith('Hoy')).length;
+                if (todayCount > 0 && todayCount < pts.length) {
+                    const sepX = (xPos(todayCount - 1) + xPos(todayCount)) / 2;
+                    ctx.strokeStyle = 'rgba(44,74,110,0.35)';
+                    ctx.lineWidth   = 1;
+                    ctx.setLineDash([4, 3]);
+                    ctx.beginPath(); ctx.moveTo(sepX, pad.t); ctx.lineTo(sepX, pad.t + ch); ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.fillStyle  = '#2c4a6e';
+                    ctx.font       = '9px sans-serif';
+                    ctx.textAlign  = 'center';
+                    ctx.fillText('HOY',    pad.l + (sepX - pad.l) / 2,      pad.t - 6);
+                    ctx.fillText('MAÑANA', sepX  + (pad.l + cw - sepX) / 2, pad.t - 6);
+                }
+
+                // Relleno
                 ctx.beginPath();
                 ctx.moveTo(xPos(0), yPos(pts[0].val ?? 0));
                 for (let i = 1; i < pts.length; i++) {
-                    const v = pts[i].val ?? pts[i-1].val ?? 0;
+                    const v  = pts[i].val ?? pts[i-1].val ?? 0;
                     const x0 = xPos(i-1), y0 = yPos(pts[i-1].val ?? 0);
                     const x1 = xPos(i),   y1 = yPos(v);
                     ctx.bezierCurveTo((x0+x1)/2, y0, (x0+x1)/2, y1, x1, y1);
                 }
-                ctx.lineTo(xPos(pts.length-1), pad.t + ch);
+                ctx.lineTo(xPos(pts.length - 1), pad.t + ch);
                 ctx.lineTo(xPos(0), pad.t + ch);
                 ctx.closePath();
                 const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
-                grad.addColorStop(0, 'rgba(11,76,144,0.3)');
-                grad.addColorStop(1, 'rgba(11,76,144,0.02)');
+                grad.addColorStop(0, 'rgba(11,76,144,0.35)');
+                grad.addColorStop(1, 'rgba(11,76,144,0.03)');
                 ctx.fillStyle = grad;
                 ctx.fill();
 
-                // Línea principal
+                // Línea
                 ctx.beginPath();
                 ctx.moveTo(xPos(0), yPos(pts[0].val ?? 0));
                 for (let i = 1; i < pts.length; i++) {
-                    const v = pts[i].val ?? pts[i-1].val ?? 0;
+                    const v  = pts[i].val ?? pts[i-1].val ?? 0;
                     const x0 = xPos(i-1), y0 = yPos(pts[i-1].val ?? 0);
                     const x1 = xPos(i),   y1 = yPos(v);
                     ctx.bezierCurveTo((x0+x1)/2, y0, (x0+x1)/2, y1, x1, y1);
                 }
                 ctx.strokeStyle = '#0b4c90';
-                ctx.lineWidth = 2.5;
-                ctx.lineJoin = 'round';
+                ctx.lineWidth   = 2.5;
+                ctx.lineJoin    = 'round';
                 ctx.stroke();
 
                 // Puntos
                 pts.forEach((p, i) => {
                     if (p.val === null) return;
                     ctx.beginPath();
-                    ctx.arc(xPos(i), yPos(p.val), 3, 0, Math.PI * 2);
-                    ctx.fillStyle = '#0b4c90';
+                    ctx.arc(xPos(i), yPos(p.val), 3.5, 0, Math.PI * 2);
+                    ctx.fillStyle   = '#0b4c90';
                     ctx.fill();
                     ctx.strokeStyle = '#dce8f0';
-                    ctx.lineWidth = 1.5;
+                    ctx.lineWidth   = 1.5;
                     ctx.stroke();
                 });
 
-                // Etiquetas X (cada 2)
+                // Etiquetas X cada 2
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#4a6a8a';
-                ctx.font = `9px sans-serif`;
+                ctx.font      = '9px sans-serif';
                 pts.forEach((p, i) => {
                     if (i % 2 !== 0) return;
-                    ctx.fillText(p.label, xPos(i), H - 8);
+                    ctx.save();
+                    ctx.translate(xPos(i), H - 6);
+                    ctx.rotate(-Math.PI / 5);
+                    ctx.fillText(p.label, 0, 0);
+                    ctx.restore();
                 });
             });
 
