@@ -2956,10 +2956,14 @@
         (function() {
             async function loadMetar() {
                 try {
-                    // Endpoint de texto plano — siempre ha tenido CORS abierto
-                    const res = await fetch('https://aviationweather.gov/api/data/metar?ids=LEBL&format=raw&taf=false&hours=1');
+                    // El dataserver legacy de aviationweather tiene CORS habilitado
+                    const url = 'https://aviationweather.gov/api/data/metar?ids=LEBL&format=raw&taf=false&hours=1';
+                    const res = await fetch(url, {
+                        headers: { 'User-Agent': 'barcelonamet.com' }
+                    });
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
                     const text = await res.text();
-                    const lines = text.trim().split('\n').filter(l => l.startsWith('LEBL'));
+                    const lines = text.trim().split('\n').map(l => l.trim()).filter(l => l.startsWith('LEBL'));
                     if (!lines.length) {
                         document.getElementById('metar-raw').textContent = 'Sin datos disponibles.';
                         return;
@@ -3041,8 +3045,8 @@
 
                 } catch(e) {
                     const rawEl = document.getElementById('metar-raw');
-                    if (rawEl) rawEl.textContent = 'Error al cargar el METAR: ' + e.message;
-                    console.warn('METAR error:', e);
+                    if (rawEl) rawEl.innerHTML = 'No se puede cargar automáticamente (restricción CORS).<br><a href="https://aviationweather.gov/metar/data?ids=LEBL&format=raw&hours=1&taf=off&layout=off" target="_blank" style="color:#7dd3f0;font-weight:700;">Ver METAR en AviationWeather ↗</a>';
+                    console.warn('METAR CORS error:', e);
                 }
             }
 
