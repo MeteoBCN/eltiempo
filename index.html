@@ -814,12 +814,12 @@
                     </div>
                 </div>
                 <!-- Grid dos columnas -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;background:#0b4c90;gap:0;">
-                    <div id="marine-blocks-hoy" style="background:#0b4c90;border-right:1px solid rgba(255,255,255,0.1);">
-                        <div style="padding:16px;text-align:center;color:rgba(255,255,255,0.5);font-size:13px;">Cargando…</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;background:#c9ddf0;gap:0;">
+                    <div id="marine-blocks-hoy" style="background:transparent;border-right:1px solid rgba(44,74,110,0.15);">
+                        <div style="padding:16px;text-align:center;color:#2c4a6e;font-size:13px;">Cargando…</div>
                     </div>
-                    <div id="marine-blocks-manana" style="background:#0b4c90;">
-                        <div style="padding:16px;text-align:center;color:rgba(255,255,255,0.5);font-size:13px;">Cargando…</div>
+                    <div id="marine-blocks-manana" style="background:transparent;">
+                        <div style="padding:16px;text-align:center;color:#2c4a6e;font-size:13px;">Cargando…</div>
                     </div>
                 </div>
             </div>
@@ -1490,24 +1490,24 @@
                 };
                 const bgGrad = seaGrads[estado] || seaGrads['Marejadilla'];
                 const div = document.createElement('div');
-                div.style.cssText = `border-bottom:1px solid rgba(255,255,255,0.1);background:#0b4c90;padding:12px;text-align:center;`;
+                div.style.cssText = `border-bottom:1px solid rgba(44,74,110,0.15);background:linear-gradient(180deg,#c9ddf0 0%,#dce8f0 100%);padding:12px;text-align:center;`;
                 div.innerHTML = `
-                    <div style="display:inline-block;font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 100%);padding:2px 10px;border-radius:4px;margin-bottom:8px;">${dayLabel}</div>
+                    <div style="display:inline-block;font-size:9px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px;background:#0b4c90;padding:2px 10px;border-radius:4px;margin-bottom:8px;">${dayLabel}</div>
                     <div style="display:flex;align-items:baseline;gap:5px;flex-wrap:wrap;justify-content:center;margin-bottom:5px;">
-                        <span style="font-size:14px;font-weight:800;color:#fff;">${oleajeTxt}</span>
-                        <span style="font-size:10px;color:rgba(255,255,255,0.45);">altura olas</span>
+                        <span style="font-size:14px;font-weight:800;color:#1a3a5c;">${oleajeTxt}</span>
+                        <span style="font-size:10px;color:rgba(26,58,92,0.5);">altura olas</span>
                     </div>
                     <div style="margin-bottom:6px;">
                         <span style="font-size:10px;font-weight:700;color:#fff;background:${color};padding:2px 7px;border-radius:4px;">${estado}</span>
-                        ${avgWP !== null ? `<span style="font-size:10px;color:rgba(255,255,255,0.65);margin-left:4px;">${avgWP}s</span>` : ''}
+                        ${avgWP !== null ? `<span style="font-size:10px;color:#2c4a6e;margin-left:4px;">${avgWP}s</span>` : ''}
                     </div>
-                    <div style="font-size:10px;color:rgba(255,255,255,0.8);line-height:1.8;">
+                    <div style="font-size:10px;color:#1a3a5c;line-height:1.8;">
                         <span style="font-weight:600;">${avgWS !== null ? avgWS + ' km/h · ' + beaufort : '—'}</span><br>
-                        Agua <span style="font-weight:700;color:#7dd3f0;">${aguaTxt}</span><br>
-                        UVI <span style="font-weight:700;">${uviTxt}</span>
+                        Agua <span style="font-weight:700;color:#0b4c90;">${aguaTxt}</span><br>
+                        UVI <span style="font-weight:700;color:#1a3a5c;">${uviTxt}</span>
                     </div>
                     <div style="margin-top:7px;display:flex;align-items:center;gap:5px;justify-content:center;">
-                        <span style="font-size:9px;color:rgba(255,255,255,0.55);">Baño:</span>
+                        <span style="font-size:9px;color:rgba(26,58,92,0.6);">Baño:</span>
                         <span style="font-size:10px;font-weight:800;color:#fff;background:${calidad.color};padding:2px 7px;border-radius:4px;">${calidad.texto}</span>
                     </div>`;
                 target.appendChild(div);
@@ -1542,8 +1542,8 @@
             // Leyenda a ancho completo debajo del grid
             const gridEl = containerHoy.parentElement;
             const leyenda = document.createElement('div');
-            leyenda.style.cssText = 'grid-column:span 2;padding:8px 14px;background:#0b4c90;border-top:1px solid rgba(255,255,255,0.1);font-size:10px;color:rgba(255,255,255,0.6);line-height:1.6;text-align:center;';
-            leyenda.innerHTML = `<strong style="color:rgba(255,255,255,0.85);">Calidad del baño:</strong> oleaje, viento, temperatura del agua e índice UV.`;
+            leyenda.style.cssText = 'grid-column:span 2;padding:8px 14px;background:#dce8f0;border-top:1px solid rgba(44,74,110,0.15);font-size:10px;color:#2c4a6e;line-height:1.6;text-align:center;';
+            leyenda.innerHTML = `<strong style="color:#1a3a5c;">Calidad del baño:</strong> oleaje, viento, temperatura del agua e índice UV.`;
             gridEl.appendChild(leyenda);
 
         }
