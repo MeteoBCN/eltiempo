@@ -2483,37 +2483,53 @@
                 }
             }
 
-            function renderF7Icons(rows) {
+            window.renderF7Icons = function renderF7Icons(rows) {
                 const container = document.getElementById('f7-icons-row');
                 if (!container) return;
                 const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-                const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+                const hourly = window._hourlyCache;
+
                 container.innerHTML = rows.map(r => {
-                    const dt   = new Date(r.dateStr + 'T12:00:00');
-                    const icon = (typeof getSvgIcon === 'function')
-                        ? getSvgIcon(r.wmo, 36, false)
-                        : '<span style="font-size:26px;line-height:1;">' + wmoEmojiF7(r.wmo) + '</span>';
-                    return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 0;">
+                    const dt = new Date(r.dateStr + 'T12:00:00');
+                    let icon;
+
+                    // Si tenemos datos horarios, calculamos el código dominante 8h-18h
+                    // igual que hacen las cabeceras de días — misma lógica que iconForDay()
+                    if (hourly && hourly.time) {
+                        const severity = [0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
+                        const codes = [];
+                        for (let i = 0; i < hourly.time.length; i++) {
+                            if (!hourly.time[i].startsWith(r.dateStr)) continue;
+                            const h = parseInt(hourly.time[i].slice(11,13), 10);
+                            if (h < 8 || h >= 18) continue;
+                            const wmoRaw = hourly.weather_code?.[i] ?? 0;
+                            const precipProb = hourly.precipitation_probability?.[i] ?? 0;
+                            const isFog = (wmoRaw === 45 || wmoRaw === 48);
+                            const isRainCode = (wmoRaw>=51&&wmoRaw<=82)||(wmoRaw>=85&&wmoRaw<=86)||(wmoRaw>=95&&wmoRaw<=99);
+                            let wmo = wmoRaw;
+                            if (!isFog) {
+                                if (!isRainCode && precipProb >= 50) wmo = 80;
+                                else if (isRainCode && precipProb < 50) wmo = 3;
+                            }
+                            codes.push(wmo);
+                        }
+                        if (codes.length) {
+                            const codesNoFog = codes.filter(c => c!==45 && c!==48);
+                            const pool = codesNoFog.length ? codesNoFog : codes;
+                            const freq = {};
+                            pool.forEach(c => { freq[c] = (freq[c]||0) + 1; });
+                            const dominant = parseInt(Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0]);
+                            icon = getSvgIcon(dominant, 36, false);
+                        }
+                    }
+                    // Fallback si no hay datos horarios aún
+                    if (!icon) icon = getSvgIcon(r.wmo, 36, false);
+
+                    return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;">
                         <div style="font-size:8px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:0.5px;">${r.isToday ? 'HOY' : DIAS[dt.getDay()]}</div>
                         <div style="line-height:1;">${icon}</div>
-                        <div style="font-size:9px;font-weight:700;color:#e53e3e;">${r.tmax}°</div>
-                        <div style="font-size:9px;font-weight:600;color:#3b82f6;">${r.tmin}°</div>
                     </div>`;
                 }).join('');
-            }
-
-            function wmoEmojiF7(code) {
-                if (code === 0)             return '☀️';
-                if (code <= 2)              return '🌤️';
-                if (code === 3)             return '☁️';
-                if (code === 45||code===48) return '🌫️';
-                if (code >= 51&&code<=55)   return '🌦️';
-                if (code >= 61&&code<=65)   return '🌧️';
-                if (code >= 71&&code<=77)   return '🌨️';
-                if (code >= 80&&code<=82)   return '🌧️';
-                if (code >= 85&&code<=86)   return '🌨️';
-                if (code >= 95&&code<=99)   return '⛈️';
-                return '🌡️';
             }
 
             loadForecast7();
@@ -2825,6 +2841,8 @@
                 updateDaysSummary(data.hourly, data.daily);
                 updateProximaLluvia(data.hourly);
                 _hourlyCache = data.hourly;
+                // Re-renderizar iconos del panel 7 días con datos horarios precisos
+                if (window._f7Data) renderF7Icons(window._f7Data);
                 updateTime();
             } catch(e) { console.error('Error procesando datos:',e); }
         }
