@@ -2469,9 +2469,6 @@
 
                     window._f7Data = rows;
 
-                    // Renderizar fila de iconos
-                    renderF7Icons(rows);
-
                     // Ocultar loading, mostrar paneles
                     const loading = document.getElementById('forecast7-loading');
                     if (loading) loading.style.display = 'none';
@@ -2805,7 +2802,7 @@
 
         async function loadWeatherData() {
             // ── Peticiones independientes: si una falla, las demás siguen ──
-            const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant&timezone=Europe/Madrid&forecast_days=7`;
+            const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean&timezone=Europe/Madrid&forecast_days=7`;
             const aqUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=Europe/Madrid`;
             const marineUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
 
@@ -2841,8 +2838,42 @@
                 updateDaysSummary(data.hourly, data.daily);
                 updateProximaLluvia(data.hourly);
                 _hourlyCache = data.hourly;
-                // Re-renderizar iconos del panel 7 días con datos horarios precisos
-                if (window._f7Data) renderF7Icons(window._f7Data);
+                // Construir datos 7 días desde los daily ya cargados y renderizar iconos
+                // con los datos horarios ya disponibles (misma lógica que cabeceras de días)
+                (function buildF7FromMainData(hourly, daily) {
+                    try {
+                        if (!daily?.time) return;
+                        const todayStr = new Date().toISOString().slice(0,10);
+                        const DIAS_ES  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+                        const rows = daily.time.map((ds, i) => {
+                            const dt = new Date(ds + 'T12:00:00');
+                            return {
+                                dateStr : ds,
+                                dayName : DIAS_ES[dt.getDay()],
+                                isToday : ds === todayStr,
+                                tmax    : Math.round(daily.temperature_2m_max?.[i] ?? 0),
+                                tmin    : Math.round(daily.temperature_2m_min?.[i] ?? 0),
+                                precip  : Math.round((daily.precipitation_sum?.[i] ?? 0) * 10) / 10,
+                                pprob   : Math.round(daily.precipitation_probability_max?.[i] ?? 0),
+                                humMax  : Math.round(daily.relative_humidity_2m_max?.[i] ?? 0),
+                                humMin  : Math.round(daily.relative_humidity_2m_min?.[i] ?? 0),
+                                pres    : Math.round(daily.pressure_msl_mean?.[i] ?? 0),
+                                wind    : Math.round(daily.wind_speed_10m_max?.[i] ?? 0),
+                                gusts   : Math.round(daily.wind_gusts_10m_max?.[i] ?? 0),
+                                wmo     : daily.weather_code?.[i] ?? 0,
+                            };
+                        });
+                        window._f7Data = rows;
+                        // Ocultar loading
+                        const loading = document.getElementById('forecast7-loading');
+                        if (loading) loading.style.display = 'none';
+                        // Renderizar iconos con datos horarios precisos
+                        window.renderF7Icons(rows);
+                        // Redibujar gráfico activo si el panel ya está visible
+                        const activeTab = document.querySelector('.f7-tab.active');
+                        if (activeTab) requestAnimationFrame(() => requestAnimationFrame(() => drawF7Chart(activeTab.dataset.chart || 'temp')));
+                    } catch(e) { console.warn('buildF7FromMainData error:', e); }
+                })(data.hourly, data.daily);
                 updateTime();
             } catch(e) { console.error('Error procesando datos:',e); }
         }
