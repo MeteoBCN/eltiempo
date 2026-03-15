@@ -558,115 +558,10 @@
         }
 
         /* ══════════ RESUMEN 7 DÍAS ══════════ */
-        .f7-row {
-            display: flex;
-            align-items: center;
-            padding: 11px 16px;
-            border-bottom: 1px solid rgba(44,74,110,0.09);
-            background: #fff;
-            transition: background 0.15s;
-        }
-        .f7-row:last-child { border-bottom: none; }
-        .f7-row:hover { background: #f0f6fa; }
-        .f7-day {
-            width: 80px;
-            flex-shrink: 0;
-        }
-        .f7-day-name {
-            font-size: 13px;
-            font-weight: 700;
-            color: #1e3a5f;
-            text-transform: capitalize;
-        }
-        .f7-day-date {
-            font-size: 10px;
-            color: #94a3b8;
-            margin-top: 1px;
-        }
-        .f7-icon {
-            width: 42px;
-            flex-shrink: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .f7-temps {
-            width: 68px;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-        }
-        .f7-tmax {
-            font-size: 15px;
-            font-weight: 800;
-            color: #e53e3e;
-            line-height: 1;
-        }
-        .f7-tmin {
-            font-size: 13px;
-            font-weight: 600;
-            color: #3b82f6;
-            line-height: 1;
-        }
-        .f7-rain-block {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding-left: 10px;
-        }
-        .f7-rain-row {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-        }
-        .f7-rain-label {
-            font-size: 9px;
-            font-weight: 700;
-            color: #3b82f6;
-            width: 18px;
-            flex-shrink: 0;
-            text-align: right;
-        }
-        .f7-rain-bar-wrap {
-            flex: 1;
-            height: 7px;
-            background: rgba(59,130,246,0.12);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        .f7-rain-bar {
-            height: 100%;
-            border-radius: 4px;
-            background: linear-gradient(90deg, #60a5fa, #3b82f6);
-            transition: width 0.6s ease;
-        }
-        .f7-rain-pct {
-            font-size: 10px;
-            font-weight: 700;
-            color: #2c4a6e;
-            width: 30px;
-            text-align: right;
-            flex-shrink: 0;
-        }
-        .f7-precip {
-            font-size: 10px;
-            color: #64748b;
-            padding-left: 1px;
-        }
-        .f7-today-tag {
-            font-size: 8px;
-            font-weight: 700;
-            background: #0b4c90;
-            color: #fff;
-            border-radius: 3px;
-            padding: 1px 5px;
-            letter-spacing: 0.5px;
-            margin-top: 2px;
-            display: inline-block;
-        }
+        #f7-tabs { -ms-overflow-style:none; scrollbar-width:none; }
+        #f7-tabs::-webkit-scrollbar { display:none; }
+        .f7-tab:focus { outline:none; }
+        .f7-tab:hover { background: rgba(44,74,110,0.06) !important; }
         /* ══════════ FIN RESUMEN 7 DÍAS ══════════ */
     </style>
 </head>
@@ -839,14 +734,32 @@
                 <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">&#128197; PREVISIÓN 7 DÍAS</span>
                 <span id="arrow-forecast7" style="color:#2c4a6e;font-size:12px;transition:transform 0.3s;">&#9660;</span>
             </div>
-            <div id="panel-forecast7" style="display:none;background:#f8fafc;">
-                <div id="forecast7-cards" style="padding:0;">
-                    <div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
+            <div id="panel-forecast7" style="display:none;background:#f0f6fa;">
+                <!-- Pestañas -->
+                <div id="f7-tabs" style="display:flex;overflow-x:auto;background:#e4eef6;border-bottom:2px solid #c9ddf0;scrollbar-width:none;">
+                    <button class="f7-tab active" data-chart="temp"   onclick="switchF7Tab('temp')"   style="flex-shrink:0;padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#2c4a6e;border-bottom:2px solid #0b4c90;margin-bottom:-2px;transition:all .2s;">🌡️ TEMP</button>
+                    <button class="f7-tab"        data-chart="rain"   onclick="switchF7Tab('rain')"   style="flex-shrink:0;padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">💧 LLUVIA</button>
+                    <button class="f7-tab"        data-chart="hum"    onclick="switchF7Tab('hum')"    style="flex-shrink:0;padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">💦 HUMEDAD</button>
+                    <button class="f7-tab"        data-chart="pres"   onclick="switchF7Tab('pres')"   style="flex-shrink:0;padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">📊 PRESIÓN</button>
+                    <button class="f7-tab"        data-chart="wind"   onclick="switchF7Tab('wind')"   style="flex-shrink:0;padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">💨 VIENTO</button>
                 </div>
-                <div style="padding:14px 16px 18px;background:#f0f6fa;border-top:1px solid rgba(44,74,110,0.12);">
-                    <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;text-align:center;">EVOLUCIÓN DE TEMPERATURA</div>
-                    <canvas id="forecast7-temp-chart" style="display:block;width:100%;"></canvas>
+                <!-- Paneles gráficos -->
+                <div id="f7-panel-temp"  style="padding:14px 16px 18px;display:block;">
+                    <canvas id="f7-chart-temp"  style="display:block;width:100%;"></canvas>
                 </div>
+                <div id="f7-panel-rain"  style="padding:14px 16px 18px;display:none;">
+                    <canvas id="f7-chart-rain"  style="display:block;width:100%;"></canvas>
+                </div>
+                <div id="f7-panel-hum"   style="padding:14px 16px 18px;display:none;">
+                    <canvas id="f7-chart-hum"   style="display:block;width:100%;"></canvas>
+                </div>
+                <div id="f7-panel-pres"  style="padding:14px 16px 18px;display:none;">
+                    <canvas id="f7-chart-pres"  style="display:block;width:100%;"></canvas>
+                </div>
+                <div id="f7-panel-wind"  style="padding:14px 16px 18px;display:none;">
+                    <canvas id="f7-chart-wind"  style="display:block;width:100%;"></canvas>
+                </div>
+                <div id="forecast7-loading" style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
             </div>
         </div>
         <!-- ═══════════════════════════════════════════
@@ -2513,261 +2426,360 @@
         /* ══════════════════════════════════════════════
            RESUMEN 7 DÍAS — carga y renderizado
         ══════════════════════════════════════════════ */
+        /* ── Cambio de pestaña ── */
+        function switchF7Tab(id) {
+            const ids = ['temp','rain','hum','pres','wind'];
+            ids.forEach(k => {
+                const btn = document.querySelector('.f7-tab[data-chart="'+k+'"]');
+                const pnl = document.getElementById('f7-panel-'+k);
+                const active = k === id;
+                if (btn) {
+                    btn.style.color         = active ? '#2c4a6e' : '#64748b';
+                    btn.style.borderBottom  = active ? '2px solid #0b4c90' : '2px solid transparent';
+                    btn.style.fontWeight    = active ? '800' : '700';
+                }
+                if (pnl) pnl.style.display = active ? 'block' : 'none';
+            });
+            requestAnimationFrame(() => requestAnimationFrame(() => drawF7Chart(id)));
+        }
+
+        /* ── Lógica principal ── */
         (function() {
-            const DIAS_ES  = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-            const MESES_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+            const DIAS_ES  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 
-            // WMO → emoji sencillo para las tarjetas de días
-            function wmoEmoji(code) {
-                if (code === 0)                       return '☀️';
-                if (code <= 2)                        return '🌤️';
-                if (code === 3)                       return '☁️';
-                if (code === 45 || code === 48)       return '🌫️';
-                if (code >= 51 && code <= 55)         return '🌦️';
-                if (code >= 61 && code <= 65)         return '🌧️';
-                if (code >= 71 && code <= 77)         return '🌨️';
-                if (code >= 80 && code <= 82)         return '🌧️';
-                if (code >= 85 && code <= 86)         return '🌨️';
-                if (code >= 95 && code <= 99)         return '⛈️';
-                return '🌡️';
-            }
-
-            // Descripción breve del código WMO
-            function wmoDesc(code) {
-                if (code === 0)                       return 'Despejado';
-                if (code <= 2)                        return 'Poco nuboso';
-                if (code === 3)                       return 'Nublado';
-                if (code === 45 || code === 48)       return 'Niebla';
-                if (code >= 51 && code <= 55)         return 'Llovizna';
-                if (code >= 61 && code <= 65)         return 'Lluvia';
-                if (code >= 71 && code <= 77)         return 'Nieve';
-                if (code >= 80 && code <= 82)         return 'Chubascos';
-                if (code >= 85 && code <= 86)         return 'Nieve/Chubascos';
-                if (code >= 95 && code <= 99)         return 'Tormenta';
-                return '—';
-            }
-
-            // Guardar datos para el gráfico
             window._f7Data = null;
+
+            /* Paleta y configuración por variable */
+            const F7_CFG = {
+                temp: {
+                    label:  'Temperatura (°C)',
+                    unit:   '°',
+                    color1: '#ef4444', color2: '#3b82f6',
+                    dual:   true,  // máx + mín
+                    fill1:  'rgba(239,68,68,0.15)',
+                    fill2:  'rgba(59,130,246,0.12)',
+                },
+                rain: {
+                    label:  'Prob. lluvia (%) / Precip. (mm)',
+                    unit:   '%',
+                    color1: '#3b82f6', color2: '#93c5fd',
+                    dual:   false,
+                    bar:    true,   // barras de prob + línea mm
+                    fill1:  'rgba(59,130,246,0.18)',
+                },
+                hum: {
+                    label:  'Humedad relativa (%)',
+                    unit:   '%',
+                    color1: '#06b6d4',
+                    dual:   false,
+                    fill1:  'rgba(6,182,212,0.15)',
+                },
+                pres: {
+                    label:  'Presión (hPa)',
+                    unit:   ' hPa',
+                    color1: '#a78bfa',
+                    dual:   false,
+                    fill1:  'rgba(167,139,250,0.15)',
+                },
+                wind: {
+                    label:  'Viento máx (km/h) / Rachas (km/h)',
+                    unit:   ' km/h',
+                    color1: '#10b981', color2: '#6ee7b7',
+                    dual:   false,
+                    bar:    false,
+                    wind2:  true,  // viento + rachas
+                    fill1:  'rgba(16,185,129,0.15)',
+                },
+            };
 
             async function loadForecast7() {
                 try {
-                    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
-                        `&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max` +
+                    const url =
+                        `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
+                        `&daily=weathercode,temperature_2m_max,temperature_2m_min,` +
+                        `precipitation_sum,precipitation_probability_max,` +
+                        `relative_humidity_2m_max,relative_humidity_2m_min,` +
+                        `pressure_msl_mean,wind_speed_10m_max,wind_gusts_10m_max` +
                         `&timezone=Europe%2FMadrid&forecast_days=7`;
                     const res  = await fetch(url);
                     const data = await res.json();
                     const d    = data.daily;
-                    if (!d || !d.time) return;
+                    if (!d?.time) return;
 
-                    const now       = new Date();
-                    const todayStr  = now.toISOString().slice(0,10);
-                    const rows      = [];
-
-                    for (let i = 0; i < d.time.length; i++) {
-                        const dt     = new Date(d.time[i] + 'T12:00:00');
-                        const isToday = d.time[i] === todayStr;
-                        rows.push({
-                            dateStr : d.time[i],
+                    const todayStr = new Date().toISOString().slice(0,10);
+                    const rows = d.time.map((ds, i) => {
+                        const dt = new Date(ds + 'T12:00:00');
+                        return {
+                            dateStr : ds,
                             dayName : DIAS_ES[dt.getDay()],
-                            dayDate : dt.getDate() + ' ' + MESES_ES[dt.getMonth()],
-                            wmo     : d.weathercode[i]  ?? 0,
-                            tmax    : Math.round(d.temperature_2m_max[i]),
-                            tmin    : Math.round(d.temperature_2m_min[i]),
+                            isToday : ds === todayStr,
+                            tmax    : Math.round(d.temperature_2m_max[i] ?? 0),
+                            tmin    : Math.round(d.temperature_2m_min[i] ?? 0),
                             precip  : Math.round((d.precipitation_sum[i] ?? 0) * 10) / 10,
-                            pprob   : d.precipitation_probability_max[i] ?? 0,
-                            isToday
-                        });
-                    }
+                            pprob   : Math.round(d.precipitation_probability_max[i] ?? 0),
+                            humMax  : Math.round(d.relative_humidity_2m_max?.[i] ?? 0),
+                            humMin  : Math.round(d.relative_humidity_2m_min?.[i] ?? 0),
+                            pres    : Math.round(d.pressure_msl_mean?.[i] ?? 0),
+                            wind    : Math.round(d.wind_speed_10m_max?.[i] ?? 0),
+                            gusts   : Math.round(d.wind_gusts_10m_max?.[i] ?? 0),
+                        };
+                    });
 
                     window._f7Data = rows;
-                    renderForecast7Cards(rows);
+
+                    // Ocultar loading, mostrar paneles
+                    const loading = document.getElementById('forecast7-loading');
+                    if (loading) loading.style.display = 'none';
+
+                    // Dibujar el gráfico activo (temperatura por defecto)
+                    requestAnimationFrame(() => requestAnimationFrame(() => drawF7Chart('temp')));
                 } catch(e) {
                     console.warn('Forecast 7d error:', e);
                 }
             }
 
-            function renderForecast7Cards(rows) {
-                const container = document.getElementById('forecast7-cards');
-                if (!container) return;
+            loadForecast7();
+        })();
 
-                container.innerHTML = rows.map(r => {
-                    const barW   = Math.round(r.pprob);
-                    const ppColor = r.pprob >= 70 ? '#2563eb' : r.pprob >= 40 ? '#60a5fa' : '#93c5fd';
-                    return `
-                    <div class="f7-row">
-                        <div class="f7-day">
-                            <div class="f7-day-name">${r.dayName}</div>
-                            <div class="f7-day-date">${r.dayDate}</div>
-                            ${r.isToday ? '<span class="f7-today-tag">HOY</span>' : ''}
-                        </div>
-                        <div class="f7-icon" title="${wmoDesc(r.wmo)}">
-                            <span style="font-size:28px;line-height:1;">${wmoEmoji(r.wmo)}</span>
-                        </div>
-                        <div class="f7-temps">
-                            <div class="f7-tmax">${r.tmax}°</div>
-                            <div class="f7-tmin">${r.tmin}°</div>
-                        </div>
-                        <div class="f7-rain-block">
-                            <div class="f7-rain-row">
-                                <div class="f7-rain-label" title="Probabilidad de lluvia">💧</div>
-                                <div class="f7-rain-bar-wrap">
-                                    <div class="f7-rain-bar" style="width:${barW}%;background:linear-gradient(90deg,${ppColor},${ppColor});"></div>
-                                </div>
-                                <div class="f7-rain-pct">${r.pprob}%</div>
-                            </div>
-                            <div class="f7-precip">${wmoDesc(r.wmo)}${r.precip > 0 ? ' · ' + r.precip + ' mm' : ''}</div>
-                        </div>
-                    </div>`;
-                }).join('');
+        /* ── Motor de dibujo genérico ── */
+        function drawF7Chart(type) {
+            const rows = window._f7Data;
+            const canvasId = 'f7-chart-' + type;
+            const canvas   = document.getElementById(canvasId);
+            if (!canvas || !rows || rows.length < 2) return;
+
+            const cfg = {
+                temp: {
+                    dual:true, bar:false,
+                    v1: r => r.tmax, v2: r => r.tmin,
+                    c1:'#ef4444', c2:'#3b82f6',
+                    f1:'rgba(239,68,68,0.15)', f2:'rgba(59,130,246,0.12)',
+                    unit:'°', leg1:'Máx', leg2:'Mín',
+                    yLabel: '°C', decimals:0,
+                },
+                rain: {
+                    dual:false, bar:true,
+                    v1: r => r.pprob, v2: r => r.precip,
+                    c1:'#3b82f6', c2:'#93c5fd',
+                    f1:'rgba(59,130,246,0.18)',
+                    unit:'%', unit2:' mm', leg1:'Prob. %', leg2:'Precip. mm',
+                    yMax:100, yLabel:'%', decimals:0,
+                    showSec:true,
+                },
+                hum: {
+                    dual:true, bar:false,
+                    v1: r => r.humMax, v2: r => r.humMin,
+                    c1:'#06b6d4', c2:'#67e8f9',
+                    f1:'rgba(6,182,212,0.15)', f2:'rgba(103,232,249,0.1)',
+                    unit:'%', leg1:'Hum. máx', leg2:'Hum. mín',
+                    yMax:100, yLabel:'%', decimals:0,
+                },
+                pres: {
+                    dual:false, bar:false,
+                    v1: r => r.pres,
+                    c1:'#a78bfa', f1:'rgba(167,139,250,0.15)',
+                    unit:' hPa', leg1:'Presión',
+                    yLabel:'hPa', decimals:0,
+                },
+                wind: {
+                    dual:true, bar:false,
+                    v1: r => r.wind, v2: r => r.gusts,
+                    c1:'#10b981', c2:'#6ee7b7',
+                    f1:'rgba(16,185,129,0.15)', f2:'rgba(110,231,183,0.1)',
+                    unit:' km/h', leg1:'Viento máx', leg2:'Rachas',
+                    yLabel:'km/h', decimals:0,
+                },
+            }[type];
+
+            if (!cfg) return;
+
+            const dpr = window.devicePixelRatio || 1;
+            const W   = canvas.parentElement.offsetWidth - 32;
+            const H   = cfg.bar ? 210 : 195;
+            canvas.width  = W * dpr;
+            canvas.height = H * dpr;
+            canvas.style.width  = W + 'px';
+            canvas.style.height = H + 'px';
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+
+            const PAD = { t:32, r:16, b:38, l:42 };
+            const cw  = W - PAD.l - PAD.r;
+            const ch  = H - PAD.t - PAD.b;
+            const n   = rows.length;
+
+            // Rango Y
+            const vals1 = rows.map(cfg.v1);
+            const vals2 = cfg.dual || cfg.showSec ? rows.map(cfg.v2) : [];
+            const allV  = [...vals1, ...vals2].filter(v => v != null);
+            let vMin = cfg.yMin  !== undefined ? cfg.yMin  : Math.floor(Math.min(...allV)) - (type==='pres'?3:2);
+            let vMax = cfg.yMax  !== undefined ? cfg.yMax  : Math.ceil(Math.max(...allV))  + (type==='pres'?3:2);
+            if (type === 'pres') { vMin = Math.floor(Math.min(...vals1))-3; vMax = Math.ceil(Math.max(...vals1))+3; }
+
+            const xPos = i => PAD.l + (i / (n - 1)) * cw;
+            const yV   = v => PAD.t + ch - ((v - vMin) / (vMax - vMin)) * ch;
+            const barW = cw / n * 0.55;
+
+            // Fondo
+            ctx.fillStyle = '#f0f6fa';
+            ctx.fillRect(0, 0, W, H);
+
+            // Líneas guía Y
+            const steps = 4;
+            for (let s = 0; s <= steps; s++) {
+                const v = vMin + (vMax - vMin) * s / steps;
+                const y = yV(v);
+                ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
+                ctx.strokeStyle = 'rgba(44,74,110,0.1)'; ctx.lineWidth = 1; ctx.stroke();
+                ctx.textAlign = 'right'; ctx.font = '9px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(44,74,110,0.55)';
+                ctx.fillText(Math.round(v) + (type==='temp'?'°':''), PAD.l - 4, y + 3);
             }
 
-            // Función global para el gráfico (se llama al abrir el panel)
+            // ── Modo barras (lluvia) ──
+            if (cfg.bar) {
+                rows.forEach((r, i) => {
+                    const v   = cfg.v1(r);
+                    const x   = xPos(i) - barW / 2;
+                    const barH = ((v - 0) / (vMax - 0)) * ch;
+                    const y0  = PAD.t + ch;
+                    // gradiente barra
+                    const g = ctx.createLinearGradient(0, y0 - barH, 0, y0);
+                    g.addColorStop(0, v >= 70 ? '#2563eb' : v >= 40 ? '#60a5fa' : '#bfdbfe');
+                    g.addColorStop(1, 'rgba(59,130,246,0.15)');
+                    ctx.fillStyle = g;
+                    ctx.beginPath();
+                    ctx.roundRect(x, y0 - barH, barW, barH, 3);
+                    ctx.fill();
+                    // Etiqueta valor encima
+                    ctx.textAlign = 'center'; ctx.font = 'bold 10px Inter,sans-serif';
+                    ctx.fillStyle = v >= 40 ? '#1d4ed8' : '#64748b';
+                    ctx.fillText(v + '%', xPos(i), y0 - barH - 5);
+                });
+
+                // Línea secundaria (mm precipitación)
+                if (cfg.showSec) {
+                    const mm = rows.map(cfg.v2);
+                    const mmMax = Math.max(...mm, 1);
+                    const yMm = v => PAD.t + ch - (v / mmMax) * ch * 0.6;
+                    ctx.beginPath();
+                    ctx.moveTo(xPos(0), yMm(mm[0]));
+                    for (let i = 1; i < n; i++) {
+                        const xc = (xPos(i-1)+xPos(i))/2;
+                        ctx.bezierCurveTo(xc, yMm(mm[i-1]), xc, yMm(mm[i]), xPos(i), yMm(mm[i]));
+                    }
+                    ctx.strokeStyle = cfg.c2; ctx.lineWidth = 2; ctx.setLineDash([4,3]); ctx.stroke();
+                    ctx.setLineDash([]);
+                    // Puntos mm
+                    mm.forEach((v, i) => {
+                        if (v <= 0) return;
+                        ctx.beginPath(); ctx.arc(xPos(i), yMm(v), 3, 0, Math.PI*2);
+                        ctx.fillStyle = cfg.c2; ctx.fill();
+                        ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif';
+                        ctx.fillStyle = '#0369a1';
+                        ctx.fillText(v + 'mm', xPos(i), yMm(v) - 7);
+                    });
+                }
+            } else {
+                // ── Modo área + línea (dual o simple) ──
+                const drawArea = (vals, color, fill) => {
+                    ctx.beginPath();
+                    ctx.moveTo(xPos(0), yV(vals[0]));
+                    for (let i = 1; i < n; i++) {
+                        const xc = (xPos(i-1)+xPos(i))/2;
+                        ctx.bezierCurveTo(xc, yV(vals[i-1]), xc, yV(vals[i]), xPos(i), yV(vals[i]));
+                    }
+                    ctx.lineTo(xPos(n-1), PAD.t + ch);
+                    ctx.lineTo(xPos(0), PAD.t + ch);
+                    ctx.closePath();
+                    const g = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ch);
+                    g.addColorStop(0, fill);
+                    g.addColorStop(1, 'rgba(255,255,255,0)');
+                    ctx.fillStyle = g; ctx.fill();
+                };
+                const drawLine = (vals, color, dotColor, labelColor, offset) => {
+                    ctx.beginPath();
+                    ctx.moveTo(xPos(0), yV(vals[0]));
+                    for (let i = 1; i < n; i++) {
+                        const xc = (xPos(i-1)+xPos(i))/2;
+                        ctx.bezierCurveTo(xc, yV(vals[i-1]), xc, yV(vals[i]), xPos(i), yV(vals[i]));
+                    }
+                    ctx.strokeStyle = color; ctx.lineWidth = 2.2; ctx.lineJoin = 'round';
+                    ctx.setLineDash([]); ctx.stroke();
+                    vals.forEach((v, i) => {
+                        ctx.beginPath(); ctx.arc(xPos(i), yV(v), 3.5, 0, Math.PI*2);
+                        ctx.fillStyle = dotColor; ctx.fill();
+                        ctx.textAlign = 'center'; ctx.font = 'bold 10px Inter,sans-serif';
+                        ctx.fillStyle = labelColor;
+                        const lbl = v + (type==='temp'?'°':type==='pres'?' hPa':' km/h'!==cfg.unit?' ':cfg.unit.trim()?cfg.unit:'');
+                        const txt = type==='temp' ? v+'°' : type==='pres' ? v : v;
+                        ctx.fillText(txt + (type==='hum'?'%':''), xPos(i), yV(v) + offset);
+                    });
+                };
+
+                if (cfg.dual) {
+                    drawArea(vals1, cfg.c1, cfg.f1);
+                    drawArea(vals2, cfg.c2, cfg.f2);
+                    drawLine(vals1, cfg.c1, cfg.c1, type==='temp'?'#c53030':type==='hum'?'#0891b2':'#059669', -7);
+                    // línea secundaria punteada
+                    ctx.setLineDash([5,3]);
+                    ctx.beginPath();
+                    ctx.moveTo(xPos(0), yV(vals2[0]));
+                    for (let i = 1; i < n; i++) {
+                        const xc = (xPos(i-1)+xPos(i))/2;
+                        ctx.bezierCurveTo(xc, yV(vals2[i-1]), xc, yV(vals2[i]), xPos(i), yV(vals2[i]));
+                    }
+                    ctx.strokeStyle = cfg.c2; ctx.lineWidth = 1.8; ctx.stroke();
+                    ctx.setLineDash([]);
+                    vals2.forEach((v, i) => {
+                        ctx.beginPath(); ctx.arc(xPos(i), yV(v), 3, 0, Math.PI*2);
+                        ctx.fillStyle = cfg.c2; ctx.fill();
+                        ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif';
+                        ctx.fillStyle = type==='temp'?'#1d4ed8':type==='hum'?'#0e7490':'#047857';
+                        const txt = type==='temp' ? v+'°' : v+(type==='hum'?'%':'');
+                        ctx.fillText(txt, xPos(i), yV(v) + 15);
+                    });
+                } else {
+                    drawArea(vals1, cfg.c1, cfg.f1);
+                    drawLine(vals1, cfg.c1, cfg.c1,
+                        type==='pres'?'#6d28d9':type==='wind'?'#065f46':'#1d4ed8', -7);
+                    // para presión mostrar valor completo
+                    if (type==='pres') {
+                        vals1.forEach((v,i) => {
+                            ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif';
+                            ctx.fillStyle = '#6d28d9';
+                            ctx.fillText(v, xPos(i), yV(v) - 7);
+                        });
+                    }
+                }
+            }
+
+            // Etiquetas eje X
+            ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#2c4a6e';
+            rows.forEach((r, i) => {
+                const lbl = r.isToday ? 'HOY' : r.dayName;
+                ctx.fillText(lbl, xPos(i), H - 6);
+            });
+
+            // Leyenda
+            const leg = [[cfg.c1, cfg.leg1]];
+            if (cfg.dual && cfg.leg2) leg.push([cfg.c2, cfg.leg2]);
+            if (cfg.bar  && cfg.leg2) leg.push([cfg.c2, cfg.leg2]);
+            ctx.textAlign = 'left'; ctx.font = 'bold 9px Inter,sans-serif';
+            leg.forEach(([c, l], idx) => {
+                ctx.fillStyle = c;
+                ctx.fillText('● ' + l, PAD.l + idx * 110, PAD.t - 12);
+            });
+        }
+
+        /* ── Disparar carga cuando se abre el panel ── */
+        (function() {
+            const orig = window.drawForecast7Chart;
             window.drawForecast7Chart = function() {
-                const canvas = document.getElementById('forecast7-temp-chart');
-                const rows   = window._f7Data;
-                if (!canvas || !rows || rows.length < 2) return;
-
-                const dpr = window.devicePixelRatio || 1;
-                const W   = canvas.parentElement.offsetWidth - 32;
-                const H   = 170;
-                canvas.width  = W * dpr;
-                canvas.height = H * dpr;
-                canvas.style.width  = W + 'px';
-                canvas.style.height = H + 'px';
-                const ctx = canvas.getContext('2d');
-                ctx.scale(dpr, dpr);
-
-                const pad = { t: 28, r: 16, b: 36, l: 36 };
-                const cw  = W - pad.l - pad.r;
-                const ch  = H - pad.t - pad.b;
-                const n   = rows.length;
-                const allTemps = rows.flatMap(r => [r.tmax, r.tmin]);
-                const vMin = Math.floor(Math.min(...allTemps)) - 2;
-                const vMax = Math.ceil(Math.max(...allTemps))  + 2;
-
-                const xPos = i => pad.l + (i / (n - 1)) * cw;
-                const yV   = v => pad.t + ch - ((v - vMin) / (vMax - vMin)) * ch;
-
-                // Fondo tenue
-                ctx.fillStyle = '#f0f6fa';
-                ctx.fillRect(0, 0, W, H);
-
-                // Líneas guía horizontales
-                ctx.textAlign = 'right';
-                ctx.font = '9px Inter,sans-serif';
-                ctx.fillStyle = 'rgba(44,74,110,0.5)';
-                const steps = 4;
-                for (let s = 0; s <= steps; s++) {
-                    const v = vMin + (vMax - vMin) * s / steps;
-                    const y = yV(v);
-                    ctx.beginPath();
-                    ctx.moveTo(pad.l, y);
-                    ctx.lineTo(pad.l + cw, y);
-                    ctx.strokeStyle = 'rgba(44,74,110,0.1)';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                    ctx.fillText(Math.round(v) + '°', pad.l - 4, y + 3);
-                }
-
-                // Área relleno máximas
-                ctx.beginPath();
-                ctx.moveTo(xPos(0), yV(rows[0].tmax));
-                for (let i = 1; i < n; i++) {
-                    const xc = (xPos(i-1) + xPos(i)) / 2;
-                    ctx.bezierCurveTo(xc, yV(rows[i-1].tmax), xc, yV(rows[i].tmax), xPos(i), yV(rows[i].tmax));
-                }
-                ctx.lineTo(xPos(n-1), H);
-                ctx.lineTo(xPos(0), H);
-                ctx.closePath();
-                const gMax = ctx.createLinearGradient(0, pad.t, 0, H);
-                gMax.addColorStop(0, 'rgba(239,68,68,0.18)');
-                gMax.addColorStop(1, 'rgba(239,68,68,0.02)');
-                ctx.fillStyle = gMax;
-                ctx.fill();
-
-                // Área relleno mínimas
-                ctx.beginPath();
-                ctx.moveTo(xPos(0), yV(rows[0].tmin));
-                for (let i = 1; i < n; i++) {
-                    const xc = (xPos(i-1) + xPos(i)) / 2;
-                    ctx.bezierCurveTo(xc, yV(rows[i-1].tmin), xc, yV(rows[i].tmin), xPos(i), yV(rows[i].tmin));
-                }
-                ctx.lineTo(xPos(n-1), H);
-                ctx.lineTo(xPos(0), H);
-                ctx.closePath();
-                const gMin = ctx.createLinearGradient(0, pad.t, 0, H);
-                gMin.addColorStop(0, 'rgba(59,130,246,0.15)');
-                gMin.addColorStop(1, 'rgba(59,130,246,0.01)');
-                ctx.fillStyle = gMin;
-                ctx.fill();
-
-                // Línea máximas
-                ctx.beginPath();
-                ctx.moveTo(xPos(0), yV(rows[0].tmax));
-                for (let i = 1; i < n; i++) {
-                    const xc = (xPos(i-1) + xPos(i)) / 2;
-                    ctx.bezierCurveTo(xc, yV(rows[i-1].tmax), xc, yV(rows[i].tmax), xPos(i), yV(rows[i].tmax));
-                }
-                ctx.strokeStyle = '#ef4444';
-                ctx.lineWidth = 2.2;
-                ctx.lineJoin = 'round';
-                ctx.stroke();
-
-                // Línea mínimas
-                ctx.beginPath();
-                ctx.moveTo(xPos(0), yV(rows[0].tmin));
-                for (let i = 1; i < n; i++) {
-                    const xc = (xPos(i-1) + xPos(i)) / 2;
-                    ctx.bezierCurveTo(xc, yV(rows[i-1].tmin), xc, yV(rows[i].tmin), xPos(i), yV(rows[i].tmin));
-                }
-                ctx.strokeStyle = '#3b82f6';
-                ctx.lineWidth = 2.2;
-                ctx.lineJoin = 'round';
-                ctx.stroke();
-
-                // Puntos + etiquetas temperatura
-                rows.forEach((r, i) => {
-                    // Máx
-                    ctx.beginPath();
-                    ctx.arc(xPos(i), yV(r.tmax), 3.5, 0, Math.PI * 2);
-                    ctx.fillStyle = '#ef4444';
-                    ctx.fill();
-                    ctx.textAlign = 'center';
-                    ctx.font = 'bold 10px Inter,sans-serif';
-                    ctx.fillStyle = '#c53030';
-                    ctx.fillText(r.tmax + '°', xPos(i), yV(r.tmax) - 7);
-
-                    // Mín
-                    ctx.beginPath();
-                    ctx.arc(xPos(i), yV(r.tmin), 3.5, 0, Math.PI * 2);
-                    ctx.fillStyle = '#3b82f6';
-                    ctx.fill();
-                    ctx.font = 'bold 10px Inter,sans-serif';
-                    ctx.fillStyle = '#1d4ed8';
-                    ctx.fillText(r.tmin + '°', xPos(i), yV(r.tmin) + 15);
-                });
-
-                // Etiquetas eje X (días abreviados)
-                ctx.textAlign = 'center';
-                ctx.font = '9px Inter,sans-serif';
-                ctx.fillStyle = '#2c4a6e';
-                rows.forEach((r, i) => {
-                    const label = r.isToday ? 'HOY' : r.dayName.slice(0, 3).toUpperCase();
-                    ctx.fillText(label, xPos(i), H - 6);
-                });
-
-                // Leyenda
-                ctx.textAlign = 'left';
-                ctx.font = 'bold 9px Inter,sans-serif';
-                ctx.fillStyle = '#ef4444';
-                ctx.fillText('— Máx', pad.l, pad.t - 10);
-                ctx.fillStyle = '#3b82f6';
-                ctx.fillText('— Mín', pad.l + 50, pad.t - 10);
+                const activeTab = document.querySelector('.f7-tab.active');
+                const id = activeTab ? activeTab.dataset.chart : 'temp';
+                drawF7Chart(id);
             };
-
-            // Cargar datos al iniciar la página
-            loadForecast7();
         })();
         /* ══════════════════════════════════════════════
            FIN RESUMEN 7 DÍAS
