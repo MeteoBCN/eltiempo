@@ -628,12 +628,12 @@
              SEMÁFORO CALIDAD DEL AIRE
         ═══════════════════════════════════════════════ -->
         <div id="aqi-semaforo-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <!-- Cabecera cliclable -->
-            <div id="toggle-aqi" onclick="toggleSection('aqi')" style="display:flex;align-items:center;justify-content:center;padding:12px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);cursor:pointer;user-select:none;">
+            <!-- Cabecera fija (no clicable) -->
+            <div style="display:flex;align-items:center;justify-content:center;padding:12px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);">
                 <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">CALIDAD DEL AIRE</span>
             </div>
-            <!-- Panel desplegable -->
-            <div id="panel-aqi" style="display:none;position:relative;overflow:hidden;background:#f0f6fa;">
+            <!-- Contenido principal SIEMPRE visible -->
+            <div style="position:relative;overflow:hidden;background:#f0f6fa;">
                 <!-- Capa smog: edificios silueta -->
                 <svg style="position:absolute;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0.18;" viewBox="0 0 600 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
                     <rect x="0"   y="60"  width="35"  height="60" fill="#2c3e50"/>
@@ -665,19 +665,15 @@
                     <rect x="558" y="42"  width="20"  height="78" fill="#34495e"/>
                     <rect x="575" y="62"  width="25"  height="58" fill="#2c3e50"/>
                 </svg>
-                <!-- Capa niebla/smog superpuesta -->
                 <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(180,200,220,0.0) 0%,rgba(180,200,220,0.25) 50%,rgba(160,185,210,0.55) 100%);pointer-events:none;"></div>
-
                 <div style="position:relative;z-index:1;padding:14px 20px;">
                     <!-- Fila principal: semáforo + AQI + badge + consejo -->
                     <div style="display:flex;align-items:center;gap:14px;">
-                        <!-- Semáforo pequeño -->
                         <div id="aqi-traffic-light" style="display:flex;flex-direction:column;align-items:center;background:#1a1a1a;border-radius:14px;padding:7px 8px;gap:5px;box-shadow:0 3px 10px rgba(0,0,0,0.35);border:2px solid #333;flex-shrink:0;">
                             <div id="aqi-light-red"    style="width:20px;height:20px;border-radius:50%;background:#7f1d1d;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
                             <div id="aqi-light-yellow" style="width:20px;height:20px;border-radius:50%;background:#713f12;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
                             <div id="aqi-light-green"  style="width:20px;height:20px;border-radius:50%;background:#14532d;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
                         </div>
-                        <!-- AQI número + badge en columna -->
                         <div style="flex-shrink:0;">
                             <div style="display:flex;align-items:baseline;gap:5px;">
                                 <div id="aqi-value" style="font-size:28px;font-weight:900;line-height:1;color:#000000;font-family:monospace;">--</div>
@@ -688,16 +684,23 @@
                                 <span id="aqi-label" style="font-size:12px;font-weight:700;color:#1E293B;">—</span>
                             </div>
                         </div>
-                        <!-- Consejo a la derecha -->
                         <div style="flex:1;min-width:0;">
                             <div id="aqi-advice" style="font-size:11px;color:#1e3a5f;line-height:1.4;border-left:3px solid rgba(255,255,255,0.6);padding-left:8px;transition:border-color 0.5s;"></div>
                         </div>
                     </div>
                     <!-- Contaminantes mini en fila -->
                     <div id="aqi-pollutants" style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;"></div>
-
+                    <!-- Botón + información -->
+                    <div style="margin-top:12px;text-align:right;">
+                        <button id="toggle-aqi-legend" onclick="toggleAqiLegend()" style="font-size:9px;font-weight:700;color:#2c4a6e;background:rgba(255,255,255,0.6);border:1px solid rgba(44,74,110,0.25);border-radius:6px;padding:4px 10px;cursor:pointer;letter-spacing:0.5px;transition:all 0.2s;">+ INFORMACIÓN</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Leyenda desplegable -->
+            <div id="panel-aqi-legend" style="display:none;background:#f0f6fa;border-top:1px solid rgba(44,74,110,0.12);">
+                <div style="padding:14px 20px 16px;">
                     <!-- Leyenda escala AQI -->
-                    <div style="margin-top:14px;border-top:1px solid rgba(44,74,110,0.15);padding-top:12px;">
+                    <div style="margin-bottom:12px;">
                         <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Escala de calidad del aire</div>
                         <div style="display:flex;flex-wrap:wrap;gap:5px;">
                             <span style="font-size:10px;font-weight:700;background:#22c55e;color:#fff;padding:3px 8px;border-radius:5px;">0–50 Bueno</span>
@@ -708,9 +711,8 @@
                             <span style="font-size:10px;font-weight:700;background:#7c3aed;color:#fff;padding:3px 8px;border-radius:5px;">300+ Peligroso</span>
                         </div>
                     </div>
-
                     <!-- Leyenda contaminantes -->
-                    <div style="margin-top:12px;border-top:1px solid rgba(44,74,110,0.15);padding-top:12px;">
+                    <div style="border-top:1px solid rgba(44,74,110,0.15);padding-top:12px;">
                         <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Contaminantes</div>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
                             <div style="font-size:10px;color:#1e3a5f;line-height:1.5;"><span style="font-weight:700;">PM2.5</span> — Partículas finas (&lt;2.5µm). Penetran en los pulmones.</div>
@@ -2353,6 +2355,14 @@
                     if (id === 'wind') drawWindChart(_hourlyCache);
                 });
             }
+        }
+
+        function toggleAqiLegend() {
+            const panel = document.getElementById('panel-aqi-legend');
+            const btn   = document.getElementById('toggle-aqi-legend');
+            const isOpen = panel.style.display !== 'none';
+            panel.style.display = isOpen ? 'none' : 'block';
+            btn.textContent = isOpen ? '+ INFORMACIÓN' : '− INFORMACIÓN';
         }
 
         function toggleSection(id) {
