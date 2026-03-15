@@ -2490,36 +2490,51 @@
                     const dt = new Date(r.dateStr + 'T12:00:00');
                     let icon;
 
-                    // Si tenemos datos horarios, calculamos el código dominante 8h-18h
-                    // igual que hacen las cabeceras de días — misma lógica que iconForDay()
                     if (hourly && hourly.time) {
+                        // Lógica IDÉNTICA a iconForDay() en buildExpandableDay:
+                        // código más severo entre 08h-18h con fallback anti-niebla
+                        const tDayStr = r.dateStr;
                         const severity = [0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
-                        const codes = [];
+                        let best = null;
                         for (let i = 0; i < hourly.time.length; i++) {
-                            if (!hourly.time[i].startsWith(r.dateStr)) continue;
+                            if (!hourly.time[i].startsWith(tDayStr)) continue;
                             const h = parseInt(hourly.time[i].slice(11,13), 10);
                             if (h < 8 || h >= 18) continue;
                             const wmoRaw = hourly.weather_code?.[i] ?? 0;
                             const precipProb = hourly.precipitation_probability?.[i] ?? 0;
-                            const isFog = (wmoRaw === 45 || wmoRaw === 48);
-                            const isRainCode = (wmoRaw>=51&&wmoRaw<=82)||(wmoRaw>=85&&wmoRaw<=86)||(wmoRaw>=95&&wmoRaw<=99);
+                            const isRainCodeRaw = (wmoRaw>=51&&wmoRaw<=82)||(wmoRaw>=85&&wmoRaw<=86)||(wmoRaw>=95&&wmoRaw<=99);
+                            const isFogRaw = (wmoRaw===45||wmoRaw===48);
                             let wmo = wmoRaw;
-                            if (!isFog) {
-                                if (!isRainCode && precipProb >= 50) wmo = 80;
-                                else if (isRainCode && precipProb < 50) wmo = 3;
+                            if (!isFogRaw) {
+                                if (!isRainCodeRaw && precipProb>=50) wmo = 80;
+                                else if (isRainCodeRaw && precipProb<50) wmo = 3;
                             }
-                            codes.push(wmo);
+                            if (!best || severity.indexOf(wmo) > severity.indexOf(best.wmo)) {
+                                best = { wmo, i };
+                            }
                         }
-                        if (codes.length) {
-                            const codesNoFog = codes.filter(c => c!==45 && c!==48);
-                            const pool = codesNoFog.length ? codesNoFog : codes;
-                            const freq = {};
-                            pool.forEach(c => { freq[c] = (freq[c]||0) + 1; });
-                            const dominant = parseInt(Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0]);
-                            icon = getSvgIcon(dominant, 36, false);
+                        // Si el mejor es niebla pero hay horas sin niebla, ignorar la niebla
+                        if (best && (best.wmo===45||best.wmo===48)) {
+                            let bestNoFog = null;
+                            for (let i = 0; i < hourly.time.length; i++) {
+                                if (!hourly.time[i].startsWith(tDayStr)) continue;
+                                const h = parseInt(hourly.time[i].slice(11,13), 10);
+                                if (h < 8 || h >= 18) continue;
+                                const wmoRaw = hourly.weather_code?.[i] ?? 0;
+                                if (wmoRaw===45||wmoRaw===48) continue;
+                                const precipProb = hourly.precipitation_probability?.[i] ?? 0;
+                                const isRainCodeRaw = (wmoRaw>=51&&wmoRaw<=82)||(wmoRaw>=85&&wmoRaw<=86)||(wmoRaw>=95&&wmoRaw<=99);
+                                let wmo = wmoRaw;
+                                if (!isRainCodeRaw && precipProb>=50) wmo = 80;
+                                else if (isRainCodeRaw && precipProb<50) wmo = 3;
+                                if (!bestNoFog || severity.indexOf(wmo) > severity.indexOf(bestNoFog.wmo)) {
+                                    bestNoFog = { wmo, i };
+                                }
+                            }
+                            if (bestNoFog) best = bestNoFog;
                         }
+                        if (best) icon = getSvgIcon(best.wmo, 36, false);
                     }
-                    // Fallback si no hay datos horarios aún
                     if (!icon) icon = getSvgIcon(r.wmo, 36, false);
 
                     return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;">
