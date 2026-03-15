@@ -730,18 +730,18 @@
         ════════════════════════════════════════════ -->
         <div style="height:20px;background:#ffffff;"></div>
         <div id="forecast7-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <div id="toggle-forecast7" onclick="toggleSection('forecast7')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);cursor:pointer;user-select:none;">
-                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">&#128197; PREVISIÓN 7 DÍAS</span>
-                <span id="arrow-forecast7" style="color:#2c4a6e;font-size:12px;transition:transform 0.3s;">&#9660;</span>
+            <!-- Cabecera fija (no clicable) -->
+            <div style="display:flex;align-items:center;justify-content:center;padding:10px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);">
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">PREVISIÓN 7 DÍAS</span>
             </div>
-            <div id="panel-forecast7" style="display:none;background:#f0f6fa;">
-                <!-- Pestañas -->
-                <div id="f7-tabs" style="display:flex;overflow-x:auto;background:#e4eef6;border-bottom:2px solid #c9ddf0;scrollbar-width:none;">
-                    <button class="f7-tab active" data-chart="temp"   onclick="switchF7Tab('temp')"   style="flex-shrink:0;padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#2c4a6e;border-bottom:2px solid #0b4c90;margin-bottom:-2px;transition:all .2s;">🌡️ TEMP</button>
-                    <button class="f7-tab"        data-chart="rain"   onclick="switchF7Tab('rain')"   style="flex-shrink:0;padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">💧 LLUVIA</button>
-                    <button class="f7-tab"        data-chart="hum"    onclick="switchF7Tab('hum')"    style="flex-shrink:0;padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">💦 HUMEDAD</button>
-                    <button class="f7-tab"        data-chart="pres"   onclick="switchF7Tab('pres')"   style="flex-shrink:0;padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">📊 PRESIÓN</button>
-                    <button class="f7-tab"        data-chart="wind"   onclick="switchF7Tab('wind')"   style="flex-shrink:0;padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">💨 VIENTO</button>
+            <div id="panel-forecast7" style="background:#f0f6fa;">
+                <!-- Pestañas: 5 iguales, sin iconos -->
+                <div id="f7-tabs" style="display:grid;grid-template-columns:repeat(5,1fr);background:#e4eef6;border-bottom:2px solid #c9ddf0;">
+                    <button class="f7-tab active" data-chart="temp"  onclick="switchF7Tab('temp')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#2c4a6e;border-bottom:2px solid #0b4c90;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">TEMP</button>
+                    <button class="f7-tab"        data-chart="rain"  onclick="switchF7Tab('rain')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">LLUVIA</button>
+                    <button class="f7-tab"        data-chart="hum"   onclick="switchF7Tab('hum')"   style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">HUMEDAD</button>
+                    <button class="f7-tab"        data-chart="pres"  onclick="switchF7Tab('pres')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">PRESIÓN</button>
+                    <button class="f7-tab"        data-chart="wind"  onclick="switchF7Tab('wind')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">VIENTO</button>
                 </div>
                 <!-- Paneles gráficos -->
                 <div id="f7-panel-temp"  style="padding:14px 16px 18px;display:block;">
@@ -2418,9 +2418,6 @@
             if (!isOpen && id === 'playas') {
                 requestAnimationFrame(() => requestAnimationFrame(() => drawWaveChart()));
             }
-            if (!isOpen && id === 'forecast7') {
-                requestAnimationFrame(() => requestAnimationFrame(() => drawForecast7Chart()));
-            }
         }
 
         /* ══════════════════════════════════════════════
@@ -2772,15 +2769,6 @@
             });
         }
 
-        /* ── Disparar carga cuando se abre el panel ── */
-        (function() {
-            const orig = window.drawForecast7Chart;
-            window.drawForecast7Chart = function() {
-                const activeTab = document.querySelector('.f7-tab.active');
-                const id = activeTab ? activeTab.dataset.chart : 'temp';
-                drawF7Chart(id);
-            };
-        })();
         /* ══════════════════════════════════════════════
            FIN RESUMEN 7 DÍAS
         ══════════════════════════════════════════════ */
