@@ -224,9 +224,18 @@
         .rain-header-bg > * { position: relative; z-index: 1; }
         /* ══════ FIN CABECERA LLUVIA ══════ */
 
-        .webcam-container { display: flex; flex-direction: column; align-items: center; width: 100%; margin: 32px 0; animation: fadeIn 0.6s ease-out 1s both; }
-        .webcam-frame { width: 100%; height: auto; aspect-ratio: 16 / 9; overflow: hidden; border: none; background: #000; border-radius: 0; box-shadow: var(--shadow-md); }
-        .webcam-frame img { width: 100%; height: 100%; object-fit: cover; }
+        /* ══════ WEBCAMS ══════ */
+        .webcams-section { max-width:600px; margin:32px auto 0; animation: fadeIn 0.6s ease-out 1s both; }
+        .webcams-header { background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%); padding:10px 20px; display:flex; align-items:center; justify-content:center; }
+        .webcams-header span { font-size:10px; font-weight:700; color:#2c4a6e; letter-spacing:2px; text-transform:uppercase; }
+        .webcams-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; background:#e2e8f0; }
+        .webcam-cell { display:flex; flex-direction:column; background:#000; overflow:hidden; }
+        .webcam-cell-label { font-size:8px; font-weight:700; color:#fff; background:#2c3e50; text-align:center; padding:4px 6px; letter-spacing:1px; text-transform:uppercase; flex-shrink:0; }
+        .webcam-cell img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+        .webcam-cell.full { grid-column:1 / -1; }
+        /* legacy — por si queda alguna referencia */
+        .webcam-container { display:none; }
+        .webcam-frame { display:none; }
 
         /* ══════════════════════════════════════════════
            PREVISIÓN HORARIA — estilos
@@ -740,6 +749,32 @@
         </div>
 
         <!-- ═══════════════════════════════════════════
+             ÍNDICE DE CONFORT TÉRMICO
+        ════════════════════════════════════════════ -->
+        <div style="height:20px;background:#ffffff;"></div>
+        <div id="confort-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <div style="display:flex;align-items:center;justify-content:center;padding:10px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);">
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">🌡️ ÍNDICE DE CONFORT TÉRMICO</span>
+            </div>
+            <div id="confort-contenido" style="background:#f0f6fa;padding:14px 16px 16px;">
+                <div style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0;">Cargando…</div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+             ÍNDICE UV DETALLADO
+        ════════════════════════════════════════════ -->
+        <div style="height:20px;background:#ffffff;"></div>
+        <div id="uv-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <div style="display:flex;align-items:center;justify-content:center;padding:10px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);">
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">☀️ ÍNDICE UV DETALLADO</span>
+            </div>
+            <div id="uv-contenido" style="background:#f0f6fa;padding:14px 16px 16px;">
+                <div style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0;">Cargando…</div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
              RESUMEN 7 DÍAS
         ════════════════════════════════════════════ -->
         <div style="height:20px;background:#ffffff;"></div>
@@ -896,17 +931,48 @@
 
 
 
-        <div class="webcam-container">
-            <span class="webcam-label">WEBCAM / VILA OLÍMPICA</span>
-            <div class="webcam-frame">
-                <img id="webcam-jpg" src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg" alt="vila olimpica"/>
-            </div>
-        </div>
-
-        <div class="webcam-container">
-            <span class="webcam-label">WEBCAM / SAGRADA FAMÍLIA</span>
-            <div class="webcam-frame">
-                <img src="https://imgproxy.windy.com/_/normal/plain/current/1448811166/original.jpg" alt="sagrada familia"/>
+        <!-- ══════════════════════════════════════════════
+             WEBCAMS
+        ═══════════════════════════════════════════════ -->
+        <div class="webcams-section">
+            <div class="webcams-header"><span>📷 WEBCAMS · BARCELONA Y CERCANÍAS</span></div>
+            <div class="webcams-grid">
+                <!-- Fila 1 -->
+                <div class="webcam-cell">
+                    <div class="webcam-cell-label">Vila Olímpica</div>
+                    <img src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg" alt="Vila Olímpica" loading="lazy" onerror="this.style.background='#1a252f';this.alt='Sin señal'"/>
+                </div>
+                <div class="webcam-cell">
+                    <div class="webcam-cell-label">Barceloneta</div>
+                    <img src="https://imgproxy.windy.com/_/full/plain/current/1448811168/original.jpg" alt="Barceloneta" loading="lazy" onerror="this.style.background='#1a252f'"/>
+                </div>
+                <!-- Fila 2 -->
+                <div class="webcam-cell">
+                    <div class="webcam-cell-label">Sagrada Família</div>
+                    <img src="https://imgproxy.windy.com/_/normal/plain/current/1448811166/original.jpg" alt="Sagrada Família" loading="lazy" onerror="this.style.background='#1a252f'"/>
+                </div>
+                <div class="webcam-cell">
+                    <div class="webcam-cell-label">Port Olímpic</div>
+                    <img src="https://imgproxy.windy.com/_/full/plain/current/1647901690/original.jpg" alt="Port Olímpic" loading="lazy" onerror="this.style.background='#1a252f'"/>
+                </div>
+                <!-- Fila 3 -->
+                <div class="webcam-cell">
+                    <div class="webcam-cell-label">Castelldefels</div>
+                    <img src="https://imgproxy.windy.com/_/full/plain/current/1574158534/original.jpg" alt="Castelldefels" loading="lazy" onerror="this.style.background='#1a252f'"/>
+                </div>
+                <div class="webcam-cell">
+                    <div class="webcam-cell-label">Sitges</div>
+                    <img src="https://imgproxy.windy.com/_/full/plain/current/1574331655/original.jpg" alt="Sitges" loading="lazy" onerror="this.style.background='#1a252f'"/>
+                </div>
+                <!-- Fila 4 -->
+                <div class="webcam-cell">
+                    <div class="webcam-cell-label">Tibidabo</div>
+                    <img src="https://imgproxy.windy.com/_/full/plain/current/1480610400/original.jpg" alt="Tibidabo" loading="lazy" onerror="this.style.background='#1a252f'"/>
+                </div>
+                <div class="webcam-cell">
+                    <div class="webcam-cell-label">Badalona</div>
+                    <img src="https://imgproxy.windy.com/_/full/plain/current/1574158880/original.jpg" alt="Badalona" loading="lazy" onerror="this.style.background='#1a252f'"/>
+                </div>
             </div>
         </div>
 
@@ -3988,7 +4054,282 @@
         })();
         /* ══════ FIN EFEMÉRIDES ══════ */
 
+        /* ══════════════════════════════════════════════
+           ÍNDICE DE CONFORT TÉRMICO
+        ══════════════════════════════════════════════ */
+        (function() {
+            const LAT = 41.3851, LON = 2.1734;
 
+            // Humidex: sensación real combinando temperatura y humedad
+            function humidex(T, RH) {
+                const Td = T - ((100 - RH) / 5);
+                const e = 6.105 * Math.exp(25.22 * (Td - 273.16) / Td);
+                return T + 0.5555 * (e - 10);
+            }
+
+            // Índice de calor (Heat Index) para T >= 27°C
+            function heatIndex(T, RH) {
+                if (T < 27) return T;
+                const HI = -8.78469475556 + 1.61139411*T + 2.33854883889*RH
+                    - 0.14611605*T*RH - 0.012308094*T*T
+                    - 0.0164248277778*RH*RH + 0.002211732*T*T*RH
+                    + 0.00072546*T*RH*RH - 0.000003582*T*T*RH*RH;
+                return HI;
+            }
+
+            // Wind Chill para T <= 10°C y viento >= 4.8 km/h
+            function windChill(T, V) {
+                if (T > 10 || V < 4.8) return T;
+                return 13.12 + 0.6215*T - 11.37*Math.pow(V,0.16) + 0.3965*T*Math.pow(V,0.16);
+            }
+
+            // Etiqueta de confort según sensación final
+            function confortLabel(sens) {
+                if (sens <= -25) return { txt:'Peligro de congelación', color:'#7c3aed', emoji:'🥶' };
+                if (sens <= -10) return { txt:'Muy frío',               color:'#2563eb', emoji:'🥶' };
+                if (sens <=   0) return { txt:'Frío',                   color:'#3b82f6', emoji:'🧥' };
+                if (sens <=  10) return { txt:'Fresco',                 color:'#60a5fa', emoji:'🧥' };
+                if (sens <=  18) return { txt:'Templado',               color:'#34d399', emoji:'😊' };
+                if (sens <=  24) return { txt:'Confortable',            color:'#10b981', emoji:'😊' };
+                if (sens <=  28) return { txt:'Cálido',                 color:'#f59e0b', emoji:'😎' };
+                if (sens <=  32) return { txt:'Caluroso',               color:'#f97316', emoji:'🥵' };
+                if (sens <=  38) return { txt:'Muy caluroso',           color:'#ef4444', emoji:'🥵' };
+                return                  { txt:'Peligro de golpe de calor', color:'#991b1b', emoji:'🔥' };
+            }
+
+            // Barra de confort visual (de -40 a +50)
+            function barraConfort(sens) {
+                const min=-40, max=50;
+                const pct = Math.max(0, Math.min(100, ((sens - min) / (max - min)) * 100));
+                // Gradiente fijo del frío al calor
+                return `
+                <div style="margin:10px 0 4px;position:relative;height:12px;border-radius:6px;
+                    background:linear-gradient(90deg,#7c3aed 0%,#2563eb 12%,#3b82f6 22%,#60a5fa 32%,#34d399 42%,#10b981 52%,#f59e0b 62%,#f97316 72%,#ef4444 82%,#991b1b 100%);">
+                    <div style="position:absolute;top:-3px;left:calc(${pct}% - 8px);
+                        width:16px;height:18px;background:#fff;border:2px solid #2c3e50;
+                        border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,0.3);"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:9px;color:#94a3b8;margin-top:2px;">
+                    <span>Gélido</span><span>Fresco</span><span>Confort</span><span>Caluroso</span><span>Extremo</span>
+                </div>`;
+            }
+
+            async function loadConfort() {
+                const el = document.getElementById('confort-contenido');
+                if (!el) return;
+                try {
+                    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,wind_direction_10m,dew_point_2m&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,dew_point_2m&timezone=Europe/Madrid&forecast_days=1`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    const c = data.current;
+
+                    const T   = Math.round(c.temperature_2m * 10) / 10;
+                    const RH  = Math.round(c.relative_humidity_2m);
+                    const V   = Math.round(c.wind_speed_10m);
+                    const DP  = Math.round(c.dew_point_2m * 10) / 10;
+                    const AP  = Math.round(c.apparent_temperature);
+
+                    // Calcular los tres índices
+                    const hx  = Math.round(humidex(T, RH));
+                    const hi  = Math.round(heatIndex(T, RH));
+                    const wc  = Math.round(windChill(T, V));
+
+                    // Sensación dominante: open-meteo ya da apparent_temperature (combina todo)
+                    const sens = AP;
+                    const lbl  = confortLabel(sens);
+
+                    // Punto de rocío: si >= 21°C muy húmedo, >= 16 incómodo
+                    const dpMsg = DP >= 21 ? '💧 Humedad opresiva' : DP >= 16 ? '💧 Aire húmedo' : DP >= 10 ? '🌤 Humedad moderada' : '🏜 Aire seco';
+
+                    el.innerHTML = `
+                    <!-- Indicador principal -->
+                    <div style="text-align:center;margin-bottom:12px;">
+                        <div style="font-size:42px;line-height:1;margin-bottom:6px;">${lbl.emoji}</div>
+                        <div style="font-size:28px;font-weight:900;color:${lbl.color};line-height:1;">${sens}°C</div>
+                        <div style="font-size:13px;font-weight:700;color:${lbl.color};margin-top:4px;">${lbl.txt}</div>
+                        <div style="font-size:11px;color:#64748b;margin-top:2px;">Sensación térmica real</div>
+                    </div>
+                    <!-- Barra -->
+                    ${barraConfort(sens)}
+                    <!-- Grid de índices -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px;">
+                        <div style="background:#fff;border-radius:8px;padding:10px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
+                            <div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Humidex</div>
+                            <div style="font-size:20px;font-weight:800;color:#f97316;">${hx}°</div>
+                            <div style="font-size:9px;color:#64748b;margin-top:2px;">Calor+humedad</div>
+                        </div>
+                        <div style="background:#fff;border-radius:8px;padding:10px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
+                            <div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Wind Chill</div>
+                            <div style="font-size:20px;font-weight:800;color:#3b82f6;">${wc}°</div>
+                            <div style="font-size:9px;color:#64748b;margin-top:2px;">Frío+viento</div>
+                        </div>
+                        <div style="background:#fff;border-radius:8px;padding:10px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
+                            <div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Pto. Rocío</div>
+                            <div style="font-size:20px;font-weight:800;color:#0ea5e9;">${DP}°</div>
+                            <div style="font-size:9px;color:#64748b;margin-top:2px;">${dpMsg}</div>
+                        </div>
+                    </div>
+                    <!-- Variables base -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;">
+                        <div style="background:#fff;border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
+                            <span style="font-size:18px;">🌡️</span>
+                            <div><div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.7px;">Temperatura</div>
+                            <div style="font-size:15px;font-weight:800;color:#1e293b;">${T}°C</div></div>
+                        </div>
+                        <div style="background:#fff;border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
+                            <span style="font-size:18px;">💧</span>
+                            <div><div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.7px;">Humedad</div>
+                            <div style="font-size:15px;font-weight:800;color:#1e293b;">${RH}%</div></div>
+                        </div>
+                        <div style="background:#fff;border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
+                            <span style="font-size:18px;">💨</span>
+                            <div><div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.7px;">Viento</div>
+                            <div style="font-size:15px;font-weight:800;color:#1e293b;">${V} km/h</div></div>
+                        </div>
+                        <div style="background:#fff;border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
+                            <span style="font-size:18px;">👕</span>
+                            <div><div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.7px;">Ropa recomendada</div>
+                            <div style="font-size:12px;font-weight:700;color:#1e293b;">${sens<=5?'Abrigo y guantes':sens<=12?'Chaqueta':sens<=18?'Jersey/chaqueta ligera':sens<=24?'Ropa ligera':sens<=30?'Ropa muy ligera':'Ropa mínima'}</div></div>
+                        </div>
+                    </div>
+                    <div style="font-size:10px;color:#94a3b8;text-align:right;margin-top:8px;font-style:italic;">Fuente: Open-Meteo</div>`;
+                } catch(e) {
+                    el.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0;">No se ha podido cargar el índice de confort.</div>`;
+                }
+            }
+            loadConfort();
+        })();
+        /* ══════ FIN CONFORT ══════ */
+
+        /* ══════════════════════════════════════════════
+           ÍNDICE UV DETALLADO
+        ══════════════════════════════════════════════ */
+        (function() {
+            const LAT = 41.3851, LON = 2.1734;
+
+            const UV_LEVELS = [
+                { max:2,  lbl:'Bajo',        color:'#10b981', bg:'#d1fae5', emoji:'🟢', proteccion:'Sin protección especial necesaria.',          tiempo:'Puedes estar al sol sin riesgo.' },
+                { max:5,  lbl:'Moderado',     color:'#f59e0b', bg:'#fef3c7', emoji:'🟡', proteccion:'Gafas de sol y protector FPS 15+.',           tiempo:'Sombra entre 12h–16h recomendada.' },
+                { max:7,  lbl:'Alto',         color:'#f97316', bg:'#ffedd5', emoji:'🟠', proteccion:'Protector FPS 30+, sombrero, sombra.',        tiempo:'Limita la exposición entre 10h–16h.' },
+                { max:10, lbl:'Muy alto',     color:'#ef4444', bg:'#fee2e2', emoji:'🔴', proteccion:'Protector FPS 50+, ropa protectora urgente.', tiempo:'Evita el sol entre 10h–16h.' },
+                { max:99, lbl:'Extremo',      color:'#7c3aed', bg:'#ede9fe', emoji:'🟣', proteccion:'Protección máxima. FPS 50+, cubrirse todo.',  tiempo:'¡No salgas sin protección total!' },
+            ];
+
+            function uvInfo(v) {
+                return UV_LEVELS.find(l => v <= l.max) || UV_LEVELS[UV_LEVELS.length-1];
+            }
+
+            // Tiempo de quemadura en piel tipo II (la más común en mediterráneo)
+            function burnTime(uvi) {
+                if (!uvi || uvi < 1) return 'Sin riesgo';
+                const mins = Math.round(200 / (uvi * 3));
+                if (mins >= 120) return '> 2 horas';
+                if (mins >= 60)  return `~${Math.round(mins/60*2)/2}h`;
+                return `~${mins} min`;
+            }
+
+            async function loadUV() {
+                const el = document.getElementById('uv-contenido');
+                if (!el) return;
+                try {
+                    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=uv_index,uv_index_clear_sky&daily=uv_index_max,sunrise,sunset&timezone=Europe/Madrid&forecast_days=1`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+
+                    const now = new Date();
+                    const hh  = now.getHours();
+
+                    // UV actual (hora presente)
+                    const idx   = data.hourly.time.findIndex(t => new Date(t).getHours() === hh);
+                    const uviNow = idx >= 0 ? (data.hourly.uv_index[idx] ?? 0) : 0;
+                    const uviMax = data.daily.uv_index_max[0] ?? 0;
+                    const sunrise = data.daily.sunrise[0];
+                    const sunset  = data.daily.sunset[0];
+
+                    const infoNow = uvInfo(Math.round(uviNow));
+                    const infoMax = uvInfo(Math.round(uviMax));
+
+                    // Horas del día con UV alto (>= 3)
+                    const horasUV = data.hourly.time
+                        .map((t,i) => ({ h: new Date(t).getHours(), uv: data.hourly.uv_index[i] ?? 0 }))
+                        .filter(x => x.uv >= 3);
+                    const horaInicio = horasUV.length ? horasUV[0].h : null;
+                    const horaFin    = horasUV.length ? horasUV[horasUV.length-1].h : null;
+
+                    // Mini gráfico de barras UV por hora (6h–20h)
+                    const horasGraf = data.hourly.time
+                        .map((t,i) => ({ h: new Date(t).getHours(), uv: data.hourly.uv_index[i] ?? 0 }))
+                        .filter(x => x.h >= 6 && x.h <= 20);
+
+                    const maxUvGraf = Math.max(...horasGraf.map(x => x.uv), 1);
+                    const barras = horasGraf.map(x => {
+                        const pct  = Math.min(100, (x.uv / Math.max(maxUvGraf, 6)) * 100);
+                        const info = uvInfo(Math.round(x.uv));
+                        const isNow = x.h === hh;
+                        return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px;">
+                            <div style="width:100%;height:${Math.max(4,pct*0.6)}px;background:${info.color};border-radius:2px 2px 0 0;${isNow?'box-shadow:0 0 0 1.5px #2c3e50;':''};transition:height 0.3s;"></div>
+                            <div style="font-size:7px;color:${isNow?'#1e293b':'#94a3b8'};font-weight:${isNow?'800':'500'};line-height:1;">${x.h}h</div>
+                        </div>`;
+                    }).join('');
+
+                    el.innerHTML = `
+                    <!-- UV actual + máximo -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+                        <div style="background:${infoNow.bg};border-radius:10px;padding:14px 12px;text-align:center;border:1px solid ${infoNow.color}22;">
+                            <div style="font-size:9px;font-weight:700;color:${infoNow.color};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">UV Ahora</div>
+                            <div style="font-size:36px;font-weight:900;color:${infoNow.color};line-height:1;">${Math.round(uviNow)}</div>
+                            <div style="font-size:12px;font-weight:700;color:${infoNow.color};margin-top:4px;">${infoNow.emoji} ${infoNow.lbl}</div>
+                        </div>
+                        <div style="background:${infoMax.bg};border-radius:10px;padding:14px 12px;text-align:center;border:1px solid ${infoMax.color}22;">
+                            <div style="font-size:9px;font-weight:700;color:${infoMax.color};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">UV Máximo Hoy</div>
+                            <div style="font-size:36px;font-weight:900;color:${infoMax.color};line-height:1;">${Math.round(uviMax)}</div>
+                            <div style="font-size:12px;font-weight:700;color:${infoMax.color};margin-top:4px;">${infoMax.emoji} ${infoMax.lbl}</div>
+                        </div>
+                    </div>
+                    <!-- Mini gráfico barras -->
+                    <div style="background:#fff;border-radius:8px;padding:10px 8px 8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);margin-bottom:10px;">
+                        <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;text-align:center;">UV por hora · hoy</div>
+                        <div style="display:flex;align-items:flex-end;gap:1px;height:40px;">${barras}</div>
+                    </div>
+                    <!-- Consejo protección -->
+                    <div style="background:${infoMax.bg};border-left:4px solid ${infoMax.color};border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:10px;">
+                        <div style="font-size:11px;font-weight:700;color:${infoMax.color};margin-bottom:4px;">🛡️ Protección recomendada</div>
+                        <div style="font-size:12px;color:#1e293b;">${infoMax.proteccion}</div>
+                        <div style="font-size:11px;color:#64748b;margin-top:3px;">${infoMax.tiempo}</div>
+                    </div>
+                    <!-- Datos complementarios -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+                        <div style="background:#fff;border-radius:8px;padding:8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
+                            <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:3px;">Quemadura</div>
+                            <div style="font-size:14px;font-weight:800;color:#ef4444;">${burnTime(uviMax)}</div>
+                            <div style="font-size:9px;color:#64748b;">piel clara</div>
+                        </div>
+                        <div style="background:#fff;border-radius:8px;padding:8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
+                            <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:3px;">UV peligroso</div>
+                            <div style="font-size:14px;font-weight:800;color:#f97316;">${horaInicio !== null ? horaInicio+'h–'+horaFin+'h' : 'Sin riesgo'}</div>
+                            <div style="font-size:9px;color:#64748b;">horas de riesgo</div>
+                        </div>
+                        <div style="background:#fff;border-radius:8px;padding:8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
+                            <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:3px;">Puesta sol</div>
+                            <div style="font-size:14px;font-weight:800;color:#f59e0b;">${sunset ? sunset.slice(11,16) : '--'}</div>
+                            <div style="font-size:9px;color:#64748b;">hora local</div>
+                        </div>
+                    </div>
+                    <!-- Leyenda escala -->
+                    <div style="margin-top:10px;">
+                        <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Escala UV</div>
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                            ${UV_LEVELS.map((l,i) => `<span style="font-size:10px;font-weight:700;background:${l.bg};color:${l.color};padding:3px 8px;border-radius:5px;border:1px solid ${l.color}33;">${['0–2','3–5','6–7','8–10','11+'][i]} ${l.lbl}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div style="font-size:10px;color:#94a3b8;text-align:right;margin-top:8px;font-style:italic;">Fuente: Open-Meteo</div>`;
+                } catch(e) {
+                    el.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0;">No se ha podido cargar el índice UV.</div>`;
+                }
+            }
+            loadUV();
+        })();
+        /* ══════ FIN UV DETALLADO ══════ */
 
     </script>
 
