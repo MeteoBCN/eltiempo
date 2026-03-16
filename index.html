@@ -806,7 +806,7 @@
 
 
         <!-- ══════════════════════════════════════════════
-             RESUMEN PLAYA — ESTILO 7 DÍAS
+             RESUMEN PLAYA — GALLETAS ESTILO 7 DÍAS
         ═══════════════════════════════════════════════ -->
         <div style="height:20px;background:#ffffff;"></div>
         <div id="resumen-playa-widget" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
@@ -814,27 +814,37 @@
             <div style="display:flex;align-items:center;justify-content:center;padding:10px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);">
                 <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">🏖️ RESUMEN PARA LA PLAYA</span>
             </div>
-            <!-- Fila de 3 galletas -->
-            <div id="rp-galletas-row" style="display:grid;grid-template-columns:repeat(3,1fr);background:#ffffff;border-bottom:1px solid #e2e8f0;overflow:hidden;">
-                <!-- se rellena por JS -->
-                <div style="padding:16px;text-align:center;color:#94a3b8;font-size:12px;grid-column:1/-1;">Cargando…</div>
+            <!-- Fila 3 galletas — igual que f7-icons-row -->
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);background:#ffffff;border-bottom:1px solid #e2e8f0;">
+                <div onclick="rpTab('aqi')" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;cursor:pointer;border-right:1px solid #e2e8f0;">
+                    <div style="font-size:8px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:0.8px;">Aire</div>
+                    <div id="rp-g-aqi-icon" style="font-size:26px;line-height:1;">💨</div>
+                    <div id="rp-g-aqi-val"  style="font-size:11px;font-weight:800;color:#10b981;">--</div>
+                    <div id="rp-g-aqi-lbl"  style="font-size:9px;font-weight:600;color:#10b981;">--</div>
+                </div>
+                <div onclick="rpTab('uv')" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;cursor:pointer;border-right:1px solid #e2e8f0;">
+                    <div style="font-size:8px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:0.8px;">UV</div>
+                    <div id="rp-g-uv-icon"  style="font-size:26px;line-height:1;">☀️</div>
+                    <div id="rp-g-uv-val"   style="font-size:11px;font-weight:800;color:#f59e0b;">--</div>
+                    <div id="rp-g-uv-lbl"   style="font-size:9px;font-weight:600;color:#f59e0b;">--</div>
+                </div>
+                <div onclick="rpTab('mar')" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;cursor:pointer;">
+                    <div style="font-size:8px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:0.8px;">Mar</div>
+                    <div id="rp-g-mar-icon" style="font-size:26px;line-height:1;">🌊</div>
+                    <div id="rp-g-mar-val"  style="font-size:11px;font-weight:800;color:#0ea5e9;">--</div>
+                    <div id="rp-g-mar-lbl"  style="font-size:9px;font-weight:600;color:#0ea5e9;">--</div>
+                </div>
             </div>
-            <!-- Pestañas -->
+            <!-- Pestañas — igual que f7-tabs -->
             <div style="display:grid;grid-template-columns:repeat(3,1fr);background:#e4eef6;border-bottom:2px solid #c9ddf0;">
-                <button onclick="rpTab('aqi')"  id="rp-tab-aqi"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#0b4c90;border-bottom:2px solid #0b4c90;margin-bottom:-2px;transition:all .2s;">CALIDAD AIRE</button>
-                <button onclick="rpTab('uv')"   id="rp-tab-uv"   style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">ÍNDICE UV</button>
-                <button onclick="rpTab('mar')"  id="rp-tab-mar"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">ESTADO MAR</button>
+                <button onclick="rpTab('aqi')" id="rp-tab-aqi" style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#0b4c90;border-bottom:2px solid #0b4c90;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">CALIDAD AIRE</button>
+                <button onclick="rpTab('uv')"  id="rp-tab-uv"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">ÍNDICE UV</button>
+                <button onclick="rpTab('mar')" id="rp-tab-mar" style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">ESTADO MAR</button>
             </div>
-            <!-- Paneles de detalle -->
-            <div id="rp-panel-aqi" style="padding:14px 16px 16px;background:#f0f6fa;display:block;">
-                <div id="rp-aqi-detalle" style="text-align:center;color:#94a3b8;font-size:12px;">Cargando…</div>
-            </div>
-            <div id="rp-panel-uv"  style="padding:14px 16px 16px;background:#f0f6fa;display:none;">
-                <div id="rp-uv-detalle"  style="text-align:center;color:#94a3b8;font-size:12px;">Cargando…</div>
-            </div>
-            <div id="rp-panel-mar" style="padding:14px 16px 16px;background:#f0f6fa;display:none;">
-                <div id="rp-mar-detalle" style="text-align:center;color:#94a3b8;font-size:12px;">Cargando…</div>
-            </div>
+            <!-- Paneles — contenido clonado de las secciones originales -->
+            <div id="rp-panel-aqi" style="display:block;"></div>
+            <div id="rp-panel-uv"  style="display:none;"></div>
+            <div id="rp-panel-mar" style="display:none;"></div>
         </div>
 
         <!-- ══════════════════════════════════════════════
@@ -4209,40 +4219,10 @@
         /* ══════ FIN UV DETALLADO ══════ */
 
         /* ══════════════════════════════════════════════
-           RESUMEN PLAYA — ESTILO 7 DÍAS
+           RESUMEN PLAYA — GALLETAS ESTILO 7 DÍAS
+           Clona el contenido de las secciones originales
         ══════════════════════════════════════════════ */
         (function () {
-            const LAT = 41.3851, LON = 2.1734;
-
-            // ── Helpers ──────────────────────────────
-            function aqiInfo(v) {
-                if (v <= 50)  return { color:'#10b981', bg:'#d1fae5', lbl:'Excelente',  emoji:'😊', consejo:'Aire ideal para actividad al aire libre.' };
-                if (v <= 100) return { color:'#84cc16', bg:'#ecfccb', lbl:'Bueno',      emoji:'🙂', consejo:'Buena calidad. Sin restricciones.' };
-                if (v <= 150) return { color:'#eab308', bg:'#fef9c3', lbl:'Aceptable',  emoji:'😐', consejo:'Grupos sensibles: reducir ejercicio intenso.' };
-                if (v <= 200) return { color:'#f97316', bg:'#ffedd5', lbl:'Malo',       emoji:'😷', consejo:'Limitar actividad física en exterior.' };
-                if (v <= 300) return { color:'#ef4444', bg:'#fee2e2', lbl:'Muy malo',   emoji:'⚠️', consejo:'Evitar el exterior. Usar mascarilla.' };
-                return               { color:'#7c3aed', bg:'#ede9fe', lbl:'Peligroso',  emoji:'🚫', consejo:'¡No salir! Peligro para la salud.' };
-            }
-            function uvInfo(v) {
-                if (v <= 2)  return { color:'#10b981', bg:'#d1fae5', lbl:'Bajo',      emoji:'🟢', fps:'Sin protección', horas:'Todo el día sin riesgo' };
-                if (v <= 5)  return { color:'#eab308', bg:'#fef9c3', lbl:'Moderado',  emoji:'🟡', fps:'FPS 15+',        horas:'Sombra 12h–16h recomendada' };
-                if (v <= 7)  return { color:'#f97316', bg:'#ffedd5', lbl:'Alto',      emoji:'🟠', fps:'FPS 30+',        horas:'Limitar 10h–16h' };
-                if (v <= 10) return { color:'#ef4444', bg:'#fee2e2', lbl:'Muy alto',  emoji:'🔴', fps:'FPS 50+',        horas:'Evitar 10h–16h' };
-                return               { color:'#7c3aed', bg:'#ede9fe', lbl:'Extremo',  emoji:'🟣', fps:'Máx. protección',horas:'No salir sin protección' };
-            }
-            function burnTime(uvi) {
-                if (!uvi || uvi < 1) return '> 2h sin riesgo';
-                const m = Math.round(200 / (uvi * 3));
-                return m >= 120 ? 'Más de 2h' : m >= 60 ? `~${Math.round(m/60*10)/10}h` : `~${m} min`;
-            }
-            function marInfo(wh) {
-                if (wh < 0.3) return { emoji:'🏊', lbl:'Calma total',   color:'#10b981', bg:'#d1fae5', desc:'Condiciones perfectas para el baño.' };
-                if (wh < 0.6) return { emoji:'😊', lbl:'Muy tranquilo', color:'#38bdf8', bg:'#e0f2fe', desc:'Mar en calma. Ideal para bañarse.' };
-                if (wh < 1.0) return { emoji:'🌊', lbl:'Ligero',        color:'#0ea5e9', bg:'#e0f2fe', desc:'Oleaje suave. Cuidado con niños.' };
-                if (wh < 1.5) return { emoji:'🌊', lbl:'Moderado',      color:'#f59e0b', bg:'#fef3c7', desc:'Oleaje moderado. Precaución.' };
-                if (wh < 2.5) return { emoji:'⚠️', lbl:'Agitado',       color:'#f97316', bg:'#ffedd5', desc:'Mar agitado. No recomendable.' };
-                return               { emoji:'🚫', lbl:'Fuerte',        color:'#ef4444', bg:'#fee2e2', desc:'Baño prohibido. Peligro.' };
-            }
 
             // ── Tab switch ───────────────────────────
             window.rpTab = function(id) {
@@ -4251,207 +4231,109 @@
                     const tab   = document.getElementById('rp-tab-'   + k);
                     if (!panel || !tab) return;
                     const active = k === id;
-                    panel.style.display = active ? 'block' : 'none';
-                    tab.style.color       = active ? '#0b4c90' : '#64748b';
+                    panel.style.display   = active ? 'block' : 'none';
+                    tab.style.color        = active ? '#0b4c90' : '#64748b';
                     tab.style.borderBottom = active ? '2px solid #0b4c90' : '2px solid transparent';
                 });
             };
 
-            // ── Render galleta compacta (fila superior) ──
-            function renderGalleta(id, emojiOrVal, label, sublabel, color) {
-                return `<div onclick="rpTab('${id}')" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px 10px;cursor:pointer;border-right:1px solid #e2e8f0;">
-                    <div style="font-size:8px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:0.8px;">${label}</div>
-                    <div style="font-size:22px;font-weight:900;color:${color};line-height:1;">${emojiOrVal}</div>
-                    <div style="font-size:9px;font-weight:700;color:${color};">${sublabel}</div>
-                </div>`;
-            }
-
-            // ── Render detalle AQI ───────────────────
-            function renderDetalleAQI(aqi, inf, contaminantes) {
-                const barPct = Math.min(100, (aqi / 300) * 100);
-                const contHtml = contaminantes ? `
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px;">
-                    ${[['PM2.5', contaminantes.pm25],['PM10', contaminantes.pm10],['NO₂', contaminantes.no2],['O₃', contaminantes.o3]].map(([n,v]) => v != null ? `
-                    <div style="background:#fff;border-radius:7px;padding:7px 8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-                        <div style="font-size:9px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">${n}</div>
-                        <div style="font-size:15px;font-weight:800;color:#1e293b;">${Math.round(v)} <span style="font-size:9px;font-weight:500;color:#94a3b8;">µg/m³</span></div>
-                    </div>` : '').join('')}
-                </div>` : '';
-                return `
-                <div style="display:flex;align-items:center;gap:14px;background:${inf.bg};border-radius:10px;padding:12px 14px;margin-bottom:10px;">
-                    <div style="font-size:36px;line-height:1;">${inf.emoji}</div>
-                    <div>
-                        <div style="font-size:24px;font-weight:900;color:${inf.color};line-height:1;">${aqi} <span style="font-size:11px;font-weight:600;color:${inf.color};">AQI</span></div>
-                        <div style="font-size:13px;font-weight:700;color:${inf.color};margin-top:2px;">${inf.lbl}</div>
-                        <div style="font-size:11px;color:#64748b;margin-top:3px;">${inf.consejo}</div>
-                    </div>
-                </div>
-                <div style="background:#fff;border-radius:8px;padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-                    <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Escala</div>
-                    <div style="height:8px;border-radius:4px;background:linear-gradient(90deg,#10b981,#84cc16,#eab308,#f97316,#ef4444,#7c3aed);position:relative;">
-                        <div style="position:absolute;top:-3px;left:calc(${barPct}% - 6px);width:12px;height:14px;background:#fff;border:2px solid #2c3e50;border-radius:2px;"></div>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;font-size:8px;color:#94a3b8;margin-top:3px;"><span>0</span><span>50</span><span>100</span><span>150</span><span>200</span><span>300+</span></div>
-                </div>
-                ${contHtml}
-                <div style="font-size:9px;color:#94a3b8;text-align:right;margin-top:8px;font-style:italic;">Fuente: Open-Meteo Air Quality</div>`;
-            }
-
-            // ── Render detalle UV ────────────────────
-            function renderDetalleUV(uviNow, uviMax, inf, horaRiesgoInicio, horaRiesgoFin, barrasHtml) {
-                return `
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-                    <div style="background:${inf.bg};border-radius:10px;padding:12px;text-align:center;border:1px solid ${inf.color}22;">
-                        <div style="font-size:9px;font-weight:700;color:${inf.color};text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">UV Ahora</div>
-                        <div style="font-size:30px;font-weight:900;color:${inf.color};line-height:1;">${Math.round(uviNow)}</div>
-                        <div style="font-size:11px;font-weight:700;color:${inf.color};margin-top:3px;">${inf.emoji} ${inf.lbl}</div>
-                    </div>
-                    <div style="background:${inf.bg};border-radius:10px;padding:12px;text-align:center;border:1px solid ${inf.color}22;">
-                        <div style="font-size:9px;font-weight:700;color:${inf.color};text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">UV Máximo</div>
-                        <div style="font-size:30px;font-weight:900;color:${inf.color};line-height:1;">${Math.round(uviMax)}</div>
-                        <div style="font-size:11px;font-weight:700;color:${inf.color};margin-top:3px;">Hoy</div>
-                    </div>
-                </div>
-                <div style="background:#fff;border-radius:8px;padding:10px 10px 8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin-bottom:10px;">
-                    <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;text-align:center;">UV por hora · hoy</div>
-                    <div style="display:flex;align-items:flex-end;gap:1px;height:44px;">${barrasHtml}</div>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">
-                    <div style="background:#fff;border-radius:8px;padding:8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-                        <div style="font-size:8px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">Protección</div>
-                        <div style="font-size:12px;font-weight:800;color:${inf.color};margin-top:2px;">${inf.fps}</div>
-                    </div>
-                    <div style="background:#fff;border-radius:8px;padding:8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-                        <div style="font-size:8px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">Quemadura</div>
-                        <div style="font-size:12px;font-weight:800;color:#ef4444;margin-top:2px;">${burnTime(uviMax)}</div>
-                    </div>
-                    <div style="background:#fff;border-radius:8px;padding:8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-                        <div style="font-size:8px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">Riesgo</div>
-                        <div style="font-size:11px;font-weight:800;color:#f97316;margin-top:2px;">${horaRiesgoInicio !== null ? horaRiesgoInicio+'h–'+horaRiesgoFin+'h' : 'Sin riesgo'}</div>
-                    </div>
-                </div>
-                <div style="background:${inf.bg};border-left:4px solid ${inf.color};border-radius:0 8px 8px 0;padding:8px 12px;">
-                    <div style="font-size:11px;font-weight:700;color:${inf.color};">🛡️ ${inf.fps} · ${inf.horas}</div>
-                </div>
-                <div style="font-size:9px;color:#94a3b8;text-align:right;margin-top:8px;font-style:italic;">Fuente: Open-Meteo</div>`;
-            }
-
-            // ── Render detalle Mar ───────────────────
-            function renderDetalleMar(wh, sst, viento, periodo, inf) {
-                return `
-                <div style="display:flex;align-items:center;gap:14px;background:${inf.bg};border-radius:10px;padding:12px 14px;margin-bottom:10px;">
-                    <div style="font-size:38px;line-height:1;">${inf.emoji}</div>
-                    <div>
-                        <div style="font-size:24px;font-weight:900;color:${inf.color};line-height:1;">${wh.toFixed(1)} <span style="font-size:13px;font-weight:600;">m</span></div>
-                        <div style="font-size:13px;font-weight:700;color:${inf.color};margin-top:2px;">${inf.lbl}</div>
-                        <div style="font-size:11px;color:#64748b;margin-top:3px;">${inf.desc}</div>
-                    </div>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
-                    <div style="background:#fff;border-radius:8px;padding:10px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-                        <span style="font-size:20px;">🌡️</span>
-                        <div><div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">T. Agua</div>
-                        <div style="font-size:16px;font-weight:800;color:#0ea5e9;">${sst !== null ? sst.toFixed(1)+'°C' : '--'}</div></div>
-                    </div>
-                    <div style="background:#fff;border-radius:8px;padding:10px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-                        <span style="font-size:20px;">💨</span>
-                        <div><div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">Viento</div>
-                        <div style="font-size:16px;font-weight:800;color:#64748b;">${viento !== null ? Math.round(viento)+' km/h' : '--'}</div></div>
-                    </div>
-                    <div style="background:#fff;border-radius:8px;padding:10px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-                        <span style="font-size:20px;">⏱️</span>
-                        <div><div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">Período ola</div>
-                        <div style="font-size:16px;font-weight:800;color:#64748b;">${periodo !== null ? periodo.toFixed(0)+'s' : '--'}</div></div>
-                    </div>
-                    <div style="background:#fff;border-radius:8px;padding:10px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-                        <span style="font-size:20px;">🏊</span>
-                        <div><div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">Condición</div>
-                        <div style="font-size:13px;font-weight:800;color:${inf.color};">${inf.lbl}</div></div>
-                    </div>
-                </div>
-                <div style="font-size:9px;color:#94a3b8;text-align:right;margin-top:4px;font-style:italic;">Fuente: Open-Meteo Marine</div>`;
-            }
-
-            // ── Carga principal ──────────────────────
-            async function loadResumenPlaya() {
-                const row = document.getElementById('rp-galletas-row');
-
-                // Fetch en paralelo
-                const [resAQI, resUV, resMar, resWind] = await Promise.allSettled([
-                    fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone`).then(r=>r.json()),
-                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=uv_index&daily=uv_index_max&timezone=Europe/Madrid&forecast_days=1`).then(r=>r.json()),
-                    fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,sea_surface_temperature,wind_wave_period&timezone=Europe/Madrid&forecast_days=1`).then(r=>r.json()),
-                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=wind_speed_10m&timezone=Europe/Madrid`).then(r=>r.json()),
-                ]);
-
-                // ── AQI ──
-                let aqi = 0, aqiInf, contaminantes = null;
-                if (resAQI.status === 'fulfilled') {
-                    const d = resAQI.value;
-                    aqi = Math.round(d.current?.european_aqi ?? 0);
-                    contaminantes = { pm25: d.current?.pm2_5, pm10: d.current?.pm10, no2: d.current?.nitrogen_dioxide, o3: d.current?.ozone };
-                }
-                aqiInf = aqiInfo(aqi);
-
-                // ── UV ──
-                let uviNow = 0, uviMax = 0, uvInf, horaRiesgoInicio = null, horaRiesgoFin = null, barrasHtml = '';
-                if (resUV.status === 'fulfilled') {
-                    const d = resUV.value;
-                    const hh = new Date().getHours();
-                    const idx = d.hourly.time.findIndex(t => new Date(t).getHours() === hh);
-                    uviNow = idx >= 0 ? (d.hourly.uv_index[idx] ?? 0) : 0;
-                    uviMax = d.daily.uv_index_max[0] ?? 0;
-                    const horasGraf = d.hourly.time.map((t,i) => ({ h: new Date(t).getHours(), uv: d.hourly.uv_index[i] ?? 0 })).filter(x => x.h >= 6 && x.h <= 20);
-                    const maxUvG = Math.max(...horasGraf.map(x => x.uv), 1);
-                    const horasRiesgo = horasGraf.filter(x => x.uv >= 3);
-                    horaRiesgoInicio = horasRiesgo.length ? horasRiesgo[0].h : null;
-                    horaRiesgoFin    = horasRiesgo.length ? horasRiesgo[horasRiesgo.length-1].h : null;
-                    barrasHtml = horasGraf.map(x => {
-                        const pct  = Math.min(100, (x.uv / Math.max(maxUvG, 6)) * 100);
-                        const inf2 = uvInfo(Math.round(x.uv));
-                        const isNow = x.h === hh;
-                        return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px;">
-                            <div style="width:100%;height:${Math.max(3,pct*0.7)}px;background:${inf2.color};border-radius:2px 2px 0 0;${isNow?'box-shadow:0 0 0 1.5px #2c3e50;':''}"></div>
-                            <div style="font-size:7px;color:${isNow?'#1e293b':'#94a3b8'};font-weight:${isNow?'800':'500'};line-height:1;">${x.h}h</div>
-                        </div>`;
-                    }).join('');
-                }
-                uvInf = uvInfo(Math.round(uviMax));
-
-                // ── Mar ──
-                let wh = 0, sst = null, periodo = null, marInf;
-                if (resMar.status === 'fulfilled') {
-                    const d = resMar.value;
-                    wh      = d.current?.wave_height ?? 0;
-                    sst     = d.current?.sea_surface_temperature ?? null;
-                    periodo = d.current?.wind_wave_period ?? null;
-                }
-                let viento = null;
-                if (resWind.status === 'fulfilled') viento = resWind.value.current?.wind_speed_10m ?? null;
-                marInf = marInfo(wh);
-
-                // ── Renderizar fila galletas ──
-                if (row) {
-                    row.style.gridTemplateColumns = 'repeat(3,1fr)';
-                    row.innerHTML =
-                        renderGalleta('aqi', aqi,                    'Calidad Aire', aqiInf.lbl, aqiInf.color) +
-                        renderGalleta('uv',  Math.round(uviNow),      'Índice UV',   uvInf.lbl,  uvInf.color)  +
-                        renderGalleta('mar', marInf.emoji + ' ' + wh.toFixed(1)+'m', 'Estado Mar', marInf.lbl, marInf.color);
-                    // quitar border-right del último
-                    const cells = row.querySelectorAll('div');
-                    if (cells.length) cells[cells.length-1].style.borderRight = 'none';
+            // ── Clonar secciones originales en los paneles ──
+            function clonarContenido() {
+                // Panel AQI → clonar #aqi-semaforo-section (sin la cabecera)
+                const srcAQI = document.getElementById('aqi-semaforo-section');
+                const dstAQI = document.getElementById('rp-panel-aqi');
+                if (srcAQI && dstAQI) {
+                    // Cogemos todo el contenido interno (sin la cabecera del título)
+                    const clone = srcAQI.cloneNode(true);
+                    // Quitar cabecera (primer div hijo)
+                    clone.firstElementChild && clone.removeChild(clone.firstElementChild);
+                    // Quitar ids para evitar duplicados
+                    clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+                    dstAQI.innerHTML = clone.innerHTML;
                 }
 
-                // ── Renderizar paneles detalle ──
-                const elAQI = document.getElementById('rp-aqi-detalle');
-                const elUV  = document.getElementById('rp-uv-detalle');
-                const elMar = document.getElementById('rp-mar-detalle');
-                if (elAQI) elAQI.innerHTML  = renderDetalleAQI(aqi, aqiInf, contaminantes);
-                if (elUV)  elUV.innerHTML   = renderDetalleUV(uviNow, uviMax, uvInf, horaRiesgoInicio, horaRiesgoFin, barrasHtml);
-                if (elMar) elMar.innerHTML  = renderDetalleMar(wh, sst, viento, periodo, marInf);
+                // Panel UV → clonar #uv-contenido
+                const srcUV = document.getElementById('uv-contenido');
+                const dstUV = document.getElementById('rp-panel-uv');
+                if (srcUV && dstUV) {
+                    dstUV.innerHTML = srcUV.innerHTML || '<div style="padding:16px;text-align:center;color:#94a3b8;font-size:12px;">Abre el panel UV para cargar los datos.</div>';
+                }
+
+                // Panel Mar → clonar #panel-playas (contenido completo)
+                const srcMar = document.getElementById('panel-playas');
+                const dstMar = document.getElementById('rp-panel-mar');
+                if (srcMar && dstMar) {
+                    dstMar.innerHTML = srcMar.innerHTML || '<div style="padding:16px;text-align:center;color:#94a3b8;font-size:12px;">Abre el panel de playas para cargar los datos.</div>';
+                }
             }
 
-            loadResumenPlaya();
+            // ── Actualizar galletas con valores del DOM ──
+            function actualizarGalletas() {
+                // AQI: leer #aqi-value y #aqi-label del DOM original
+                const aqiVal = document.getElementById('aqi-value');
+                const aqiLbl = document.getElementById('aqi-label');
+                if (aqiVal && aqiLbl) {
+                    const v = parseInt(aqiVal.textContent) || 0;
+                    const color = v <= 50 ? '#10b981' : v <= 100 ? '#84cc16' : v <= 150 ? '#eab308' : v <= 200 ? '#f97316' : v <= 300 ? '#ef4444' : '#7c3aed';
+                    const emoji = v <= 50 ? '😊' : v <= 100 ? '🙂' : v <= 150 ? '😐' : v <= 200 ? '😷' : '⚠️';
+                    const el = document.getElementById('rp-g-aqi-icon'); if (el) el.textContent = emoji;
+                    const ev = document.getElementById('rp-g-aqi-val');  if (ev) { ev.textContent = v; ev.style.color = color; }
+                    const el2 = document.getElementById('rp-g-aqi-lbl'); if (el2) { el2.textContent = aqiLbl.textContent || '--'; el2.style.color = color; }
+                }
+
+                // UV: leer de #uv-contenido (buscar el número grande del UV actual)
+                const uvCont = document.getElementById('uv-contenido');
+                if (uvCont) {
+                    // El primer valor grande es el UV ahora
+                    const nums = uvCont.querySelectorAll('[style*="font-size:36px"]');
+                    if (nums.length >= 1) {
+                        const v = parseFloat(nums[0].textContent) || 0;
+                        const color = v <= 2 ? '#10b981' : v <= 5 ? '#eab308' : v <= 7 ? '#f97316' : v <= 10 ? '#ef4444' : '#7c3aed';
+                        const lbl   = v <= 2 ? 'Bajo' : v <= 5 ? 'Moderado' : v <= 7 ? 'Alto' : v <= 10 ? 'Muy alto' : 'Extremo';
+                        const emoji = v <= 2 ? '🟢' : v <= 5 ? '🟡' : v <= 7 ? '🟠' : v <= 10 ? '🔴' : '🟣';
+                        const ei = document.getElementById('rp-g-uv-icon'); if (ei) ei.textContent = emoji;
+                        const ev = document.getElementById('rp-g-uv-val');  if (ev) { ev.textContent = Math.round(v); ev.style.color = color; }
+                        const el = document.getElementById('rp-g-uv-lbl'); if (el) { el.textContent = lbl; el.style.color = color; }
+                    }
+                }
+
+                // Mar: leer de marine-blocks-hoy el primer bloque de altura de ola
+                const marHoy = document.getElementById('marine-blocks-hoy');
+                if (marHoy) {
+                    const vals = marHoy.querySelectorAll('[class*="playas-dato-value"]');
+                    // Buscar el valor de ola (en metros) — primer dato numérico con 'm'
+                    let whTxt = null;
+                    marHoy.querySelectorAll('*').forEach(el => {
+                        if (!whTxt && el.children.length === 0 && /^\d/.test(el.textContent) && el.textContent.includes('m')) {
+                            whTxt = el.textContent.trim();
+                        }
+                    });
+                    const wh = parseFloat(whTxt) || 0;
+                    const color = wh < 0.6 ? '#10b981' : wh < 1.0 ? '#0ea5e9' : wh < 1.5 ? '#f59e0b' : wh < 2.5 ? '#f97316' : '#ef4444';
+                    const lbl   = wh < 0.3 ? 'Calma' : wh < 0.6 ? 'Tranquilo' : wh < 1.0 ? 'Ligero' : wh < 1.5 ? 'Moderado' : wh < 2.5 ? 'Agitado' : 'Fuerte';
+                    const emoji = wh < 0.6 ? '🏊' : wh < 1.0 ? '😊' : wh < 1.5 ? '🌊' : wh < 2.5 ? '⚠️' : '🚫';
+                    const ei = document.getElementById('rp-g-mar-icon'); if (ei) ei.textContent = emoji;
+                    const ev = document.getElementById('rp-g-mar-val');  if (ev) { ev.textContent = whTxt || (wh.toFixed(1)+' m'); ev.style.color = color; }
+                    const el = document.getElementById('rp-g-mar-lbl'); if (el) { el.textContent = lbl; el.style.color = color; }
+                }
+            }
+
+            // ── Init: esperar a que las secciones carguen y luego clonar ──
+            function init() {
+                clonarContenido();
+                actualizarGalletas();
+                // Re-sincronizar cuando el DOM se actualice (las secciones cargan async)
+                setTimeout(() => { clonarContenido(); actualizarGalletas(); }, 3000);
+                setTimeout(() => { clonarContenido(); actualizarGalletas(); }, 6000);
+            }
+
+            // Esperar a que el DOM esté listo
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                setTimeout(init, 500);
+            }
+
         })();
         /* ══════ FIN RESUMEN PLAYA ══════ */
 
