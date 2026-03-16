@@ -761,6 +761,54 @@
              FIN RESUMEN 7 DÍAS
         ════════════════════════════════════════════ -->
 
+        <!-- ═══════════════════════════════════════════
+             PREVISIÓN MAR · 3 DÍAS
+        ════════════════════════════════════════════ -->
+        <div style="height:20px;background:#ffffff;"></div>
+        <div id="mar3-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <!-- Cabecera -->
+            <div style="display:flex;align-items:center;justify-content:center;padding:10px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);">
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">🌊 PLAYAS Y MAR · PRÓXIMOS 3 DÍAS</span>
+            </div>
+            <div id="mar3-body" style="background:#f0f6fa;">
+                <!-- Fila de 3 galletas (días) -->
+                <div id="mar3-icons-row" style="display:grid;grid-template-columns:repeat(3,1fr);background:#ffffff;padding:6px 4px 5px;border-bottom:1px solid #e2e8f0;overflow:hidden;">
+                    <!-- rellena por JS -->
+                </div>
+                <!-- Pestañas: OLAS · VIENTO · T.AGUA -->
+                <div id="mar3-tabs" style="display:grid;grid-template-columns:repeat(3,1fr);background:#e4eef6;border-bottom:2px solid #c9ddf0;">
+                    <button class="mar3-tab active" onclick="switchMar3Tab('olas')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#2c4a6e;border-bottom:2px solid #0b4c90;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">OLAS</button>
+                    <button class="mar3-tab"        onclick="switchMar3Tab('viento')" style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">VIENTO</button>
+                    <button class="mar3-tab"        onclick="switchMar3Tab('agua')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">T. AGUA</button>
+                </div>
+                <!-- Panel OLAS (gráfico 72h + tabla franjas) -->
+                <div id="mar3-panel-olas" style="display:block;">
+                    <div style="padding:14px 16px 4px;">
+                        <canvas id="mar3-chart-olas" style="display:block;width:100%;"></canvas>
+                    </div>
+                    <div id="mar3-tabla-olas" style="padding:0 16px 16px;"></div>
+                </div>
+                <!-- Panel VIENTO -->
+                <div id="mar3-panel-viento" style="display:none;">
+                    <div style="padding:14px 16px 4px;">
+                        <canvas id="mar3-chart-viento" style="display:block;width:100%;"></canvas>
+                    </div>
+                    <div id="mar3-tabla-viento" style="padding:0 16px 16px;"></div>
+                </div>
+                <!-- Panel T. AGUA -->
+                <div id="mar3-panel-agua" style="display:none;">
+                    <div style="padding:14px 16px 4px;">
+                        <canvas id="mar3-chart-agua" style="display:block;width:100%;"></canvas>
+                    </div>
+                    <div id="mar3-tabla-agua" style="padding:0 16px 16px;"></div>
+                </div>
+                <div id="mar3-loading" style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Cargando datos del mar…</div>
+            </div>
+        </div>
+        <!-- ═══════════════════════════════════════════
+             FIN PREVISIÓN MAR 3 DÍAS
+        ════════════════════════════════════════════ -->
+
         <div style="height:35px;background:#ffffff;"></div>
 
         <div class="hourly-section">
@@ -3910,6 +3958,389 @@
 
         })();
         /* ══════ FIN EFEMÉRIDES ══════ */
+
+        /* ══════════════════════════════════════════════
+           PREVISIÓN MAR · 3 DÍAS
+        ══════════════════════════════════════════════ */
+        (function () {
+            const LAT = 41.3851, LON = 2.1734;
+            const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+            const FRANJAS = [
+                { label:'Madrugada', h0:0,  h1:6  },
+                { label:'Mañana',    h0:6,  h1:13 },
+                { label:'Tarde',     h0:13, h1:20 },
+                { label:'Noche',     h0:20, h1:24 },
+            ];
+
+            function waveLabel(h) {
+                if (h < 0.1)  return { txt:'Calma',       color:'#10b981' };
+                if (h < 0.5)  return { txt:'Rizada',      color:'#22d3ee' };
+                if (h < 1.25) return { txt:'Marejadilla', color:'#0ea5e9' };
+                if (h < 2.5)  return { txt:'Marejada',    color:'#f59e0b' };
+                if (h < 4.0)  return { txt:'Fuerte',      color:'#f97316' };
+                return               { txt:'Muy fuerte',  color:'#ef4444' };
+            }
+            function windLabel(v) {
+                if (v < 6)   return { txt:'Calma',       color:'#10b981' };
+                if (v < 20)  return { txt:'Flojo',       color:'#22d3ee' };
+                if (v < 40)  return { txt:'Moderado',    color:'#0ea5e9' };
+                if (v < 60)  return { txt:'Fresco',      color:'#f59e0b' };
+                if (v < 75)  return { txt:'Fuerte',      color:'#f97316' };
+                return               { txt:'Muy fuerte', color:'#ef4444' };
+            }
+            function dirArrow(deg) {
+                const arrows = ['↓','↙','←','↖','↑','↗','→','↘'];
+                return arrows[Math.round(((deg + 180) % 360) / 45) % 8];
+            }
+            function dirName(deg) {
+                return ['N','NE','E','SE','S','SO','O','NO'][Math.round(deg/45)%8];
+            }
+
+            // ── Tab switch ──────────────────────────
+            window.switchMar3Tab = function(id) {
+                document.querySelectorAll('.mar3-tab').forEach((btn, i) => {
+                    const keys = ['olas','viento','agua'];
+                    const on = keys[i] === id;
+                    btn.style.color = on ? '#2c4a6e' : '#64748b';
+                    btn.style.borderBottom = on ? '2px solid #0b4c90' : '2px solid transparent';
+                });
+                ['olas','viento','agua'].forEach(k => {
+                    const p = document.getElementById('mar3-panel-'+k);
+                    if (p) p.style.display = k === id ? 'block' : 'none';
+                });
+            };
+
+            // ── Dibujar gráfico genérico ────────────
+            function drawLineChart(canvasId, labels, values, color, unit, yLabel) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+                const dpr = window.devicePixelRatio || 1;
+                const W = canvas.parentElement.clientWidth || 560;
+                const H = 140;
+                canvas.width  = W * dpr;
+                canvas.height = H * dpr;
+                canvas.style.width  = W + 'px';
+                canvas.style.height = H + 'px';
+                const ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
+
+                const PAD = { t: 18, r: 12, b: 28, l: 38 };
+                const cw = W - PAD.l - PAD.r;
+                const ch = H - PAD.t - PAD.b;
+
+                const vMin = Math.max(0, Math.min(...values) * 0.85);
+                const vMax = Math.max(...values) * 1.15 || 1;
+                const yPos = v => PAD.t + ch - ((v - vMin) / (vMax - vMin)) * ch;
+                const xPos = i => PAD.l + (i / (values.length - 1)) * cw;
+
+                // Fondo
+                ctx.fillStyle = '#f0f6fa';
+                ctx.fillRect(0, 0, W, H);
+
+                // Gradiente bajo la línea
+                const grad = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ch);
+                grad.addColorStop(0, color + '55');
+                grad.addColorStop(1, color + '00');
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yPos(values[0]));
+                for (let i = 1; i < values.length; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yPos(values[i-1]), xc, yPos(values[i]), xPos(i), yPos(values[i]));
+                }
+                ctx.lineTo(xPos(values.length-1), PAD.t + ch);
+                ctx.lineTo(xPos(0), PAD.t + ch);
+                ctx.closePath();
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                // Línea
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yPos(values[0]));
+                for (let i = 1; i < values.length; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yPos(values[i-1]), xc, yPos(values[i]), xPos(i), yPos(values[i]));
+                }
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2.5;
+                ctx.lineJoin = 'round';
+                ctx.stroke();
+
+                // Puntos y etiquetas (cada 2)
+                const step = Math.max(1, Math.floor(values.length / 12));
+                ctx.font = 'bold 9px Inter,sans-serif';
+                ctx.textAlign = 'center';
+                values.forEach((v, i) => {
+                    const x = xPos(i), y = yPos(v);
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2.5, 0, Math.PI*2);
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                    if (i % step === 0 || i === values.length - 1) {
+                        ctx.fillStyle = '#1e293b';
+                        ctx.fillText(v.toFixed(1) + unit, x, y - 6);
+                    }
+                });
+
+                // Eje X: etiquetas de hora
+                ctx.font = '8px Inter,sans-serif';
+                ctx.fillStyle = '#94a3b8';
+                ctx.textAlign = 'center';
+                labels.forEach((lbl, i) => {
+                    if (i % step === 0 || i === labels.length - 1) {
+                        ctx.fillText(lbl, xPos(i), H - PAD.b + 12);
+                    }
+                });
+
+                // Eje Y: escala
+                ctx.textAlign = 'right';
+                ctx.font = '8px Inter,sans-serif';
+                ctx.fillStyle = '#94a3b8';
+                const yTicks = 4;
+                for (let t = 0; t <= yTicks; t++) {
+                    const v = vMin + (vMax - vMin) * (t / yTicks);
+                    const y = yPos(v);
+                    ctx.fillText(v.toFixed(1), PAD.l - 3, y + 3);
+                    ctx.beginPath();
+                    ctx.moveTo(PAD.l, y);
+                    ctx.lineTo(PAD.l + cw, y);
+                    ctx.strokeStyle = 'rgba(44,74,110,0.08)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            }
+
+            // ── Tabla de franjas por día ────────────
+            function buildTablaFranjas(days, keyFn, labelFn, colorFn) {
+                const cols = days.map(d => d.label).join('');
+                let html = `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">
+                    <thead><tr style="background:#0b4c90;">
+                        <th style="padding:7px 6px;color:rgba(255,255,255,0.8);font-size:9px;text-transform:uppercase;letter-spacing:0.8px;text-align:left;font-weight:700;">Franja</th>
+                        ${days.map(d=>`<th style="padding:7px 4px;color:#fff;font-size:9px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;font-weight:700;">${d.label}</th>`).join('')}
+                    </tr></thead><tbody>`;
+
+                FRANJAS.forEach((f, fi) => {
+                    const bg = fi % 2 === 0 ? '#ffffff' : '#f0f6fa';
+                    html += `<tr style="background:${bg};border-bottom:1px solid #e2e8f0;">
+                        <td style="padding:8px 6px;font-weight:700;color:#2c4a6e;white-space:nowrap;">${f.label}</td>
+                        ${days.map(d => {
+                            const slots = d.hourly.filter(h => {
+                                const hh = new Date(h.time).getHours();
+                                return hh >= f.h0 && hh < f.h1;
+                            });
+                            if (!slots.length) return `<td style="padding:8px 4px;text-align:center;color:#94a3b8;">—</td>`;
+                            const val = slots.reduce((a,b) => a + keyFn(b), 0) / slots.length;
+                            const { txt, color } = colorFn(val);
+                            return `<td style="padding:8px 4px;text-align:center;">
+                                <div style="font-size:13px;font-weight:800;color:${color};">${labelFn(val)}</div>
+                                <div style="font-size:9px;font-weight:600;color:${color};margin-top:1px;">${txt}</div>
+                            </td>`;
+                        }).join('')}
+                    </tr>`;
+                });
+                html += '</tbody></table></div>';
+                return html;
+            }
+
+            // ── Render principal ────────────────────
+            async function loadMar3() {
+                try {
+                    const url = `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    const times = data.hourly.time;
+
+                    // Construir array horario enriquecido
+                    const hourly = times.map((t, i) => ({
+                        time: t,
+                        wh:   data.hourly.wave_height?.[i]          ?? 0,
+                        wp:   data.hourly.wave_period?.[i]          ?? null,
+                        wd:   data.hourly.wave_direction?.[i]        ?? null,
+                        ws:   data.hourly.wind_speed_10m?.[i]        ?? 0,
+                        wdir: data.hourly.wind_direction_10m?.[i]    ?? null,
+                        sst:  data.hourly.sea_surface_temperature?.[i] ?? null,
+                        wwh:  data.hourly.wind_wave_height?.[i]      ?? 0,
+                    }));
+
+                    const now = new Date();
+                    const todayStr = now.toISOString().slice(0,10);
+
+                    // Próximos 3 días desde hoy
+                    const days = [];
+                    for (let off = 0; off < 3; off++) {
+                        const d = new Date(now);
+                        d.setDate(d.getDate() + off);
+                        const ds = d.toISOString().slice(0,10);
+                        const slots = hourly.filter(h => h.time.startsWith(ds));
+                        const dayName = off === 0 ? 'HOY' : off === 1 ? 'MAÑANA' : DIAS[d.getDay()];
+                        // Media del día para la galleta
+                        const avgWh = slots.length ? slots.reduce((a,b)=>a+b.wh,0)/slots.length : 0;
+                        const maxWh = slots.length ? Math.max(...slots.map(s=>s.wh)) : 0;
+                        const avgSst = slots.length && slots[0].sst !== null ? slots.reduce((a,b)=>a+(b.sst??0),0)/slots.length : null;
+                        days.push({ label: dayName, dateStr: ds, hourly: slots, avgWh, maxWh, avgSst });
+                    }
+
+                    // ── Galletas (fila superior) ──
+                    const iconsRow = document.getElementById('mar3-icons-row');
+                    if (iconsRow) {
+                        iconsRow.innerHTML = days.map((d, i) => {
+                            const lv = waveLabel(d.avgWh);
+                            const border = i < 2 ? 'border-right:1px solid #e2e8f0;' : '';
+                            return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;${border}">
+                                <div style="font-size:8px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:0.8px;">${d.label}</div>
+                                <div style="font-size:20px;line-height:1;">🌊</div>
+                                <div style="font-size:13px;font-weight:800;color:${lv.color};">${d.avgWh.toFixed(1)}m</div>
+                                <div style="font-size:8px;font-weight:600;color:${lv.color};">${lv.txt}</div>
+                                ${d.avgSst !== null ? `<div style="font-size:8px;color:#0ea5e9;margin-top:1px;">💧${d.avgSst.toFixed(1)}°C</div>` : ''}
+                            </div>`;
+                        }).join('');
+                    }
+
+                    // ── Datos para gráfico 72h ──
+                    const h72 = hourly.filter(h => new Date(h.time) >= now && new Date(h.time) <= new Date(now.getTime() + 72*3600*1000));
+                    const h72labels = h72.map(h => {
+                        const d = new Date(h.time);
+                        return d.getHours() === 0 ? DIAS[d.getDay()] : d.getHours()+'h';
+                    });
+
+                    // ── Gráfico olas ──
+                    drawLineChart('mar3-chart-olas', h72labels, h72.map(h=>h.wh), '#0ea5e9', 'm', 'Altura (m)');
+
+                    // ── Tabla franjas olas ──
+                    const tablaOlas = document.getElementById('mar3-tabla-olas');
+                    if (tablaOlas) {
+                        tablaOlas.innerHTML = buildTablaFranjas(
+                            days,
+                            h => h.wh,
+                            v => v.toFixed(1)+'m',
+                            v => waveLabel(v)
+                        ) + buildTablaExtra(days);
+                    }
+
+                    // ── Gráfico viento ──
+                    drawLineChart('mar3-chart-viento', h72labels, h72.map(h=>h.ws), '#38bdf8', '', 'km/h');
+
+                    // ── Tabla franjas viento ──
+                    const tablaViento = document.getElementById('mar3-tabla-viento');
+                    if (tablaViento) {
+                        tablaViento.innerHTML = buildTablaFranjas(
+                            days,
+                            h => h.ws,
+                            v => Math.round(v)+' km/h',
+                            v => windLabel(v)
+                        );
+                    }
+
+                    // ── Gráfico T. agua ──
+                    const sstVals = h72.map(h => h.sst ?? h72.find(x=>x.sst!==null)?.sst ?? 18);
+                    drawLineChart('mar3-chart-agua', h72labels, sstVals, '#f59e0b', '°', '°C');
+
+                    // ── Tabla T. agua + período ──
+                    const tablaAgua = document.getElementById('mar3-tabla-agua');
+                    if (tablaAgua) {
+                        tablaAgua.innerHTML = buildTablaFranjas(
+                            days,
+                            h => h.sst ?? 0,
+                            v => v.toFixed(1)+'°C',
+                            v => ({ txt: v < 18 ? 'Fresca' : v < 22 ? 'Agradable' : 'Cálida', color: v < 18 ? '#0ea5e9' : v < 22 ? '#10b981' : '#f97316' })
+                        ) + buildTablaWavePeriod(days);
+                    }
+
+                    // Ocultar loading
+                    const loading = document.getElementById('mar3-loading');
+                    if (loading) loading.style.display = 'none';
+
+                } catch(e) {
+                    const loading = document.getElementById('mar3-loading');
+                    if (loading) loading.textContent = 'No se han podido cargar los datos del mar.';
+                    console.warn('Mar3 error:', e);
+                }
+            }
+
+            // ── Tabla extra: período y dirección olas ──
+            function buildTablaExtra(days) {
+                let html = `<div style="margin-top:8px;overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">
+                    <thead><tr style="background:#1a6fa8;">
+                        <th style="padding:7px 6px;color:rgba(255,255,255,0.8);font-size:9px;text-transform:uppercase;letter-spacing:0.8px;text-align:left;font-weight:700;">Dato</th>
+                        ${days.map(d=>`<th style="padding:7px 4px;color:#fff;font-size:9px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;font-weight:700;">${d.label}</th>`).join('')}
+                    </tr></thead><tbody>`;
+
+                // Fila: ola máxima
+                html += `<tr style="background:#fff;border-bottom:1px solid #e2e8f0;">
+                    <td style="padding:8px 6px;font-weight:700;color:#2c4a6e;white-space:nowrap;">🌊 Máx ola</td>
+                    ${days.map(d=>{
+                        const lv = waveLabel(d.maxWh);
+                        return `<td style="padding:8px 4px;text-align:center;font-size:13px;font-weight:800;color:${lv.color};">${d.maxWh.toFixed(1)}m</td>`;
+                    }).join('')}
+                </tr>`;
+
+                // Fila: período medio
+                html += `<tr style="background:#f0f6fa;border-bottom:1px solid #e2e8f0;">
+                    <td style="padding:8px 6px;font-weight:700;color:#2c4a6e;white-space:nowrap;">⏱ Período</td>
+                    ${days.map(d=>{
+                        const slots = d.hourly.filter(h=>h.wp!==null);
+                        const avg = slots.length ? slots.reduce((a,b)=>a+(b.wp??0),0)/slots.length : null;
+                        return `<td style="padding:8px 4px;text-align:center;font-size:13px;font-weight:800;color:#64748b;">${avg!==null?avg.toFixed(0)+'s':'—'}</td>`;
+                    }).join('')}
+                </tr>`;
+
+                // Fila: dirección oleaje media
+                html += `<tr style="background:#fff;">
+                    <td style="padding:8px 6px;font-weight:700;color:#2c4a6e;white-space:nowrap;">🧭 Dir. ola</td>
+                    ${days.map(d=>{
+                        const slots = d.hourly.filter(h=>h.wd!==null);
+                        if (!slots.length) return `<td style="padding:8px 4px;text-align:center;color:#94a3b8;">—</td>`;
+                        const avgDeg = slots.reduce((a,b)=>a+(b.wd??0),0)/slots.length;
+                        return `<td style="padding:8px 4px;text-align:center;font-size:15px;font-weight:800;color:#0ea5e9;">${dirArrow(avgDeg)} ${dirName(avgDeg)}</td>`;
+                    }).join('')}
+                </tr>`;
+
+                html += '</tbody></table></div>';
+                return html;
+            }
+
+            function buildTablaWavePeriod(days) {
+                let html = `<div style="margin-top:8px;overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">
+                    <thead><tr style="background:#1a6fa8;">
+                        <th style="padding:7px 6px;color:rgba(255,255,255,0.8);font-size:9px;text-transform:uppercase;letter-spacing:0.8px;text-align:left;font-weight:700;">Dato</th>
+                        ${days.map(d=>`<th style="padding:7px 4px;color:#fff;font-size:9px;text-transform:uppercase;letter-spacing:0.8px;text-align:center;font-weight:700;">${d.label}</th>`).join('')}
+                    </tr></thead><tbody>`;
+
+                // Fila: T. agua máxima/mínima
+                html += `<tr style="background:#fff;border-bottom:1px solid #e2e8f0;">
+                    <td style="padding:8px 6px;font-weight:700;color:#2c4a6e;white-space:nowrap;">🌡 T.agua máx/mín</td>
+                    ${days.map(d=>{
+                        const vals = d.hourly.map(h=>h.sst).filter(v=>v!==null);
+                        if (!vals.length) return `<td style="padding:8px 4px;text-align:center;color:#94a3b8;">—</td>`;
+                        return `<td style="padding:8px 4px;text-align:center;">
+                            <span style="font-size:12px;font-weight:800;color:#f97316;">${Math.max(...vals).toFixed(1)}°</span>
+                            <span style="font-size:10px;color:#94a3b8;"> / </span>
+                            <span style="font-size:12px;font-weight:800;color:#0ea5e9;">${Math.min(...vals).toFixed(1)}°</span>
+                        </td>`;
+                    }).join('')}
+                </tr>`;
+
+                // Fila: estado general
+                html += `<tr style="background:#f0f6fa;">
+                    <td style="padding:8px 6px;font-weight:700;color:#2c4a6e;white-space:nowrap;">🏊 Baño</td>
+                    ${days.map(d=>{
+                        const sst = d.avgSst;
+                        const wh  = d.avgWh;
+                        let txt, color;
+                        if      (wh >= 2.5)  { txt='No recomendado'; color='#ef4444'; }
+                        else if (wh >= 1.25) { txt='Precaución';     color='#f97316'; }
+                        else if (wh >= 0.5)  { txt='Aceptable';      color='#f59e0b'; }
+                        else                 { txt='Ideal';           color='#10b981'; }
+                        return `<td style="padding:8px 4px;text-align:center;font-size:11px;font-weight:700;color:${color};">${txt}</td>`;
+                    }).join('')}
+                </tr>`;
+
+                html += '</tbody></table></div>';
+                return html;
+            }
+
+            loadMar3();
+        })();
+        /* ══════ FIN PREVISIÓN MAR 3 DÍAS ══════ */
 
     </script>
 
