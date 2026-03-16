@@ -577,10 +577,22 @@
             <span id="proxima-lluvia-txt" style="font-size:14px;font-weight:700;color:#1a3a5c;">Calculando…</span>
         </div>
 
-        <!-- BLOQUE DE AVISOS -->
-        <div class="aviso-box" style="width:100%;max-width:600px;margin:0 auto;background:#0b4c90;padding:12px 20px;box-sizing:border-box;border-top:1px solid rgba(255,255,255,0.1);text-align:center;">
-            <div style="color:rgba(255,255,255,0.45);font-size:10px;font-weight:700;margin-bottom:6px;letter-spacing:2px;text-transform:uppercase;">SIN AVISOS ACTIVOS</div>
-            <div style="color:rgba(255,255,255,0.85);font-size:13px;font-weight:500;line-height:1.5;">No hay fenómenos adversos previstos</div>
+        <!-- BLOQUE DE AVISOS METEOCAT — Barcelonès (comarca 13) -->
+        <div id="meteocat-avisos-box" style="width:100%;max-width:600px;margin:0 auto;box-sizing:border-box;border-top:1px solid rgba(255,255,255,0.1);">
+            <!-- Cabecera -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px 6px;background:#0b4c90;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="color:rgba(255,255,255,0.45);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">⚠️ AVISOS METEOCAT · BARCELONÈS</span>
+                </div>
+                <a href="https://www.meteo.cat/prediccio/general" target="_blank" rel="noopener"
+                   style="font-size:9px;color:rgba(255,255,255,0.5);text-decoration:none;letter-spacing:0.5px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:1px;">
+                    meteo.cat ↗
+                </a>
+            </div>
+            <!-- Contenido dinámico -->
+            <div id="meteocat-avisos-content" style="background:#0b4c90;padding:10px 16px 12px;min-height:44px;display:flex;align-items:center;justify-content:center;">
+                <span style="color:rgba(255,255,255,0.4);font-size:12px;font-weight:500;">Consultando avisos…</span>
+            </div>
         </div>
 
 <div class="content-section">
@@ -899,6 +911,35 @@
         </div>
 
 
+
+        <!-- ══════════════════════════════════════════════
+             MAPA D'AVISOS METEOCAT (Giny oficial)
+        ═══════════════════════════════════════════════ -->
+        <div style="height:20px;background:#ffffff;"></div>
+        <div id="meteocat-mapa-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);">
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">🗺️ MAPA D'AVISOS · CATALUNYA</span>
+                <a href="https://www.meteo.cat/prediccio/general" target="_blank" rel="noopener"
+                   style="font-size:9px;color:#2c4a6e;text-decoration:none;letter-spacing:0.5px;font-weight:600;opacity:0.7;border-bottom:1px solid rgba(44,74,110,0.3);padding-bottom:1px;">
+                    meteo.cat ↗
+                </a>
+            </div>
+            <div style="background:#f0f6fa;padding:0;">
+                <iframe
+                    src="https://static-m.meteo.cat/ginys/mapaAvisos?language=es&color=0b4c90&target=_blank"
+                    width="100%"
+                    height="380"
+                    style="border:none;display:block;background:#f0f6fa;"
+                    title="Mapa d'Avisos Meteocat"
+                    loading="lazy"
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms">
+                </iframe>
+                <div style="padding:8px 16px 10px;text-align:right;">
+                    <span style="font-size:10px;color:#94a3b8;font-weight:500;">Font: Servei Meteorològic de Catalunya</span>
+                </div>
+            </div>
+        </div>
+        <!-- ══════ FIN MAPA AVISOS ══════ -->
 
         <div class="update-time" id="update-time">Actualizado: --:--</div>
 
@@ -3562,6 +3603,120 @@
             setInterval(loadAQI, 5*60*1000);
         })();
         /* ══════ FIN SEMÁFORO ══════ */
+
+        /* ══════ AVISOS METEOCAT SMP — BARCELONÈS ══════
+           La API pública d'episodis actius retorna avisos
+           vigents sense necessitat de clau API.
+           Comarca del Barcelonès = codi 13 (SMC)
+        ════════════════════════════════════════════════ */
+        (function() {
+            const COMARCA_CODI = 13; // Barcelonès
+            const COMARCA_NOM  = 'Barcelonès';
+
+            // Meteors i emojis associats
+            const METEOR_LABELS = {
+                'PLUJA':        { label: 'Lluvia',        emoji: '🌧️' },
+                'PLUJA_24H':    { label: 'Lluvia 24h',    emoji: '🌧️' },
+                'NEU':          { label: 'Nieve',         emoji: '❄️' },
+                'VENT':         { label: 'Viento',        emoji: '💨' },
+                'ESTAT_DE_MAR': { label: 'Estado del mar',emoji: '🌊' },
+                'CALOR':        { label: 'Calor',         emoji: '🌡️' },
+                'CALOR_NOCTURNA':{ label: 'Calor nocturna',emoji:'🌡️' },
+                'FRED':         { label: 'Frío',          emoji: '🥶' },
+                'TEMPS_VIOLENT':{ label: 'Tiempo violento',emoji:'⛈️' },
+            };
+
+            // Escala de perill 0-6 → color semàfor
+            function pericolorFromGrau(grau) {
+                if (grau <= 0) return { color: '#10B981', bg: 'rgba(16,185,129,0.15)', text: 'Verde',    label: 'Sin peligro' };
+                if (grau <= 2) return { color: '#F59E0B', bg: 'rgba(245,158,11,0.15)', text: 'Amarillo', label: 'Peligro moderado' };
+                if (grau <= 4) return { color: '#F97316', bg: 'rgba(249,115,22,0.15)', text: 'Naranja',  label: 'Peligro alto' };
+                return             { color: '#EF4444', bg: 'rgba(239,68,68,0.15)',  text: 'Rojo',     label: 'Peligro máximo' };
+            }
+
+            function renderAvisos(avisos) {
+                const el = document.getElementById('meteocat-avisos-content');
+                if (!el) return;
+
+                // Filtrar avisos que afecten el Barcelonès
+                const rellevants = [];
+                for (const ep of avisos) {
+                    if (!ep.avisos) continue;
+                    for (const av of ep.avisos) {
+                        // Cada avís té un array de 'comarques' amb codis
+                        const comarques = av.comarques || [];
+                        const meuGrau = comarques.find(c => c.codi === COMARCA_CODI);
+                        if (!meuGrau && !comarques.some(c => c.codi === COMARCA_CODI)) continue;
+                        const grau = meuGrau ? (meuGrau.grau || 1) : 1;
+                        const meteor = ep.meteor || av.meteor || 'DESCONEGUT';
+                        rellevants.push({ meteor, grau, ep });
+                    }
+                }
+
+                if (rellevants.length === 0) {
+                    el.innerHTML = `
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span style="width:10px;height:10px;border-radius:50%;background:#10B981;display:inline-block;animation:pulse 2s infinite;flex-shrink:0;"></span>
+                            <div>
+                                <div style="color:rgba(255,255,255,0.5);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px;">SIN AVISOS ACTIVOS</div>
+                                <div style="color:rgba(255,255,255,0.8);font-size:13px;font-weight:500;">No hay fenómenos adversos previstos para el ${COMARCA_NOM}</div>
+                            </div>
+                        </div>`;
+                    return;
+                }
+
+                const html = rellevants.map(({ meteor, grau }) => {
+                    const p  = pericolorFromGrau(grau);
+                    const m  = METEOR_LABELS[meteor] || { label: meteor, emoji: '⚠️' };
+                    return `
+                        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.1);">
+                            <span style="font-size:22px;flex-shrink:0;">${m.emoji}</span>
+                            <div style="flex:1;min-width:0;">
+                                <div style="color:#ffffff;font-size:14px;font-weight:700;line-height:1.2;">${m.label}</div>
+                                <div style="color:rgba(255,255,255,0.6);font-size:11px;margin-top:1px;">${COMARCA_NOM} · Grau ${grau}/6</div>
+                            </div>
+                            <span style="background:${p.color};color:#fff;font-size:10px;font-weight:800;padding:3px 9px;border-radius:6px;letter-spacing:0.5px;text-transform:uppercase;flex-shrink:0;">${p.text}</span>
+                        </div>`;
+                }).join('');
+
+                el.innerHTML = `<div style="width:100%;">${html.replace(/border-bottom[^;]+;(?=[^"]*<\/div>\s*<\/div>\s*$)/, '')}</div>`;
+            }
+
+            async function loadMeteocatAvisos() {
+                const el = document.getElementById('meteocat-avisos-content');
+                try {
+                    // Endpoint públic d'episodis actius (no requereix API key)
+                    const url = 'https://api.meteo.cat/prediccio/v1/smp/episodis/actius';
+                    const res = await fetch(url, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    const data = await res.json();
+                    renderAvisos(Array.isArray(data) ? data : (data.episodis || []));
+
+                } catch(err) {
+                    console.warn('Meteocat SMP error:', err);
+                    // Fallback: mostrar link al web oficial
+                    if (el) el.innerHTML = `
+                        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                            <span style="font-size:20px;">⚠️</span>
+                            <div style="flex:1;">
+                                <div style="color:rgba(255,255,255,0.6);font-size:11px;margin-bottom:3px;text-transform:uppercase;letter-spacing:1px;font-weight:700;">Consulta avisos directament a Meteocat</div>
+                                <a href="https://www.meteo.cat/prediccio/general" target="_blank" rel="noopener"
+                                   style="color:#7ec8e3;font-size:13px;font-weight:600;text-decoration:underline;">
+                                    meteo.cat/prediccio/general ↗
+                                </a>
+                            </div>
+                        </div>`;
+                }
+            }
+
+            loadMeteocatAvisos();
+            // Actualitzar cada 15 minuts
+            setInterval(loadMeteocatAvisos, 15 * 60 * 1000);
+        })();
+        /* ══════ FIN AVISOS METEOCAT ══════ */
 
 
 
