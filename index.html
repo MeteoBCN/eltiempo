@@ -753,11 +753,14 @@
         ════════════════════════════════════════════ -->
         <div style="height:20px;background:#ffffff;"></div>
         <div id="confort-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <div style="display:flex;align-items:center;justify-content:center;padding:10px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);">
+            <div onclick="toggleSection('confort')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);cursor:pointer;user-select:none;">
                 <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">🌡️ ÍNDICE DE CONFORT TÉRMICO</span>
+                <span id="arrow-confort" style="color:#2c4a6e;font-size:12px;transition:transform 0.3s;">▼</span>
             </div>
-            <div id="confort-contenido" style="background:#f0f6fa;padding:14px 16px 16px;">
-                <div style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0;">Cargando…</div>
+            <div id="panel-confort" style="display:none;">
+                <div id="confort-contenido" style="background:#f0f6fa;padding:14px 16px 16px;">
+                    <div style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0;">Cargando…</div>
+                </div>
             </div>
         </div>
 
@@ -766,11 +769,14 @@
         ════════════════════════════════════════════ -->
         <div style="height:20px;background:#ffffff;"></div>
         <div id="uv-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <div style="display:flex;align-items:center;justify-content:center;padding:10px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);">
+            <div onclick="toggleSection('uv')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);cursor:pointer;user-select:none;">
                 <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">☀️ ÍNDICE UV DETALLADO</span>
+                <span id="arrow-uv" style="color:#2c4a6e;font-size:12px;transition:transform 0.3s;">▼</span>
             </div>
-            <div id="uv-contenido" style="background:#f0f6fa;padding:14px 16px 16px;">
-                <div style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0;">Cargando…</div>
+            <div id="panel-uv" style="display:none;">
+                <div id="uv-contenido" style="background:#f0f6fa;padding:14px 16px 16px;">
+                    <div style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0;">Cargando…</div>
+                </div>
             </div>
         </div>
 
@@ -2498,6 +2504,12 @@
             if (!isOpen && id === 'playas') {
                 requestAnimationFrame(() => requestAnimationFrame(() => drawWaveChart()));
             }
+            if (!isOpen && id === 'confort') {
+                if (typeof loadConfortOnce === 'function') loadConfortOnce();
+            }
+            if (!isOpen && id === 'uv') {
+                if (typeof loadUVOnce === 'function') loadUVOnce();
+            }
         }
 
         /* ══════════════════════════════════════════════
@@ -4197,7 +4209,12 @@
                     el.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0;">No se ha podido cargar el índice de confort.</div>`;
                 }
             }
-            loadConfort();
+            let _confortLoaded = false;
+            window.loadConfortOnce = function() {
+                if (_confortLoaded) return;
+                _confortLoaded = true;
+                loadConfort();
+            };
         })();
         /* ══════ FIN CONFORT ══════ */
 
@@ -4327,7 +4344,12 @@
                     el.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0;">No se ha podido cargar el índice UV.</div>`;
                 }
             }
-            loadUV();
+            let _uvLoaded = false;
+            window.loadUVOnce = function() {
+                if (_uvLoaded) return;
+                _uvLoaded = true;
+                loadUV();
+            };
         })();
         /* ══════ FIN UV DETALLADO ══════ */
 
