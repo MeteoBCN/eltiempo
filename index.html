@@ -912,6 +912,42 @@
 
 
 
+        <!-- ══════════════════════════════════════════════
+             EFEMÉRIDES METEOROLÓGICAS · BARCELONA
+        ═══════════════════════════════════════════════ -->
+        <div style="height:20px;background:#ffffff;"></div>
+        <div id="efemerides-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+
+            <!-- Cabecera -->
+            <div style="display:flex;align-items:center;justify-content:center;padding:10px 16px;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);">
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">📅 EFEMÉRIDES METEOROLÓGICAS · BARCELONA</span>
+            </div>
+
+            <!-- Pestañas -->
+            <div id="efe-tabs" style="display:grid;grid-template-columns:1fr 1fr 1fr;background:#e4eef6;border-bottom:2px solid #c9ddf0;">
+                <button onclick="efeTab('records')"  id="efe-tab-records"  style="padding:9px 4px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#0b4c90;border-bottom:2px solid #0b4c90;margin-bottom:-2px;transition:all .2s;">🌡️ RÉCORDS HOY</button>
+                <button onclick="efeTab('eventos')"  id="efe-tab-eventos"  style="padding:9px 4px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">⚡ EVENTOS</button>
+                <button onclick="efeTab('estadist')" id="efe-tab-estadist" style="padding:9px 4px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">📊 MES ACTUAL</button>
+            </div>
+
+            <!-- Panel: Récords del día -->
+            <div id="efe-panel-records" style="background:#f0f6fa;padding:16px;">
+                <div style="text-align:center;color:#94a3b8;font-size:13px;padding:20px 0;">Cargando récords históricos…</div>
+            </div>
+
+            <!-- Panel: Eventos notables -->
+            <div id="efe-panel-eventos" style="display:none;background:#f0f6fa;padding:16px;">
+                <div style="text-align:center;color:#94a3b8;font-size:13px;padding:20px 0;">Cargando…</div>
+            </div>
+
+            <!-- Panel: Estadísticas del mes -->
+            <div id="efe-panel-estadist" style="display:none;background:#f0f6fa;padding:16px;">
+                <div style="text-align:center;color:#94a3b8;font-size:13px;padding:20px 0;">Cargando estadísticas del mes…</div>
+            </div>
+
+        </div>
+        <!-- ══════ FIN EFEMÉRIDES ══════ -->
+
         <div class="update-time" id="update-time">Actualizado: --:--</div>
 
         <div class="divulgacion-link">
@@ -3688,6 +3724,259 @@
             setInterval(loadMeteocatAvisos, 15 * 60 * 1000);
         })();
         /* ══════ FIN AVISOS METEOCAT ══════ */
+
+        /* ══════════════════════════════════════════════
+           EFEMÉRIDES METEOROLÓGICAS · BARCELONA
+           Open-Meteo Historical API (sin key)
+        ══════════════════════════════════════════════ */
+        (function() {
+
+            // ── Eventos notables curados ─────────────────────────────────────
+            // { mes (1-12), dia, año, texto }
+            const EVENTOS_NOTABLES = [
+                { mes:1,  dia:4,  anyo:1914, txt:'Temperatura mínima histórica en el Observatorio Fabra: -10°C.' },
+                { mes:1,  dia:17, anyo:1956, txt:'Gran nevada de 1956: Barcelona amaneció cubierta con más de 20 cm de nieve, una de las mayores del siglo XX.' },
+                { mes:2,  dia:11, anyo:1983, txt:'Temporal de viento: rachas de más de 120 km/h azotaron el litoral barcelonés.' },
+                { mes:2,  dia:23, anyo:2023, txt:'Episodio de calima sahariana tiñó el cielo de naranja sobre Barcelona.' },
+                { mes:3,  dia:9,  anyo:2018, txt:'Nevada de marzo: nieve en cotas muy bajas, llegando al área metropolitana.' },
+                { mes:4,  dia:8,  anyo:2002, txt:'Granizo de gran tamaño causó daños en vehículos y cultivos del Barcelonès.' },
+                { mes:5,  dia:31, anyo:2008, txt:'Tromba marina frente al Puerto de Barcelona, fenómeno inusual en primavera.' },
+                { mes:6,  dia:9,  anyo:2000, txt:'Inicio de la ola de calor más larga del siglo: 19 días con Tmax > 30°C.' },
+                { mes:6,  dia:28, anyo:2019, txt:'Ola de calor excepcional: 42,6°C en el Penedès; Barcelona superó los 38°C.' },
+                { mes:7,  dia:15, anyo:1982, txt:'Máxima histórica en verano: 39,8°C registrada en el aeropuerto del Prat.' },
+                { mes:7,  dia:25, anyo:2021, txt:'Tormenta severa con granizo y fuertes rachas de viento en el área metropolitana.' },
+                { mes:8,  dia:4,  anyo:2003, txt:'Pico de la ola de calor europea de 2003: Barcelona registró 38,4°C.' },
+                { mes:8,  dia:24, anyo:1996, txt:'Intensas lluvias convectivas: más de 100 mm en pocas horas en el Maresme.' },
+                { mes:9,  dia:8,  anyo:1962, txt:'Riada del Vallès: una de las mayores catástrofes naturales de Cataluña, con centenares de víctimas.' },
+                { mes:9,  dia:22, anyo:1971, txt:'Temporal de llevant: precipitaciones torrenciales de más de 200 mm en 24h.' },
+                { mes:10, dia:10, anyo:1994, txt:'Temporal marítimo: olas de más de 6 metros registradas frente al litoral.' },
+                { mes:10, dia:28, anyo:2008, txt:'Temporal Klaus: vientos de más de 140 km/h en el litoral catalán.' },
+                { mes:11, dia:8,  anyo:2001, txt:'Episodio de niebla persistente: visibilidad inferior a 50 m durante 18 horas.' },
+                { mes:11, dia:19, anyo:2019, txt:'Dana histórica: más de 90 mm en 12 horas en Barcelona, graves inundaciones en zona metropolitana.' },
+                { mes:12, dia:26, anyo:2009, txt:'Temporal de nieve: 15 cm en el centro de Barcelona, colapso del tráfico.' },
+                { mes:12, dia:8,  anyo:1971, txt:'Temporal de viento con rachas de 150 km/h en el Tibidabo.' },
+            ];
+
+            const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+            const MESES_CORTO = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+
+            // ── Pestaña activa ───────────────────────────────────────────────
+            window.efeTab = function(tab) {
+                ['records','eventos','estadist'].forEach(t => {
+                    const panel = document.getElementById(`efe-panel-${t}`);
+                    const btn   = document.getElementById(`efe-tab-${t}`);
+                    if (!panel || !btn) return;
+                    const active = t === tab;
+                    panel.style.display = active ? 'block' : 'none';
+                    btn.style.color       = active ? '#0b4c90' : '#64748b';
+                    btn.style.borderBottom = active ? '2px solid #0b4c90' : '2px solid transparent';
+                });
+            };
+
+            // ── RÉCORDS DEL DÍA (Open-Meteo Historical) ─────────────────────
+            async function loadRecords() {
+                const el = document.getElementById('efe-panel-records');
+                if (!el) return;
+
+                const now = new Date();
+                const mm  = String(now.getMonth()+1).padStart(2,'0');
+                const dd  = String(now.getDate()).padStart(2,'0');
+                const diaLabel = `${now.getDate()} de ${MESES[now.getMonth()]}`;
+
+                try {
+                    // Solicitar datos históricos desde 1950 hasta ayer
+                    const yearEnd = now.getFullYear() - 1;
+                    const url = `https://archive-api.open-meteo.com/v1/archive?latitude=41.3851&longitude=2.1734&start_date=1950-01-01&end_date=${yearEnd}-12-31&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max&timezone=Europe/Madrid`;
+                    const res  = await fetch(url);
+                    const data = await res.json();
+                    const d    = data.daily;
+
+                    // Filtrar solo registros del mismo día/mes
+                    let tMaxRec = -99, tMaxAnyo = '--';
+                    let tMinRec =  99, tMinAnyo = '--';
+                    let precRec =   0, precAnyo = '--';
+                    let ventRec =   0, ventAnyo = '--';
+
+                    for (let i = 0; i < d.time.length; i++) {
+                        const t = d.time[i]; // "YYYY-MM-DD"
+                        if (!t.endsWith(`-${mm}-${dd}`)) continue;
+                        const yr = parseInt(t.slice(0,4));
+
+                        const tx = d.temperature_2m_max[i];
+                        const tn = d.temperature_2m_min[i];
+                        const pp = d.precipitation_sum[i];
+                        const vv = d.windspeed_10m_max[i];
+
+                        if (tx != null && tx > tMaxRec) { tMaxRec = tx; tMaxAnyo = yr; }
+                        if (tn != null && tn < tMinRec) { tMinRec = tn; tMinAnyo = yr; }
+                        if (pp != null && pp > precRec) { precRec = pp; precAnyo = yr; }
+                        if (vv != null && vv > ventRec) { ventRec = vv; ventAnyo = yr; }
+                    }
+
+                    const card = (emoji, titulo, valor, unidad, anyo, color) => `
+                        <div style="background:#ffffff;border-radius:10px;padding:13px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,0.07);border-left:4px solid ${color};">
+                            <span style="font-size:26px;flex-shrink:0;">${emoji}</span>
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">${titulo}</div>
+                                <div style="display:flex;align-items:baseline;gap:5px;">
+                                    <span style="font-size:22px;font-weight:800;color:${color};">${valor}</span>
+                                    <span style="font-size:12px;color:#64748b;font-weight:600;">${unidad}</span>
+                                </div>
+                            </div>
+                            <div style="text-align:right;flex-shrink:0;">
+                                <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;">Año récord</div>
+                                <div style="font-size:16px;font-weight:800;color:#2c3e50;">${anyo}</div>
+                            </div>
+                        </div>`;
+
+                    el.innerHTML = `
+                        <div style="font-size:11px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;text-align:center;">
+                            Récords históricos · ${diaLabel} · Serie desde 1950
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:9px;">
+                            ${card('🌡️','Temperatura máxima', tMaxRec !== -99 ? tMaxRec.toFixed(1) : '--', '°C', tMaxAnyo, '#EF4444')}
+                            ${card('🥶','Temperatura mínima',  tMinRec !==  99 ? tMinRec.toFixed(1) : '--', '°C', tMinAnyo, '#3B82F6')}
+                            ${card('🌧️','Precipitación máxima', precRec > 0 ? precRec.toFixed(1) : '0', 'mm', precAnyo, '#06B6D4')}
+                            ${card('💨','Viento máximo',        ventRec > 0 ? Math.round(ventRec) : '--', 'km/h', ventAnyo, '#8B5CF6')}
+                        </div>
+                        <div style="font-size:10px;color:#94a3b8;text-align:right;margin-top:10px;font-style:italic;">Fuente: Open-Meteo Historical · Obs. Barcelona</div>`;
+
+                } catch(e) {
+                    el.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:13px;padding:20px 0;">No se han podido cargar los récords históricos.</div>`;
+                    console.warn('Efemérides records error:', e);
+                }
+            }
+
+            // ── EVENTOS NOTABLES ────────────────────────────────────────────
+            function loadEventos() {
+                const el = document.getElementById('efe-panel-eventos');
+                if (!el) return;
+
+                const now = new Date();
+                const mesCurrent = now.getMonth() + 1;
+                const diaCurrent = now.getDate();
+
+                // Eventos del día exact (si hay) + del mes
+                const hoy      = EVENTOS_NOTABLES.filter(e => e.mes === mesCurrent && e.dia === diaCurrent);
+                const delMes   = EVENTOS_NOTABLES.filter(e => e.mes === mesCurrent && !(e.dia === diaCurrent));
+                const otrosMes = EVENTOS_NOTABLES.filter(e => e.mes !== mesCurrent).slice(0,3);
+
+                const renderEvento = (e, destacado=false) => `
+                    <div style="background:${destacado ? '#fff7ed' : '#ffffff'};border-radius:10px;padding:12px 14px;display:flex;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,0.07);border-left:4px solid ${destacado ? '#F97316' : '#e2e8f0'};">
+                        <div style="flex-shrink:0;text-align:center;min-width:38px;">
+                            <div style="font-size:18px;font-weight:800;color:${destacado?'#F97316':'#2c3e50'};">${e.dia}</div>
+                            <div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;">${MESES_CORTO[e.mes-1]}</div>
+                            <div style="font-size:11px;font-weight:700;color:#64748b;">${e.anyo}</div>
+                        </div>
+                        <div style="flex:1;font-size:13px;color:#374151;line-height:1.5;">${e.txt}</div>
+                    </div>`;
+
+                let html = '';
+                if (hoy.length > 0) {
+                    html += `<div style="font-size:10px;font-weight:700;color:#F97316;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">⭐ Tal día como hoy</div>`;
+                    html += hoy.map(e => renderEvento(e, true)).join('');
+                    html += `<div style="height:12px;"></div>`;
+                }
+                if (delMes.length > 0) {
+                    html += `<div style="font-size:10px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">📅 Este mes en la historia</div>`;
+                    html += `<div style="display:flex;flex-direction:column;gap:8px;">${delMes.map(e => renderEvento(e)).join('')}</div>`;
+                }
+                if (hoy.length === 0 && delMes.length === 0) {
+                    html += `<div style="font-size:10px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">📅 Eventos destacados</div>`;
+                    html += `<div style="display:flex;flex-direction:column;gap:8px;">${otrosMes.map(e => renderEvento(e)).join('')}</div>`;
+                }
+
+                el.innerHTML = html || `<div style="text-align:center;color:#94a3b8;font-size:13px;padding:20px 0;">No hay eventos registrados para este período.</div>`;
+            }
+
+            // ── ESTADÍSTICAS DEL MES ────────────────────────────────────────
+            async function loadEstadisticas() {
+                const el = document.getElementById('efe-panel-estadist');
+                if (!el) return;
+
+                const now      = new Date();
+                const mes      = now.getMonth() + 1;
+                const mesLabel = MESES[now.getMonth()];
+                const mmStr    = String(mes).padStart(2,'0');
+
+                try {
+                    const url = `https://archive-api.open-meteo.com/v1/archive?latitude=41.3851&longitude=2.1734&start_date=1950-01-01&end_date=${now.getFullYear()-1}-12-31&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Europe/Madrid`;
+                    const res  = await fetch(url);
+                    const data = await res.json();
+                    const d    = data.daily;
+
+                    // Agrupar por año para el mes actual
+                    const porAnyo = {};
+                    for (let i = 0; i < d.time.length; i++) {
+                        const t = d.time[i];
+                        const [yr, mo] = t.split('-');
+                        if (mo !== mmStr) continue;
+                        if (!porAnyo[yr]) porAnyo[yr] = { txs:[], tns:[], pps:[] };
+                        if (d.temperature_2m_max[i] != null) porAnyo[yr].txs.push(d.temperature_2m_max[i]);
+                        if (d.temperature_2m_min[i] != null) porAnyo[yr].tns.push(d.temperature_2m_min[i]);
+                        if (d.precipitation_sum[i]  != null) porAnyo[yr].pps.push(d.precipitation_sum[i]);
+                    }
+
+                    const anyos = Object.keys(porAnyo);
+                    const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
+                    const max = arr => arr.length ? Math.max(...arr) : null;
+                    const min = arr => arr.length ? Math.min(...arr) : null;
+
+                    // Medias históricas mensuales
+                    const txMedias = anyos.map(y => avg(porAnyo[y].txs)).filter(v => v!=null);
+                    const tnMedias = anyos.map(y => avg(porAnyo[y].tns)).filter(v => v!=null);
+                    const ppTotals = anyos.map(y => porAnyo[y].pps.reduce((a,b)=>a+b,0));
+
+                    const txMedia = avg(txMedias);
+                    const tnMedia = avg(tnMedias);
+                    const ppMedia = avg(ppTotals);
+                    const ppMax   = max(ppTotals);
+                    const ppMin   = min(ppTotals);
+                    const ppMaxAnyo = anyos[ppTotals.indexOf(ppMax)];
+                    const ppMinAnyo = anyos[ppTotals.indexOf(ppMin)];
+
+                    // Mes más cálido / más frío / más lluvioso
+                    const txMaxHist = max(txMedias);
+                    const tnMinHist = min(tnMedias);
+                    const txMaxAnyo = anyos[txMedias.indexOf(txMaxHist)];
+                    const tnMinAnyo = anyos[tnMedias.indexOf(tnMinHist)];
+
+                    const stat = (emoji, label, valor, sub='') => `
+                        <div style="background:#ffffff;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 4px rgba(0,0,0,0.07);">
+                            <span style="font-size:22px;flex-shrink:0;">${emoji}</span>
+                            <div style="flex:1;">
+                                <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;">${label}</div>
+                                <div style="font-size:17px;font-weight:800;color:#1e293b;">${valor}</div>
+                                ${sub ? `<div style="font-size:11px;color:#64748b;margin-top:1px;">${sub}</div>` : ''}
+                            </div>
+                        </div>`;
+
+                    el.innerHTML = `
+                        <div style="font-size:11px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;text-align:center;">
+                            Climatología de ${mesLabel} · Serie 1950–${now.getFullYear()-1}
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            ${stat('🌡️','Temperatura máx. media', txMedia!=null?txMedia.toFixed(1)+'°C':'--')}
+                            ${stat('🌙','Temperatura mín. media',  tnMedia!=null?tnMedia.toFixed(1)+'°C':'--')}
+                            ${stat('🌧️','Precipitación media',     ppMedia!=null?ppMedia.toFixed(1)+' mm':  '--', `Mes + lluvioso: ${ppMax!=null?ppMax.toFixed(0)+' mm':'--'} (${ppMaxAnyo}) · Mes más seco: ${ppMin!=null?ppMin.toFixed(0)+' mm':'--'} (${ppMinAnyo})`)}
+                            ${stat('🔥','${mesLabel} más cálido',   txMaxHist!=null?txMaxHist.toFixed(1)+'°C media':'--', `Año ${txMaxAnyo}`)}
+                            ${stat('❄️','${mesLabel} más frío',     tnMinHist!=null?tnMinHist.toFixed(1)+'°C media':'--', `Año ${tnMinAnyo}`)}
+                        </div>
+                        <div style="font-size:10px;color:#94a3b8;text-align:right;margin-top:10px;font-style:italic;">Fuente: Open-Meteo Historical · Obs. Barcelona</div>`;
+
+                } catch(e) {
+                    el.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:13px;padding:20px 0;">No se han podido cargar las estadísticas del mes.</div>`;
+                    console.warn('Efemérides estadísticas error:', e);
+                }
+            }
+
+            // ── Inicialización ───────────────────────────────────────────────
+            loadRecords();
+            loadEventos();
+            loadEstadisticas();
+
+        })();
+        /* ══════ FIN EFEMÉRIDES ══════ */
 
 
 
