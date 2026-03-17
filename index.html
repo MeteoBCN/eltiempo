@@ -4039,6 +4039,14 @@
                 ctx.fillStyle = grad;
                 ctx.fill();
 
+                // Texto "ALTURA OLAS" dentro del degradado
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 9px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(14,100,180,0.38)';
+                ctx.fillText('ALTURA OLAS', PAD.l + cw / 2, PAD.t + ch * 0.65);
+                ctx.restore();
+
                 // Linea principal
                 ctx.beginPath();
                 ctx.moveTo(xPos(0), yPos(vals[0]));
@@ -4136,12 +4144,25 @@
                 const precColor  = maxPrec >= 70 ? '#3b82f6' : maxPrec >= 40 ? '#60a5fa' : maxPrec >= 20 ? '#93c5fd' : '#cbd5e1';
                 const tempColor  = avgTemp >= 32 ? '#ef4444' : avgTemp >= 26 ? '#f97316' : avgTemp >= 20 ? '#10b981' : '#3b82f6';
 
+                // Icono representativo de la franja
+                const wcodes2 = slots.map(s=>s.wcode).filter(v=>v!==null);
+                let reprWcode = null;
+                if (wcodes2.length) {
+                    const freq = {};
+                    wcodes2.forEach(c => { freq[c] = (freq[c]||0)+1; });
+                    reprWcode = parseInt(Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0]);
+                }
+                const skyEmoji = reprWcode !== null ? wCodeEmoji(reprWcode) : '\u2014';
+
                 return `<div style="flex:1;${borderStyle}padding:6px 5px 10px;background:#f0f7fc;display:flex;flex-direction:column;align-items:center;gap:7px;">
-                    ${pill('Mar',    wl.txt,                                          wl.color,   '#fff')}
-                    ${pill('Viento', wdl.txt,                                         wdl.color,  '#fff')}
-                    ${pill('Baño',   bath.txt,                                        bath.color, '#fff')}
-                    ${pill('Temp.',  avgTemp !== null ? avgTemp+'°C' : '—',           tempColor,  '#fff')}
-                    ${pill('Lluvia', maxPrec !== null ? maxPrec+'%' : '—',            precColor,  '#fff')}
+                    <div style="text-align:center;width:100%;padding-top:4px;">
+                        <div style="font-size:22px;line-height:1.1;">${skyEmoji}</div>
+                        <div style="font-size:13px;font-weight:900;color:${tempColor};margin-top:3px;">${avgTemp !== null ? avgTemp+'\u00b0C' : '\u2014'}</div>
+                    </div>
+                    ${pill('Mar',    wl.txt,   wl.color,   '#fff')}
+                    ${pill('Viento', wdl.txt,  wdl.color,  '#fff')}
+                    ${pill('Ba\u00f1o',   bath.txt, bath.color, '#fff')}
+                    ${pill('Lluvia', maxPrec !== null ? maxPrec+'%' : '\u2014', precColor, '#fff')}
                 </div>`;
             }
 
