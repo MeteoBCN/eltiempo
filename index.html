@@ -3964,7 +3964,7 @@
                 if (!canvas) return;
                 const dpr = window.devicePixelRatio || 1;
                 const W   = canvas.parentElement.clientWidth || 520;
-                const H   = 80;
+                const H   = 95;
                 canvas.width  = W * dpr;
                 canvas.height = H * dpr;
                 canvas.style.width  = W + 'px';
@@ -4035,15 +4035,15 @@
                     ctx.fillText(v.toFixed(1)+'m', PAD.l - 3, yPos(v) + 3);
                 });
 
-                // Etiquetas eje X: hora cada ~3 slots
+                // Etiquetas eje X: horas fijas 08,10,12,14,16,18,20
                 ctx.textAlign = 'center';
                 ctx.font      = '8px Inter,sans-serif';
                 ctx.fillStyle = '#94a3b8';
-                const step = Math.max(1, Math.floor(pts.length / 6));
-                pts.forEach((p, i) => {
-                    if (i % step === 0 || i === pts.length - 1) {
-                        const h = new Date(p.time).getHours();
-                        ctx.fillText(h + 'h', xPos(i), H - PAD.b + 11);
+                const targetHours = [8, 10, 12, 14, 16, 18, 20];
+                targetHours.forEach(th => {
+                    const idx = pts.findIndex(p => new Date(p.time).getHours() === th);
+                    if (idx !== -1) {
+                        ctx.fillText(th + 'h', xPos(idx), H - PAD.b + 11);
                     }
                 });
             }
@@ -4151,8 +4151,8 @@
             function buildDayCard(diaSemana, hourlyDay, uviMax, isToday, cardId) {
                 const mañana = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8 && hh < 14; });
                 const tarde  = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 14 && hh < 20; });
-                // Slots para el grafico: 06h-22h
-                const graficoSlots = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 6 && hh <= 22; });
+                // Slots para el grafico: 08h-20h (cada 3 horas)
+                const graficoSlots = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8 && hh <= 20; });
 
                 const headerBg = isToday
                     ? 'linear-gradient(135deg,#0b4c90 0%,#1a6fa8 100%)'
@@ -4185,7 +4185,10 @@
                 // El grafico va dentro del panel MAR, encima de las dos columnas
                 const chartHtml = `
                     <div style="background:#f0f7fc;padding:10px 8px 4px;border-bottom:1px solid #c9ddf0;">
-                        <div style="font-size:8px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;text-align:center;">Altura de olas · 06h a 22h (m)</div>
+                        <div style="font-size:8px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:2px;text-align:center;">📊 ALTURA OLAS · GRÁFICO CADA 2 HORAS</div>
+                        <div style="display:flex;justify-content:space-between;padding:2px 4px 0;font-size:9px;font-weight:800;color:#0b4c90;letter-spacing:0.3px;">
+                            <span>08</span><span>10</span><span>12</span><span>14</span><span>16</span><span>18</span><span>20</span>
+                        </div>
                         <canvas id="wave-chart-${cardId}" style="display:block;width:100%;"></canvas>
                     </div>`;
 
@@ -4322,7 +4325,7 @@
 
                         window._mar3Slots[cardId] = slots.filter(h => {
                             const hh = new Date(h.time).getHours();
-                            return hh >= 6 && hh <= 22;
+                            return hh >= 8 && hh <= 20;
                         });
 
                         allHtml += buildDayCard(diaName, slots, uviMax, off === 0, cardId);
