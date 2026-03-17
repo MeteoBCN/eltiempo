@@ -4280,7 +4280,7 @@
                     return `<div style="border-bottom:2px solid #c9ddf0;background:#fff;" id="card-${cardId}">
                         <div onclick="mar3ToggleCard('${cardId}')" style="background:${headerBg};padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
                             <div style="font-size:14px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">${diaSemana} <span style="font-size:10px;font-weight:600;opacity:0.7;margin-left:6px;">HOY</span></div>
-                            <span id="arrow-${cardId}" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;transform:rotate(180deg);">&#9660;</span>
+                            <span id="arrow-${cardId}" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;">&#9660;</span>
                         </div>
                         <div id="body-${cardId}" style="overflow:hidden;">${bodyHtml}</div>
                     </div>`;
@@ -4301,21 +4301,19 @@
                 const body  = document.getElementById('body-' + cardId);
                 const arrow = document.getElementById('arrow-' + cardId);
                 if (!body) return;
-                // Use max-height for smooth slide animation
-                const isOpen = body.style.maxHeight && body.style.maxHeight !== '0px';
+                const isOpen = body.dataset.open === '1';
                 if (isOpen) {
+                    body.dataset.open = '0';
                     body.style.maxHeight = '0px';
-                    body.style.overflow = 'hidden';
                     if (arrow) arrow.style.transform = 'rotate(0deg)';
                 } else {
-                    body.style.maxHeight = body._fullHeight || '2000px';
-                    body.style.overflow = 'hidden';
+                    body.dataset.open = '1';
+                    body.style.maxHeight = body.dataset.h || '3000px';
                     if (arrow) arrow.style.transform = 'rotate(180deg)';
-                    // Draw chart after transition completes
                     setTimeout(() => {
                         const slots = window._mar3Slots && window._mar3Slots[cardId];
                         if (slots) drawWaveChart('wave-chart-' + cardId, slots);
-                    }, 480);
+                    }, 500);
                 }
             };
 
@@ -4396,43 +4394,33 @@
                     const loading = document.getElementById('mar3-loading');
                     if (loading) loading.style.display = 'none';
 
-                    // Init: draw all charts first (while visible), then measure, then close
+                    // Init: draw charts, store heights, then close all
                     setTimeout(() => {
-                        // Step 1: draw charts while cards are fully visible
+                        // Draw all charts while visible
                         for (let off = 0; off < 3; off++) {
-                            const cardId = 'day' + off;
-                            const slots  = window._mar3Slots && window._mar3Slots[cardId];
-                            if (slots) drawWaveChart('wave-chart-' + cardId, slots);
+                            const slots = window._mar3Slots && window._mar3Slots['day' + off];
+                            if (slots) drawWaveChart('wave-chart-day' + off, slots);
                         }
-                        // Step 2: measure natural height after charts are drawn
-                        requestAnimationFrame(() => {
+                        // After paint, store heights and close
+                        setTimeout(() => {
                             for (let off = 0; off < 3; off++) {
-                                const cardId = 'day' + off;
-                                const body  = document.getElementById('body-' + cardId);
-                                const arrow = document.getElementById('arrow-' + cardId);
+                                const body  = document.getElementById('body-day' + off);
+                                const arrow = document.getElementById('arrow-day' + off);
                                 if (body) {
-                                    body._fullHeight = body.scrollHeight + 'px';
+                                    body.dataset.h    = body.scrollHeight + 'px';
+                                    body.dataset.open = '0';
+                                    body.style.overflow   = 'hidden';
+                                    body.style.transition = 'none';
+                                    body.style.maxHeight  = '0px';
+                                    // re-enable transition next frame
+                                    requestAnimationFrame(() => requestAnimationFrame(() => {
+                                        body.style.transition = 'max-height 0.45s ease';
+                                    }));
                                 }
+                                if (arrow) arrow.style.transform = 'rotate(0deg)';
                             }
-                            // Step 3: close all instantly, then enable transition
-                            requestAnimationFrame(() => {
-                                for (let off = 0; off < 3; off++) {
-                                    const cardId = 'day' + off;
-                                    const body  = document.getElementById('body-' + cardId);
-                                    const arrow = document.getElementById('arrow-' + cardId);
-                                    if (body) {
-                                        body.style.transition = 'none';
-                                        body.style.maxHeight  = '0px';
-                                        body.style.overflow   = 'hidden';
-                                        requestAnimationFrame(() => {
-                                            body.style.transition = 'max-height 0.45s ease';
-                                        });
-                                    }
-                                    if (arrow) arrow.style.transform = 'rotate(0deg)';
-                                }
-                            });
-                        });
-                    }, 100);
+                        }, 150);
+                    }, 50);
 
                 } catch(e) {
                     const loading = document.getElementById('mar3-loading');
