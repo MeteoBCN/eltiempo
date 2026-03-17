@@ -3996,7 +3996,7 @@
                 });
                 if (pts.length < 2) { ctx.fillStyle='#f0f6fa'; ctx.fillRect(0,0,W,H); return; }
 
-                const PAD = { t: ICON_H + 14, r:12, b:22, l:32 };
+                const PAD = { t: ICON_H + 14, r:12, b:22, l:8 };
                 const cw  = W - PAD.l - PAD.r;
                 const ch  = H - PAD.t - PAD.b;
 
@@ -4059,30 +4059,28 @@
                 ctx.lineJoin    = 'round';
                 ctx.stroke();
 
-                // Puntos en horas clave
+                // Puntos en horas clave + etiqueta de altura encima
                 const keyHours = [8,10,12,14,16,18,20];
                 keyHours.forEach(kh => {
                     const idx = pts.findIndex(p => new Date(p.time).getHours() === kh);
                     if (idx === -1) return;
+                    const x = xPos(idx);
+                    const y = yPos(vals[idx]);
+                    // Punto
                     ctx.beginPath();
-                    ctx.arc(xPos(idx), yPos(vals[idx]), 3, 0, Math.PI*2);
+                    ctx.arc(x, y, 3, 0, Math.PI*2);
                     ctx.fillStyle = '#0ea5e9';
                     ctx.fill();
                     ctx.strokeStyle = '#fff';
                     ctx.lineWidth = 1.5;
                     ctx.stroke();
+                    // Etiqueta de altura encima del punto
+                    const label = vals[idx].toFixed(2) + 'm';
+                    ctx.font = 'bold 7.5px Inter,sans-serif';
+                    ctx.fillStyle = '#0b6ea3';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(label, x, y - 7);
                 });
-
-                // Etiquetas eje Y
-                ctx.font = '7.5px Inter,sans-serif';
-                ctx.fillStyle = '#94a3b8';
-                ctx.textAlign = 'right';
-                [0, vMax * 0.5, vMax].forEach(v => {
-                    if (v > 0) ctx.fillText(v.toFixed(1), PAD.l - 3, yPos(v) + 3);
-                });
-                ctx.font = '7px Inter,sans-serif';
-                ctx.fillStyle = '#b0bec5';
-                ctx.fillText('m', PAD.l - 3, PAD.t - 4);
 
                 // Etiquetas eje X
                 ctx.textAlign = 'center';
