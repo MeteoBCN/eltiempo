@@ -3920,12 +3920,12 @@
                 return               { txt:'Muy fuerte',   color:'#ef4444' };
             }
             function windLabel(v) {
-                if (v < 6)   return { txt:'Calma',         color:'#10b981' };
-                if (v < 20)  return { txt:'Flojo',         color:'#22d3ee' };
-                if (v < 40)  return { txt:'Moderado',      color:'#0ea5e9' };
-                if (v < 60)  return { txt:'Fresco',        color:'#f59e0b' };
-                if (v < 75)  return { txt:'Fuerte',        color:'#f97316' };
-                return               { txt:'Muy fuerte',   color:'#ef4444' };
+                if (v < 6)   return { txt:'Calma',       color:'#10b981' };
+                if (v < 20)  return { txt:'Flojo',       color:'#22d3ee' };
+                if (v < 40)  return { txt:'Moderado',    color:'#0ea5e9' };
+                if (v < 60)  return { txt:'Fresco',      color:'#f59e0b' };
+                if (v < 75)  return { txt:'Fuerte',      color:'#f97316' };
+                return               { txt:'Muy fuerte', color:'#ef4444' };
             }
             function bathLabel(wh, ws) {
                 if (wh >= 2.5 || ws >= 62)  return { txt:'No aconsejable', color:'#ef4444' };
@@ -3942,14 +3942,111 @@
                 if (u <= 10) return { nivel:'Muy alto', color:'#ef4444', mins:10,  fps:'50+',  consejo:'FPS 50+. Sombra obligatoria al mediodia. Camiseta y gafas UV.' };
                 return               { nivel:'Extremo', color:'#7c3aed', mins:5,   fps:'50+',  consejo:'Exposicion minima. Proteccion total. Evita la playa en horas centrales.' };
             }
+            // Direccion: deg = de donde viene el viento (meteorologico)
+            // La flecha apunta hacia donde va el viento (adonde sopla)
+            // 0° = viene del N → va hacia el S → flecha ↓
+            // 180° = viene del S → va hacia el N → flecha ↑
+            // Sin +180: mapeo directo deg → flecha hacia donde va
             function dirArrow(deg) {
-                const arrows = ['\u2193','\u2199','\u2190','\u2196','\u2191','\u2197','\u2192','\u2198'];
-                return arrows[Math.round(((deg + 180) % 360) / 45) % 8];
+                const d = ((deg % 360) + 360) % 360;
+                const idx = Math.round(d / 45) % 8;
+                // 0=N(↓) 1=NE(↙) 2=E(←) 3=SE(↖) 4=S(↑) 5=SO(↗) 6=O(→) 7=NO(↘)
+                return ['\u2193','\u2199','\u2190','\u2196','\u2191','\u2197','\u2192','\u2198'][idx];
             }
             function dirName(deg) {
-                return ['N','NE','E','SE','S','SO','O','NO'][Math.round(deg/45)%8];
+                return ['N','NE','E','SE','S','SO','O','NO'][Math.round(((deg%360)+360)%360/45)%8];
             }
             function avg(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null; }
+
+            // ── Grafico de olas (canvas) ────────────────────────────────────
+            function drawWaveChart(canvasId, slots) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+                const dpr = window.devicePixelRatio || 1;
+                const W   = canvas.parentElement.clientWidth || 520;
+                const H   = 80;
+                canvas.width  = W * dpr;
+                canvas.height = H * dpr;
+                canvas.style.width  = W + 'px';
+                canvas.style.height = H + 'px';
+                const ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
+
+                // Solo horas con datos
+                const pts = slots.filter(s => s.wh !== null && s.wh !== undefined);
+                if (pts.length < 2) { ctx.fillStyle='#f0f6fa'; ctx.fillRect(0,0,W,H); return; }
+
+                const PAD = { t:14, r:8, b:20, l:30 };
+                const cw  = W - PAD.l - PAD.r;
+                const ch  = H - PAD.t - PAD.b;
+
+                const vals   = pts.map(p => p.wh);
+                const vMin   = 0;
+                const vMax   = Math.max(...vals) * 1.25 || 1;
+                const xPos   = i => PAD.l + (i / (pts.length - 1)) * cw;
+                const yPos   = v => PAD.t + ch - ((v - vMin) / (vMax - vMin)) * ch;
+
+                // Fondo
+                ctx.fillStyle = '#f0f7fc';
+                ctx.fillRect(0, 0, W, H);
+
+                // Linea de cuadricula (0)
+                ctx.beginPath();
+                ctx.moveTo(PAD.l, yPos(0));
+                ctx.lineTo(PAD.l + cw, yPos(0));
+                ctx.strokeStyle = 'rgba(44,74,110,0.1)';
+                ctx.lineWidth   = 1;
+                ctx.stroke();
+
+                // Area bajo la curva
+                const grad = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ch);
+                grad.addColorStop(0, 'rgba(14,165,233,0.45)');
+                grad.addColorStop(1, 'rgba(14,165,233,0.05)');
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yPos(vals[0]));
+                for (let i = 1; i < pts.length; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yPos(vals[i-1]), xc, yPos(vals[i]), xPos(i), yPos(vals[i]));
+                }
+                ctx.lineTo(xPos(pts.length-1), PAD.t + ch);
+                ctx.lineTo(xPos(0), PAD.t + ch);
+                ctx.closePath();
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                // Linea principal
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yPos(vals[0]));
+                for (let i = 1; i < pts.length; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yPos(vals[i-1]), xc, yPos(vals[i]), xPos(i), yPos(vals[i]));
+                }
+                ctx.strokeStyle = '#0ea5e9';
+                ctx.lineWidth   = 2;
+                ctx.lineJoin    = 'round';
+                ctx.stroke();
+
+                // Etiquetas eje Y (izquierda)
+                ctx.font      = '8px Inter,sans-serif';
+                ctx.fillStyle = '#94a3b8';
+                ctx.textAlign = 'right';
+                const yTicks  = [0, vMax * 0.5, vMax];
+                yTicks.forEach(v => {
+                    ctx.fillText(v.toFixed(1)+'m', PAD.l - 3, yPos(v) + 3);
+                });
+
+                // Etiquetas eje X: hora cada ~3 slots
+                ctx.textAlign = 'center';
+                ctx.font      = '8px Inter,sans-serif';
+                ctx.fillStyle = '#94a3b8';
+                const step = Math.max(1, Math.floor(pts.length / 6));
+                pts.forEach((p, i) => {
+                    if (i % step === 0 || i === pts.length - 1) {
+                        const h = new Date(p.time).getHours();
+                        ctx.fillText(h + 'h', xPos(i), H - PAD.b + 11);
+                    }
+                });
+            }
 
             // ── Celda de franja horaria ─────────────────────────────────────
             function buildCell(slots, isFirst) {
@@ -3969,29 +4066,28 @@
                 const avgWS  = wss.length ? Math.round(avg(wss)) : null;
                 const maxWS  = wss.length ? Math.round(Math.max(...wss)) : null;
                 const avgWDR = wdrs.length ? Math.round(avg(wdrs)) : null;
-                // T. agua: 1 decimal, sin redondear a entero
-                const avgSST = ssts.length ? parseFloat(avg(ssts).toFixed(1)) : null;
+                // T. agua: redondeado al entero mas cercano (14.4→14, 15.7→16)
+                const avgSST = ssts.length ? Math.round(avg(ssts)) : null;
 
                 const wl   = waveLabel(avgWH ?? 0);
                 const wdl  = windLabel(avgWS ?? 0);
                 const bath = bathLabel(avgWH ?? 0, avgWS ?? 0);
 
                 const oleajeTxt = (minWH !== null && maxWH !== null)
-                    ? (Math.abs(maxWH - minWH) < 0.08 ? minWH.toFixed(2)+' m' : minWH.toFixed(2)+'–'+maxWH.toFixed(2)+' m')
+                    ? (Math.abs(maxWH - minWH) < 0.08
+                        ? minWH.toFixed(2)+' m'
+                        : minWH.toFixed(2)+'–'+maxWH.toFixed(2)+' m')
                     : '—';
                 const maxExtra  = (maxWS && avgWS && maxWS > avgWS + 5) ? ` (max ${maxWS})` : '';
                 const dirTxt    = avgWDR !== null ? ` ${dirArrow(avgWDR)} ${dirName(avgWDR)}` : '';
                 const vientoTxt = avgWS !== null ? `${avgWS} km/h${maxExtra}${dirTxt}` : '—';
-                const sstTxt    = avgSST !== null ? avgSST.toFixed(1)+' °C' : '—';
+                const sstTxt    = avgSST !== null ? avgSST + ' °C' : '—';
 
-                // Fila de dato (sin emojis)
                 const row = (label, value, sub) => `
-                    <div style="display:flex;align-items:flex-start;gap:0;padding:7px 0;border-bottom:1px solid rgba(44,74,110,0.08);">
-                        <div style="min-width:0;width:100%;">
-                            <div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;">${label}</div>
-                            <div style="font-size:13px;font-weight:800;color:#0b4c90;line-height:1.2;">${value}</div>
-                            ${sub ? `<div style="margin-top:3px;">${sub}</div>` : ''}
-                        </div>
+                    <div style="padding:7px 0;border-bottom:1px solid rgba(44,74,110,0.08);">
+                        <div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;">${label}</div>
+                        <div style="font-size:13px;font-weight:800;color:#0b4c90;line-height:1.2;">${value}</div>
+                        ${sub ? `<div style="margin-top:3px;">${sub}</div>` : ''}
                     </div>`;
 
                 const wlBadge  = `<span style="font-size:9px;font-weight:700;color:#fff;background:${wl.color};padding:1px 7px;border-radius:4px;">${wl.txt}</span>`;
@@ -4010,13 +4106,12 @@
 
             // ── Panel UVI ───────────────────────────────────────────────────
             function buildUviPanel(uviMax) {
-                const info = uviInfo(uviMax);
-                const u    = uviMax !== null ? Math.round(uviMax) : null;
-                const pct  = u !== null ? Math.min(100, Math.round((u / 12) * 100)) : 0;
+                const info    = uviInfo(uviMax);
+                const u       = uviMax !== null ? Math.round(uviMax) : null;
+                const pct     = u !== null ? Math.min(100, Math.round((u / 12) * 100)) : 0;
                 const uvLabel = u !== null ? u : '—';
 
                 return `<div style="padding:14px 16px;background:#f8fbfe;">
-                    <!-- Valor UVI + nivel -->
                     <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
                         <div style="width:52px;height:52px;border-radius:50%;background:${info.color};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px ${info.color}55;">
                             <span style="font-size:20px;font-weight:900;color:#fff;line-height:1;">${uvLabel}</span>
@@ -4027,8 +4122,6 @@
                             <div style="font-size:11px;color:#64748b;margin-top:2px;">Indice UV maximo del dia</div>
                         </div>
                     </div>
-
-                    <!-- Barra UVI -->
                     <div style="margin-bottom:14px;">
                         <div style="height:8px;border-radius:4px;background:linear-gradient(90deg,#22c55e 0%,#eab308 33%,#f97316 55%,#ef4444 75%,#7c3aed 100%);position:relative;overflow:visible;">
                             <div style="position:absolute;top:50%;left:${pct}%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid ${info.color};box-shadow:0 1px 4px rgba(0,0,0,0.25);"></div>
@@ -4037,14 +4130,10 @@
                             <span>0 Bajo</span><span>3</span><span>6 Alto</span><span>8</span><span>11+ Extremo</span>
                         </div>
                     </div>
-
-                    <!-- Consejo -->
                     <div style="background:#fff;border-radius:8px;border-left:4px solid ${info.color};padding:10px 12px;margin-bottom:12px;">
                         <div style="font-size:10px;font-weight:700;color:#1a3a5c;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Recomendacion</div>
                         <div style="font-size:12px;color:#334155;line-height:1.6;">${info.consejo}</div>
                     </div>
-
-                    <!-- Fichas rapidas -->
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                         <div style="background:#fff;border-radius:8px;padding:10px;text-align:center;border:1px solid #e2e8f0;">
                             <div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:5px;">Protector solar</div>
@@ -4059,9 +4148,11 @@
             }
 
             // ── Tarjeta de dia completa ─────────────────────────────────────
-            function buildDayCard(diaSemana, fechaLabel, hourly, uviMax, isToday, cardId) {
-                const mañana = hourly.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8 && hh < 14; });
-                const tarde  = hourly.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 14 && hh < 20; });
+            function buildDayCard(diaSemana, fechaLabel, hourlyDay, uviMax, isToday, cardId) {
+                const mañana = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8 && hh < 14; });
+                const tarde  = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 14 && hh < 20; });
+                // Slots para el grafico: 06h-22h
+                const graficoSlots = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 6 && hh <= 22; });
 
                 const headerBg = isToday
                     ? 'linear-gradient(135deg,#0b4c90 0%,#1a6fa8 100%)'
@@ -4091,8 +4182,16 @@
                         </div>
                     </div>`;
 
+                // El grafico va dentro del panel MAR, encima de las dos columnas
+                const chartHtml = `
+                    <div style="background:#f0f7fc;padding:10px 8px 4px;border-bottom:1px solid #c9ddf0;">
+                        <div style="font-size:8px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;text-align:center;">Altura de olas · 06h a 22h (m)</div>
+                        <canvas id="wave-chart-${cardId}" style="display:block;width:100%;"></canvas>
+                    </div>`;
+
                 const panelMar = `
                     <div id="panel-mar-${cardId}" style="display:block;">
+                        ${chartHtml}
                         ${franjaHeader}
                         <div style="display:flex;">
                             ${buildCell(mañana, true)}
@@ -4158,15 +4257,20 @@
                 const arrow = document.getElementById('arrow-' + cardId);
                 if (!body) return;
                 const open = body.style.display !== 'none';
-                body.style.display  = open ? 'none' : 'block';
+                body.style.display = open ? 'none' : 'block';
                 if (arrow) arrow.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+                // Redibujar grafico al abrir
+                if (!open) {
+                    requestAnimationFrame(() => {
+                        const slots = window._mar3Slots && window._mar3Slots[cardId];
+                        if (slots) drawWaveChart('wave-chart-' + cardId, slots);
+                    });
+                }
             };
 
             // ── Carga datos ──────────────────────────────────────────────────
             async function loadMar3() {
                 try {
-                    // API marine: olas, periodo, direccion, T.agua
-                    // API forecast hourly: viento (mas fiable que marine)
                     const marineUrl   = `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
                     const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=wind_speed_10m,wind_direction_10m&daily=uv_index_max&timezone=Europe/Madrid&forecast_days=4`;
 
@@ -4174,7 +4278,7 @@
                     const marData = await marRes.json();
                     const fcData  = await fcRes.json();
 
-                    // Construir lookup de viento por clave "YYYY-MM-DDTHH:00"
+                    // Lookup viento por timestamp
                     const windLookup = {};
                     if (fcData.hourly?.time) {
                         fcData.hourly.time.forEach((t, i) => {
@@ -4185,7 +4289,7 @@
                         });
                     }
 
-                    const times = marData.hourly.time;
+                    const times  = marData.hourly.time;
                     const hourly = times.map((t, i) => {
                         const w = windLookup[t] ?? { ws: null, wdir: null };
                         return {
@@ -4207,6 +4311,7 @@
                         });
                     }
 
+                    window._mar3Slots = {};
                     const now   = new Date();
                     const cards = document.getElementById('mar3-cards');
                     if (!cards) return;
@@ -4221,11 +4326,27 @@
                         const fecha   = d.toLocaleDateString('es-ES', { day:'numeric', month:'long', year:'numeric' });
                         const uviMax  = uviByDate[ds] ?? null;
                         const cardId  = 'day' + off;
+
+                        // Guardar slots para redibujo tras acordeon
+                        window._mar3Slots[cardId] = slots.filter(h => {
+                            const hh = new Date(h.time).getHours();
+                            return hh >= 6 && hh <= 22;
+                        });
+
                         cards.innerHTML += buildDayCard(diaName, fecha, slots, uviMax, off === 0, cardId);
                     }
 
                     const loading = document.getElementById('mar3-loading');
                     if (loading) loading.style.display = 'none';
+
+                    // Dibujar graficos tras render
+                    requestAnimationFrame(() => {
+                        for (let off = 0; off < 3; off++) {
+                            const cardId = 'day' + off;
+                            const slots  = window._mar3Slots[cardId];
+                            if (slots) drawWaveChart('wave-chart-' + cardId, slots);
+                        }
+                    });
 
                 } catch(e) {
                     const loading = document.getElementById('mar3-loading');
