@@ -1627,7 +1627,6 @@
                 canvas.style.width  = W + 'px';
                 canvas.style.height = H + 'px';
                 canvas.style.display = 'block';
-                canvas.style.margin  = '0 auto';
                 const ctx = canvas.getContext('2d');
                 ctx.scale(dpr, dpr);
 
@@ -4227,7 +4226,9 @@
                         <div style="text-align:center;padding:0 10px 4px;font-size:10px;font-weight:700;color:#0ea5e9;letter-spacing:1px;text-transform:uppercase;">
                             ${avgSST !== null ? 'TEMPERATURA DEL AGUA  '+avgSST+'°C' : ''}
                         </div>
-                        <canvas id="wave-chart-${cardId}" style="display:block;width:100%;"></canvas>
+                        <div style="display:flex;justify-content:center;">
+                            <canvas id="wave-chart-${cardId}" style="display:block;"></canvas>
+                        </div>
                         <div style="display:flex;">
                             ${buildCell(f1, bdr)}
                             ${buildCell(f2, bdr)}
@@ -4272,10 +4273,11 @@
                     ${legendaHtml}`;
                 if (isToday) {
                     return `<div style="border-bottom:2px solid #c9ddf0;background:#fff;" id="card-${cardId}">
-                        <div style="background:${headerBg};padding:10px 16px;">
-                            <div style="font-size:14px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">${diaSemana}</div>
+                        <div onclick="mar3ToggleCard('${cardId}')" style="background:${headerBg};padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
+                            <div style="font-size:14px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">${diaSemana} <span style="font-size:10px;font-weight:600;opacity:0.7;margin-left:6px;">HOY</span></div>
+                            <span id="arrow-${cardId}" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;transform:rotate(180deg);">&#9660;</span>
                         </div>
-                        <div id="body-${cardId}">${bodyHtml}</div>
+                        <div id="body-${cardId}" style="overflow:hidden;">${bodyHtml}</div>
                     </div>`;
                 } else {
                     return `<div style="border-bottom:2px solid #c9ddf0;background:#fff;" id="card-${cardId}">
@@ -4294,11 +4296,16 @@
                 const body  = document.getElementById('body-' + cardId);
                 const arrow = document.getElementById('arrow-' + cardId);
                 if (!body) return;
-                const open = body.style.display !== 'none';
-                body.style.display = open ? 'none' : 'block';
-                if (arrow) arrow.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
-                // Redibujar grafico al abrir
-                if (!open) {
+                // Use max-height for smooth slide animation
+                const isOpen = body.style.maxHeight && body.style.maxHeight !== '0px';
+                if (isOpen) {
+                    body.style.maxHeight = '0px';
+                    body.style.overflow = 'hidden';
+                    if (arrow) arrow.style.transform = 'rotate(0deg)';
+                } else {
+                    body.style.maxHeight = body.scrollHeight + 'px';
+                    body.style.overflow = 'hidden';
+                    if (arrow) arrow.style.transform = 'rotate(180deg)';
                     requestAnimationFrame(() => {
                         const slots = window._mar3Slots && window._mar3Slots[cardId];
                         if (slots) drawWaveChart('wave-chart-' + cardId, slots);
@@ -4383,12 +4390,27 @@
                     const loading = document.getElementById('mar3-loading');
                     if (loading) loading.style.display = 'none';
 
-                    // Dibujar graficos tras render
+                    // Init slide state and draw charts
                     requestAnimationFrame(() => {
                         for (let off = 0; off < 3; off++) {
                             const cardId = 'day' + off;
-                            const slots  = window._mar3Slots[cardId];
-                            if (slots) drawWaveChart('wave-chart-' + cardId, slots);
+                            const body = document.getElementById('body-' + cardId);
+                            const arrow = document.getElementById('arrow-' + cardId);
+                            if (body) {
+                                if (off === 0) {
+                                    // Today: open
+                                    body.style.transition = 'max-height 0.4s ease';
+                                    body.style.maxHeight = body.scrollHeight + 'px';
+                                } else {
+                                    // Other days: closed
+                                    body.style.transition = 'max-height 0.4s ease';
+                                    body.style.maxHeight = '0px';
+                                    body.style.overflow = 'hidden';
+                                    if (arrow) arrow.style.transform = 'rotate(0deg)';
+                                }
+                            }
+                            const slots = window._mar3Slots[cardId];
+                            if (slots && off === 0) drawWaveChart('wave-chart-' + cardId, slots);
                         }
                     });
 
