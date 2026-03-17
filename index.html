@@ -3958,13 +3958,29 @@
             }
             function avg(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null; }
 
+            // weatherCode emoji pequeño para el gráfico
+            function wCodeEmoji(code) {
+                if (code === null || code === undefined) return '';
+                if (code === 0)  return '☀️';
+                if (code <= 2)   return '🌤️';
+                if (code === 3)  return '☁️';
+                if (code <= 49)  return '🌫️';
+                if (code <= 67)  return '🌧️';
+                if (code <= 77)  return '❄️';
+                if (code <= 82)  return '🌦️';
+                if (code <= 86)  return '🌨️';
+                if (code <= 99)  return '⛈️';
+                return '🌡️';
+            }
+
             // ── Grafico de olas (canvas) ────────────────────────────────────
             function drawWaveChart(canvasId, slots) {
                 const canvas = document.getElementById(canvasId);
                 if (!canvas) return;
                 const dpr = window.devicePixelRatio || 1;
+                const ICON_H = 20;
                 const W   = canvas.parentElement.clientWidth || 520;
-                const H   = 95;
+                const H   = 110 + ICON_H;
                 canvas.width  = W * dpr;
                 canvas.height = H * dpr;
                 canvas.style.width  = W + 'px';
@@ -3972,17 +3988,21 @@
                 const ctx = canvas.getContext('2d');
                 ctx.scale(dpr, dpr);
 
-                // Solo horas con datos
-                const pts = slots.filter(s => s.wh !== null && s.wh !== undefined);
+                // Solo horas 08-20 con datos
+                const TARGET_H = [8,9,10,11,12,13,14,15,16,17,18,19,20];
+                const pts = slots.filter(s => {
+                    const hh = new Date(s.time).getHours();
+                    return TARGET_H.includes(hh) && s.wh !== null && s.wh !== undefined;
+                });
                 if (pts.length < 2) { ctx.fillStyle='#f0f6fa'; ctx.fillRect(0,0,W,H); return; }
 
-                const PAD = { t:14, r:8, b:20, l:30 };
+                const PAD = { t: ICON_H + 14, r:12, b:22, l:32 };
                 const cw  = W - PAD.l - PAD.r;
                 const ch  = H - PAD.t - PAD.b;
 
                 const vals   = pts.map(p => p.wh);
                 const vMin   = 0;
-                const vMax   = Math.max(...vals) * 1.25 || 1;
+                const vMax   = Math.max(...vals) * 1.3 || 1;
                 const xPos   = i => PAD.l + (i / (pts.length - 1)) * cw;
                 const yPos   = v => PAD.t + ch - ((v - vMin) / (vMax - vMin)) * ch;
 
@@ -3990,18 +4010,23 @@
                 ctx.fillStyle = '#f0f7fc';
                 ctx.fillRect(0, 0, W, H);
 
-                // Linea de cuadricula (0)
-                ctx.beginPath();
-                ctx.moveTo(PAD.l, yPos(0));
-                ctx.lineTo(PAD.l + cw, yPos(0));
-                ctx.strokeStyle = 'rgba(44,74,110,0.1)';
-                ctx.lineWidth   = 1;
-                ctx.stroke();
+                // Lineas guia horizontales
+                for (let n = 0; n <= 3; n++) {
+                    const v = (vMax / 3) * n;
+                    ctx.beginPath();
+                    ctx.moveTo(PAD.l, yPos(v));
+                    ctx.lineTo(PAD.l + cw, yPos(v));
+                    ctx.strokeStyle = n === 0 ? 'rgba(44,74,110,0.2)' : 'rgba(44,74,110,0.06)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash(n === 0 ? [] : [3,3]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
 
                 // Area bajo la curva
                 const grad = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ch);
-                grad.addColorStop(0, 'rgba(14,165,233,0.45)');
-                grad.addColorStop(1, 'rgba(14,165,233,0.05)');
+                grad.addColorStop(0, 'rgba(14,165,233,0.5)');
+                grad.addColorStop(1, 'rgba(14,165,233,0.04)');
                 ctx.beginPath();
                 ctx.moveTo(xPos(0), yPos(vals[0]));
                 for (let i = 1; i < pts.length; i++) {
@@ -4022,29 +4047,56 @@
                     ctx.bezierCurveTo(xc, yPos(vals[i-1]), xc, yPos(vals[i]), xPos(i), yPos(vals[i]));
                 }
                 ctx.strokeStyle = '#0ea5e9';
-                ctx.lineWidth   = 2;
+                ctx.lineWidth   = 2.5;
                 ctx.lineJoin    = 'round';
                 ctx.stroke();
 
-                // Etiquetas eje Y (izquierda)
-                ctx.font      = '8px Inter,sans-serif';
-                ctx.fillStyle = '#94a3b8';
-                ctx.textAlign = 'right';
-                const yTicks  = [0, vMax * 0.5, vMax];
-                yTicks.forEach(v => {
-                    ctx.fillText(v.toFixed(1)+'m', PAD.l - 3, yPos(v) + 3);
+                // Puntos en horas clave
+                const keyHours = [8,10,12,14,16,18,20];
+                keyHours.forEach(kh => {
+                    const idx = pts.findIndex(p => new Date(p.time).getHours() === kh);
+                    if (idx === -1) return;
+                    ctx.beginPath();
+                    ctx.arc(xPos(idx), yPos(vals[idx]), 3, 0, Math.PI*2);
+                    ctx.fillStyle = '#0ea5e9';
+                    ctx.fill();
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
                 });
 
-                // Etiquetas eje X: horas fijas 08,10,12,14,16,18,20
-                ctx.textAlign = 'center';
-                ctx.font      = '8px Inter,sans-serif';
+                // Etiquetas eje Y
+                ctx.font = '7.5px Inter,sans-serif';
                 ctx.fillStyle = '#94a3b8';
-                const targetHours = [8, 10, 12, 14, 16, 18, 20];
-                targetHours.forEach(th => {
+                ctx.textAlign = 'right';
+                [0, vMax * 0.5, vMax].forEach(v => {
+                    if (v > 0) ctx.fillText(v.toFixed(1), PAD.l - 3, yPos(v) + 3);
+                });
+                ctx.font = '7px Inter,sans-serif';
+                ctx.fillStyle = '#b0bec5';
+                ctx.fillText('m', PAD.l - 3, PAD.t - 4);
+
+                // Etiquetas eje X
+                ctx.textAlign = 'center';
+                ctx.font = '8px Inter,sans-serif';
+                keyHours.forEach(th => {
                     const idx = pts.findIndex(p => new Date(p.time).getHours() === th);
                     if (idx !== -1) {
-                        ctx.fillText(th + 'h', xPos(idx), H - PAD.b + 11);
+                        ctx.fillStyle = '#64748b';
+                        ctx.fillText(th + 'h', xPos(idx), H - 5);
                     }
+                });
+
+                // Iconos del tiempo encima del gráfico para horas clave
+                ctx.font = '11px serif';
+                ctx.textAlign = 'center';
+                keyHours.forEach(th => {
+                    const idx = pts.findIndex(p => new Date(p.time).getHours() === th);
+                    if (idx === -1) return;
+                    const pt = pts[idx];
+                    const emoji = wCodeEmoji(pt.wcode ?? null);
+                    if (!emoji) return;
+                    ctx.fillText(emoji, xPos(idx), ICON_H - 2);
                 });
             }
 
@@ -4097,7 +4149,6 @@
                 return `<div style="flex:1;${borderR}padding:12px 12px 8px;background:#f8fbfe;display:flex;flex-direction:column;">
                     ${row('Altura de olas', oleajeTxt, wlBadge + wpBadge)}
                     ${row('Viento', vientoTxt, wdlBadge)}
-                    ${row('Temperatura del agua', sstTxt, `<span style="font-size:9px;color:#64748b;">superficie del mar</span>`)}
                     <div style="margin-top:8px;text-align:center;">
                         <span style="font-size:10px;font-weight:800;color:#fff;background:${bath.color};padding:4px 14px;border-radius:6px;display:inline-block;letter-spacing:0.3px;">Baño: ${bath.txt}</span>
                     </div>
@@ -4151,72 +4202,92 @@
             function buildDayCard(diaSemana, hourlyDay, uviMax, isToday, cardId) {
                 const mañana = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8 && hh < 14; });
                 const tarde  = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 14 && hh < 20; });
-                // Slots para el grafico: 08h-20h (cada 3 horas)
-                const graficoSlots = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8 && hh <= 20; });
+                const diaSlots = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8 && hh <= 20; });
 
                 const headerBg = isToday
                     ? 'linear-gradient(135deg,#0b4c90 0%,#1a6fa8 100%)'
                     : 'linear-gradient(135deg,#1e6fa0 0%,#2c85bb 100%)';
 
-                const tabsHtml = `
-                    <div style="display:flex;background:#dce8f4;border-bottom:1px solid #c9ddf0;">
-                        <button onclick="mar3SwitchTab('${cardId}','mar')"
-                            id="tab-mar-${cardId}"
-                            style="flex:1;padding:8px 4px;font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#0b4c90;border-bottom:3px solid #0b4c90;margin-bottom:-1px;transition:all .2s;">
-                            MAR Y OLEAJE
-                        </button>
-                        <button onclick="mar3SwitchTab('${cardId}','uvi')"
-                            id="tab-uvi-${cardId}"
-                            style="flex:1;padding:8px 4px;font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:3px solid transparent;margin-bottom:-1px;transition:all .2s;">
-                            INDICE UV
-                        </button>
+                // ── Calculos del dia completo ──
+                const allWH  = diaSlots.map(s=>s.wh).filter(v=>v!==null);
+                const allWS  = diaSlots.map(s=>s.ws).filter(v=>v!==null);
+                const allSST = diaSlots.map(s=>s.sst).filter(v=>v!==null);
+                const maxWH  = allWH.length ? Math.max(...allWH) : null;
+                const maxWS  = allWS.length ? Math.round(Math.max(...allWS)) : null;
+                const avgSST = allSST.length ? Math.round(allSST.reduce((a,b)=>a+b,0)/allSST.length) : null;
+                const wlMax  = waveLabel(maxWH ?? 0);
+                const wdlMax = windLabel(maxWS ?? 0);
+
+                // ── Galletas (pills) con máximos del día ──
+                const pillsHtml = `
+                    <div style="display:flex;gap:8px;padding:8px 10px;background:#e8f4fd;border-bottom:1px solid #c9ddf0;flex-wrap:wrap;align-items:center;">
+                        <div style="display:flex;align-items:center;gap:5px;background:#fff;border-radius:20px;padding:4px 10px;border:1.5px solid #c9ddf0;box-shadow:0 1px 3px rgba(14,165,233,0.08);">
+                            <span style="font-size:13px;">🌊</span>
+                            <div>
+                                <div style="font-size:7.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">Ola máx.</div>
+                                <div style="font-size:12px;font-weight:900;color:#0b4c90;line-height:1.1;">${maxWH !== null ? maxWH.toFixed(2)+' m' : '—'} <span style="font-size:9px;font-weight:700;color:#fff;background:${wlMax.color};padding:1px 5px;border-radius:3px;vertical-align:middle;">${wlMax.txt}</span></div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:5px;background:#fff;border-radius:20px;padding:4px 10px;border:1.5px solid #c9ddf0;box-shadow:0 1px 3px rgba(14,165,233,0.08);">
+                            <span style="font-size:13px;">💨</span>
+                            <div>
+                                <div style="font-size:7.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">Viento máx.</div>
+                                <div style="font-size:12px;font-weight:900;color:#0b4c90;line-height:1.1;">${maxWS !== null ? maxWS+' km/h' : '—'} <span style="font-size:9px;font-weight:700;color:#fff;background:${wdlMax.color};padding:1px 5px;border-radius:3px;vertical-align:middle;">${wdlMax.txt}</span></div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:5px;background:#fff;border-radius:20px;padding:4px 10px;border:1.5px solid #c9ddf0;box-shadow:0 1px 3px rgba(14,165,233,0.08);">
+                            <span style="font-size:13px;">🌡️</span>
+                            <div>
+                                <div style="font-size:7.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">T. Agua</div>
+                                <div style="font-size:12px;font-weight:900;color:#0ea5e9;line-height:1.1;">${avgSST !== null ? avgSST+'°C' : '—'}</div>
+                            </div>
+                        </div>
                     </div>`;
 
-                const franjaHeader = `
-                    <div style="display:flex;background:#e8f1f8;border-bottom:1px solid #c9ddf0;">
-                        <div style="flex:1;text-align:center;padding:6px 4px;border-right:1px solid #c9ddf0;">
-                            <span style="font-size:10px;font-weight:800;color:#0b4c90;letter-spacing:0.5px;">08:00 – 14:00</span>
-                        </div>
-                        <div style="flex:1;text-align:center;padding:6px 4px;">
-                            <span style="font-size:10px;font-weight:800;color:#0b4c90;letter-spacing:0.5px;">14:00 – 20:00</span>
-                        </div>
-                    </div>`;
-
-                // El grafico va dentro del panel MAR, encima de las dos columnas
+                // ── Gráfico de olas ──
                 const chartHtml = `
-                    <div style="background:#f0f7fc;padding:10px 8px 4px;border-bottom:1px solid #c9ddf0;">
-                        <div style="font-size:8px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:2px;text-align:center;">📊 ALTURA OLAS · GRÁFICO CADA 2 HORAS</div>
-                        <div style="display:flex;justify-content:space-between;padding:2px 4px 0;font-size:9px;font-weight:800;color:#0b4c90;letter-spacing:0.3px;">
-                            <span>08</span><span>10</span><span>12</span><span>14</span><span>16</span><span>18</span><span>20</span>
-                        </div>
+                    <div style="background:#f0f7fc;padding:8px 0 0;border-bottom:1px solid #c9ddf0;">
+                        <div style="font-size:8px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:2px;text-align:center;">📊 ALTURA DE OLAS (m) · 08h–20h</div>
                         <canvas id="wave-chart-${cardId}" style="display:block;width:100%;"></canvas>
                     </div>`;
 
-                const panelMar = `
-                    <div id="panel-mar-${cardId}" style="display:block;">
-                        ${chartHtml}
-                        ${franjaHeader}
-                        <div style="display:flex;">
-                            ${buildCell(mañana, true)}
-                            ${buildCell(tarde, false)}
+                // ── Franjas mañana/tarde ──
+                const franjaHeader = `
+                    <div style="display:flex;background:#e8f1f8;border-bottom:1px solid #c9ddf0;">
+                        <div style="flex:1;text-align:center;padding:6px 4px;border-right:1px solid #c9ddf0;">
+                            <span style="font-size:10px;font-weight:800;color:#0b4c90;letter-spacing:0.5px;">☀️ 08:00 – 14:00</span>
+                        </div>
+                        <div style="flex:1;text-align:center;padding:6px 4px;">
+                            <span style="font-size:10px;font-weight:800;color:#0b4c90;letter-spacing:0.5px;">🌅 14:00 – 20:00</span>
                         </div>
                     </div>`;
 
-                const panelUvi = `
-                    <div id="panel-uvi-${cardId}" style="display:none;">
+                // ── UVI integrado (sin pestaña) ──
+                const uviHtml = `
+                    <div style="border-top:2px solid #e2f0fb;">
+                        <div style="padding:6px 16px;background:#dbeafe;display:flex;align-items:center;gap:6px;">
+                            <span style="font-size:11px;">☀️</span>
+                            <span style="font-size:9px;font-weight:800;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;">Índice UV del día</span>
+                        </div>
                         ${buildUviPanel(uviMax)}
                     </div>`;
+
+                const bodyHtml = `
+                    ${pillsHtml}
+                    ${chartHtml}
+                    ${franjaHeader}
+                    <div style="display:flex;">
+                        ${buildCell(mañana, true)}
+                        ${buildCell(tarde, false)}
+                    </div>
+                    ${uviHtml}`;
 
                 if (isToday) {
                     return `<div style="border-bottom:2px solid #c9ddf0;background:#fff;" id="card-${cardId}">
                         <div style="background:${headerBg};padding:10px 16px;">
                             <div style="font-size:14px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">${diaSemana}</div>
                         </div>
-                        ${tabsHtml}
-                        <div id="body-${cardId}">
-                            ${panelMar}
-                            ${panelUvi}
-                        </div>
+                        <div id="body-${cardId}">${bodyHtml}</div>
                     </div>`;
                 } else {
                     return `<div style="border-bottom:2px solid #c9ddf0;background:#fff;" id="card-${cardId}">
@@ -4224,30 +4295,12 @@
                             <div style="font-size:14px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">${diaSemana}</div>
                             <span id="arrow-${cardId}" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;">&#9660;</span>
                         </div>
-                        <div id="body-${cardId}" style="display:none;overflow:hidden;">
-                            ${tabsHtml}
-                            ${panelMar}
-                            ${panelUvi}
-                        </div>
+                        <div id="body-${cardId}" style="display:none;overflow:hidden;">${bodyHtml}</div>
                     </div>`;
                 }
             }
 
-            // ── Pestanas y acordeon ──────────────────────────────────────────
-            window.mar3SwitchTab = function(cardId, tab) {
-                const pMar = document.getElementById('panel-mar-' + cardId);
-                const pUvi = document.getElementById('panel-uvi-' + cardId);
-                const tMar = document.getElementById('tab-mar-' + cardId);
-                const tUvi = document.getElementById('tab-uvi-' + cardId);
-                if (!pMar || !pUvi) return;
-                pMar.style.display = tab === 'mar' ? 'block' : 'none';
-                pUvi.style.display = tab === 'uvi' ? 'block' : 'none';
-                tMar.style.color        = tab === 'mar' ? '#0b4c90' : '#64748b';
-                tMar.style.borderBottom = tab === 'mar' ? '3px solid #0b4c90' : '3px solid transparent';
-                tUvi.style.color        = tab === 'uvi' ? '#0b4c90' : '#64748b';
-                tUvi.style.borderBottom = tab === 'uvi' ? '3px solid #0b4c90' : '3px solid transparent';
-            };
-
+            // ── Acordeon ──────────────────────────────────────────
             window.mar3ToggleCard = function(cardId) {
                 const body  = document.getElementById('body-' + cardId);
                 const arrow = document.getElementById('arrow-' + cardId);
@@ -4268,7 +4321,7 @@
             async function loadMar3() {
                 try {
                     const marineUrl   = `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
-                    const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=wind_speed_10m,wind_direction_10m&daily=uv_index_max&timezone=Europe/Madrid&forecast_days=4`;
+                    const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=wind_speed_10m,wind_direction_10m,weathercode&daily=uv_index_max&timezone=Europe/Madrid&forecast_days=4`;
 
                     const [marRes, fcRes] = await Promise.all([fetch(marineUrl), fetch(forecastUrl)]);
                     const marData = await marRes.json();
@@ -4279,8 +4332,9 @@
                     if (fcData.hourly?.time) {
                         fcData.hourly.time.forEach((t, i) => {
                             windLookup[t] = {
-                                ws:   fcData.hourly.wind_speed_10m?.[i]    ?? null,
-                                wdir: fcData.hourly.wind_direction_10m?.[i] ?? null,
+                                ws:    fcData.hourly.wind_speed_10m?.[i]    ?? null,
+                                wdir:  fcData.hourly.wind_direction_10m?.[i] ?? null,
+                                wcode: fcData.hourly.weathercode?.[i]        ?? null,
                             };
                         });
                     }
@@ -4289,13 +4343,14 @@
                     const hourly = times.map((t, i) => {
                         const w = windLookup[t] ?? { ws: null, wdir: null };
                         return {
-                            time: t,
-                            wh:   marData.hourly.wave_height?.[i]             ?? 0,
-                            wp:   marData.hourly.wave_period?.[i]             ?? null,
-                            wd:   marData.hourly.wave_direction?.[i]          ?? null,
-                            sst:  marData.hourly.sea_surface_temperature?.[i] ?? null,
-                            ws:   w.ws,
-                            wdir: w.wdir,
+                            time:  t,
+                            wh:    marData.hourly.wave_height?.[i]             ?? 0,
+                            wp:    marData.hourly.wave_period?.[i]             ?? null,
+                            wd:    marData.hourly.wave_direction?.[i]          ?? null,
+                            sst:   marData.hourly.sea_surface_temperature?.[i] ?? null,
+                            ws:    w.ws,
+                            wdir:  w.wdir,
+                            wcode: w.wcode,
                         };
                     });
 
