@@ -4125,16 +4125,19 @@
                     : '—';
 
                 return `<div style="flex:1;${borderStyle}padding:6px 5px 8px;background:#f0f7fc;display:flex;flex-direction:column;align-items:center;gap:4px;">
-                    <!-- Estado mar + oleaje -->
                     <div style="text-align:center;width:100%;">
+                        <div style="font-size:7px;font-weight:700;color:#6a8aab;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;">Mar</div>
                         <div style="font-size:9.5px;font-weight:900;color:#fff;background:${wl.color};padding:3px 0;border-radius:6px;width:100%;box-sizing:border-box;">${wl.txt}</div>
                         <div style="font-size:10.5px;font-weight:800;color:#1a3a5c;margin-top:3px;">${oleajeTxt}</div>
-                        ${avgWP !== null ? `<div style="font-size:8px;color:#94a3b8;">T ${avgWP}s</div>` : ''}
                     </div>
-                    <!-- Viento: solo estado -->
-                    <div style="font-size:9px;font-weight:800;color:#fff;background:${wdl.color};padding:2px 0;border-radius:6px;width:100%;text-align:center;box-sizing:border-box;">${wdl.txt}</div>
-                    <!-- Baño -->
-                    <div style="font-size:9px;font-weight:800;color:#fff;background:${bath.color};padding:2px 0;border-radius:6px;width:100%;text-align:center;box-sizing:border-box;">${bath.txt}</div>
+                    <div style="text-align:center;width:100%;">
+                        <div style="font-size:7px;font-weight:700;color:#6a8aab;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;">Viento</div>
+                        <div style="font-size:9px;font-weight:800;color:#fff;background:${wdl.color};padding:2px 0;border-radius:6px;width:100%;text-align:center;box-sizing:border-box;">${wdl.txt}</div>
+                    </div>
+                    <div style="text-align:center;width:100%;">
+                        <div style="font-size:7px;font-weight:700;color:#6a8aab;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;">Baño</div>
+                        <div style="font-size:9px;font-weight:800;color:#fff;background:${bath.color};padding:2px 0;border-radius:6px;width:100%;text-align:center;box-sizing:border-box;">${bath.txt}</div>
+                    </div>
                 </div>`;
             }
 
@@ -4223,7 +4226,6 @@
                 const bdr = 'border-right:1px solid rgba(44,74,110,0.15);';
                 const chartHtml = `
                     <div style="background:#f0f7fc;padding:8px 0 0;">
-                        <div style="font-size:7.5px;font-weight:700;color:#6a8aab;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;text-align:center;">ALTURA DE OLAS (m) · 08h–20h</div>
                         <canvas id="wave-chart-${cardId}" style="display:block;width:100%;"></canvas>
                         <div style="display:flex;">
                             ${buildCell(f1, bdr)}
