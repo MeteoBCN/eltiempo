@@ -4136,13 +4136,12 @@
                 const precColor  = maxPrec >= 70 ? '#3b82f6' : maxPrec >= 40 ? '#60a5fa' : maxPrec >= 20 ? '#93c5fd' : '#cbd5e1';
                 const tempColor  = avgTemp >= 32 ? '#ef4444' : avgTemp >= 26 ? '#f97316' : avgTemp >= 20 ? '#10b981' : '#3b82f6';
 
-                return `<div style="flex:1;${borderStyle}padding:6px 5px 8px;background:#f0f7fc;display:flex;flex-direction:column;align-items:center;gap:4px;">
+                return `<div style="flex:1;${borderStyle}padding:6px 5px 10px;background:#f0f7fc;display:flex;flex-direction:column;align-items:center;gap:7px;">
                     ${pill('Mar',    wl.txt,                                          wl.color,   '#fff')}
                     ${pill('Viento', wdl.txt,                                         wdl.color,  '#fff')}
                     ${pill('Baño',   bath.txt,                                        bath.color, '#fff')}
                     ${pill('Temp.',  avgTemp !== null ? avgTemp+'°C' : '—',           tempColor,  '#fff')}
                     ${pill('Lluvia', maxPrec !== null ? maxPrec+'%' : '—',            precColor,  '#fff')}
-                    ${pill('Alerta', flag.txt,                                        flag.color, '#fff')}
                 </div>`;
             }
 
@@ -4213,17 +4212,8 @@
                 // ── Galletas resumen dia (sin emojis) ──
                 const pillsHtml = `
                     <div style="display:flex;gap:6px;padding:7px 10px;background:#e8f4fd;border-bottom:1px solid #c9ddf0;flex-wrap:wrap;align-items:center;">
-                        <div style="background:#fff;border-radius:16px;padding:4px 11px;border:1.5px solid #c9ddf0;">
-                            <div style="font-size:7px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">Ola máx.</div>
-                            <div style="font-size:11px;font-weight:900;color:#0b4c90;line-height:1.2;">${maxWH !== null ? maxWH.toFixed(2)+' m' : '—'} <span style="font-size:8.5px;font-weight:800;color:#fff;background:${wlMax.color};padding:1px 5px;border-radius:3px;vertical-align:middle;">${wlMax.txt}</span></div>
-                        </div>
-                        <div style="background:#fff;border-radius:16px;padding:4px 11px;border:1.5px solid #c9ddf0;">
-                            <div style="font-size:7px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">Viento máx.</div>
-                            <div style="font-size:11px;font-weight:900;color:#0b4c90;line-height:1.2;">${maxWS !== null ? maxWS+' km/h' : '—'} <span style="font-size:8.5px;font-weight:800;color:#fff;background:${wdlMax.color};padding:1px 5px;border-radius:3px;vertical-align:middle;">${wdlMax.txt}</span></div>
-                        </div>
-                        <div style="background:#fff;border-radius:16px;padding:4px 11px;border:1.5px solid #c9ddf0;">
-                            <div style="font-size:7px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">T. Agua</div>
-                            <div style="font-size:11px;font-weight:900;color:#0ea5e9;line-height:1.2;">${avgSST !== null ? avgSST+'°C' : '—'}</div>
+                        <div style="padding:4px 2px;">
+                            <span style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.6px;">Temperatura del agua </span><span style="font-size:13px;font-weight:900;color:#0ea5e9;">${avgSST !== null ? avgSST+'°C' : '—'}</span>
                         </div>
                     </div>`;
 
