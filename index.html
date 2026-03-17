@@ -4145,13 +4145,13 @@
                 const skyIconHtml = reprWcode !== null ? getSvgIcon(reprWcode, 32, false) : '';
 
                 return `<div style="flex:1;${borderStyle}padding:6px 5px 10px;background:#f0f7fc;display:flex;flex-direction:column;align-items:center;gap:7px;">
-                    <div style="text-align:center;width:100%;padding-top:4px;">
+                    ${pill('Ba\u00f1o', bath.txt, bath.color, '#fff')}
+                    <div style="text-align:center;width:100%;padding-top:2px;">
                         <div style="display:flex;justify-content:center;align-items:center;">${skyIconHtml}</div>
                         <div style="font-size:13px;font-weight:900;color:#374151;margin-top:3px;">${avgTemp !== null ? avgTemp+'\u00b0C' : '\u2014'}</div>
                     </div>
                     ${pill('Mar',    wl.txt,   wl.color,   '#fff')}
                     ${pill('Viento', wdl.txt,  wdl.color,  '#fff')}
-                    ${pill('Ba\u00f1o',   bath.txt, bath.color, '#fff')}
                     ${pill('Lluvia', maxPrec !== null ? maxPrec+'%' : '\u2014', precColor, '#fff')}
                 </div>`;
             }
@@ -4220,18 +4220,13 @@
                 const wlMax  = waveLabel(maxWH ?? 0);
                 const wdlMax = windLabel(maxWS ?? 0);
 
-                // ── Galletas resumen dia (sin emojis) ──
-                const pillsHtml = `
-                    <div style="display:flex;gap:6px;padding:7px 10px;background:#e8f4fd;border-bottom:1px solid #c9ddf0;flex-wrap:wrap;align-items:center;">
-                        <div style="padding:4px 2px;">
-                            <span style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.6px;">Temperatura del agua </span><span style="font-size:13px;font-weight:900;color:#0ea5e9;">${avgSST !== null ? avgSST+'°C' : '—'}</span>
-                        </div>
-                    </div>`;
-
                 // ── Grafico + 3 columnas como bloque unico ──
                 const bdr = 'border-right:1px solid rgba(44,74,110,0.15);';
                 const chartHtml = `
                     <div style="background:#f0f7fc;padding:8px 0 0;">
+                        <div style="text-align:right;padding:0 10px 4px;font-size:11px;font-weight:700;color:#0ea5e9;letter-spacing:0.3px;">
+                            ${avgSST !== null ? '🌊 T. agua: '+avgSST+'°C' : ''}
+                        </div>
                         <canvas id="wave-chart-${cardId}" style="display:block;width:100%;"></canvas>
                         <div style="display:flex;">
                             ${buildCell(f1, bdr)}
@@ -4272,7 +4267,6 @@
                     + '<div style="display:flex;flex-direction:column;gap:4px;">' + legendRowsHtml + '</div>'
                     + '</div>';
                 const bodyHtml = `
-                    ${pillsHtml}
                     ${chartHtml}
                     ${uviHtml}
                     ${legendaHtml}`;
