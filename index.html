@@ -3978,7 +3978,7 @@
                 const canvas = document.getElementById(canvasId);
                 if (!canvas) return;
                 const dpr = window.devicePixelRatio || 1;
-                const ICON_H = 20;
+                const ICON_H = 0;
                 const W   = canvas.parentElement.clientWidth || 520;
                 const H   = 110 + ICON_H;
                 canvas.width  = W * dpr;
@@ -4042,7 +4042,7 @@
                 // Texto "ALTURA OLAS" dentro del degradado
                 ctx.save();
                 ctx.textAlign = 'center';
-                ctx.font = 'bold 9px Inter,sans-serif';
+                ctx.font = 'bold 13px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(14,100,180,0.38)';
                 ctx.fillText('ALTURA OLAS', PAD.l + cw / 2, PAD.t + ch * 0.65);
                 ctx.restore();
@@ -4095,17 +4095,7 @@
                     }
                 });
 
-                // Iconos del tiempo encima del gráfico para horas clave
-                ctx.font = '11px serif';
-                ctx.textAlign = 'center';
-                keyHours.forEach(th => {
-                    const idx = pts.findIndex(p => new Date(p.time).getHours() === th);
-                    if (idx === -1) return;
-                    const pt = pts[idx];
-                    const emoji = wCodeEmoji(pt.wcode ?? null);
-                    if (!emoji) return;
-                    ctx.fillText(emoji, xPos(idx), ICON_H - 2);
-                });
+                // Iconos del tiempo encima del gráfico: eliminados
             }
 
             // ── Celda de franja (galletas compactas) ─────────────────────
@@ -4152,12 +4142,12 @@
                     wcodes2.forEach(c => { freq[c] = (freq[c]||0)+1; });
                     reprWcode = parseInt(Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0]);
                 }
-                const skyEmoji = reprWcode !== null ? wCodeEmoji(reprWcode) : '\u2014';
+                const skyIconHtml = reprWcode !== null ? getSvgIcon(reprWcode, 32, false) : '';
 
                 return `<div style="flex:1;${borderStyle}padding:6px 5px 10px;background:#f0f7fc;display:flex;flex-direction:column;align-items:center;gap:7px;">
                     <div style="text-align:center;width:100%;padding-top:4px;">
-                        <div style="font-size:22px;line-height:1.1;">${skyEmoji}</div>
-                        <div style="font-size:13px;font-weight:900;color:${tempColor};margin-top:3px;">${avgTemp !== null ? avgTemp+'\u00b0C' : '\u2014'}</div>
+                        <div style="display:flex;justify-content:center;align-items:center;">${skyIconHtml}</div>
+                        <div style="font-size:13px;font-weight:900;color:#374151;margin-top:3px;">${avgTemp !== null ? avgTemp+'\u00b0C' : '\u2014'}</div>
                     </div>
                     ${pill('Mar',    wl.txt,   wl.color,   '#fff')}
                     ${pill('Viento', wdl.txt,  wdl.color,  '#fff')}
