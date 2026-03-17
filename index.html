@@ -4285,7 +4285,7 @@
                             <div style="font-size:14px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">${diaSemana}</div>
                             <span id="arrow-${cardId}" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;">&#9660;</span>
                         </div>
-                        <div id="body-${cardId}" style="display:none;overflow:hidden;">${bodyHtml}</div>
+                        <div id="body-${cardId}" style="overflow:hidden;">${bodyHtml}</div>
                     </div>`;
                 }
             }
@@ -4303,13 +4303,13 @@
                     body.style.overflow = 'hidden';
                     if (arrow) arrow.style.transform = 'rotate(0deg)';
                 } else {
-                    body.style.maxHeight = body.scrollHeight + 'px';
+                    body.style.maxHeight = body._fullHeight || '2000px';
                     body.style.overflow = 'hidden';
                     if (arrow) arrow.style.transform = 'rotate(180deg)';
-                    requestAnimationFrame(() => {
+                    setTimeout(() => {
                         const slots = window._mar3Slots && window._mar3Slots[cardId];
                         if (slots) drawWaveChart('wave-chart-' + cardId, slots);
-                    });
+                    }, 50);
                 }
             };
 
@@ -4390,16 +4390,23 @@
                     const loading = document.getElementById('mar3-loading');
                     if (loading) loading.style.display = 'none';
 
-                    // Init slide state: all closed
+                    // Init slide state: measure then close all
                     requestAnimationFrame(() => {
                         for (let off = 0; off < 3; off++) {
                             const cardId = 'day' + off;
-                            const body = document.getElementById('body-' + cardId);
+                            const body  = document.getElementById('body-' + cardId);
                             const arrow = document.getElementById('arrow-' + cardId);
                             if (body) {
-                                body.style.transition = 'max-height 0.4s ease';
+                                // Store natural height for future opens
+                                body._fullHeight = body.scrollHeight + 'px';
+                                // Close immediately (no transition yet)
+                                body.style.transition = 'none';
                                 body.style.maxHeight = '0px';
                                 body.style.overflow = 'hidden';
+                                // Enable transition after closing
+                                requestAnimationFrame(() => {
+                                    body.style.transition = 'max-height 0.4s ease';
+                                });
                             }
                             if (arrow) arrow.style.transform = 'rotate(0deg)';
                         }
