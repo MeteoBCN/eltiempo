@@ -4100,26 +4100,21 @@
                 });
             }
 
-            // ── Celda de franja horaria ─────────────────────────────────────
-            function buildCell(slots, isFirst) {
-                const borderR = isFirst ? 'border-right:1px solid rgba(44,74,110,0.18);' : '';
-                if (!slots.length) return `<div style="flex:1;${borderR}padding:16px 10px;text-align:center;color:#94a3b8;font-size:12px;background:#f8fbfe;">Sin datos</div>`;
+            // ── Celda de franja horaria (columna bajo gráfico) ──────────────
+            function buildCell(slots, borderStyle) {
+                if (!slots.length) return `<div style="flex:1;${borderStyle}padding:10px 6px;text-align:center;color:#94a3b8;font-size:11px;background:#f8fbfe;">Sin datos</div>`;
 
                 const whs  = slots.map(s=>s.wh).filter(v=>v!==null);
                 const wps  = slots.map(s=>s.wp).filter(v=>v!==null);
                 const wss  = slots.map(s=>s.ws).filter(v=>v!==null);
                 const wdrs = slots.map(s=>s.wdir).filter(v=>v!==null);
-                const ssts = slots.map(s=>s.sst).filter(v=>v!==null);
 
                 const avgWH  = avg(whs);
                 const minWH  = whs.length ? Math.min(...whs) : null;
                 const maxWH  = whs.length ? Math.max(...whs) : null;
                 const avgWP  = wps.length ? Math.round(avg(wps)) : null;
                 const avgWS  = wss.length ? Math.round(avg(wss)) : null;
-                const maxWS  = wss.length ? Math.round(Math.max(...wss)) : null;
                 const avgWDR = wdrs.length ? Math.round(avg(wdrs)) : null;
-                // T. agua: redondeado al entero mas cercano (14.4→14, 15.7→16)
-                const avgSST = ssts.length ? Math.round(avg(ssts)) : null;
 
                 const wl   = waveLabel(avgWH ?? 0);
                 const wdl  = windLabel(avgWS ?? 0);
@@ -4128,29 +4123,25 @@
                 const oleajeTxt = (minWH !== null && maxWH !== null)
                     ? (Math.abs(maxWH - minWH) < 0.08
                         ? minWH.toFixed(2)+' m'
-                        : minWH.toFixed(2)+'–'+maxWH.toFixed(2)+' m')
-                    : '—';
-                const maxExtra  = (maxWS && avgWS && maxWS > avgWS + 5) ? ` (max ${maxWS})` : '';
-                const dirTxt    = avgWDR !== null ? ` ${dirArrow(avgWDR)} ${dirName(avgWDR)}` : '';
-                const vientoTxt = avgWS !== null ? `${avgWS} km/h${maxExtra}${dirTxt}` : '—';
-                const sstTxt    = avgSST !== null ? avgSST + ' °C' : '—';
+                        : minWH.toFixed(2)+'\u2013'+maxWH.toFixed(2)+' m')
+                    : '\u2014';
+                const dirTxt = avgWDR !== null ? `${dirArrow(avgWDR)} ${dirName(avgWDR)}` : '';
+                const vientoKmh = avgWS !== null ? `${avgWS} km/h` : '\u2014';
 
-                const row = (label, value, sub) => `
-                    <div style="padding:7px 0;border-bottom:1px solid rgba(44,74,110,0.08);">
-                        <div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;">${label}</div>
-                        <div style="font-size:13px;font-weight:800;color:#0b4c90;line-height:1.2;">${value}</div>
-                        ${sub ? `<div style="margin-top:3px;">${sub}</div>` : ''}
-                    </div>`;
-
-                const wlBadge  = `<span style="font-size:9px;font-weight:700;color:#fff;background:${wl.color};padding:1px 7px;border-radius:4px;">${wl.txt}</span>`;
-                const wpBadge  = avgWP !== null ? `<span style="font-size:9px;color:#64748b;margin-left:5px;">periodo ${avgWP} s</span>` : '';
-                const wdlBadge = `<span style="font-size:9px;font-weight:700;color:#fff;background:${wdl.color};padding:1px 7px;border-radius:4px;">${wdl.txt}</span>`;
-
-                return `<div style="flex:1;${borderR}padding:12px 12px 8px;background:#f8fbfe;display:flex;flex-direction:column;">
-                    ${row('Altura de olas', oleajeTxt, wlBadge + wpBadge)}
-                    ${row('Viento', vientoTxt, wdlBadge)}
-                    <div style="margin-top:8px;text-align:center;">
-                        <span style="font-size:10px;font-weight:800;color:#fff;background:${bath.color};padding:4px 14px;border-radius:6px;display:inline-block;letter-spacing:0.3px;">Baño: ${bath.txt}</span>
+                return `<div style="flex:1;${borderStyle}padding:8px 5px 10px;background:#f8fbfe;display:flex;flex-direction:column;align-items:center;gap:5px;">
+                    <div style="text-align:center;width:100%;">
+                        <span style="font-size:9px;font-weight:800;color:#fff;background:${wl.color};padding:2px 8px;border-radius:10px;display:inline-block;">${wl.txt}</span>
+                        <div style="font-size:11px;font-weight:800;color:#0b4c90;margin-top:3px;">${oleajeTxt}</div>
+                        ${avgWP !== null ? `<div style="font-size:9px;color:#94a3b8;margin-top:1px;">T ${avgWP}s</div>` : ''}
+                    </div>
+                    <div style="background:#fff;border-radius:10px;border:1.5px solid rgba(44,74,110,0.15);padding:3px 6px;text-align:center;width:100%;box-sizing:border-box;">
+                        <div style="font-size:7.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.4px;">\uD83D\uDCA8 Viento</div>
+                        <div style="font-size:9px;font-weight:900;color:${wdl.color};">${wdl.txt}</div>
+                        <div style="font-size:8.5px;color:#64748b;">${vientoKmh}${dirTxt ? ' ' + dirTxt : ''}</div>
+                    </div>
+                    <div style="background:${bath.color};border-radius:10px;padding:3px 6px;text-align:center;width:100%;box-sizing:border-box;">
+                        <div style="font-size:7.5px;font-weight:700;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.4px;">\uD83C\uDFCA Ba\u00F1o</div>
+                        <div style="font-size:9px;font-weight:900;color:#fff;">${bath.txt}</div>
                     </div>
                 </div>`;
             }
@@ -4200,8 +4191,10 @@
 
             // ── Tarjeta de dia completa ─────────────────────────────────────
             function buildDayCard(diaSemana, hourlyDay, uviMax, isToday, cardId) {
-                const mañana = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8 && hh < 14; });
-                const tarde  = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 14 && hh < 20; });
+                // 3 franjas horarias bajo el grafico
+                const f1 = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8  && hh < 12; });
+                const f2 = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 12 && hh < 16; });
+                const f3 = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 16 && hh < 20; });
                 const diaSlots = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8 && hh <= 20; });
 
                 const headerBg = isToday
@@ -4218,56 +4211,60 @@
                 const wlMax  = waveLabel(maxWH ?? 0);
                 const wdlMax = windLabel(maxWS ?? 0);
 
-                // ── Galletas (pills) con máximos del día ──
+                // ── Galletas resumen dia ──
                 const pillsHtml = `
                     <div style="display:flex;gap:8px;padding:8px 10px;background:#e8f4fd;border-bottom:1px solid #c9ddf0;flex-wrap:wrap;align-items:center;">
                         <div style="display:flex;align-items:center;gap:5px;background:#fff;border-radius:20px;padding:4px 10px;border:1.5px solid #c9ddf0;box-shadow:0 1px 3px rgba(14,165,233,0.08);">
-                            <span style="font-size:13px;">🌊</span>
+                            <span style="font-size:13px;">\uD83C\uDF0A</span>
                             <div>
-                                <div style="font-size:7.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">Ola máx.</div>
-                                <div style="font-size:12px;font-weight:900;color:#0b4c90;line-height:1.1;">${maxWH !== null ? maxWH.toFixed(2)+' m' : '—'} <span style="font-size:9px;font-weight:700;color:#fff;background:${wlMax.color};padding:1px 5px;border-radius:3px;vertical-align:middle;">${wlMax.txt}</span></div>
+                                <div style="font-size:7.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">Ola m\u00E1x.</div>
+                                <div style="font-size:12px;font-weight:900;color:#0b4c90;line-height:1.1;">${maxWH !== null ? maxWH.toFixed(2)+' m' : '\u2014'} <span style="font-size:9px;font-weight:700;color:#fff;background:${wlMax.color};padding:1px 5px;border-radius:3px;vertical-align:middle;">${wlMax.txt}</span></div>
                             </div>
                         </div>
                         <div style="display:flex;align-items:center;gap:5px;background:#fff;border-radius:20px;padding:4px 10px;border:1.5px solid #c9ddf0;box-shadow:0 1px 3px rgba(14,165,233,0.08);">
-                            <span style="font-size:13px;">💨</span>
+                            <span style="font-size:13px;">\uD83D\uDCA8</span>
                             <div>
-                                <div style="font-size:7.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">Viento máx.</div>
-                                <div style="font-size:12px;font-weight:900;color:#0b4c90;line-height:1.1;">${maxWS !== null ? maxWS+' km/h' : '—'} <span style="font-size:9px;font-weight:700;color:#fff;background:${wdlMax.color};padding:1px 5px;border-radius:3px;vertical-align:middle;">${wdlMax.txt}</span></div>
+                                <div style="font-size:7.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">Viento m\u00E1x.</div>
+                                <div style="font-size:12px;font-weight:900;color:#0b4c90;line-height:1.1;">${maxWS !== null ? maxWS+' km/h' : '\u2014'} <span style="font-size:9px;font-weight:700;color:#fff;background:${wdlMax.color};padding:1px 5px;border-radius:3px;vertical-align:middle;">${wdlMax.txt}</span></div>
                             </div>
                         </div>
                         <div style="display:flex;align-items:center;gap:5px;background:#fff;border-radius:20px;padding:4px 10px;border:1.5px solid #c9ddf0;box-shadow:0 1px 3px rgba(14,165,233,0.08);">
-                            <span style="font-size:13px;">🌡️</span>
+                            <span style="font-size:13px;">\uD83C\uDF21\uFE0F</span>
                             <div>
                                 <div style="font-size:7.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;">T. Agua</div>
-                                <div style="font-size:12px;font-weight:900;color:#0ea5e9;line-height:1.1;">${avgSST !== null ? avgSST+'°C' : '—'}</div>
+                                <div style="font-size:12px;font-weight:900;color:#0ea5e9;line-height:1.1;">${avgSST !== null ? avgSST+'\u00B0C' : '\u2014'}</div>
                             </div>
                         </div>
                     </div>`;
 
-                // ── Gráfico de olas ──
+                // ── Grafico de olas ──
                 const chartHtml = `
                     <div style="background:#f0f7fc;padding:8px 0 0;border-bottom:1px solid #c9ddf0;">
-                        <div style="font-size:8px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:2px;text-align:center;">📊 ALTURA DE OLAS (m) · 08h–20h</div>
+                        <div style="font-size:8px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:2px;text-align:center;">\uD83D\uDCCA ALTURA DE OLAS (m) \u00B7 08h\u201320h</div>
                         <canvas id="wave-chart-${cardId}" style="display:block;width:100%;"></canvas>
                     </div>`;
 
-                // ── Franjas mañana/tarde ──
-                const franjaHeader = `
-                    <div style="display:flex;background:#e8f1f8;border-bottom:1px solid #c9ddf0;">
-                        <div style="flex:1;text-align:center;padding:6px 4px;border-right:1px solid #c9ddf0;">
-                            <span style="font-size:10px;font-weight:800;color:#0b4c90;letter-spacing:0.5px;">☀️ 08:00 – 14:00</span>
+                // ── Cabecera 3 franjas ──
+                const bdr = 'border-right:1px solid rgba(44,74,110,0.18);';
+                const franjaHeaderHtml = `
+                    <div style="display:flex;background:#dce8f4;border-bottom:1px solid #c9ddf0;">
+                        <div style="flex:1;text-align:center;padding:5px 2px;${bdr}">
+                            <span style="font-size:9px;font-weight:800;color:#0b4c90;letter-spacing:0.3px;">\u2600\uFE0F 08\u201312h</span>
                         </div>
-                        <div style="flex:1;text-align:center;padding:6px 4px;">
-                            <span style="font-size:10px;font-weight:800;color:#0b4c90;letter-spacing:0.5px;">🌅 14:00 – 20:00</span>
+                        <div style="flex:1;text-align:center;padding:5px 2px;${bdr}">
+                            <span style="font-size:9px;font-weight:800;color:#0b4c90;letter-spacing:0.3px;">\u2600\uFE0F 12\u201316h</span>
+                        </div>
+                        <div style="flex:1;text-align:center;padding:5px 2px;">
+                            <span style="font-size:9px;font-weight:800;color:#0b4c90;letter-spacing:0.3px;">\uD83C\uDF05 16\u201320h</span>
                         </div>
                     </div>`;
 
-                // ── UVI integrado (sin pestaña) ──
+                // ── UVI integrado ──
                 const uviHtml = `
                     <div style="border-top:2px solid #e2f0fb;">
                         <div style="padding:6px 16px;background:#dbeafe;display:flex;align-items:center;gap:6px;">
-                            <span style="font-size:11px;">☀️</span>
-                            <span style="font-size:9px;font-weight:800;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;">Índice UV del día</span>
+                            <span style="font-size:11px;">\u2600\uFE0F</span>
+                            <span style="font-size:9px;font-weight:800;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;">\u00CDndice UV del d\u00EDa</span>
                         </div>
                         ${buildUviPanel(uviMax)}
                     </div>`;
@@ -4275,10 +4272,11 @@
                 const bodyHtml = `
                     ${pillsHtml}
                     ${chartHtml}
-                    ${franjaHeader}
-                    <div style="display:flex;">
-                        ${buildCell(mañana, true)}
-                        ${buildCell(tarde, false)}
+                    ${franjaHeaderHtml}
+                    <div style="display:flex;border-bottom:1px solid #c9ddf0;">
+                        ${buildCell(f1, bdr)}
+                        ${buildCell(f2, bdr)}
+                        ${buildCell(f3, '')}
                     </div>
                     ${uviHtml}`;
 
@@ -4299,6 +4297,7 @@
                     </div>`;
                 }
             }
+
 
             // ── Acordeon ──────────────────────────────────────────
             window.mar3ToggleCard = function(cardId) {
