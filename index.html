@@ -4099,7 +4099,7 @@
                     ${row('Viento', vientoTxt, wdlBadge)}
                     ${row('Temperatura del agua', sstTxt, `<span style="font-size:9px;color:#64748b;">superficie del mar</span>`)}
                     <div style="margin-top:8px;text-align:center;">
-                        <span style="font-size:10px;font-weight:800;color:#fff;background:${bath.color};padding:4px 14px;border-radius:6px;display:inline-block;letter-spacing:0.3px;">Bano: ${bath.txt}</span>
+                        <span style="font-size:10px;font-weight:800;color:#fff;background:${bath.color};padding:4px 14px;border-radius:6px;display:inline-block;letter-spacing:0.3px;">Baño: ${bath.txt}</span>
                     </div>
                 </div>`;
             }
@@ -4148,7 +4148,7 @@
             }
 
             // ── Tarjeta de dia completa ─────────────────────────────────────
-            function buildDayCard(diaSemana, fechaLabel, hourlyDay, uviMax, isToday, cardId) {
+            function buildDayCard(diaSemana, hourlyDay, uviMax, isToday, cardId) {
                 const mañana = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8 && hh < 14; });
                 const tarde  = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 14 && hh < 20; });
                 // Slots para el grafico: 06h-22h
@@ -4206,12 +4206,8 @@
 
                 if (isToday) {
                     return `<div style="border-bottom:2px solid #c9ddf0;background:#fff;" id="card-${cardId}">
-                        <div style="background:${headerBg};padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">
-                            <div>
-                                <div style="font-size:14px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">${diaSemana}</div>
-                                <div style="font-size:10px;color:rgba(255,255,255,0.7);margin-top:1px;">${fechaLabel}</div>
-                            </div>
-                            <span style="font-size:9px;font-weight:700;color:#fff;background:rgba(255,255,255,0.2);padding:3px 10px;border-radius:12px;letter-spacing:0.5px;">HOY</span>
+                        <div style="background:${headerBg};padding:10px 16px;">
+                            <div style="font-size:14px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">${diaSemana}</div>
                         </div>
                         ${tabsHtml}
                         <div id="body-${cardId}">
@@ -4222,10 +4218,7 @@
                 } else {
                     return `<div style="border-bottom:2px solid #c9ddf0;background:#fff;" id="card-${cardId}">
                         <div onclick="mar3ToggleCard('${cardId}')" style="background:${headerBg};padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
-                            <div>
-                                <div style="font-size:14px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">${diaSemana}</div>
-                                <div style="font-size:10px;color:rgba(255,255,255,0.7);margin-top:1px;">${fechaLabel}</div>
-                            </div>
+                            <div style="font-size:14px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">${diaSemana}</div>
                             <span id="arrow-${cardId}" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;">&#9660;</span>
                         </div>
                         <div id="body-${cardId}" style="display:none;overflow:hidden;">
@@ -4317,24 +4310,24 @@
                     if (!cards) return;
                     cards.innerHTML = '';
 
+                    let allHtml = '';
                     for (let off = 0; off < 3; off++) {
                         const d  = new Date(now);
                         d.setDate(d.getDate() + off);
                         const ds      = d.toISOString().slice(0,10);
                         const slots   = hourly.filter(h => h.time.startsWith(ds));
                         const diaName = DIAS_FULL[d.getDay()];
-                        const fecha   = d.toLocaleDateString('es-ES', { day:'numeric', month:'long', year:'numeric' });
                         const uviMax  = uviByDate[ds] ?? null;
                         const cardId  = 'day' + off;
 
-                        // Guardar slots para redibujo tras acordeon
                         window._mar3Slots[cardId] = slots.filter(h => {
                             const hh = new Date(h.time).getHours();
                             return hh >= 6 && hh <= 22;
                         });
 
-                        cards.innerHTML += buildDayCard(diaName, fecha, slots, uviMax, off === 0, cardId);
+                        allHtml += buildDayCard(diaName, slots, uviMax, off === 0, cardId);
                     }
+                    cards.innerHTML = allHtml;
 
                     const loading = document.getElementById('mar3-loading');
                     if (loading) loading.style.display = 'none';
