@@ -1626,6 +1626,8 @@
                 canvas.height = H * dpr;
                 canvas.style.width  = W + 'px';
                 canvas.style.height = H + 'px';
+                canvas.style.display = 'block';
+                canvas.style.margin  = '0 auto';
                 const ctx = canvas.getContext('2d');
                 ctx.scale(dpr, dpr);
 
@@ -3979,7 +3981,7 @@
                 if (!canvas) return;
                 const dpr = window.devicePixelRatio || 1;
                 const ICON_H = 0;
-                const W   = Math.round((canvas.parentElement.clientWidth || 520) * 0.75);
+                const W   = Math.round((canvas.parentElement.clientWidth || 520) * 0.90);
                 const H   = 110 + ICON_H;
                 canvas.width  = W * dpr;
                 canvas.height = H * dpr;
@@ -4222,8 +4224,8 @@
                 const bdr = 'border-right:1px solid rgba(44,74,110,0.15);';
                 const chartHtml = `
                     <div style="background:#f0f7fc;padding:8px 0 0;">
-                        <div style="text-align:right;padding:0 10px 4px;font-size:13px;font-weight:800;color:#0ea5e9;letter-spacing:1px;text-transform:uppercase;">
-                            ${avgSST !== null ? 'TEMPERATURA DEL AGUA: '+avgSST+'°C' : ''}
+                        <div style="text-align:center;padding:0 10px 4px;font-size:10px;font-weight:700;color:#0ea5e9;letter-spacing:1px;text-transform:uppercase;">
+                            ${avgSST !== null ? 'TEMPERATURA DEL AGUA  '+avgSST+'°C' : ''}
                         </div>
                         <canvas id="wave-chart-${cardId}" style="display:block;width:100%;"></canvas>
                         <div style="display:flex;">
