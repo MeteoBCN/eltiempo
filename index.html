@@ -4390,27 +4390,18 @@
                     const loading = document.getElementById('mar3-loading');
                     if (loading) loading.style.display = 'none';
 
-                    // Init slide state and draw charts
+                    // Init slide state: all closed
                     requestAnimationFrame(() => {
                         for (let off = 0; off < 3; off++) {
                             const cardId = 'day' + off;
                             const body = document.getElementById('body-' + cardId);
                             const arrow = document.getElementById('arrow-' + cardId);
                             if (body) {
-                                if (off === 0) {
-                                    // Today: open
-                                    body.style.transition = 'max-height 0.4s ease';
-                                    body.style.maxHeight = body.scrollHeight + 'px';
-                                } else {
-                                    // Other days: closed
-                                    body.style.transition = 'max-height 0.4s ease';
-                                    body.style.maxHeight = '0px';
-                                    body.style.overflow = 'hidden';
-                                    if (arrow) arrow.style.transform = 'rotate(0deg)';
-                                }
+                                body.style.transition = 'max-height 0.4s ease';
+                                body.style.maxHeight = '0px';
+                                body.style.overflow = 'hidden';
                             }
-                            const slots = window._mar3Slots[cardId];
-                            if (slots && off === 0) drawWaveChart('wave-chart-' + cardId, slots);
+                            if (arrow) arrow.style.transform = 'rotate(0deg)';
                         }
                     });
 
