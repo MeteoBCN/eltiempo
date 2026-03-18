@@ -3980,12 +3980,14 @@
             }
 
             // ── Grafico de olas (canvas) ────────────────────────────────────
-            function drawWaveChart(canvasId, slots) {
+            function mar3DrawChart(canvasId, slots) {
+                window._mar3DrawChart = mar3DrawChart;
                 const canvas = document.getElementById(canvasId);
                 if (!canvas) return;
                 const dpr = window.devicePixelRatio || 1;
                 const ICON_H = 0;
-                const W   = Math.round((canvas.parentElement.clientWidth || 520) * 0.90);
+                const parentW = canvas.parentElement.clientWidth || canvas.closest('#mar3-cards')?.clientWidth || 520;
+                const W   = Math.round(parentW * 0.90);
                 const H   = 110 + ICON_H;
                 canvas.width  = W * dpr;
                 canvas.height = H * dpr;
@@ -4308,10 +4310,11 @@
                 } else {
                     body.style.display = 'block';
                     if (arrow) arrow.style.transform = 'rotate(180deg)';
-                    requestAnimationFrame(() => {
+                    // Wait for display:block to render before drawing (canvas needs width)
+                    setTimeout(() => {
                         const slots = window._mar3Slots && window._mar3Slots[cardId];
-                        if (slots) drawWaveChart('wave-chart-' + cardId, slots);
-                    });
+                        if (slots) mar3DrawChart('wave-chart-' + cardId, slots);
+                    }, 30);
                 }
             };
 
