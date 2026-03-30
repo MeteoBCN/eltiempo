@@ -2601,7 +2601,7 @@
             const ctx = canvas.getContext('2d');
             ctx.scale(dpr, dpr);
 
-            const PAD = { t:32, r:16, b:38, l:42 };
+            const PAD = { t:32, r:16, b:38, l:16 };
             const cw  = W - PAD.l - PAD.r;
             const ch  = H - PAD.t - PAD.b;
             const n   = rows.length;
@@ -2622,16 +2622,13 @@
             ctx.fillStyle = '#f0f6fa';
             ctx.fillRect(0, 0, W, H);
 
-            // Líneas guía Y
+            // Líneas guía Y (sin etiquetas)
             const steps = 4;
             for (let s = 0; s <= steps; s++) {
                 const v = vMin + (vMax - vMin) * s / steps;
                 const y = yV(v);
                 ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
                 ctx.strokeStyle = 'rgba(44,74,110,0.1)'; ctx.lineWidth = 1; ctx.stroke();
-                ctx.textAlign = 'right'; ctx.font = '9px Inter,sans-serif';
-                ctx.fillStyle = 'rgba(44,74,110,0.55)';
-                ctx.fillText(Math.round(v) + (type==='temp'?'°':''), PAD.l - 4, y + 3);
             }
 
             // ── Modo barras (lluvia) ──
