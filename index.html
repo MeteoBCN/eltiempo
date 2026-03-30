@@ -2982,24 +2982,36 @@
                 if(hourly.wind_speed_10m)ws.push(hourly.wind_speed_10m[i]);
                 if(hourly.wind_direction_10m)wd.push(hourly.wind_direction_10m[i]);
             }
-            // Calcular tiempo restante hasta la primera hora con lluvia probable (>=50%)
+            // Calcular tiempo restante hasta la primera hora FUTURA con lluvia probable (>=50%)
             function getRainCountdown(){
                 if(!rainProbHours.length) return null;
-                const nowMs=Date.now();
-                const tDayDate=new Date(tDayStr+'T00:00:00');
-                const firstRainH=rainProbHours[0];
-                const rainDate=new Date(tDayDate.getFullYear(),tDayDate.getMonth(),tDayDate.getDate(),firstRainH,0,0,0);
-                const diffMs=rainDate-nowMs;
-                if(diffMs<=0){
-                    return {label:'⚠️ Lluvia probable ahora',color:'#2563EB'};
+                const nowMs = Date.now();
+                const nowH  = new Date(nowMs).getHours();
+                const tDayDate = new Date(tDayStr + 'T00:00:00');
+                // Buscar la primera hora del día cuya franja aún no ha pasado
+                const futureH = rainProbHours.find(h => {
+                    const rainDate = new Date(tDayDate.getFullYear(), tDayDate.getMonth(), tDayDate.getDate(), h, 0, 0, 0);
+                    return rainDate.getTime() > nowMs;
+                });
+                // Si todas las horas del día ya pasaron pero hay prob >=50%, mostrar "ahora" solo si off===0
+                if(futureH === undefined){
+                    if(off === 0) return {label:'⚠️ Lluvia probable ahora', color:'#2563EB'};
+                    return null;
                 }
-                const diffH=Math.floor(diffMs/3600000);
-                const diffMin=Math.round((diffMs%3600000)/60000);
-                let txt='';
-                if(diffH>0&&diffMin>0) txt=`en ${diffH}h ${diffMin}min`;
-                else if(diffH>0) txt=`en ${diffH}h`;
-                else txt=`en ${diffMin}min`;
-                return {label:`💧 Lluvia probable ${txt}`,color:'#2563EB'};
+                const rainDate = new Date(tDayDate.getFullYear(), tDayDate.getMonth(), tDayDate.getDate(), futureH, 0, 0, 0);
+                const diffMs   = rainDate.getTime() - nowMs;
+                const totalH   = Math.floor(diffMs / 3600000);
+                const diffMin  = Math.round((diffMs % 3600000) / 60000);
+                const days     = Math.floor(totalH / 24);
+                const remH     = totalH % 24;
+                let txt = '';
+                if(days > 0 && remH > 0 && diffMin > 0)      txt = `en ${days}d ${remH}h ${diffMin}min`;
+                else if(days > 0 && remH > 0)                 txt = `en ${days}d ${remH}h`;
+                else if(days > 0)                             txt = `en ${days}d`;
+                else if(remH > 0 && diffMin > 0)              txt = `en ${remH}h ${diffMin}min`;
+                else if(remH > 0)                             txt = `en ${remH}h`;
+                else                                          txt = `en ${diffMin}min`;
+                return {label:`💧 Lluvia probable ${txt}`, color:'#2563EB'};
             }
             const rainCountdown=getRainCountdown();
             // Usar precipitation_sum del daily como fuente de verdad (evita sobreestimación del horario)
