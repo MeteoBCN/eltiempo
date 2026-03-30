@@ -2935,34 +2935,30 @@
                 if(hourly.wind_direction_10m)wd.push(hourly.wind_direction_10m[i]);
             }
             // Calcular tiempo restante hasta la primera hora FUTURA con lluvia probable (>=50%)
+            // Solo se muestra el countdown para hoy (off===0); los días futuros usan "Prob. lluvia: XX%"
             function getRainCountdown(){
+                if(off !== 0) return null;
                 if(!rainProbHours.length) return null;
                 const nowMs = Date.now();
-                const nowH  = new Date(nowMs).getHours();
                 const tDayDate = new Date(tDayStr + 'T00:00:00');
                 // Buscar la primera hora del día cuya franja aún no ha pasado
                 const futureH = rainProbHours.find(h => {
                     const rainDate = new Date(tDayDate.getFullYear(), tDayDate.getMonth(), tDayDate.getDate(), h, 0, 0, 0);
                     return rainDate.getTime() > nowMs;
                 });
-                // Si todas las horas del día ya pasaron pero hay prob >=50%, mostrar "ahora" solo si off===0
+                // Si todas las horas del día ya pasaron pero hay prob >=50%, mostrar "ahora"
                 if(futureH === undefined){
-                    if(off === 0) return {label:'⚠️ Lluvia probable ahora', color:'#2563EB'};
-                    return null;
+                    return {label:'⚠️ Lluvia probable ahora', color:'#2563EB'};
                 }
                 const rainDate = new Date(tDayDate.getFullYear(), tDayDate.getMonth(), tDayDate.getDate(), futureH, 0, 0, 0);
                 const diffMs   = rainDate.getTime() - nowMs;
                 const totalH   = Math.floor(diffMs / 3600000);
                 const diffMin  = Math.round((diffMs % 3600000) / 60000);
-                const days     = Math.floor(totalH / 24);
                 const remH     = totalH % 24;
                 let txt = '';
-                if(days > 0 && remH > 0 && diffMin > 0)      txt = `en ${days}d ${remH}h ${diffMin}min`;
-                else if(days > 0 && remH > 0)                 txt = `en ${days}d ${remH}h`;
-                else if(days > 0)                             txt = `en ${days}d`;
-                else if(remH > 0 && diffMin > 0)              txt = `en ${remH}h ${diffMin}min`;
-                else if(remH > 0)                             txt = `en ${remH}h`;
-                else                                          txt = `en ${diffMin}min`;
+                if(remH > 0 && diffMin > 0)  txt = `en ${remH}h ${diffMin}min`;
+                else if(remH > 0)             txt = `en ${remH}h`;
+                else                          txt = `en ${diffMin}min`;
                 return {label:`💧 Lluvia probable ${txt}`, color:'#2563EB'};
             }
             const rainCountdown=getRainCountdown();
