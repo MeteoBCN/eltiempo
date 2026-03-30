@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tiempo Barcelona</title>
+
+    <!-- ═══════ PWA ═══════ -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tiempo BCN">
+    <meta name="theme-color" content="#2C3E50">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <!-- ═══════ FIN PWA ═══════ -->
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/weather-icons@1.3.2/css/weather-icons.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -4003,6 +4014,256 @@
 
     </script>
 
+
+
+
+<!-- ═══════════════════════════════════════════════════
+     PWA — Service Worker + Notificaciones
+     ═══════════════════════════════════════════════════ -->
+<style>
+  /* Banner de instalación PWA */
+  #pwa-install-banner {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 560px;
+    background: #2C3E50;
+    color: #fff;
+    border-radius: 16px;
+    padding: 16px 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: slideUpBanner 0.4s ease-out;
+  }
+  @keyframes slideUpBanner {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  #pwa-install-banner .pwa-icon { font-size: 32px; flex-shrink: 0; }
+  #pwa-install-banner .pwa-text { flex: 1; }
+  #pwa-install-banner .pwa-text strong { display: block; font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+  #pwa-install-banner .pwa-text span   { font-size: 13px; color: rgba(255,255,255,0.75); }
+  #pwa-install-banner .pwa-btn-install {
+    background: #3B82F6; color: #fff; border: none; border-radius: 10px;
+    padding: 10px 18px; font-size: 14px; font-weight: 700;
+    cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  #pwa-install-banner .pwa-btn-install:hover { background: #2563EB; }
+  #pwa-install-banner .pwa-btn-dismiss {
+    background: transparent; color: rgba(255,255,255,0.5); border: none;
+    font-size: 22px; cursor: pointer; padding: 4px; flex-shrink: 0; line-height: 1;
+  }
+
+  /* Modal de notificaciones */
+  #notif-modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeInOverlay 0.3s ease;
+  }
+  @keyframes fadeInOverlay { from { opacity:0; } to { opacity:1; } }
+  #notif-modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 32px 28px 24px;
+    max-width: 360px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: scaleInModal 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes scaleInModal {
+    from { opacity:0; transform:scale(0.85); }
+    to   { opacity:1; transform:scale(1); }
+  }
+  #notif-modal .modal-emoji { font-size: 52px; margin-bottom: 16px; display: block; }
+  #notif-modal h2 { font-size: 20px; font-weight: 700; color: #1E293B; margin-bottom: 10px; }
+  #notif-modal p  { font-size: 14px; color: #64748B; line-height: 1.6; margin-bottom: 24px; }
+  #notif-modal .modal-btns { display: flex; flex-direction: column; gap: 10px; }
+  #notif-btn-allow {
+    background: #3B82F6; color: #fff; border: none;
+    border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: background 0.2s;
+  }
+  #notif-btn-allow:hover { background: #2563EB; }
+  #notif-btn-deny {
+    background: transparent; color: #94A3B8; border: 1px solid #E2E8F0;
+    border-radius: 12px; padding: 12px; font-size: 14px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  #notif-btn-deny:hover { background: #F8FAFC; }
+</style>
+
+<!-- Banner de instalación -->
+<div id="pwa-install-banner" style="display:none;">
+  <span class="pwa-icon">🌤️</span>
+  <div class="pwa-text">
+    <strong>Instalar Tiempo Barcelona</strong>
+    <span>Acceso rápido desde tu pantalla de inicio</span>
+  </div>
+  <button class="pwa-btn-install" id="pwa-btn-install">Instalar</button>
+  <button class="pwa-btn-dismiss" id="pwa-btn-dismiss" aria-label="Cerrar">×</button>
+</div>
+
+<!-- Modal de notificaciones -->
+<div id="notif-modal-overlay">
+  <div id="notif-modal">
+    <span class="modal-emoji">🔔</span>
+    <h2>¿Activar avisos del tiempo?</h2>
+    <p>Recibe notificaciones cuando haya <strong>alertas meteorológicas</strong>, cambios bruscos de tiempo o avisos importantes para Barcelona y la costa.</p>
+    <div class="modal-btns">
+      <button id="notif-btn-allow">Sí, activar avisos</button>
+      <button id="notif-btn-deny">Ahora no</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   PWA: Service Worker + Notificaciones
+   ═══════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  // ── 1. Registrar Service Worker ────────────────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => {
+          console.log('[PWA] Service Worker registrado:', reg.scope);
+        })
+        .catch(err => {
+          console.warn('[PWA] Error al registrar SW:', err);
+        });
+    });
+  }
+
+  // ── 2. Prompt de instalación (beforeinstallprompt) ─────────────
+  let deferredPrompt = null;
+  const installBanner  = document.getElementById('pwa-install-banner');
+  const btnInstall     = document.getElementById('pwa-btn-install');
+  const btnDismiss     = document.getElementById('pwa-btn-dismiss');
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    // No mostrar banner si ya fue descartado recientemente
+    const dismissed = localStorage.getItem('pwa-install-dismissed');
+    if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
+
+    // Mostrar banner después de 2 segundos
+    setTimeout(() => {
+      installBanner.style.display = 'flex';
+    }, 2000);
+  });
+
+  if (btnInstall) {
+    btnInstall.addEventListener('click', async () => {
+      installBanner.style.display = 'none';
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('[PWA] Resultado instalación:', outcome);
+      deferredPrompt = null;
+
+      // Si acepta instalar → pedir notificaciones
+      if (outcome === 'accepted') {
+        setTimeout(showNotifModal, 1500);
+      }
+    });
+  }
+
+  if (btnDismiss) {
+    btnDismiss.addEventListener('click', () => {
+      installBanner.style.display = 'none';
+      localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+    });
+  }
+
+  // Detectar cuando ya está instalada como PWA
+  window.addEventListener('appinstalled', () => {
+    console.log('[PWA] App instalada correctamente');
+    installBanner.style.display = 'none';
+    deferredPrompt = null;
+    // Pedir notificaciones al instalarse
+    setTimeout(showNotifModal, 1500);
+  });
+
+  // ── 3. Modal de notificaciones ─────────────────────────────────
+  const notifOverlay = document.getElementById('notif-modal-overlay');
+  const btnAllow     = document.getElementById('notif-btn-allow');
+  const btnDeny      = document.getElementById('notif-btn-deny');
+
+  function showNotifModal() {
+    // No mostrar si ya tiene permiso concedido o denegado
+    if (Notification.permission !== 'default') return;
+    // No mostrar si ya preguntamos
+    if (localStorage.getItem('notif-asked')) return;
+
+    notifOverlay.style.display = 'flex';
+  }
+
+  async function requestNotifPermission() {
+    notifOverlay.style.display = 'none';
+    localStorage.setItem('notif-asked', '1');
+
+    if (!('Notification' in window)) {
+      console.warn('[PWA] Este navegador no soporta notificaciones');
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    console.log('[PWA] Permiso de notificaciones:', permission);
+
+    if (permission === 'granted') {
+      // Notificación de bienvenida
+      setTimeout(() => {
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.ready.then(reg => {
+            reg.showNotification('🌤️ Tiempo Barcelona', {
+              body: 'Los avisos del tiempo están activados. Te avisaremos si hay alertas.',
+              icon: './icon-192.png',
+              badge: './icon-192.png',
+              tag: 'welcome',
+              vibrate: [200, 100, 200]
+            });
+          });
+        }
+      }, 500);
+    }
+  }
+
+  if (btnAllow) btnAllow.addEventListener('click', requestNotifPermission);
+  if (btnDeny)  btnDeny.addEventListener('click', () => {
+    notifOverlay.style.display = 'none';
+    localStorage.setItem('notif-asked', '1');
+  });
+
+  // ── 4. Si la app ya está en modo standalone, pedir notifs ──────
+  const isStandalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+
+  if (isStandalone && 'Notification' in window) {
+    window.addEventListener('load', () => {
+      setTimeout(showNotifModal, 2000);
+    });
+  }
+
+})();
+</script>
 
 </body>
 </html>
