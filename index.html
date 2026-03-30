@@ -549,9 +549,8 @@
         <div class="header-section"></div>
 
         <!-- PRÓXIMA LLUVIA -->
-        <div id="proxima-lluvia-section" style="max-width:600px;margin:0 auto;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);padding:10px 20px;display:flex;align-items:center;justify-content:center;gap:10px;">
-            <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">🌧️ SE ESPERA LLUVIA EN</span>
-            <span id="proxima-lluvia-txt" style="font-size:14px;font-weight:700;color:#1a3a5c;">Calculando…</span>
+        <div id="proxima-lluvia-section" style="max-width:600px;margin:0 auto;background:linear-gradient(135deg,#b8cfe8 0%,#c9ddf0 50%,#b8cfe8 100%);padding:10px 20px;display:flex;align-items:center;justify-content:center;">
+            <span id="proxima-lluvia-txt" style="font-size:13px;font-weight:700;color:#1a3a5c;letter-spacing:0.5px;text-transform:uppercase;">Calculando&hellip;</span>
         </div>
 
 
@@ -2739,7 +2738,7 @@
             }
 
             if (!found) {
-                el.textContent = 'no se espera en los próximos días';
+                el.textContent = 'No se espera lluvia en los próximos 7 días';
                 return;
             }
             const diffMs = found - now;
@@ -2751,10 +2750,10 @@
             let cuando;
             if (diffH < 1)        cuando = `${remMin} minutos`;
             else if (diffH < 24)  cuando = remMin > 0 ? `${Math.floor(diffH)}h ${remMin}min` : `${Math.floor(diffH)} horas`;
-            else if (diffD === 1) cuando = remH > 0 ? `1 día y ${remH}h` : '1 día';
-            else                  cuando = remH > 0 ? `${diffD} días y ${remH}h` : `${diffD} días`;
+            else if (diffD === 1) cuando = remH > 0 ? '1 día y ' + remH + 'h' : '1 día';
+            else                  cuando = remH > 0 ? diffD + ' días y ' + remH + 'h' : diffD + ' días';
 
-            el.textContent = cuando;
+            el.textContent = 'Se espera lluvia en ' + cuando;
         }
 
         async function loadWeatherData() {
