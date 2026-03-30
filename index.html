@@ -2733,27 +2733,28 @@
             let found = null;
             for (let i = 0; i < hourly.time.length; i++) {
                 const ht = new Date(hourly.time[i]);
-                if (ht < now) continue;
+                if (ht <= now) continue;
                 const prob = hourly.precipitation_probability?.[i] ?? 0;
-                const mm   = hourly.precipitation?.[i] ?? 0;
-                if (prob >= 50 || mm >= 0.1) { found = ht; break; }
+                if (prob >= 50) { found = ht; break; }
             }
 
             if (!found) {
-                el.textContent = 'Sin lluvia en los próximos 7 días';
+                el.textContent = 'Sin lluvia prevista (prob. <50%)';
                 document.querySelector('#proxima-lluvia-section span:first-child').textContent = '☀️ SIN LLUVIA PREVISTA';
                 return;
             }
 
-            const diffH = (found - now) / 3600000;
-            const diffD = Math.floor(diffH / 24);
-            const remH  = Math.round(diffH % 24);
+            const diffMs = found - now;
+            const diffH  = diffMs / 3600000;
+            const diffD  = Math.floor(diffH / 24);
+            const remH   = Math.floor(diffH % 24);
+            const remMin = Math.round((diffMs % 3600000) / 60000);
 
             let cuando;
-            if (diffH < 1)       cuando = 'menos de 1 hora';
-            else if (diffH < 24) cuando = `${Math.round(diffH)} horas`;
-            else if (diffD === 1) cuando = remH > 0 ? `1 día y ${remH} horas` : '1 día';
-            else                  cuando = remH > 0 ? `${diffD} días y ${remH} horas` : `${diffD} días`;
+            if (diffH < 1)        cuando = `${remMin} minutos`;
+            else if (diffH < 24)  cuando = remMin > 0 ? `${Math.floor(diffH)}h ${remMin}min` : `${Math.floor(diffH)} horas`;
+            else if (diffD === 1) cuando = remH > 0 ? `1 día y ${remH}h` : '1 día';
+            else                  cuando = remH > 0 ? `${diffD} días y ${remH}h` : `${diffD} días`;
 
             el.textContent = cuando;
         }
