@@ -2941,15 +2941,15 @@
             const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
             const fechaStr=tDay.getDate()+' '+MESES[tDay.getMonth()];
 
-            // Icono único representativo: código más severo entre 08h y 18h (usando strings para evitar UTC)
+            // Icono único representativo: icono más frecuente entre 08h y 20h (inclusive)
             function iconForDay() {
                 const tDayStr = daily.time[off]; // "YYYY-MM-DD"
-                const severity = [0,1,2,3,45,48,51,53,55,61,63,65,71,73,75,77,80,81,82,85,86,95,96,99];
-                let best = null;
+                const freq = {};
+                let bestIdx = {};
                 for(let i=0;i<hourly.time.length;i++){
                     if(!hourly.time[i].startsWith(tDayStr)) continue;
                     const h = parseInt(hourly.time[i].slice(11,13), 10);
-                    if(h < 8 || h >= 18) continue;
+                    if(h < 8 || h > 20) continue;
                     const wmoRaw = hourly.weather_code?.[i] ?? 0;
                     const precipProb = hourly.precipitation_probability?.[i] ?? 0;
                     const isRainCodeRaw = (wmoRaw>=51&&wmoRaw<=82)||(wmoRaw>=85&&wmoRaw<=86)||(wmoRaw>=95&&wmoRaw<=99);
@@ -2959,46 +2959,49 @@
                         if(!isRainCodeRaw && precipProb>=50) wmo=80;
                         else if(isRainCodeRaw && precipProb<50) wmo=3;
                     }
-                    if(!best || severity.indexOf(wmo) > severity.indexOf(best.wmo)){
-                        best = { wmo, i };
-                    }
+                    freq[wmo] = (freq[wmo]||0) + 1;
+                    if(!bestIdx[wmo]) bestIdx[wmo] = i;
                 }
-                // Si el mejor código es niebla pero hay otras horas sin niebla, ignorar la niebla
-                if(best && (best.wmo===45||best.wmo===48)){
-                    // Buscar el mejor código no-niebla
-                    let bestNoFog=null;
-                    for(let i=0;i<hourly.time.length;i++){
-                        if(!hourly.time[i].startsWith(tDayStr)) continue;
-                        const h=parseInt(hourly.time[i].slice(11,13),10);
-                        if(h<8||h>=18) continue;
-                        const wmoRaw=hourly.weather_code?.[i]??0;
-                        if(wmoRaw===45||wmoRaw===48) continue;
-                        const precipProb=hourly.precipitation_probability?.[i]??0;
-                        const isRainCodeRaw=(wmoRaw>=51&&wmoRaw<=82)||(wmoRaw>=85&&wmoRaw<=86)||(wmoRaw>=95&&wmoRaw<=99);
-                        let wmo=wmoRaw;
-                        if(!isRainCodeRaw&&precipProb>=50) wmo=80;
-                        else if(isRainCodeRaw&&precipProb<50) wmo=3;
-                        if(!bestNoFog||severity.indexOf(wmo)>severity.indexOf(bestNoFog.wmo)) bestNoFog={wmo,i};
-                    }
-                    if(bestNoFog) best=bestNoFog;
-                }
-                if(!best) return '—';
-                const ht = new Date(now.getFullYear(), tDay.getMonth(), tDay.getDate(), parseInt(hourly.time[best.i].slice(11,13),10));
-                return getSvgIcon(best.wmo, 68);
+                if(!Object.keys(freq).length) return '—';
+                // Icono más frecuente
+                const mostFreqWmo = Object.keys(freq).reduce((a,b) => freq[a]>=freq[b]?a:b);
+                return getSvgIcon(Number(mostFreqWmo), 68);
             }
             const iconDia = iconForDay();
             const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
 
             // Totales del día
             const tDayStr=daily.time[off]; // "YYYY-MM-DD" — fuente de verdad
-            let ws=[],wd=[],rainHours=[];
+            let ws=[],wd=[],rainHours=[],rainProbHours=[];
             for(let i=0;i<hourly.time.length;i++){
                 if(!hourly.time[i].startsWith(tDayStr)) continue;
                 const pr=hourly.precipitation[i]||0;
                 if(pr>0) rainHours.push(parseInt(hourly.time[i].slice(11,13),10));
+                const pp=hourly.precipitation_probability?.[i]??0;
+                if(pp>=50) rainProbHours.push(parseInt(hourly.time[i].slice(11,13),10));
                 if(hourly.wind_speed_10m)ws.push(hourly.wind_speed_10m[i]);
                 if(hourly.wind_direction_10m)wd.push(hourly.wind_direction_10m[i]);
             }
+            // Calcular tiempo restante hasta la primera hora con lluvia probable (>=50%)
+            function getRainCountdown(){
+                if(!rainProbHours.length) return null;
+                const nowMs=Date.now();
+                const tDayDate=new Date(tDayStr+'T00:00:00');
+                const firstRainH=rainProbHours[0];
+                const rainDate=new Date(tDayDate.getFullYear(),tDayDate.getMonth(),tDayDate.getDate(),firstRainH,0,0,0);
+                const diffMs=rainDate-nowMs;
+                if(diffMs<=0){
+                    return {label:'⚠️ Lluvia probable ahora',color:'#2563EB'};
+                }
+                const diffH=Math.floor(diffMs/3600000);
+                const diffMin=Math.round((diffMs%3600000)/60000);
+                let txt='';
+                if(diffH>0&&diffMin>0) txt=`en ${diffH}h ${diffMin}min`;
+                else if(diffH>0) txt=`en ${diffH}h`;
+                else txt=`en ${diffMin}min`;
+                return {label:`💧 Lluvia probable ${txt}`,color:'#2563EB'};
+            }
+            const rainCountdown=getRainCountdown();
             // Usar precipitation_sum del daily como fuente de verdad (evita sobreestimación del horario)
             const tp=Math.round((daily.precipitation_sum?.[off]||0)*10)/10;
             const aw = daily.wind_speed_10m_max?.[off] != null ? Math.round(daily.wind_speed_10m_max[off]) : (ws.length>0?Math.round(Math.max(...ws)):0);
@@ -3103,7 +3106,10 @@
                             <span class="day-sep" style="margin:0 4px;opacity:0.4;">/</span>
                             <span class="day-temp-max" style="color:#EF4444;font-weight:700;font-size:22px;transition:color 0.4s;">${maxT}°</span>
                             <br>
-                            <span class="day-rain-lbl" style="transition:color 0.4s;">Prob. lluvia: ${daily.precipitation_probability_max?.[off]??'--'}%</span>
+                            ${rainCountdown
+                                ? `<span class="day-rain-lbl" style="transition:color 0.4s;color:${rainCountdown.color};font-weight:700;">${rainCountdown.label} (${daily.precipitation_probability_max?.[off]??'--'}%)</span>`
+                                : `<span class="day-rain-lbl" style="transition:color 0.4s;">Prob. lluvia: ${daily.precipitation_probability_max?.[off]??'--'}%</span>`
+                            }
                             <br>
                             <span class="day-wind-lbl" style="transition:color 0.4s;">Viento máx: ${aw} km/h ${getWindDir(awd)}</span>
                             <br>
