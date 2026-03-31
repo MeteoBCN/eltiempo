@@ -4146,140 +4146,173 @@
   </div>
 </div>
 
-<script>
+<script type="module">
 /* ═══════════════════════════════════════════════════
-   PWA: Service Worker + Notificaciones
+   PWA: Service Worker + Notificaciones + FCM
    ═══════════════════════════════════════════════════ */
-(function () {
-  'use strict';
+import { initializeApp }      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getMessaging, getToken, onMessage }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
+import { getFirestore, doc, setDoc }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-  // ── 1. Registrar Service Worker ────────────────────────────────
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => {
-          console.log('[PWA] Service Worker registrado:', reg.scope);
-        })
-        .catch(err => {
-          console.warn('[PWA] Error al registrar SW:', err);
-        });
+const firebaseApp = initializeApp({
+  apiKey: "AIzaSyCACCy2SA-1JDH3DO1WyjDRPcqG7or5ZmY",
+  authDomain: "tiempo-barcelona.firebaseapp.com",
+  projectId: "tiempo-barcelona",
+  storageBucket: "tiempo-barcelona.firebasestorage.app",
+  messagingSenderId: "1001480227705",
+  appId: "1:1001480227705:web:d2158e16f4993f522efda8"
+});
+
+const messaging = getMessaging(firebaseApp);
+const db        = getFirestore(firebaseApp);
+
+const VAPID_KEY = 'BCY8VaR3H1HIht_liVk4t4cGzTBQzUObgkip0t9KBd8uR802AuIbZv42FxcqKLxVyE1Nqoa2o7mMZHz9XafjzxU';
+
+// ── Guardar token FCM en Firestore ─────────────────────────────
+async function guardarToken () {
+  try {
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+    if (token) {
+      await setDoc(doc(db, 'fcm_tokens', token), { token, updated: new Date() });
+      console.log('[FCM] Token guardado:', token.slice(0, 20) + '…');
+    }
+  } catch (err) {
+    console.warn('[FCM] No se pudo obtener token:', err);
+  }
+}
+
+// ── Notificaciones mientras la app está abierta ────────────────
+onMessage(messaging, payload => {
+  console.log('[FCM] Mensaje en foreground:', payload);
+  const { title, body } = payload.notification || {};
+  if (title && 'Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, {
+      body,
+      icon: './icon-192.png',
+      badge: './icon-192.png'
     });
   }
+});
 
-  // ── 2. Prompt de instalación (beforeinstallprompt) ─────────────
-  let deferredPrompt = null;
-  const installBanner  = document.getElementById('pwa-install-banner');
-  const btnInstall     = document.getElementById('pwa-btn-install');
-  const btnDismiss     = document.getElementById('pwa-btn-dismiss');
-
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    deferredPrompt = e;
-
-    // No mostrar banner si ya fue descartado recientemente
-    const dismissed = localStorage.getItem('pwa-install-dismissed');
-    if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
-
-    // Mostrar banner después de 2 segundos
-    setTimeout(() => {
-      installBanner.style.display = 'flex';
-    }, 2000);
+// ── 1. Registrar Service Worker ────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => {
+        console.log('[PWA] Service Worker registrado:', reg.scope);
+      })
+      .catch(err => {
+        console.warn('[PWA] Error al registrar SW:', err);
+      });
   });
+}
 
-  if (btnInstall) {
-    btnInstall.addEventListener('click', async () => {
-      installBanner.style.display = 'none';
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log('[PWA] Resultado instalación:', outcome);
-      deferredPrompt = null;
+// ── 2. Prompt de instalación (beforeinstallprompt) ─────────────
+let deferredPrompt = null;
+const installBanner  = document.getElementById('pwa-install-banner');
+const btnInstall     = document.getElementById('pwa-btn-install');
+const btnDismiss     = document.getElementById('pwa-btn-dismiss');
 
-      // Si acepta instalar → pedir notificaciones
-      if (outcome === 'accepted') {
-        setTimeout(showNotifModal, 1500);
-      }
-    });
-  }
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
 
-  if (btnDismiss) {
-    btnDismiss.addEventListener('click', () => {
-      installBanner.style.display = 'none';
-      localStorage.setItem('pwa-install-dismissed', Date.now().toString());
-    });
-  }
+  const dismissed = localStorage.getItem('pwa-install-dismissed');
+  if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
 
-  // Detectar cuando ya está instalada como PWA
-  window.addEventListener('appinstalled', () => {
-    console.log('[PWA] App instalada correctamente');
+  setTimeout(() => { installBanner.style.display = 'flex'; }, 2000);
+});
+
+if (btnInstall) {
+  btnInstall.addEventListener('click', async () => {
     installBanner.style.display = 'none';
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log('[PWA] Resultado instalación:', outcome);
     deferredPrompt = null;
-    // Pedir notificaciones al instalarse
-    setTimeout(showNotifModal, 1500);
+    if (outcome === 'accepted') setTimeout(showNotifModal, 1500);
   });
+}
 
-  // ── 3. Modal de notificaciones ─────────────────────────────────
-  const notifOverlay = document.getElementById('notif-modal-overlay');
-  const btnAllow     = document.getElementById('notif-btn-allow');
-  const btnDeny      = document.getElementById('notif-btn-deny');
-
-  function showNotifModal() {
-    // No mostrar si ya tiene permiso concedido o denegado
-    if (Notification.permission !== 'default') return;
-    // No mostrar si ya preguntamos
-    if (localStorage.getItem('notif-asked')) return;
-
-    notifOverlay.style.display = 'flex';
-  }
-
-  async function requestNotifPermission() {
-    notifOverlay.style.display = 'none';
-    localStorage.setItem('notif-asked', '1');
-
-    if (!('Notification' in window)) {
-      console.warn('[PWA] Este navegador no soporta notificaciones');
-      return;
-    }
-
-    const permission = await Notification.requestPermission();
-    console.log('[PWA] Permiso de notificaciones:', permission);
-
-    if (permission === 'granted') {
-      // Notificación de bienvenida
-      setTimeout(() => {
-        if (navigator.serviceWorker.controller) {
-          navigator.serviceWorker.ready.then(reg => {
-            reg.showNotification('🌤️ Tiempo Barcelona', {
-              body: 'Los avisos del tiempo están activados. Te avisaremos si hay alertas.',
-              icon: './icon-192.png',
-              badge: './icon-192.png',
-              tag: 'welcome',
-              vibrate: [200, 100, 200]
-            });
-          });
-        }
-      }, 500);
-    }
-  }
-
-  if (btnAllow) btnAllow.addEventListener('click', requestNotifPermission);
-  if (btnDeny)  btnDeny.addEventListener('click', () => {
-    notifOverlay.style.display = 'none';
-    localStorage.setItem('notif-asked', '1');
+if (btnDismiss) {
+  btnDismiss.addEventListener('click', () => {
+    installBanner.style.display = 'none';
+    localStorage.setItem('pwa-install-dismissed', Date.now().toString());
   });
+}
 
-  // ── 4. Si la app ya está en modo standalone, pedir notifs ──────
-  const isStandalone =
-    window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone === true;
+window.addEventListener('appinstalled', () => {
+  console.log('[PWA] App instalada correctamente');
+  installBanner.style.display = 'none';
+  deferredPrompt = null;
+  setTimeout(showNotifModal, 1500);
+});
 
-  if (isStandalone && 'Notification' in window) {
-    window.addEventListener('load', () => {
-      setTimeout(showNotifModal, 2000);
-    });
+// ── 3. Modal de notificaciones ─────────────────────────────────
+const notifOverlay = document.getElementById('notif-modal-overlay');
+const btnAllow     = document.getElementById('notif-btn-allow');
+const btnDeny      = document.getElementById('notif-btn-deny');
+
+function showNotifModal() {
+  if (Notification.permission !== 'default') {
+    // Si ya tenía permiso, simplemente guardar token
+    if (Notification.permission === 'granted') guardarToken();
+    return;
+  }
+  if (localStorage.getItem('notif-asked')) return;
+  notifOverlay.style.display = 'flex';
+}
+
+async function requestNotifPermission() {
+  notifOverlay.style.display = 'none';
+  localStorage.setItem('notif-asked', '1');
+
+  if (!('Notification' in window)) {
+    console.warn('[PWA] Este navegador no soporta notificaciones');
+    return;
   }
 
-})();
+  const permission = await Notification.requestPermission();
+  console.log('[PWA] Permiso:', permission);
+
+  if (permission === 'granted') {
+    // Guardar token en Firestore
+    await guardarToken();
+
+    // Notificación de bienvenida
+    setTimeout(() => {
+      navigator.serviceWorker.ready.then(reg => {
+        reg.showNotification('🌤️ Tiempo Barcelona', {
+          body: 'Los avisos del tiempo están activados. Te avisaremos si hay alertas.',
+          icon: './icon-192.png',
+          badge: './icon-192.png',
+          tag: 'welcome',
+          vibrate: [200, 100, 200]
+        });
+      });
+    }, 500);
+  }
+}
+
+if (btnAllow) btnAllow.addEventListener('click', requestNotifPermission);
+if (btnDeny)  btnDeny.addEventListener('click', () => {
+  notifOverlay.style.display = 'none';
+  localStorage.setItem('notif-asked', '1');
+});
+
+// ── 4. Si la app ya está en modo standalone, pedir notifs ──────
+const isStandalone =
+  window.matchMedia('(display-mode: standalone)').matches ||
+  window.navigator.standalone === true;
+
+if (isStandalone && 'Notification' in window) {
+  window.addEventListener('load', () => {
+    setTimeout(showNotifModal, 2000);
+  });
+}
 </script>
 
 </body>

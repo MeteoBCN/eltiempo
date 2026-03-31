@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Notificaciones Tiempo Barcelona</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* ── LOGIN ── */
+    #login-screen {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    #login-screen h1 { font-size: 22px; margin-bottom: 6px; color: #f1f5f9; }
+    #login-screen p  { font-size: 13px; color: #64748b; margin-bottom: 28px; }
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .field input, .field textarea {
+      width: 100%; background: #0f172a; border: 1px solid #334155;
+      border-radius: 10px; padding: 12px 16px; color: #f1f5f9;
+      font-size: 15px; font-family: inherit; transition: border-color 0.2s;
+    }
+    .field input:focus, .field textarea:focus { outline: none; border-color: #3b82f6; }
+    .field textarea { min-height: 100px; resize: vertical; }
+
+    .btn {
+      width: 100%; padding: 14px; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      transition: all 0.2s; letter-spacing: 0.3px;
+    }
+    .btn-primary { background: #3b82f6; color: #fff; }
+    .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-danger  { background: #ef4444; color: #fff; margin-top: 10px; }
+    .btn-danger:hover { background: #dc2626; }
+
+    #login-error { color: #f87171; font-size: 13px; margin-top: 12px; text-align: center; display: none; }
+
+    /* ── PANEL ── */
+    #admin-panel {
+      display: none;
+      width: 100%;
+      max-width: 520px;
+    }
+    .panel-header {
+      background: #1e293b;
+      border-radius: 16px 16px 0 0;
+      padding: 20px 28px;
+      border-bottom: 1px solid #334155;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .panel-header h1 { font-size: 18px; color: #f1f5f9; }
+    .panel-header span { font-size: 12px; color: #64748b; }
+    .panel-body {
+      background: #1e293b;
+      border-radius: 0 0 16px 16px;
+      padding: 28px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-top: none;
+    }
+
+    .char-count { font-size: 11px; color: #475569; text-align: right; margin-top: 4px; }
+
+    /* Estado del envío */
+    #status-box {
+      display: none; margin-top: 18px; padding: 14px 18px;
+      border-radius: 10px; font-size: 14px; font-weight: 600;
+      text-align: center; animation: fadeIn 0.3s ease;
+    }
+    .status-ok      { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+    .status-error   { background: rgba(239,68,68,0.15);  color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    .status-loading { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+
+    /* Historial */
+    .section-title { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin: 28px 0 12px; }
+    #historial { list-style: none; }
+    #historial li {
+      background: #0f172a; border-radius: 8px; padding: 12px 14px;
+      margin-bottom: 8px; font-size: 13px; border-left: 3px solid #3b82f6;
+    }
+    #historial li .h-title { font-weight: 700; color: #e2e8f0; margin-bottom: 2px; }
+    #historial li .h-body  { color: #94a3b8; }
+    #historial li .h-time  { font-size: 11px; color: #475569; margin-top: 4px; }
+    #historial-empty { font-size: 13px; color: #475569; text-align: center; padding: 16px 0; }
+
+    .logout-btn {
+      background: none; border: 1px solid #334155; color: #64748b;
+      border-radius: 8px; padding: 6px 14px; font-size: 12px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .logout-btn:hover { border-color: #ef4444; color: #f87171; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+<!-- ══════════ PANTALLA LOGIN ══════════ -->
+<div id="login-screen">
+  <h1>🔐 Panel Admin</h1>
+  <p>Tiempo Barcelona — Notificaciones</p>
+  <div class="field">
+    <label>Contraseña</label>
+    <input type="password" id="pwd-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
+  </div>
+  <button class="btn btn-primary" onclick="doLogin()">Entrar</button>
+  <div id="login-error">Contraseña incorrecta</div>
+</div>
+
+<!-- ══════════ PANEL ADMIN ══════════ -->
+<div id="admin-panel">
+  <div class="panel-header">
+    <h1>📡 Enviar notificación</h1>
+    <button class="logout-btn" onclick="doLogout()">Salir</button>
+  </div>
+  <div class="panel-body">
+
+    <div class="field">
+      <label>Título</label>
+      <input type="text" id="notif-title" placeholder="Ej: ⚠️ Alerta de tormenta" maxlength="60"
+        oninput="document.getElementById('title-count').textContent = this.value.length + '/60'">
+      <div class="char-count" id="title-count">0/60</div>
+    </div>
+
+    <div class="field">
+      <label>Mensaje</label>
+      <textarea id="notif-body" placeholder="Ej: Se esperan tormentas intensas esta tarde en Barcelona y la costa. Precaución." maxlength="200"
+        oninput="document.getElementById('body-count').textContent = this.value.length + '/200'"></textarea>
+      <div class="char-count" id="body-count">0/200</div>
+    </div>
+
+    <button class="btn btn-primary" id="send-btn" onclick="enviarNotificacion()">
+      🚀 Enviar a todos los usuarios
+    </button>
+
+    <div id="status-box"></div>
+
+    <div class="section-title">Últimas enviadas</div>
+    <ul id="historial"></ul>
+    <div id="historial-empty">Aún no has enviado ninguna notificación</div>
+
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp }       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, collection, addDoc, getDocs, orderBy, query, limit }
+    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+  import { getFunctions, httpsCallable }
+    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js';
+
+  /* ── Config Firebase ── */
+  const app = initializeApp({
+    apiKey: "AIzaSyCACCy2SA-1JDH3DO1WyjDRPcqG7or5ZmY",
+    authDomain: "tiempo-barcelona.firebaseapp.com",
+    projectId: "tiempo-barcelona",
+    storageBucket: "tiempo-barcelona.firebasestorage.app",
+    messagingSenderId: "1001480227705",
+    appId: "1:1001480227705:web:d2158e16f4993f522efda8"
+  });
+
+  const db        = getFirestore(app);
+  const functions = getFunctions(app, 'europe-west1');
+
+  /* ══════════ LOGIN ══════════ */
+  // Cambia esta contraseña por la que quieras
+  const ADMIN_PASSWORD = 'barcelona2025';
+
+  window.doLogin = function () {
+    const pwd = document.getElementById('pwd-input').value;
+    if (pwd === ADMIN_PASSWORD) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-panel').style.display  = 'block';
+      cargarHistorial();
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+      document.getElementById('pwd-input').value = '';
+    }
+  };
+
+  window.doLogout = function () {
+    document.getElementById('admin-panel').style.display  = 'none';
+    document.getElementById('login-screen').style.display = 'block';
+    document.getElementById('pwd-input').value = '';
+  };
+
+  /* ══════════ ENVIAR NOTIFICACIÓN ══════════ */
+  window.enviarNotificacion = async function () {
+    const title = document.getElementById('notif-title').value.trim();
+    const body  = document.getElementById('notif-body').value.trim();
+
+    if (!title) { mostrarEstado('Escribe un título', 'error'); return; }
+    if (!body)  { mostrarEstado('Escribe un mensaje', 'error'); return; }
+
+    mostrarEstado('Enviando…', 'loading');
+    document.getElementById('send-btn').disabled = true;
+
+    try {
+      const sendPush = httpsCallable(functions, 'sendPushNotification');
+      const result   = await sendPush({ title, body });
+
+      mostrarEstado(`✅ Enviada a ${result.data.successCount} dispositivos`, 'ok');
+
+      // Guardar en historial Firestore
+      await addDoc(collection(db, 'notificaciones'), {
+        title, body,
+        timestamp: new Date(),
+        success: result.data.successCount
+      });
+
+      // Limpiar campos
+      document.getElementById('notif-title').value = '';
+      document.getElementById('notif-body').value  = '';
+      document.getElementById('title-count').textContent = '0/60';
+      document.getElementById('body-count').textContent  = '0/200';
+
+      cargarHistorial();
+
+    } catch (err) {
+      console.error(err);
+      mostrarEstado('❌ Error: ' + (err.message || 'No se pudo enviar'), 'error');
+    }
+
+    document.getElementById('send-btn').disabled = false;
+  };
+
+  /* ══════════ HISTORIAL ══════════ */
+  async function cargarHistorial () {
+    try {
+      const q    = query(collection(db, 'notificaciones'), orderBy('timestamp', 'desc'), limit(10));
+      const snap = await getDocs(q);
+      const ul   = document.getElementById('historial');
+      const empty= document.getElementById('historial-empty');
+
+      if (snap.empty) { empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      ul.innerHTML = '';
+
+      snap.forEach(doc => {
+        const d  = doc.data();
+        const ts = d.timestamp?.toDate ? d.timestamp.toDate() : new Date();
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <div class="h-title">${d.title}</div>
+          <div class="h-body">${d.body}</div>
+          <div class="h-time">${ts.toLocaleString('es-ES')} · ${d.success ?? '?'} dispositivos</div>
+        `;
+        ul.appendChild(li);
+      });
+    } catch (e) {
+      console.warn('No se pudo cargar historial:', e);
+    }
+  }
+
+  /* ══════════ HELPERS ══════════ */
+  function mostrarEstado (msg, tipo) {
+    const box = document.getElementById('status-box');
+    box.textContent = msg;
+    box.className   = '';
+    box.classList.add('status-' + tipo);
+    box.style.display = 'block';
+    if (tipo === 'ok') setTimeout(() => { box.style.display = 'none'; }, 5000);
+  }
+</script>
+</body>
+</html>
