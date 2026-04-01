@@ -715,71 +715,103 @@
         ════════════════════════════════════════════ -->
         <div style="height:35px;background:#ffffff;"></div>
         <div id="ahora-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <!-- Cabecera fija -->
+
+            <!-- Cabecera principal -->
             <div style="display:flex;align-items:center;justify-content:center;padding:14px 16px;background:#6fcfe0;">
                 <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">AHORA</span>
             </div>
 
-            <!-- Desplegable: Meteograma -->
-            <div style="border-bottom:1px solid #e2e8f0;">
-                <div onclick="toggleAhora('meteograma')" style="background:#2c3e50;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
-                    <span style="font-size:10px;font-weight:700;color:#fff;letter-spacing:1.5px;text-transform:uppercase;">&#128200; Meteograma</span>
-                    <span id="arrow-ahora-meteograma" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;">&#9660;</span>
+            <!-- ── IMAGEN FIJA DE ISOBARAS ── -->
+            <div style="border-bottom:2px solid #c9ddf0;background:#fff;">
+                <div style="background:linear-gradient(135deg,#0b4c90 0%,#1a6fa8 100%);padding:10px 16px;display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:18px;">🗺️</span>
+                    <div style="font-size:12px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">Mapa Isobárico — Situación Actual</div>
                 </div>
-                <div id="panel-ahora-meteograma" style="display:none;background:#f0f6fa;padding:12px;">
-                    <!-- Meteograma AEMET Barcelona — imagen directa, se actualiza sola -->
+                <div style="background:linear-gradient(180deg,#c9ddf0 0%,#dce8f0 100%);padding:12px;">
+                    <img
+                        src="https://www.aemet.es/imagenes_d/eltiempo/analisis_servicios/analisis_superficial/mslp_30-0W_20-72N_esp.png"
+                        alt="Mapa Isobárico AEMET"
+                        style="width:100%;height:auto;display:block;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);"
+                        onerror="this.style.display='none';this.nextElementSibling.style.display='block';"
+                    />
+                    <div style="display:none;padding:16px;text-align:center;">
+                        <p style="font-size:13px;color:#1a3a5c;margin-bottom:10px;">Imagen no disponible directamente.</p>
+                        <a href="https://www.aemet.es/es/eltiempo/observacion/analisis" target="_blank"
+                           style="display:inline-block;background:#0b4c90;color:#fff;font-size:12px;font-weight:700;padding:8px 16px;border-radius:6px;text-decoration:none;letter-spacing:0.5px;">
+                           Ver en AEMET ↗
+                        </a>
+                    </div>
+                    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
+                        <span style="font-size:9px;color:#2c4a6e;font-weight:700;letter-spacing:0.5px;">© AEMET — Análisis superficial</span>
+                        <a href="https://www.aemet.es/es/eltiempo/observacion/analisis" target="_blank"
+                           style="font-size:9px;color:#0b4c90;font-weight:700;text-decoration:none;letter-spacing:0.5px;">VER MÁS ↗</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── METEOGRAMA AEMET ── -->
+            <div style="border-bottom:2px solid #c9ddf0;background:#fff;">
+                <div style="background:linear-gradient(135deg,#1e6fa0 0%,#2c85bb 100%);padding:10px 16px;display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:18px;">📈</span>
+                    <div style="font-size:12px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">Meteograma Barcelona — AEMET</div>
+                </div>
+                <div style="background:linear-gradient(180deg,#c9ddf0 0%,#dce8f0 100%);padding:12px;">
                     <img id="img-meteograma"
                          src="https://www.aemet.es/imagenes_d/eltiempo/prediccion/modelos/meteogramas/hoy/aemet_meteograma_08_19_000.png"
                          alt="Meteograma Barcelona AEMET"
-                         style="width:100%;height:auto;display:block;"
-                         onerror="this.src='https://www.aemet.es/imagenes_d/eltiempo/prediccion/modelos/meteogramas/hoy/aemet_meteograma_08_19_006.png'" />
-                    <p style="font-size:9px;color:#64748b;text-align:right;margin-top:6px;letter-spacing:0.5px;">© AEMET — se actualiza cada 6h</p>
-                </div>
-            </div>
-
-            <!-- Desplegable: Mapa isobarico -->
-            <div style="border-bottom:1px solid #e2e8f0;">
-                <div onclick="toggleAhora('isobarico')" style="background:#2c3e50;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
-                    <span style="font-size:10px;font-weight:700;color:#fff;letter-spacing:1.5px;text-transform:uppercase;">&#128506; Mapa Isobarico</span>
-                    <span id="arrow-ahora-isobarico" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;">&#9660;</span>
-                </div>
-                <div id="panel-ahora-isobarico" style="display:none;background:#f0f6fa;">
-                    <!-- Windy embed — capa presion/isobaras centrado en Iberia -->
-                    <iframe src="https://embed.windy.com/embed2.html?lat=41.38&lon=2.17&detailLat=41.38&detailLon=2.17&width=600&height=450&zoom=5&level=surface&overlay=pressure&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1"
-                            frameborder="0" allowfullscreen
-                            style="width:100%;height:450px;display:block;"></iframe>
-                    <p style="font-size:9px;color:#64748b;text-align:right;margin:4px 8px 0;letter-spacing:0.5px;">© Windy.com — modelo ECMWF</p>
-                </div>
-            </div>
-
-            <!-- Desplegable: Radiosondeo Barcelona -->
-            <div style="border-bottom:1px solid #e2e8f0;">
-                <div onclick="toggleAhora('radiosondeo')" style="background:#2c3e50;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
-                    <span style="font-size:10px;font-weight:700;color:#fff;letter-spacing:1.5px;text-transform:uppercase;">&#127777;&#65039; Radiosondeo Barcelona</span>
-                    <span id="arrow-ahora-radiosondeo" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;">&#9660;</span>
-                </div>
-                <div id="panel-ahora-radiosondeo" style="display:none;background:#f0f6fa;padding:12px;">
-                    <div id="radiosondeo-container">
-                        <!-- Se carga por JS al abrir -->
-                        <p style="text-align:center;color:#94a3b8;font-size:13px;padding:20px 0;">Cargando radiosondeo…</p>
+                         style="width:100%;height:auto;display:block;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);"
+                         onerror="this.src='https://www.aemet.es/imagenes_d/eltiempo/prediccion/modelos/meteogramas/hoy/aemet_meteograma_08_19_006.png';this.onerror=function(){this.style.display='none';this.nextElementSibling.style.display='block';};" />
+                    <div style="display:none;padding:16px;text-align:center;">
+                        <p style="font-size:13px;color:#1a3a5c;margin-bottom:10px;">Meteograma no disponible en este momento.</p>
+                        <a href="https://www.aemet.es/es/eltiempo/prediccion/localidades/municipios/id08019" target="_blank"
+                           style="display:inline-block;background:#0b4c90;color:#fff;font-size:12px;font-weight:700;padding:8px 16px;border-radius:6px;text-decoration:none;letter-spacing:0.5px;">
+                           Ver en AEMET ↗
+                        </a>
                     </div>
-                    <p style="font-size:9px;color:#64748b;text-align:right;margin-top:6px;letter-spacing:0.5px;">© University of Wyoming — Estación 08180 Barcelona (00Z/12Z)</p>
+                    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
+                        <span style="font-size:9px;color:#2c4a6e;font-weight:700;letter-spacing:0.5px;">© AEMET — se actualiza cada 6h</span>
+                        <a href="https://www.aemet.es/es/eltiempo/prediccion/localidades/municipios/id08019" target="_blank"
+                           style="font-size:9px;color:#0b4c90;font-weight:700;text-decoration:none;letter-spacing:0.5px;">VER MÁS ↗</a>
+                    </div>
                 </div>
             </div>
 
-            <!-- Desplegable: METAR Barcelona -->
-            <div>
-                <div onclick="toggleAhora('metar')" style="background:#2c3e50;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
-                    <span style="font-size:10px;font-weight:700;color:#fff;letter-spacing:1.5px;text-transform:uppercase;">&#9992;&#65039; METAR LEBL Barcelona</span>
-                    <span id="arrow-ahora-metar" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;">&#9660;</span>
+            <!-- ── ÚLTIMO RADIOSONDEO ── -->
+            <div style="border-bottom:2px solid #c9ddf0;background:#fff;">
+                <div style="background:linear-gradient(135deg,#0b4c90 0%,#1a6fa8 100%);padding:10px 16px;display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:18px;">🌡️</span>
+                    <div style="font-size:12px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">Último Radiosondeo — Barcelona</div>
                 </div>
-                <div id="panel-ahora-metar" style="display:none;background:#f0f6fa;padding:12px;">
-                    <div id="metar-container">
-                        <p style="text-align:center;color:#94a3b8;font-size:13px;padding:20px 0;">Cargando METAR…</p>
+                <div style="background:linear-gradient(180deg,#c9ddf0 0%,#dce8f0 100%);padding:12px;">
+                    <div id="radiosondeo-container-new" style="text-align:center;">
+                        <div style="padding:16px 0;color:#1a3a5c;font-size:13px;font-weight:500;">Cargando radiosondeo…</div>
                     </div>
-                    <p style="font-size:9px;color:#64748b;text-align:right;margin-top:6px;letter-spacing:0.5px;">© aviationweather.gov — LEBL · se actualiza cada 30 min</p>
+                    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
+                        <span style="font-size:9px;color:#2c4a6e;font-weight:700;letter-spacing:0.5px;">© Univ. Wyoming — Est. 08180 (00Z/12Z)</span>
+                        <a id="radiosondeo-link" href="https://weather.uwyo.edu/upperair/sounding.php?region=europe&TYPE=GIF%3ASKEWT&STNM=08180" target="_blank"
+                           style="font-size:9px;color:#0b4c90;font-weight:700;text-decoration:none;letter-spacing:0.5px;">VER DATOS ↗</a>
+                    </div>
                 </div>
             </div>
+
+            <!-- ── METAR LEBL ── -->
+            <div style="background:#fff;">
+                <div style="background:linear-gradient(135deg,#1e6fa0 0%,#2c85bb 100%);padding:10px 16px;display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:18px;">✈️</span>
+                    <div style="font-size:12px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">METAR LEBL — Aeropuerto Barcelona</div>
+                </div>
+                <div style="background:linear-gradient(180deg,#c9ddf0 0%,#dce8f0 100%);padding:12px;">
+                    <div id="metar-container-new">
+                        <div style="padding:16px 0;text-align:center;color:#1a3a5c;font-size:13px;font-weight:500;">Cargando METAR…</div>
+                    </div>
+                    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
+                        <span style="font-size:9px;color:#2c4a6e;font-weight:700;letter-spacing:0.5px;">© aviationweather.gov — LEBL · cada 30 min</span>
+                        <a href="https://aviationweather.gov/metar/data/?ids=LEBL" target="_blank"
+                           style="font-size:9px;color:#0b4c90;font-weight:700;text-decoration:none;letter-spacing:0.5px;">VER MÁS ↗</a>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <!-- ═══════════════════════════════════════════
@@ -2395,24 +2427,13 @@
         }
 
         function toggleAhora(id) {
-            const panel = document.getElementById('panel-ahora-' + id);
-            const arrow = document.getElementById('arrow-ahora-' + id);
-            if (!panel) return;
-            const isOpen = panel.style.display !== 'none';
-            panel.style.display = isOpen ? 'none' : 'block';
-            arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
-            if (!isOpen) {
-                if (id === 'radiosondeo') cargarRadiosondeo();
-                if (id === 'metar') cargarMetar();
-            }
+            // Función mantenida por compatibilidad (ya no usada activamente)
         }
 
         /* ── Radiosondeo Barcelona (University of Wyoming) ── */
-        let radiosondeoLoaded = false;
         function cargarRadiosondeo() {
-            if (radiosondeoLoaded) return;
-            radiosondeoLoaded = true;
-            const container = document.getElementById('radiosondeo-container');
+            const container = document.getElementById('radiosondeo-container-new');
+            if (!container) return;
             const ahora = new Date();
             const horaUTC = ahora.getUTCHours();
             const hora = horaUTC >= 13 ? 12 : 0;
@@ -2422,21 +2443,23 @@
             const horaStr = String(hora).padStart(2, '0');
             const url    = 'https://weather.uwyo.edu/upperair/sounding.php?region=europe&TYPE=GIF%3ASKEWT&YEAR='+anio+'&MONTH='+mes+'&FROM='+dia+horaStr+'&TO='+dia+horaStr+'&STNM=08180';
             const gifUrl = 'https://weather.uwyo.edu/upperair/gif.php?region=europe&TYPE=SKEWT&YEAR='+anio+'&MONTH='+mes+'&FROM='+dia+horaStr+'&TO='+dia+horaStr+'&STNM=08180';
+            // Actualizar enlace "VER DATOS"
+            const linkEl = document.getElementById('radiosondeo-link');
+            if (linkEl) linkEl.href = url;
             container.innerHTML =
-                '<div style="text-align:center;">' +
                 '<img src="'+gifUrl+'" alt="Radiosondeo Barcelona '+dia+'/'+mes+'/'+anio+' '+horaStr+'Z"' +
-                ' style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto;border-radius:4px;"' +
-                ' onerror="this.parentElement.innerHTML=\'<p style=&quot;color:#ef4444;font-size:13px;text-align:center;padding:16px;&quot;>No disponible todav\u00eda. El sondeo de las <strong>'+horaStr+'Z</strong> se publica ~1h despu\u00e9s del vuelo.<br><a href=&quot;'+url+'&quot; target=&quot;_blank&quot; style=&quot;color:#3b82f6;&quot;>Ver en University of Wyoming \u2197</a></p>\'" />' +
-                '<p style="font-size:11px;color:#64748b;margin-top:8px;">Sondeo '+horaStr+'Z &middot; Estaci\u00f3n 08180 &middot; <a href="'+url+'" target="_blank" style="color:#3b82f6;">Ver datos completos \u2197</a></p>' +
-                '</div>';
+                ' style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);"' +
+                ' onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\';" />' +
+                '<div style="display:none;padding:12px;background:rgba(255,255,255,0.7);border-radius:8px;text-align:center;">' +
+                '<p style="font-size:12px;color:#1a3a5c;margin-bottom:8px;">El sondeo <strong>'+horaStr+'Z</strong> aún no está disponible (~1h tras el vuelo).</p>' +
+                '<a href="'+url+'" target="_blank" style="display:inline-block;background:#0b4c90;color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:6px;text-decoration:none;">Ver en Univ. Wyoming ↗</a>' +
+                '</div>' +
+                '<p style="font-size:10px;color:#2c4a6e;margin-top:8px;font-weight:600;">Sondeo '+horaStr+'Z · Estación 08180</p>';
         }
 
         /* ── METAR LEBL Barcelona (aviationweather.gov) ── */
-        let metarLoaded = false;
         async function cargarMetar() {
-            if (metarLoaded) return;
-            metarLoaded = true;
-            const container = document.getElementById('metar-container');
+            const container = document.getElementById('metar-container-new');
             try {
                 const resp = await fetch('https://aviationweather.gov/api/data/metar?ids=LEBL&format=json&hours=3');
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -2467,13 +2490,13 @@
                         ? '<span style="font-size:9px;font-weight:700;color:#22c55e;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;display:inline-block;">\u25cf \u00daLTIMO METAR</span>'
                         : '<span style="font-size:9px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;display:inline-block;">ANTERIOR</span>';
                     html += '<div style="'+sep+'">' + badge +
-                        '<table style="width:100%;border-collapse:collapse;">' +
-                        rows.map(function(r){ return '<tr><td style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.6px;padding:5px 8px 5px 0;white-space:nowrap;vertical-align:top;">'+r[0]+'</td><td style="font-size:13px;color:#1e293b;font-weight:500;padding:5px 0;">'+r[1]+'</td></tr>'; }).join('') +
+                        '<table style="width:100%;border-collapse:collapse;background:rgba(255,255,255,0.7);border-radius:8px;overflow:hidden;">' +
+                        rows.map(function(r){ return '<tr><td style="font-size:10px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:0.6px;padding:6px 8px 6px 10px;white-space:nowrap;vertical-align:top;background:rgba(11,76,144,0.06);">'+r[0]+'</td><td style="font-size:13px;color:#1a3a5c;font-weight:600;padding:6px 10px;">'+r[1]+'</td></tr>'; }).join('') +
                         '</table></div>';
                 });
                 container.innerHTML = html;
             } catch(e) {
-                container.innerHTML = '<p style="color:#ef4444;font-size:13px;text-align:center;padding:16px;">No se pudo cargar el METAR. <a href="https://aviationweather.gov/metar/data/?ids=LEBL" target="_blank" style="color:#3b82f6;">Ver en aviationweather.gov \u2197</a></p>';
+                container.innerHTML = '<div style="padding:12px;background:rgba(255,255,255,0.7);border-radius:8px;text-align:center;"><p style="color:#1a3a5c;font-size:13px;margin-bottom:8px;">METAR no disponible en este momento.</p><a href="https://aviationweather.gov/metar/data/?ids=LEBL" target="_blank" style="display:inline-block;background:#0b4c90;color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:6px;text-decoration:none;">Ver en aviationweather.gov ↗</a></div>';
             }
         }
 
@@ -3455,6 +3478,10 @@
 
         loadWeatherData();
         setInterval(loadWeatherData, 600000);
+
+        // ── Carga automática sección AHORA ──
+        cargarRadiosondeo();
+        cargarMetar();
 
         /* ══════ WIDGET PREVISIÓN 3 DÍAS ══════ */
         (function(){
