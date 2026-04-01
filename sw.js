@@ -2,7 +2,7 @@
    SERVICE WORKER — Tiempo Barcelona PWA
    ═══════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'tiempo-bcn-v3';
+const CACHE_NAME = 'tiempo-bcn-v4';
 
 // Archivos que se guardan en caché para funcionamiento offline
 const PRECACHE_ASSETS = [
