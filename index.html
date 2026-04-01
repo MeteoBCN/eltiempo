@@ -726,11 +726,14 @@
                     <span style="font-size:10px;font-weight:700;color:#fff;letter-spacing:1.5px;text-transform:uppercase;">&#128200; Meteograma</span>
                     <span id="arrow-ahora-meteograma" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;">&#9660;</span>
                 </div>
-                <div id="panel-ahora-meteograma" style="display:none;background:#f0f6fa;">
-                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/barcelona_spain_3128760?geoloc=fixed&nocurrent=0&noforecast=0&nografics=0&language=ES"
-                            frameborder="0" scrolling="NO" allowtransparency="true"
-                            sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
-                            style="width:100%;height:420px;display:block;"></iframe>
+                <div id="panel-ahora-meteograma" style="display:none;background:#f0f6fa;padding:12px;">
+                    <!-- Meteograma AEMET Barcelona — imagen directa, se actualiza sola -->
+                    <img id="img-meteograma"
+                         src="https://www.aemet.es/imagenes_d/eltiempo/prediccion/modelos/meteogramas/hoy/aemet_meteograma_08_19_000.png"
+                         alt="Meteograma Barcelona AEMET"
+                         style="width:100%;height:auto;display:block;"
+                         onerror="this.src='https://www.aemet.es/imagenes_d/eltiempo/prediccion/modelos/meteogramas/hoy/aemet_meteograma_08_19_006.png'" />
+                    <p style="font-size:9px;color:#64748b;text-align:right;margin-top:6px;letter-spacing:0.5px;">© AEMET — se actualiza cada 6h</p>
                 </div>
             </div>
 
@@ -741,10 +744,11 @@
                     <span id="arrow-ahora-isobarico" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;">&#9660;</span>
                 </div>
                 <div id="panel-ahora-isobarico" style="display:none;background:#f0f6fa;">
-                    <iframe src="https://www.meteoblue.com/en/weather/maps/widget/barcelona_spain_3128760?windAnimation=0&gust=0&satellite=0&cloudsAndPrecipitation=0&temperature=0&sunshine=0&extremeForecastIndex=0&geoloc=fixed&tempunit=C&windunit=km%2Fh&lengthunit=metric&zoom=4&autowidth=auto#pressure=1"
-                            frameborder="0" scrolling="NO" allowtransparency="true"
-                            sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
-                            style="width:100%;height:400px;display:block;"></iframe>
+                    <!-- Windy embed — capa presion/isobaras centrado en Iberia -->
+                    <iframe src="https://embed.windy.com/embed2.html?lat=41.38&lon=2.17&detailLat=41.38&detailLon=2.17&width=600&height=450&zoom=5&level=surface&overlay=pressure&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1"
+                            frameborder="0" allowfullscreen
+                            style="width:100%;height:450px;display:block;"></iframe>
+                    <p style="font-size:9px;color:#64748b;text-align:right;margin:4px 8px 0;letter-spacing:0.5px;">© Windy.com — modelo ECMWF</p>
                 </div>
             </div>
         </div>
