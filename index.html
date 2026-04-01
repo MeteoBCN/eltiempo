@@ -738,7 +738,7 @@
             </div>
 
             <!-- Desplegable: Mapa isobarico -->
-            <div>
+            <div style="border-bottom:1px solid #e2e8f0;">
                 <div onclick="toggleAhora('isobarico')" style="background:#2c3e50;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
                     <span style="font-size:10px;font-weight:700;color:#fff;letter-spacing:1.5px;text-transform:uppercase;">&#128506; Mapa Isobarico</span>
                     <span id="arrow-ahora-isobarico" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;">&#9660;</span>
@@ -749,6 +749,35 @@
                             frameborder="0" allowfullscreen
                             style="width:100%;height:450px;display:block;"></iframe>
                     <p style="font-size:9px;color:#64748b;text-align:right;margin:4px 8px 0;letter-spacing:0.5px;">© Windy.com — modelo ECMWF</p>
+                </div>
+            </div>
+
+            <!-- Desplegable: Radiosondeo Barcelona -->
+            <div style="border-bottom:1px solid #e2e8f0;">
+                <div onclick="toggleAhora('radiosondeo')" style="background:#2c3e50;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
+                    <span style="font-size:10px;font-weight:700;color:#fff;letter-spacing:1.5px;text-transform:uppercase;">&#127777;&#65039; Radiosondeo Barcelona</span>
+                    <span id="arrow-ahora-radiosondeo" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;">&#9660;</span>
+                </div>
+                <div id="panel-ahora-radiosondeo" style="display:none;background:#f0f6fa;padding:12px;">
+                    <div id="radiosondeo-container">
+                        <!-- Se carga por JS al abrir -->
+                        <p style="text-align:center;color:#94a3b8;font-size:13px;padding:20px 0;">Cargando radiosondeo…</p>
+                    </div>
+                    <p style="font-size:9px;color:#64748b;text-align:right;margin-top:6px;letter-spacing:0.5px;">© University of Wyoming — Estación 08180 Barcelona (00Z/12Z)</p>
+                </div>
+            </div>
+
+            <!-- Desplegable: METAR Barcelona -->
+            <div>
+                <div onclick="toggleAhora('metar')" style="background:#2c3e50;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
+                    <span style="font-size:10px;font-weight:700;color:#fff;letter-spacing:1.5px;text-transform:uppercase;">&#9992;&#65039; METAR LEBL Barcelona</span>
+                    <span id="arrow-ahora-metar" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;">&#9660;</span>
+                </div>
+                <div id="panel-ahora-metar" style="display:none;background:#f0f6fa;padding:12px;">
+                    <div id="metar-container">
+                        <p style="text-align:center;color:#94a3b8;font-size:13px;padding:20px 0;">Cargando METAR…</p>
+                    </div>
+                    <p style="font-size:9px;color:#64748b;text-align:right;margin-top:6px;letter-spacing:0.5px;">© aviationweather.gov — LEBL · se actualiza cada 30 min</p>
                 </div>
             </div>
         </div>
@@ -2372,6 +2401,80 @@
             const isOpen = panel.style.display !== 'none';
             panel.style.display = isOpen ? 'none' : 'block';
             arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+            if (!isOpen) {
+                if (id === 'radiosondeo') cargarRadiosondeo();
+                if (id === 'metar') cargarMetar();
+            }
+        }
+
+        /* ── Radiosondeo Barcelona (University of Wyoming) ── */
+        let radiosondeoLoaded = false;
+        function cargarRadiosondeo() {
+            if (radiosondeoLoaded) return;
+            radiosondeoLoaded = true;
+            const container = document.getElementById('radiosondeo-container');
+            const ahora = new Date();
+            const horaUTC = ahora.getUTCHours();
+            const hora = horaUTC >= 13 ? 12 : 0;
+            const anio = ahora.getUTCFullYear();
+            const mes  = String(ahora.getUTCMonth() + 1).padStart(2, '0');
+            const dia  = String(ahora.getUTCDate()).padStart(2, '0');
+            const horaStr = String(hora).padStart(2, '0');
+            const url    = 'https://weather.uwyo.edu/upperair/sounding.php?region=europe&TYPE=GIF%3ASKEWT&YEAR='+anio+'&MONTH='+mes+'&FROM='+dia+horaStr+'&TO='+dia+horaStr+'&STNM=08180';
+            const gifUrl = 'https://weather.uwyo.edu/upperair/gif.php?region=europe&TYPE=SKEWT&YEAR='+anio+'&MONTH='+mes+'&FROM='+dia+horaStr+'&TO='+dia+horaStr+'&STNM=08180';
+            container.innerHTML =
+                '<div style="text-align:center;">' +
+                '<img src="'+gifUrl+'" alt="Radiosondeo Barcelona '+dia+'/'+mes+'/'+anio+' '+horaStr+'Z"' +
+                ' style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto;border-radius:4px;"' +
+                ' onerror="this.parentElement.innerHTML=\'<p style=&quot;color:#ef4444;font-size:13px;text-align:center;padding:16px;&quot;>No disponible todav\u00eda. El sondeo de las <strong>'+horaStr+'Z</strong> se publica ~1h despu\u00e9s del vuelo.<br><a href=&quot;'+url+'&quot; target=&quot;_blank&quot; style=&quot;color:#3b82f6;&quot;>Ver en University of Wyoming \u2197</a></p>\'" />' +
+                '<p style="font-size:11px;color:#64748b;margin-top:8px;">Sondeo '+horaStr+'Z &middot; Estaci\u00f3n 08180 &middot; <a href="'+url+'" target="_blank" style="color:#3b82f6;">Ver datos completos \u2197</a></p>' +
+                '</div>';
+        }
+
+        /* ── METAR LEBL Barcelona (aviationweather.gov) ── */
+        let metarLoaded = false;
+        async function cargarMetar() {
+            if (metarLoaded) return;
+            metarLoaded = true;
+            const container = document.getElementById('metar-container');
+            try {
+                const resp = await fetch('https://aviationweather.gov/api/data/metar?ids=LEBL&format=json&hours=3');
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const data = await resp.json();
+                if (!data || data.length === 0) throw new Error('Sin datos');
+                function decodeMetar(m) {
+                    const rows = [];
+                    if (m.rawOb)      rows.push(['RAW', '<code style="font-size:11px;word-break:break-all;background:#e2e8f0;padding:4px 6px;border-radius:4px;display:inline-block;">'+m.rawOb+'</code>']);
+                    if (m.reportTime) rows.push(['Hora (UTC)', m.reportTime.replace('T',' ').replace('Z',' Z')]);
+                    if (m.temp !== undefined) rows.push(['Temperatura', m.temp+' \u00b0C']);
+                    if (m.dewp !== undefined) rows.push(['Punto de roc\u00edo', m.dewp+' \u00b0C']);
+                    if (m.visib !== undefined) rows.push(['Visibilidad', m.visib >= 9999 ? '\u226510 km' : m.visib+' m']);
+                    if (m.wdir !== undefined && m.wspd !== undefined) rows.push(['Viento', m.wdir+'\u00b0 / '+m.wspd+' kt'+(m.wgst ? ' (r\u00e1fagas '+m.wgst+' kt)' : '')]);
+                    if (m.altim !== undefined) rows.push(['Alt\u00edmetro (QNH)', m.altim+' hPa']);
+                    if (m.wx)         rows.push(['Fen\u00f3menos', m.wx]);
+                    if (m.clds && m.clds.length) {
+                        const cielo = m.clds.map(function(c){ return c.cover+(c.base ? ' '+c.base+' ft' : ''); }).join(' \u00b7 ');
+                        rows.push(['Nubes', cielo]);
+                    }
+                    if (m.fltcat)     rows.push(['Categor\u00eda vuelo', '<span style="font-weight:700;color:'+(m.fltcat==='VFR'?'#22c55e':m.fltcat==='MVFR'?'#3b82f6':m.fltcat==='IFR'?'#ef4444':'#f59e0b')+'">'+m.fltcat+'</span>']);
+                    return rows;
+                }
+                let html = '';
+                data.forEach(function(m, i) {
+                    const rows = decodeMetar(m);
+                    const sep = i < data.length-1 ? 'margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #e2e8f0;' : '';
+                    const badge = i === 0
+                        ? '<span style="font-size:9px;font-weight:700;color:#22c55e;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;display:inline-block;">\u25cf \u00daLTIMO METAR</span>'
+                        : '<span style="font-size:9px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;display:inline-block;">ANTERIOR</span>';
+                    html += '<div style="'+sep+'">' + badge +
+                        '<table style="width:100%;border-collapse:collapse;">' +
+                        rows.map(function(r){ return '<tr><td style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.6px;padding:5px 8px 5px 0;white-space:nowrap;vertical-align:top;">'+r[0]+'</td><td style="font-size:13px;color:#1e293b;font-weight:500;padding:5px 0;">'+r[1]+'</td></tr>'; }).join('') +
+                        '</table></div>';
+                });
+                container.innerHTML = html;
+            } catch(e) {
+                container.innerHTML = '<p style="color:#ef4444;font-size:13px;text-align:center;padding:16px;">No se pudo cargar el METAR. <a href="https://aviationweather.gov/metar/data/?ids=LEBL" target="_blank" style="color:#3b82f6;">Ver en aviationweather.gov \u2197</a></p>';
+            }
         }
 
         /* ══════════════════════════════════════════════
