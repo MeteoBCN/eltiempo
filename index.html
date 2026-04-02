@@ -3424,7 +3424,7 @@
         /* ── Radar secundario (sección AHORA) — Leaflet + Rainviewer ── */
         function initAhoraRadar() {
             if (!window.L) return;
-            const BCN_LAT = 41.3851, BCN_LON = 2.1734, ZOOM = 8, FRAMES_TARGET = 8;
+            const BCN_LAT = 41.3851, BCN_LON = 2.1734, ZOOM = 7, FRAMES_TARGET = 8;
             let map2, radarLayers2 = [], currentFrame2 = 0, animTimer2 = null, isPlaying2 = true, allFrames2 = [];
 
             map2 = L.map('ahora-radar-map', {
@@ -3432,7 +3432,7 @@
                 dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false,
                 boxZoom: false, keyboard: false, tap: false, interactive: false
             });
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 10, opacity: 1, crossOrigin: true }).addTo(map2);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, opacity: 1, crossOrigin: true }).addTo(map2);
             const bcnIcon2 = L.divIcon({ className: '', html: '<div style="width:10px;height:10px;background:#3b82f6;border:2px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(59,130,246,0.8);"></div>', iconSize: [10,10], iconAnchor: [5,5] });
             L.marker([BCN_LAT, BCN_LON], { icon: bcnIcon2, interactive: false }).addTo(map2);
 
@@ -3449,7 +3449,7 @@
                     radarLayers2.forEach(l => map2.removeLayer(l));
                     radarLayers2 = [];
                     frames.forEach((f, i) => {
-                        const layer = L.tileLayer(`https://tilecache.rainviewer.com${f.path}/256/{z}/{x}/{y}/2/1_1.png`, { opacity: 0, maxZoom: 10, tileSize: 256, zIndex: 10+i });
+                        const layer = L.tileLayer(`https://tilecache.rainviewer.com${f.path}/256/{z}/{x}/{y}/2/1_1.png`, { opacity: 0, maxZoom: 19, tileSize: 256, zIndex: 10+i });
                         layer.addTo(map2); radarLayers2.push(layer);
                     });
                     currentFrame2 = 0; showFrame2(0);
