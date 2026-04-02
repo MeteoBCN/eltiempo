@@ -777,28 +777,7 @@
                 </div>
             </div>
 
-            <!-- ── ÚLTIMO RADIOSONDEO (desplegable) ── -->
-            <div style="background:#fff;">
-                <div onclick="toggleRadiosondeo()" style="background:linear-gradient(135deg,#0b4c90 0%,#1a6fa8 100%);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span style="font-size:18px;">🌡️</span>
-                        <div style="font-size:12px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">Último Radiosondeo — Barcelona</div>
-                    </div>
-                    <span id="radiosondeo-chevron" style="font-size:14px;color:#fff;transition:transform 0.3s;display:inline-block;transform:rotate(0deg);">▼</span>
-                </div>
-                <div id="radiosondeo-panel" style="display:none;">
-                    <div style="background:linear-gradient(180deg,#c9ddf0 0%,#dce8f0 100%);padding:12px;">
-                        <div id="radiosondeo-container-new" style="text-align:center;">
-                            <div style="padding:16px 0;color:#1a3a5c;font-size:13px;font-weight:500;">Cargando radiosondeo…</div>
-                        </div>
-                        <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
-                            <span style="font-size:9px;color:#2c4a6e;font-weight:700;letter-spacing:0.5px;">© Univ. Wyoming — Est. 08180 (00Z/12Z)</span>
-                            <a id="radiosondeo-link" href="https://weather.uwyo.edu/upperair/sounding.php?region=europe&TYPE=GIF%3ASKEWT&STNM=08180" target="_blank"
-                               style="font-size:9px;color:#0b4c90;font-weight:700;text-decoration:none;letter-spacing:0.5px;">VER DATOS ↗</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
 
         </div>
 
@@ -984,7 +963,7 @@
 
             <!-- Créditos -->
             <div style="background:#0a1520;padding:6px 14px 10px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,0.05);">
-                <span style="font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:0.5px;">© RainViewer · Radio ~200 km · Actualiza cada 10 min</span>
+                <span style="font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:0.5px;">© RainViewer · Radio ~100 km · Actualiza cada 10 min</span>
                 <span style="font-size:8px;color:rgba(255,255,255,0.25);">© OpenStreetMap</span>
             </div>
         </div>
@@ -996,11 +975,11 @@
         <script>
         /* ══════════════════════════════════════════════
            RADAR BARCELONA — Rainviewer API + Leaflet
-           Sin interacción · Animación ~45 min · 200 km
+           Sin interacción · Animación ~45 min · 100 km
         ══════════════════════════════════════════════ */
         (function() {
             const BCN_LAT = 41.3851, BCN_LON = 2.1734;
-            const ZOOM    = 7;   // zoom 7 ≈ radio ~220 km visible
+            const ZOOM    = 9;   // zoom 9 ≈ radio ~100 km visible
             const FRAMES_TARGET = 8; // últimos ~48 min (frames cada 6 min)
 
             let map, radarLayers = [], currentFrame = 0;
@@ -1024,15 +1003,15 @@
                     interactive: false
                 });
 
-                // Capa base oscura
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                // Capa base clara
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                     maxZoom: 10, opacity: 1
                 }).addTo(map);
 
                 // Marcador Barcelona
                 const bcnIcon = L.divIcon({
                     className: '',
-                    html: '<div style="width:10px;height:10px;background:#fff;border:2px solid #3b82f6;border-radius:50%;box-shadow:0 0 8px rgba(59,130,246,0.8);"></div>',
+                    html: '<div style="width:10px;height:10px;background:#3b82f6;border:2px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(59,130,246,0.8);"></div>',
                     iconSize: [10, 10],
                     iconAnchor: [5, 5]
                 });
@@ -2631,32 +2610,7 @@
             // Función mantenida por compatibilidad (ya no usada activamente)
         }
 
-        /* ── Radiosondeo Barcelona (University of Wyoming) ── */
-        function cargarRadiosondeo() {
-            const container = document.getElementById('radiosondeo-container-new');
-            if (!container) return;
-            const ahora = new Date();
-            const horaUTC = ahora.getUTCHours();
-            const hora = horaUTC >= 13 ? 12 : 0;
-            const anio = ahora.getUTCFullYear();
-            const mes  = String(ahora.getUTCMonth() + 1).padStart(2, '0');
-            const dia  = String(ahora.getUTCDate()).padStart(2, '0');
-            const horaStr = String(hora).padStart(2, '0');
-            const url    = 'https://weather.uwyo.edu/upperair/sounding.php?region=europe&TYPE=GIF%3ASKEWT&YEAR='+anio+'&MONTH='+mes+'&FROM='+dia+horaStr+'&TO='+dia+horaStr+'&STNM=08180';
-            const gifUrl = 'https://weather.uwyo.edu/upperair/gif.php?region=europe&TYPE=SKEWT&YEAR='+anio+'&MONTH='+mes+'&FROM='+dia+horaStr+'&TO='+dia+horaStr+'&STNM=08180';
-            // Actualizar enlace "VER DATOS"
-            const linkEl = document.getElementById('radiosondeo-link');
-            if (linkEl) linkEl.href = url;
-            container.innerHTML =
-                '<img src="'+gifUrl+'" alt="Radiosondeo Barcelona '+dia+'/'+mes+'/'+anio+' '+horaStr+'Z"' +
-                ' style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);"' +
-                ' onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\';" />' +
-                '<div style="display:none;padding:12px;background:rgba(255,255,255,0.7);border-radius:8px;text-align:center;">' +
-                '<p style="font-size:12px;color:#1a3a5c;margin-bottom:8px;">El sondeo <strong>'+horaStr+'Z</strong> aún no está disponible (~1h tras el vuelo).</p>' +
-                '<a href="'+url+'" target="_blank" style="display:inline-block;background:#0b4c90;color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:6px;text-decoration:none;">Ver en Univ. Wyoming ↗</a>' +
-                '</div>' +
-                '<p style="font-size:10px;color:#2c4a6e;margin-top:8px;font-weight:600;">Sondeo '+horaStr+'Z · Estación 08180</p>';
-        }
+
 
         /* ── METAR LEBL Barcelona (aviationweather.gov) ── */
         async function cargarMetar() {
@@ -3681,7 +3635,6 @@
         setInterval(loadWeatherData, 600000);
 
         // ── Carga automática sección AHORA ──
-        cargarRadiosondeo();
 
         /* ── Toggle desplegable Radar (sección AHORA) ── */
         let ahoraRadarInited = false;
@@ -3697,14 +3650,7 @@
             }
         };
 
-        /* ── Toggle desplegable Radiosondeo ── */
-        window.toggleRadiosondeo = function() {
-            const panel = document.getElementById('radiosondeo-panel');
-            const chevron = document.getElementById('radiosondeo-chevron');
-            const open = panel.style.display === 'none';
-            panel.style.display = open ? 'block' : 'none';
-            chevron.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
-        };
+
 
         /* ── Radar secundario (sección AHORA) — Leaflet + Rainviewer ── */
         function initAhoraRadar() {
