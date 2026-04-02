@@ -721,93 +721,81 @@
                 <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">AHORA</span>
             </div>
 
-            <!-- ── IMAGEN FIJA DE ISOBARAS ── -->
+            <!-- ── RADAR DE PRECIPITACIÓN (desplegable) ── -->
             <div style="border-bottom:2px solid #c9ddf0;background:#fff;">
-                <div style="background:linear-gradient(135deg,#0b4c90 0%,#1a6fa8 100%);padding:10px 16px;display:flex;align-items:center;gap:10px;">
-                    <span style="font-size:18px;">🗺️</span>
-                    <div style="font-size:12px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">Mapa Isobárico — Situación Actual</div>
-                </div>
-                <div style="background:linear-gradient(180deg,#c9ddf0 0%,#dce8f0 100%);padding:12px;">
-                    <img
-                        src="https://www.aemet.es/imagenes_d/eltiempo/analisis_servicios/analisis_superficial/mslp_30-0W_20-72N_esp.png"
-                        alt="Mapa Isobárico AEMET"
-                        style="width:100%;height:auto;display:block;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);"
-                        onerror="this.style.display='none';this.nextElementSibling.style.display='block';"
-                    />
-                    <div style="display:none;padding:16px;text-align:center;">
-                        <p style="font-size:13px;color:#1a3a5c;margin-bottom:10px;">Imagen no disponible directamente.</p>
-                        <a href="https://www.aemet.es/es/eltiempo/observacion/analisis" target="_blank"
-                           style="display:inline-block;background:#0b4c90;color:#fff;font-size:12px;font-weight:700;padding:8px 16px;border-radius:6px;text-decoration:none;letter-spacing:0.5px;">
-                           Ver en AEMET ↗
-                        </a>
+                <div onclick="toggleAhoraRadar()" style="background:linear-gradient(135deg,#0b4c90 0%,#1a6fa8 100%);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span style="font-size:18px;">🌧️</span>
+                        <div style="font-size:12px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">Radar de Precipitación</div>
                     </div>
-                    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
-                        <span style="font-size:9px;color:#2c4a6e;font-weight:700;letter-spacing:0.5px;">© AEMET — Análisis superficial</span>
-                        <a href="https://www.aemet.es/es/eltiempo/observacion/analisis" target="_blank"
-                           style="font-size:9px;color:#0b4c90;font-weight:700;text-decoration:none;letter-spacing:0.5px;">VER MÁS ↗</a>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="width:7px;height:7px;border-radius:50%;background:#22c55e;animation:pulse 2s ease-in-out infinite;"></div>
+                        <span style="font-size:9px;font-weight:700;color:#22c55e;letter-spacing:1px;text-transform:uppercase;">EN DIRECTO</span>
+                        <span id="ahora-radar-chevron" style="font-size:14px;color:#fff;transition:transform 0.3s;display:inline-block;transform:rotate(0deg);">▼</span>
+                    </div>
+                </div>
+                <div id="ahora-radar-panel" style="display:none;">
+                    <!-- Mapa radar incrustado (reutiliza el mismo mapa global) -->
+                    <div style="width:100%;background:#0d1b2a;">
+                        <div id="ahora-radar-map" style="width:100%;height:320px;background:#1a2a3a;"></div>
+                        <!-- Barra de tiempo -->
+                        <div style="background:#0d1b2a;padding:8px 14px 6px;">
+                            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                                <span style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.4);white-space:nowrap;letter-spacing:0.5px;">-45min</span>
+                                <div style="flex:1;height:3px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;">
+                                    <div id="ahora-radar-progress" style="height:100%;background:linear-gradient(90deg,#3b82f6,#22c55e);border-radius:2px;width:0%;transition:width 0.4s ease;"></div>
+                                </div>
+                                <span style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.4);white-space:nowrap;letter-spacing:0.5px;">AHORA</span>
+                                <span id="ahora-radar-time-label" style="font-size:9px;font-weight:800;color:#fff;background:rgba(255,255,255,0.12);padding:2px 7px;border-radius:4px;white-space:nowrap;min-width:42px;text-align:center;">--:--</span>
+                            </div>
+                            <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
+                                <button id="ahora-radar-btn-play" onclick="ahoraRadarTogglePlay()" style="background:rgba(255,255,255,0.12);border:none;border-radius:6px;padding:5px 14px;color:#fff;font-size:9px;font-weight:800;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">⏸ PAUSAR</button>
+                                <button onclick="ahoraRadarGoLive()" style="background:rgba(34,197,94,0.18);border:1px solid rgba(34,197,94,0.4);border-radius:6px;padding:5px 14px;color:#22c55e;font-size:9px;font-weight:800;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">⬤ EN DIRECTO</button>
+                            </div>
+                        </div>
+                        <!-- Leyenda -->
+                        <div style="background:#0a1520;padding:10px 14px 12px;">
+                            <div style="display:flex;align-items:stretch;border-radius:5px;overflow:hidden;height:10px;margin-bottom:5px;">
+                                <div style="flex:1;background:#aaf0ff;"></div><div style="flex:1;background:#00baff;"></div>
+                                <div style="flex:1;background:#0066ff;"></div><div style="flex:1;background:#00cc00;"></div>
+                                <div style="flex:1;background:#009900;"></div><div style="flex:1;background:#ffff00;"></div>
+                                <div style="flex:1;background:#ffaa00;"></div><div style="flex:1;background:#ff6600;"></div>
+                                <div style="flex:1;background:#ff0000;"></div><div style="flex:1;background:#cc0000;"></div>
+                                <div style="flex:1;background:#990000;"></div><div style="flex:1;background:#ff00ff;"></div>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;">
+                                <span style="font-size:8px;color:rgba(255,255,255,0.45);font-weight:600;">Débil</span>
+                                <span style="font-size:8px;color:rgba(255,255,255,0.45);font-weight:600;">Moderada</span>
+                                <span style="font-size:8px;color:rgba(255,255,255,0.45);font-weight:600;">Fuerte</span>
+                                <span style="font-size:8px;color:rgba(255,255,255,0.45);font-weight:600;">Muy fuerte</span>
+                            </div>
+                        </div>
+                        <div style="background:#0a1520;padding:4px 14px 8px;border-top:1px solid rgba(255,255,255,0.05);">
+                            <span style="font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:0.5px;">© RainViewer · Radio ~200 km · Actualiza cada 10 min · © OpenStreetMap</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ── METEOGRAMA AEMET ── -->
-            <div style="border-bottom:2px solid #c9ddf0;background:#fff;">
-                <div style="background:linear-gradient(135deg,#1e6fa0 0%,#2c85bb 100%);padding:10px 16px;display:flex;align-items:center;gap:10px;">
-                    <span style="font-size:18px;">📈</span>
-                    <div style="font-size:12px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">Meteograma Barcelona — AEMET</div>
-                </div>
-                <div style="background:linear-gradient(180deg,#c9ddf0 0%,#dce8f0 100%);padding:12px;">
-                    <img id="img-meteograma"
-                         src="https://www.aemet.es/imagenes_d/eltiempo/prediccion/modelos/meteogramas/hoy/aemet_meteograma_08_19_000.png"
-                         alt="Meteograma Barcelona AEMET"
-                         style="width:100%;height:auto;display:block;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);"
-                         onerror="this.src='https://www.aemet.es/imagenes_d/eltiempo/prediccion/modelos/meteogramas/hoy/aemet_meteograma_08_19_006.png';this.onerror=function(){this.style.display='none';this.nextElementSibling.style.display='block';};" />
-                    <div style="display:none;padding:16px;text-align:center;">
-                        <p style="font-size:13px;color:#1a3a5c;margin-bottom:10px;">Meteograma no disponible en este momento.</p>
-                        <a href="https://www.aemet.es/es/eltiempo/prediccion/localidades/municipios/id08019" target="_blank"
-                           style="display:inline-block;background:#0b4c90;color:#fff;font-size:12px;font-weight:700;padding:8px 16px;border-radius:6px;text-decoration:none;letter-spacing:0.5px;">
-                           Ver en AEMET ↗
-                        </a>
-                    </div>
-                    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
-                        <span style="font-size:9px;color:#2c4a6e;font-weight:700;letter-spacing:0.5px;">© AEMET — se actualiza cada 6h</span>
-                        <a href="https://www.aemet.es/es/eltiempo/prediccion/localidades/municipios/id08019" target="_blank"
-                           style="font-size:9px;color:#0b4c90;font-weight:700;text-decoration:none;letter-spacing:0.5px;">VER MÁS ↗</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── ÚLTIMO RADIOSONDEO ── -->
-            <div style="border-bottom:2px solid #c9ddf0;background:#fff;">
-                <div style="background:linear-gradient(135deg,#0b4c90 0%,#1a6fa8 100%);padding:10px 16px;display:flex;align-items:center;gap:10px;">
-                    <span style="font-size:18px;">🌡️</span>
-                    <div style="font-size:12px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">Último Radiosondeo — Barcelona</div>
-                </div>
-                <div style="background:linear-gradient(180deg,#c9ddf0 0%,#dce8f0 100%);padding:12px;">
-                    <div id="radiosondeo-container-new" style="text-align:center;">
-                        <div style="padding:16px 0;color:#1a3a5c;font-size:13px;font-weight:500;">Cargando radiosondeo…</div>
-                    </div>
-                    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
-                        <span style="font-size:9px;color:#2c4a6e;font-weight:700;letter-spacing:0.5px;">© Univ. Wyoming — Est. 08180 (00Z/12Z)</span>
-                        <a id="radiosondeo-link" href="https://weather.uwyo.edu/upperair/sounding.php?region=europe&TYPE=GIF%3ASKEWT&STNM=08180" target="_blank"
-                           style="font-size:9px;color:#0b4c90;font-weight:700;text-decoration:none;letter-spacing:0.5px;">VER DATOS ↗</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── METAR LEBL ── -->
+            <!-- ── ÚLTIMO RADIOSONDEO (desplegable) ── -->
             <div style="background:#fff;">
-                <div style="background:linear-gradient(135deg,#1e6fa0 0%,#2c85bb 100%);padding:10px 16px;display:flex;align-items:center;gap:10px;">
-                    <span style="font-size:18px;">✈️</span>
-                    <div style="font-size:12px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">METAR LEBL — Aeropuerto Barcelona</div>
-                </div>
-                <div style="background:linear-gradient(180deg,#c9ddf0 0%,#dce8f0 100%);padding:12px;">
-                    <div id="metar-container-new">
-                        <div style="padding:16px 0;text-align:center;color:#1a3a5c;font-size:13px;font-weight:500;">Cargando METAR…</div>
+                <div onclick="toggleRadiosondeo()" style="background:linear-gradient(135deg,#0b4c90 0%,#1a6fa8 100%);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span style="font-size:18px;">🌡️</span>
+                        <div style="font-size:12px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">Último Radiosondeo — Barcelona</div>
                     </div>
-                    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
-                        <span style="font-size:9px;color:#2c4a6e;font-weight:700;letter-spacing:0.5px;">© aviationweather.gov — LEBL · cada 30 min</span>
-                        <a href="https://aviationweather.gov/metar/data/?ids=LEBL" target="_blank"
-                           style="font-size:9px;color:#0b4c90;font-weight:700;text-decoration:none;letter-spacing:0.5px;">VER MÁS ↗</a>
+                    <span id="radiosondeo-chevron" style="font-size:14px;color:#fff;transition:transform 0.3s;display:inline-block;transform:rotate(0deg);">▼</span>
+                </div>
+                <div id="radiosondeo-panel" style="display:none;">
+                    <div style="background:linear-gradient(180deg,#c9ddf0 0%,#dce8f0 100%);padding:12px;">
+                        <div id="radiosondeo-container-new" style="text-align:center;">
+                            <div style="padding:16px 0;color:#1a3a5c;font-size:13px;font-weight:500;">Cargando radiosondeo…</div>
+                        </div>
+                        <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
+                            <span style="font-size:9px;color:#2c4a6e;font-weight:700;letter-spacing:0.5px;">© Univ. Wyoming — Est. 08180 (00Z/12Z)</span>
+                            <a id="radiosondeo-link" href="https://weather.uwyo.edu/upperair/sounding.php?region=europe&TYPE=GIF%3ASKEWT&STNM=08180" target="_blank"
+                               style="font-size:9px;color:#0b4c90;font-weight:700;text-decoration:none;letter-spacing:0.5px;">VER DATOS ↗</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3694,7 +3682,100 @@
 
         // ── Carga automática sección AHORA ──
         cargarRadiosondeo();
-        cargarMetar();
+
+        /* ── Toggle desplegable Radar (sección AHORA) ── */
+        let ahoraRadarInited = false;
+        window.toggleAhoraRadar = function() {
+            const panel = document.getElementById('ahora-radar-panel');
+            const chevron = document.getElementById('ahora-radar-chevron');
+            const open = panel.style.display === 'none';
+            panel.style.display = open ? 'block' : 'none';
+            chevron.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+            if (open && !ahoraRadarInited) {
+                ahoraRadarInited = true;
+                initAhoraRadar();
+            }
+        };
+
+        /* ── Toggle desplegable Radiosondeo ── */
+        window.toggleRadiosondeo = function() {
+            const panel = document.getElementById('radiosondeo-panel');
+            const chevron = document.getElementById('radiosondeo-chevron');
+            const open = panel.style.display === 'none';
+            panel.style.display = open ? 'block' : 'none';
+            chevron.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+        };
+
+        /* ── Radar secundario (sección AHORA) — Leaflet + Rainviewer ── */
+        function initAhoraRadar() {
+            if (!window.L) return;
+            const BCN_LAT = 41.3851, BCN_LON = 2.1734, ZOOM = 7, FRAMES_TARGET = 8;
+            let map2, radarLayers2 = [], currentFrame2 = 0, animTimer2 = null, isPlaying2 = true, allFrames2 = [];
+
+            map2 = L.map('ahora-radar-map', {
+                center: [BCN_LAT, BCN_LON], zoom: ZOOM, zoomControl: false, attributionControl: false,
+                dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false,
+                boxZoom: false, keyboard: false, tap: false, interactive: false
+            });
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 10, opacity: 1 }).addTo(map2);
+            const bcnIcon2 = L.divIcon({ className: '', html: '<div style="width:10px;height:10px;background:#fff;border:2px solid #3b82f6;border-radius:50%;box-shadow:0 0 8px rgba(59,130,246,0.8);"></div>', iconSize: [10,10], iconAnchor: [5,5] });
+            L.marker([BCN_LAT, BCN_LON], { icon: bcnIcon2, interactive: false }).addTo(map2);
+
+            async function loadFrames2() {
+                try {
+                    const resp = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+                    const data = await resp.json();
+                    const frames = (data.radar?.past ?? []).slice(-FRAMES_TARGET);
+                    if (!frames.length) return;
+                    allFrames2 = frames;
+                    radarLayers2.forEach(l => map2.removeLayer(l));
+                    radarLayers2 = [];
+                    frames.forEach((f, i) => {
+                        const layer = L.tileLayer(`https://tilecache.rainviewer.com${f.path}/256/{z}/{x}/{y}/2/1_1.png`, { opacity: 0, maxZoom: 10, tileSize: 256, zIndex: 10+i });
+                        layer.addTo(map2); radarLayers2.push(layer);
+                    });
+                    currentFrame2 = 0; showFrame2(0);
+                    if (isPlaying2) startAnim2();
+                } catch(e) { console.warn('[Radar2]', e); }
+            }
+            function showFrame2(idx) {
+                radarLayers2.forEach((l, i) => l.setOpacity(i === idx ? 0.85 : 0));
+                currentFrame2 = idx;
+                const pct = allFrames2.length > 1 ? (idx / (allFrames2.length-1)) * 100 : 100;
+                const bar = document.getElementById('ahora-radar-progress');
+                if (bar) bar.style.width = pct + '%';
+                if (allFrames2[idx]) {
+                    const d = new Date(allFrames2[idx].time * 1000);
+                    const lbl = document.getElementById('ahora-radar-time-label');
+                    if (lbl) lbl.textContent = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+                }
+            }
+            function startAnim2() {
+                clearInterval(animTimer2);
+                animTimer2 = setInterval(() => {
+                    const next = (currentFrame2 + 1) % radarLayers2.length;
+                    showFrame2(next);
+                    if (next === radarLayers2.length - 1) { clearInterval(animTimer2); setTimeout(() => { if (isPlaying2) startAnim2(); }, 1800); }
+                }, 700);
+            }
+            window.ahoraRadarTogglePlay = function() {
+                isPlaying2 = !isPlaying2;
+                const btn = document.getElementById('ahora-radar-btn-play');
+                if (isPlaying2) { startAnim2(); if (btn) btn.innerHTML = '⏸ PAUSAR'; }
+                else { clearInterval(animTimer2); if (btn) btn.innerHTML = '▶ ANIMAR'; }
+            };
+            window.ahoraRadarGoLive = function() {
+                clearInterval(animTimer2);
+                showFrame2(radarLayers2.length - 1);
+                isPlaying2 = false;
+                const btn = document.getElementById('ahora-radar-btn-play');
+                if (btn) btn.innerHTML = '▶ ANIMAR';
+            };
+
+            loadFrames2();
+            setInterval(loadFrames2, 10 * 60 * 1000);
+            setTimeout(() => { map2.invalidateSize(); }, 100);
+        }
 
         /* ══════ WIDGET PREVISIÓN 3 DÍAS ══════ */
         (function(){
