@@ -721,9 +721,9 @@
                 <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">AHORA</span>
             </div>
 
-            <!-- ── RADAR DE PRECIPITACIÓN (desplegable) ── -->
+            <!-- ── RADAR DE PRECIPITACIÓN (fijo) ── -->
             <div style="border-bottom:2px solid #c9ddf0;background:#fff;">
-                <div onclick="toggleAhoraRadar()" style="background:linear-gradient(135deg,#0b4c90 0%,#1a6fa8 100%);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
+                <div style="background:linear-gradient(135deg,#0b4c90 0%,#1a6fa8 100%);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">
                     <div style="display:flex;align-items:center;gap:10px;">
                         <span style="font-size:18px;">🌧️</span>
                         <div style="font-size:12px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">Radar de Precipitación</div>
@@ -731,10 +731,9 @@
                     <div style="display:flex;align-items:center;gap:8px;">
                         <div style="width:7px;height:7px;border-radius:50%;background:#22c55e;animation:pulse 2s ease-in-out infinite;"></div>
                         <span style="font-size:9px;font-weight:700;color:#22c55e;letter-spacing:1px;text-transform:uppercase;">EN DIRECTO</span>
-                        <span id="ahora-radar-chevron" style="font-size:14px;color:#fff;transition:transform 0.3s;display:inline-block;transform:rotate(0deg);">▼</span>
                     </div>
                 </div>
-                <div id="ahora-radar-panel" style="display:none;">
+                <div id="ahora-radar-panel" style="display:block;">
                     <!-- Mapa radar incrustado (reutiliza el mismo mapa global) -->
                     <div style="width:100%;background:#0d1b2a;">
                         <div id="ahora-radar-map" style="width:100%;height:320px;background:#1a2a3a;"></div>
@@ -771,7 +770,7 @@
                             </div>
                         </div>
                         <div style="background:#0a1520;padding:4px 14px 8px;border-top:1px solid rgba(255,255,255,0.05);">
-                            <span style="font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:0.5px;">© RainViewer · Radio ~200 km · Actualiza cada 10 min · © OpenStreetMap</span>
+                            <span style="font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:0.5px;">© RainViewer · Radio ~100 km · Actualiza cada 10 min · © OpenStreetMap</span>
                         </div>
                     </div>
                 </div>
@@ -3636,26 +3635,23 @@
 
         // ── Carga automática sección AHORA ──
 
-        /* ── Toggle desplegable Radar (sección AHORA) ── */
+        /* ── Radar (sección AHORA) — siempre visible, init automático ── */
         let ahoraRadarInited = false;
-        window.toggleAhoraRadar = function() {
-            const panel = document.getElementById('ahora-radar-panel');
-            const chevron = document.getElementById('ahora-radar-chevron');
-            const open = panel.style.display === 'none';
-            panel.style.display = open ? 'block' : 'none';
-            chevron.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
-            if (open && !ahoraRadarInited) {
-                ahoraRadarInited = true;
-                initAhoraRadar();
-            }
-        };
+        window.toggleAhoraRadar = function() {}; // mantenido por compatibilidad
+
+        // Iniciar el radar AHORA al cargar la página
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { initAhoraRadar(); ahoraRadarInited = true; });
+        } else {
+            initAhoraRadar(); ahoraRadarInited = true;
+        }
 
 
 
         /* ── Radar secundario (sección AHORA) — Leaflet + Rainviewer ── */
         function initAhoraRadar() {
             if (!window.L) return;
-            const BCN_LAT = 41.3851, BCN_LON = 2.1734, ZOOM = 7, FRAMES_TARGET = 8;
+            const BCN_LAT = 41.3851, BCN_LON = 2.1734, ZOOM = 9, FRAMES_TARGET = 8;
             let map2, radarLayers2 = [], currentFrame2 = 0, animTimer2 = null, isPlaying2 = true, allFrames2 = [];
 
             map2 = L.map('ahora-radar-map', {
