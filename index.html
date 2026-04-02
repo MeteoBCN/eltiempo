@@ -3432,16 +3432,19 @@
                 dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false,
                 boxZoom: false, keyboard: false, tap: false, interactive: false
             });
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 10, opacity: 1 }).addTo(map2);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 10, opacity: 1, crossOrigin: true }).addTo(map2);
             const bcnIcon2 = L.divIcon({ className: '', html: '<div style="width:10px;height:10px;background:#3b82f6;border:2px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(59,130,246,0.8);"></div>', iconSize: [10,10], iconAnchor: [5,5] });
             L.marker([BCN_LAT, BCN_LON], { icon: bcnIcon2, interactive: false }).addTo(map2);
 
             async function loadFrames2() {
                 try {
                     const resp = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+                    if (!resp.ok) throw new Error('RainViewer HTTP ' + resp.status);
                     const data = await resp.json();
+                    console.log('[Radar] RainViewer data:', data);
                     const frames = (data.radar?.past ?? []).slice(-FRAMES_TARGET);
-                    if (!frames.length) return;
+                    console.log('[Radar] Frames encontrados:', frames.length);
+                    if (!frames.length) { console.warn('[Radar] Sin frames de radar'); return; }
                     allFrames2 = frames;
                     radarLayers2.forEach(l => map2.removeLayer(l));
                     radarLayers2 = [];
