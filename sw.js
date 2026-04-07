@@ -2,7 +2,7 @@
    SERVICE WORKER — Tiempo Barcelona PWA
    ═══════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'tiempo-bcn-v4';
+const CACHE_NAME = 'tiempo-bcn-v5';
 
 // Archivos que se guardan en caché para funcionamiento offline
 const PRECACHE_ASSETS = [
@@ -44,19 +44,42 @@ self.addEventListener('fetch', event => {
   // Solo interceptamos peticiones GET
   if (event.request.method !== 'GET') return;
 
-  // Las peticiones a APIs de tiempo siempre van a la red (datos frescos)
   const url = event.request.url;
+
+  // Las peticiones a APIs de tiempo NUNCA se cachean — siempre red directa
   const isApiRequest =
     url.includes('open-meteo.com') ||
     url.includes('marine-api.open-meteo.com') ||
+    url.includes('air-quality-api.open-meteo.com') ||
     url.includes('aemet') ||
-    url.includes('openweathermap');
+    url.includes('openweathermap') ||
+    url.includes('gstatic.com/firebasejs');
 
   if (isApiRequest) {
-    // Network-only para las APIs (necesitamos datos actuales)
+    // Network-only con timeout de 10 segundos para móvil
+    const fetchWithTimeout = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Timeout'));
+      }, 10000);
+
+      fetch(event.request.url, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+      })
+        .then(response => {
+          clearTimeout(timeout);
+          resolve(response);
+        })
+        .catch(err => {
+          clearTimeout(timeout);
+          reject(err);
+        });
+    });
+
     event.respondWith(
-      fetch(event.request).catch(() =>
-        new Response(JSON.stringify({ error: 'Sin conexión' }), {
+      fetchWithTimeout.catch(() =>
+        new Response(JSON.stringify({ error: 'Sin conexión o timeout' }), {
+          status: 503,
           headers: { 'Content-Type': 'application/json' }
         })
       )
@@ -64,11 +87,10 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Network-first con fallback a caché para el resto
+  // Network-first con fallback a caché para el resto (assets estáticos)
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // Guardamos en caché una copia de la respuesta
         if (response && response.status === 200) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then(cache => {
@@ -78,10 +100,8 @@ self.addEventListener('fetch', event => {
         return response;
       })
       .catch(() => {
-        // Sin red → servir desde caché
         return caches.match(event.request).then(cached => {
           if (cached) return cached;
-          // Fallback para páginas HTML: devolver la página principal cacheada
           if (event.request.headers.get('accept')?.includes('text/html')) {
             return caches.match('./index.html');
           }
