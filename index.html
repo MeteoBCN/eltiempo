@@ -2824,7 +2824,16 @@
                 window._marineDataPromise
             ]);
 
-            if (!data?.hourly || !data?.daily) { console.error('No se pudieron cargar datos principales'); return; }
+            if (!data?.hourly || !data?.daily) {
+                console.error('No se pudieron cargar datos principales');
+                document.getElementById('current-temp').textContent = '?°';
+                document.getElementById('current-icon').innerHTML = '⚠️';
+                const errEl = document.createElement('div');
+                errEl.style.cssText = 'text-align:center;padding:20px;color:#EF4444;font-size:14px;font-weight:600;';
+                errEl.textContent = 'No se pudieron cargar los datos del tiempo. Comprueba tu conexión y recarga la página.';
+                document.querySelector('.hero-zone')?.appendChild(errEl);
+                return;
+            }
 
             try {
                 if (data.daily?.sunrise && data.daily?.sunset) { sunriseTime=data.daily.sunrise[0]; sunsetTime=data.daily.sunset[0]; }
@@ -4213,7 +4222,7 @@
 <style>
   /* Banner de instalación PWA */
   #pwa-install-banner {
-    display: none;
+    display: none !important;
     position: fixed;
     bottom: 20px;
     left: 50%;
@@ -4226,10 +4235,12 @@
     padding: 16px 20px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     z-index: 9999;
-    display: flex;
     align-items: center;
     gap: 14px;
     animation: slideUpBanner 0.4s ease-out;
+  }
+  #pwa-install-banner.visible {
+    display: flex !important;
   }
   @keyframes slideUpBanner {
     from { opacity: 0; transform: translateX(-50%) translateY(20px); }
@@ -4323,51 +4334,63 @@
 /* ═══════════════════════════════════════════════════
    PWA: Service Worker + Notificaciones + FCM
    ═══════════════════════════════════════════════════ */
-import { initializeApp }      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getMessaging, getToken, onMessage }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
-import { getFirestore, doc, setDoc }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-const firebaseApp = initializeApp({
-  apiKey: "AIzaSyCACCy2SA-1JDH3DO1WyjDRPcqG7or5ZmY",
-  authDomain: "tiempo-barcelona.firebaseapp.com",
-  projectId: "tiempo-barcelona",
-  storageBucket: "tiempo-barcelona.firebasestorage.app",
-  messagingSenderId: "1001480227705",
-  appId: "1:1001480227705:web:d2158e16f4993f522efda8"
-});
+// ── Firebase: inicializar de forma aislada para no bloquear la app ──
+let messaging = null, db = null;
+try {
+  const { initializeApp }   = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+  const { getMessaging: _gm, getToken: _gt, onMessage: _om }
+    = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
+  const { getFirestore: _gf, doc: _doc, setDoc: _setDoc }
+    = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
 
-const messaging = getMessaging(firebaseApp);
-const db        = getFirestore(firebaseApp);
+  const firebaseApp = initializeApp({
+    apiKey: "AIzaSyCACCy2SA-1JDH3DO1WyjDRPcqG7or5ZmY",
+    authDomain: "tiempo-barcelona.firebaseapp.com",
+    projectId: "tiempo-barcelona",
+    storageBucket: "tiempo-barcelona.firebasestorage.app",
+    messagingSenderId: "1001480227705",
+    appId: "1:1001480227705:web:d2158e16f4993f522efda8"
+  });
 
-const VAPID_KEY = 'BCY8VaR3H1HIht_liVk4t4cGzTBQzUObgkip0t9KBd8uR802AuIbZv42FxcqKLxVyE1Nqoa2o7mMZHz9XafjzxU';
+  messaging = _gm(firebaseApp);
+  db        = _gf(firebaseApp);
 
-// ── Guardar token FCM en Firestore ─────────────────────────────
-async function guardarToken () {
-  try {
-    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
-    if (token) {
-      await setDoc(doc(db, 'fcm_tokens', token), { token, updated: new Date() });
-      console.log('[FCM] Token guardado:', token.slice(0, 20) + '…');
+  const VAPID_KEY = 'BCY8VaR3H1HIht_liVk4t4cGzTBQzUObgkip0t9KBd8uR802AuIbZv42FxcqKLxVyE1Nqoa2o7mMZHz9XafjzxU';
+
+  // ── Guardar token FCM en Firestore ─────────────────────────────
+  window._guardarToken = async function() {
+    try {
+      const token = await _gt(messaging, { vapidKey: VAPID_KEY });
+      if (token) {
+        await _setDoc(_doc(db, 'fcm_tokens', token), { token, updated: new Date() });
+        console.log('[FCM] Token guardado:', token.slice(0, 20) + '…');
+      }
+    } catch (err) {
+      console.warn('[FCM] No se pudo obtener token:', err);
     }
-  } catch (err) {
-    console.warn('[FCM] No se pudo obtener token:', err);
-  }
+  };
+
+  // ── Notificaciones mientras la app está abierta ────────────────
+  _om(messaging, payload => {
+    console.log('[FCM] Mensaje en foreground:', payload);
+    const { title, body } = payload.notification || {};
+    if (title && 'Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, {
+        body,
+        icon: './icon-192.png',
+        badge: './icon-192.png'
+      });
+    }
+  });
+
+  console.log('[Firebase] Inicializado correctamente');
+} catch(firebaseErr) {
+  console.warn('[Firebase] No se pudo inicializar (la app seguirá funcionando sin notificaciones):', firebaseErr);
+  window._guardarToken = async function() {};
 }
 
-// ── Notificaciones mientras la app está abierta ────────────────
-onMessage(messaging, payload => {
-  console.log('[FCM] Mensaje en foreground:', payload);
-  const { title, body } = payload.notification || {};
-  if (title && 'Notification' in window && Notification.permission === 'granted') {
-    new Notification(title, {
-      body,
-      icon: './icon-192.png',
-      badge: './icon-192.png'
-    });
-  }
-});
+async function guardarToken() { return window._guardarToken?.(); }
 
 // ── 1. Registrar Service Worker ────────────────────────────────
 if ('serviceWorker' in navigator) {
@@ -4395,12 +4418,12 @@ window.addEventListener('beforeinstallprompt', e => {
   const dismissed = localStorage.getItem('pwa-install-dismissed');
   if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
 
-  setTimeout(() => { installBanner.style.display = 'flex'; }, 2000);
+  setTimeout(() => { installBanner.classList.add('visible'); }, 2000);
 });
 
 if (btnInstall) {
   btnInstall.addEventListener('click', async () => {
-    installBanner.style.display = 'none';
+    installBanner.classList.remove('visible');
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
@@ -4412,14 +4435,14 @@ if (btnInstall) {
 
 if (btnDismiss) {
   btnDismiss.addEventListener('click', () => {
-    installBanner.style.display = 'none';
+    installBanner.classList.remove('visible');
     localStorage.setItem('pwa-install-dismissed', Date.now().toString());
   });
 }
 
 window.addEventListener('appinstalled', () => {
   console.log('[PWA] App instalada correctamente');
-  installBanner.style.display = 'none';
+  installBanner.classList.remove('visible');
   deferredPrompt = null;
   setTimeout(showNotifModal, 1500);
 });
