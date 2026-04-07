@@ -2459,16 +2459,9 @@
 
             async function loadForecast7() {
                 try {
-                    const url =
-                        `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
-                        `&daily=weathercode,temperature_2m_max,temperature_2m_min,` +
-                        `precipitation_sum,precipitation_probability_max,` +
-                        `relative_humidity_2m_max,relative_humidity_2m_min,` +
-                        `pressure_msl_mean,wind_speed_10m_max,wind_gusts_10m_max` +
-                        `&timezone=Europe%2FMadrid&forecast_days=7`;
-                    const res  = await fetch(url);
-                    const data = await res.json();
-                    const d    = data.daily;
+                    // Reutilizar datos ya cargados por loadWeatherData (evita fetch duplicado)
+                    const data = await window._mainDataPromise;
+                    const d    = data?.daily;
                     if (!d?.time) return;
 
                     const todayStr = new Date().toISOString().slice(0,10);
@@ -2803,25 +2796,33 @@
         async function loadWeatherData() {
             // ── Peticiones independientes: si una falla, las demás siguen ──
             const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean&timezone=Europe/Madrid&forecast_days=7`;
-            const aqUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=Europe/Madrid`;
+            // us_aqi añadido aquí para no necesitar una petición extra desde el semáforo AQI
+            const aqUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=Europe/Madrid`;
             const marineUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
 
-            const safeFetch = async (u) => { 
-    try { 
-        const sep = u.includes('?') ? '&' : '?';
-        const r = await fetch(u + sep + '_t=' + Date.now(), { 
-            cache: 'no-store',
-            headers: { 'Cache-Control': 'no-cache' }
-        }); 
-        if(!r.ok) throw new Error(r.status); 
-        return await r.json(); 
-    } catch(e){ 
-        console.warn('Fetch error:',u,e); 
-        return null; 
-    } 
-};
+            const safeFetch = async (u) => {
+                try {
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), 10000);
+                    const r = await fetch(u, { cache: 'no-store', signal: controller.signal });
+                    clearTimeout(timer);
+                    if (!r.ok) throw new Error(r.status);
+                    return await r.json();
+                } catch(e) { console.warn('Fetch error:', u, e); return null; }
+            };
 
-            const [data, aqData, marineData] = await Promise.all([safeFetch(url), safeFetch(aqUrl), safeFetch(marineUrl)]);
+            // Exponer promesas globalmente para que otros módulos (widget 3d, widget 7d,
+            // semáforo AQI, sección Mar) reutilicen los mismos datos sin lanzar
+            // peticiones extra — especialmente importante en móvil con red limitada.
+            window._mainDataPromise   = safeFetch(url);
+            window._aqDataPromise     = safeFetch(aqUrl);
+            window._marineDataPromise = safeFetch(marineUrl);
+
+            const [data, aqData, marineData] = await Promise.all([
+                window._mainDataPromise,
+                window._aqDataPromise,
+                window._marineDataPromise
+            ]);
 
             if (!data?.hourly || !data?.daily) { console.error('No se pudieron cargar datos principales'); return; }
 
@@ -3586,21 +3587,22 @@
             const wrap=document.getElementById('prevision-widget');
             if(!wrap) return;
             try {
-              const url='https://api.open-meteo.com/v1/forecast?latitude=41.3888&longitude=2.159&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,winddirection_10m_dominant&timezone=Europe%2FMadrid&forecast_days=3';
-              const data=await(await fetch(url)).json();
-              const d=data.daily;
+              // Reutilizar datos ya cargados por loadWeatherData (evita fetch duplicado)
+              const mainData = await window._mainDataPromise;
+              const d = mainData?.daily;
+              if (!d?.time) { wrap.style.display='none'; return; }
               const days=[];
               for(let i=0;i<3;i++){
                 const raw=new Date(d.time[i]+'T12:00:00');
                 days.push({
                   name:DAYS_ES[raw.getDay()],
                   date:`${raw.getDate()} ${MONTHS_ES[raw.getMonth()].toUpperCase()} · ${raw.getFullYear()}`,
-                  wmo:d.weathercode[i],
-                  tmax:Math.round(d.temperature_2m_max[i]),
-                  tmin:Math.round(d.temperature_2m_min[i]),
-                  rain:d.precipitation_sum[i]||0,
-                  wind:d.windspeed_10m_max[i],
-                  winddir:d.winddirection_10m_dominant[i]
+                  wmo:d.weather_code?.[i] ?? d.weathercode?.[i] ?? 0,
+                  tmax:Math.round(d.temperature_2m_max?.[i] ?? 0),
+                  tmin:Math.round(d.temperature_2m_min?.[i] ?? 0),
+                  rain:d.precipitation_sum?.[i]||0,
+                  wind:d.wind_speed_10m_max?.[i] ?? d.windspeed_10m_max?.[i] ?? 0,
+                  winddir:d.wind_direction_10m_dominant?.[i] ?? d.winddirection_10m_dominant?.[i] ?? 0
                 });
               }
               wrap.innerHTML=`
@@ -3679,18 +3681,16 @@
 
             async function loadAQI() {
                 try {
-                    const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=us_aqi,pm10,pm2_5,nitrogen_dioxide,ozone&timezone=Europe/Madrid`;
-                    const res = await fetch(url);
-                    const data = await res.json();
-                    if (data?.current?.us_aqi != null) {
-                        updateSemaforo(data.current.us_aqi);
-                        renderPollutants(data.current);
+                    // Reutilizar datos AQI ya cargados por loadWeatherData (evita fetch duplicado)
+                    const aqData = await window._aqDataPromise;
+                    if (aqData?.current?.us_aqi != null) {
+                        updateSemaforo(aqData.current.us_aqi);
+                        renderPollutants(aqData.current);
                     }
                 } catch(e) { console.warn('AQI load error:', e); }
             }
 
             loadAQI();
-            setInterval(loadAQI, 5*60*1000);
         })();
         /* ══════ FIN SEMÁFORO ══════ */
 
@@ -4108,21 +4108,22 @@
             // ── Carga datos ──────────────────────────────────────────────────
             async function loadMar3() {
                 try {
-                    const marineUrl   = `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
-                    const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=wind_speed_10m,wind_direction_10m,weathercode,temperature_2m,precipitation_probability&daily=uv_index_max&timezone=Europe/Madrid&forecast_days=4`;
+                    // Reutilizar datos ya cargados por loadWeatherData (evita fetches duplicados)
+                    const [marData, fcData] = await Promise.all([
+                        window._marineDataPromise,
+                        window._mainDataPromise
+                    ]);
 
-                    const [marRes, fcRes] = await Promise.all([fetch(marineUrl), fetch(forecastUrl)]);
-                    const marData = await marRes.json();
-                    const fcData  = await fcRes.json();
+                    if (!marData?.hourly?.time) throw new Error('Sin datos marinos');
 
                     // Lookup viento por timestamp
                     const windLookup = {};
-                    if (fcData.hourly?.time) {
+                    if (fcData?.hourly?.time) {
                         fcData.hourly.time.forEach((t, i) => {
                             windLookup[t] = {
                                 ws:    fcData.hourly.wind_speed_10m?.[i]          ?? null,
                                 wdir:  fcData.hourly.wind_direction_10m?.[i]      ?? null,
-                                wcode: fcData.hourly.weathercode?.[i]             ?? null,
+                                wcode: fcData.hourly.weather_code?.[i] ?? fcData.hourly.weathercode?.[i] ?? null,
                                 temp:  fcData.hourly.temperature_2m?.[i]          ?? null,
                                 prec:  fcData.hourly.precipitation_probability?.[i] ?? null,
                             };
