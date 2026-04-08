@@ -52,8 +52,8 @@ self.addEventListener('fetch', event => {
     url.includes('marine-api.open-meteo.com') ||
     url.includes('air-quality-api.open-meteo.com') ||
     url.includes('aemet') ||
-    url.includes('openweathermap');
-    // NOTA: gstatic.com/firebasejs se cachea normalmente para evitar timeouts en móvil
+    url.includes('openweathermap') ||
+    url.includes('gstatic.com/firebasejs');
 
   if (isApiRequest) {
     // Network-only con timeout de 10 segundos para móvil

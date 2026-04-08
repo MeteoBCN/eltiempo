@@ -2795,10 +2795,14 @@
 
         async function loadWeatherData() {
             // ── Peticiones independientes: si una falla, las demás siguen ──
-            const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean&timezone=Europe/Madrid&forecast_days=7`;
-            // us_aqi añadido aquí para no necesitar una petición extra desde el semáforo AQI
-            const aqUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=Europe/Madrid`;
-            const marineUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
+            // ── PROXY Cloudflare Worker (evita bloqueos 503 en móvil) ──────────
+            // Cambia PROXY_BASE por la URL de tu Worker desplegado, por ejemplo:
+            // const PROXY_BASE = 'https://tiempo-bcn-proxy.tunombre.workers.dev';
+            const PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
+
+            const url=`${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean&timezone=Europe/Madrid&forecast_days=7`;
+            const aqUrl=`${PROXY_BASE}/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=Europe/Madrid`;
+            const marineUrl=`${PROXY_BASE}/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
 
             const safeFetch = async (u) => {
                 try {
@@ -2824,16 +2828,7 @@
                 window._marineDataPromise
             ]);
 
-            if (!data?.hourly || !data?.daily) {
-                console.error('No se pudieron cargar datos principales');
-                document.getElementById('current-temp').textContent = '?°';
-                document.getElementById('current-icon').innerHTML = '⚠️';
-                const errEl = document.createElement('div');
-                errEl.style.cssText = 'text-align:center;padding:20px;color:#EF4444;font-size:14px;font-weight:600;';
-                errEl.textContent = 'No se pudieron cargar los datos del tiempo. Comprueba tu conexión y recarga la página.';
-                document.querySelector('.hero-zone')?.appendChild(errEl);
-                return;
-            }
+            if (!data?.hourly || !data?.daily) { console.error('No se pudieron cargar datos principales'); return; }
 
             try {
                 if (data.daily?.sunrise && data.daily?.sunset) { sunriseTime=data.daily.sunrise[0]; sunsetTime=data.daily.sunset[0]; }
@@ -4222,7 +4217,7 @@
 <style>
   /* Banner de instalación PWA */
   #pwa-install-banner {
-    display: none !important;
+    display: none;
     position: fixed;
     bottom: 20px;
     left: 50%;
@@ -4235,12 +4230,10 @@
     padding: 16px 20px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     z-index: 9999;
+    display: flex;
     align-items: center;
     gap: 14px;
     animation: slideUpBanner 0.4s ease-out;
-  }
-  #pwa-install-banner.visible {
-    display: flex !important;
   }
   @keyframes slideUpBanner {
     from { opacity: 0; transform: translateX(-50%) translateY(20px); }
@@ -4334,63 +4327,51 @@
 /* ═══════════════════════════════════════════════════
    PWA: Service Worker + Notificaciones + FCM
    ═══════════════════════════════════════════════════ */
+import { initializeApp }      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getMessaging, getToken, onMessage }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
+import { getFirestore, doc, setDoc }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-// ── Firebase: inicializar de forma aislada para no bloquear la app ──
-let messaging = null, db = null;
-try {
-  const { initializeApp }   = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-  const { getMessaging: _gm, getToken: _gt, onMessage: _om }
-    = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
-  const { getFirestore: _gf, doc: _doc, setDoc: _setDoc }
-    = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+const firebaseApp = initializeApp({
+  apiKey: "AIzaSyCACCy2SA-1JDH3DO1WyjDRPcqG7or5ZmY",
+  authDomain: "tiempo-barcelona.firebaseapp.com",
+  projectId: "tiempo-barcelona",
+  storageBucket: "tiempo-barcelona.firebasestorage.app",
+  messagingSenderId: "1001480227705",
+  appId: "1:1001480227705:web:d2158e16f4993f522efda8"
+});
 
-  const firebaseApp = initializeApp({
-    apiKey: "AIzaSyCACCy2SA-1JDH3DO1WyjDRPcqG7or5ZmY",
-    authDomain: "tiempo-barcelona.firebaseapp.com",
-    projectId: "tiempo-barcelona",
-    storageBucket: "tiempo-barcelona.firebasestorage.app",
-    messagingSenderId: "1001480227705",
-    appId: "1:1001480227705:web:d2158e16f4993f522efda8"
-  });
+const messaging = getMessaging(firebaseApp);
+const db        = getFirestore(firebaseApp);
 
-  messaging = _gm(firebaseApp);
-  db        = _gf(firebaseApp);
+const VAPID_KEY = 'BCY8VaR3H1HIht_liVk4t4cGzTBQzUObgkip0t9KBd8uR802AuIbZv42FxcqKLxVyE1Nqoa2o7mMZHz9XafjzxU';
 
-  const VAPID_KEY = 'BCY8VaR3H1HIht_liVk4t4cGzTBQzUObgkip0t9KBd8uR802AuIbZv42FxcqKLxVyE1Nqoa2o7mMZHz9XafjzxU';
-
-  // ── Guardar token FCM en Firestore ─────────────────────────────
-  window._guardarToken = async function() {
-    try {
-      const token = await _gt(messaging, { vapidKey: VAPID_KEY });
-      if (token) {
-        await _setDoc(_doc(db, 'fcm_tokens', token), { token, updated: new Date() });
-        console.log('[FCM] Token guardado:', token.slice(0, 20) + '…');
-      }
-    } catch (err) {
-      console.warn('[FCM] No se pudo obtener token:', err);
+// ── Guardar token FCM en Firestore ─────────────────────────────
+async function guardarToken () {
+  try {
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+    if (token) {
+      await setDoc(doc(db, 'fcm_tokens', token), { token, updated: new Date() });
+      console.log('[FCM] Token guardado:', token.slice(0, 20) + '…');
     }
-  };
-
-  // ── Notificaciones mientras la app está abierta ────────────────
-  _om(messaging, payload => {
-    console.log('[FCM] Mensaje en foreground:', payload);
-    const { title, body } = payload.notification || {};
-    if (title && 'Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, {
-        body,
-        icon: './icon-192.png',
-        badge: './icon-192.png'
-      });
-    }
-  });
-
-  console.log('[Firebase] Inicializado correctamente');
-} catch(firebaseErr) {
-  console.warn('[Firebase] No se pudo inicializar (la app seguirá funcionando sin notificaciones):', firebaseErr);
-  window._guardarToken = async function() {};
+  } catch (err) {
+    console.warn('[FCM] No se pudo obtener token:', err);
+  }
 }
 
-async function guardarToken() { return window._guardarToken?.(); }
+// ── Notificaciones mientras la app está abierta ────────────────
+onMessage(messaging, payload => {
+  console.log('[FCM] Mensaje en foreground:', payload);
+  const { title, body } = payload.notification || {};
+  if (title && 'Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, {
+      body,
+      icon: './icon-192.png',
+      badge: './icon-192.png'
+    });
+  }
+});
 
 // ── 1. Registrar Service Worker ────────────────────────────────
 if ('serviceWorker' in navigator) {
@@ -4418,12 +4399,12 @@ window.addEventListener('beforeinstallprompt', e => {
   const dismissed = localStorage.getItem('pwa-install-dismissed');
   if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
 
-  setTimeout(() => { installBanner.classList.add('visible'); }, 2000);
+  setTimeout(() => { installBanner.style.display = 'flex'; }, 2000);
 });
 
 if (btnInstall) {
   btnInstall.addEventListener('click', async () => {
-    installBanner.classList.remove('visible');
+    installBanner.style.display = 'none';
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
@@ -4435,14 +4416,14 @@ if (btnInstall) {
 
 if (btnDismiss) {
   btnDismiss.addEventListener('click', () => {
-    installBanner.classList.remove('visible');
+    installBanner.style.display = 'none';
     localStorage.setItem('pwa-install-dismissed', Date.now().toString());
   });
 }
 
 window.addEventListener('appinstalled', () => {
   console.log('[PWA] App instalada correctamente');
-  installBanner.classList.remove('visible');
+  installBanner.style.display = 'none';
   deferredPrompt = null;
   setTimeout(showNotifModal, 1500);
 });
