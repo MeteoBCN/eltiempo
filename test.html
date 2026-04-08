@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Open-Meteo</title>
+<style>
+  body { font-family: monospace; padding: 16px; background: #0f172a; color: #e2e8f0; font-size: 13px; }
+  h2 { color: #38bdf8; margin-bottom: 8px; }
+  .ok  { color: #4ade80; }
+  .err { color: #f87171; }
+  .warn { color: #fbbf24; }
+  .box { background: #1e293b; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+  pre { white-space: pre-wrap; word-break: break-all; font-size: 11px; color: #94a3b8; margin-top: 6px; }
+  button { background: #3b82f6; color: white; border: none; border-radius: 8px; padding: 12px 24px; font-size: 15px; cursor: pointer; width: 100%; margin-top: 8px; }
+</style>
+</head>
+<body>
+<h2>🔬 Diagnóstico Open-Meteo</h2>
+<div class="box">
+  <div><strong>Dispositivo:</strong> <span id="ua"></span></div>
+  <div><strong>Online:</strong> <span id="online"></span></div>
+  <div><strong>SW activo:</strong> <span id="sw"></span></div>
+</div>
+
+<div id="results"></div>
+<button onclick="runTests()">▶ EJECUTAR TESTS</button>
+
+<script>
+document.getElementById('ua').textContent = navigator.userAgent.slice(0, 80);
+document.getElementById('online').textContent = navigator.onLine ? '✅ Sí' : '❌ No';
+
+navigator.serviceWorker?.getRegistration('./').then(reg => {
+  document.getElementById('sw').textContent = reg
+    ? '⚠️ Registrado (scope: ' + reg.scope + ')'
+    : '✅ No registrado';
+});
+
+const LAT = 41.3851, LON = 2.1734;
+const TESTS = [
+  {
+    name: '1. API principal (forecast)',
+    url: `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m&timezone=Europe/Madrid`,
+    check: d => d?.current?.temperature_2m !== undefined
+  },
+  {
+    name: '2. API calidad del aire',
+    url: `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi&timezone=Europe/Madrid`,
+    check: d => d?.current?.european_aqi !== undefined
+  },
+  {
+    name: '3. API marina',
+    url: `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height&timezone=Europe/Madrid`,
+    check: d => d?.current?.wave_height !== undefined
+  },
+  {
+    name: '4. API forecast con cache:no-store',
+    url: `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m&timezone=Europe/Madrid`,
+    options: { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } },
+    check: d => d?.current?.temperature_2m !== undefined
+  },
+  {
+    name: '5. API forecast con AbortController (timeout 8s)',
+    url: `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m&timezone=Europe/Madrid`,
+    timeout: 8000,
+    check: d => d?.current?.temperature_2m !== undefined
+  }
+];
+
+async function runOne(test) {
+  const div = document.createElement('div');
+  div.className = 'box';
+  div.innerHTML = `<strong>${test.name}</strong><br><span class="warn">⏳ Probando...</span>`;
+  document.getElementById('results').appendChild(div);
+
+  const t0 = Date.now();
+  try {
+    let opts = test.options || {};
+    let signal;
+    if (test.timeout) {
+      const ctrl = new AbortController();
+      setTimeout(() => ctrl.abort(), test.timeout);
+      signal = ctrl.signal;
+      opts = { ...opts, signal };
+    }
+
+    const res = await fetch(test.url, opts);
+    const ms = Date.now() - t0;
+
+    if (!res.ok) {
+      div.innerHTML = `<strong>${test.name}</strong><br>
+        <span class="err">❌ HTTP ${res.status} (${ms}ms)</span>
+        <pre>Headers: ${JSON.stringify(Object.fromEntries(res.headers), null, 2)}</pre>`;
+      return;
+    }
+
+    const data = await res.json();
+    const ok = test.check(data);
+    const ms2 = Date.now() - t0;
+
+    div.innerHTML = `<strong>${test.name}</strong><br>
+      <span class="${ok ? 'ok' : 'err'}">${ok ? '✅ OK' : '❌ Datos incorrectos'} (${ms2}ms)</span>
+      <pre>${JSON.stringify(data).slice(0, 200)}...</pre>`;
+  } catch (e) {
+    const ms = Date.now() - t0;
+    div.innerHTML = `<strong>${test.name}</strong><br>
+      <span class="err">❌ ERROR (${ms}ms): ${e.name}: ${e.message}</span>`;
+  }
+}
+
+async function runTests() {
+  document.getElementById('results').innerHTML = '';
+  for (const test of TESTS) {
+    await runOne(test);
+  }
+
+  // Test extra: desregistrar SW
+  const div = document.createElement('div');
+  div.className = 'box';
+  const regs = await navigator.serviceWorker?.getRegistrations() || [];
+  if (regs.length > 0) {
+    div.innerHTML = `<strong>⚠️ Service Workers activos: ${regs.length}</strong><br>
+      <button onclick="unregisterSW()">🗑️ DESREGISTRAR TODOS LOS SW</button>`;
+  } else {
+    div.innerHTML = `<strong class="ok">✅ No hay Service Workers registrados</strong>`;
+  }
+  document.getElementById('results').appendChild(div);
+}
+
+async function unregisterSW() {
+  const regs = await navigator.serviceWorker?.getRegistrations() || [];
+  await Promise.all(regs.map(r => r.unregister()));
+  alert('Service Workers eliminados. Recarga la página principal.');
+}
+</script>
+</body>
+</html>
