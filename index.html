@@ -723,14 +723,20 @@
                 <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">RADAR DE PRECIPITACIÓN</span>
             </div>
 
-            <!-- ── RADAR DE PRECIPITACIÓN (Windy) ── -->
+            <!-- ── RADAR DE PRECIPITACIÓN (RainViewer + Leaflet) ── -->
                 <div id="ahora-radar-panel" style="display:block;">
-                    <div style="width:100%;background:#f0f6fa;">
-                        <iframe
-                            src="https://embed.windy.com/embed2.html?lat=41.385&lon=2.173&detailLat=41.385&detailLon=2.173&width=650&height=300&zoom=7&level=surface&overlay=rain&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1"
-                            style="width:100%;height:300px;border:none;"
-                            allowfullscreen>
-                        </iframe>
+                    <div style="width:100%;background:#f0f6fa;position:relative;">
+                        <!-- Mapa -->
+                        <div id="ahora-radar-map" style="width:100%;height:300px;"></div>
+                        <!-- Barra de tiempo + controles -->
+                        <div style="background:#1e293b;padding:8px 12px;display:flex;align-items:center;gap:10px;">
+                            <span id="ahora-radar-time-label" style="font-size:12px;font-weight:700;color:#fff;min-width:38px;text-align:center;">--:--</span>
+                            <div style="flex:1;background:rgba(255,255,255,0.15);border-radius:4px;height:6px;overflow:hidden;">
+                                <div id="ahora-radar-progress" style="height:100%;background:#60a5fa;width:0%;transition:width 0.3s;border-radius:4px;"></div>
+                            </div>
+                            <button id="ahora-radar-btn-play" onclick="ahoraRadarTogglePlay()" style="background:#3b82f6;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">⏸ PAUSAR</button>
+                            <button onclick="ahoraRadarGoLive()" style="background:#10b981;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">EN VIVO</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3160,19 +3166,20 @@
             const HEADER_BG=`url("${SKY_IMG}") center/cover no-repeat`;
 
             // Cabecera clicable
+            const isToday = (off === 0);
             const head=document.createElement('div');
-            head.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:18px 14px;cursor:pointer;background:#fff;user-select:none;transition:background 0.4s;';
+            head.style.cssText=`display:flex;align-items:center;justify-content:space-between;padding:18px 14px;cursor:pointer;background:${isToday ? HEADER_BG : '#fff'};user-select:none;transition:background 0.4s;`;
             head.innerHTML=`
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div class="day-head-icon" style="display:flex;gap:6px;align-items:center;">
                         <span style="line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">${iconDia}</span>
                     </div>
                     <div>
-                        <div class="day-head-title" style="font-size:19px;font-weight:700;color:#2C3E50;transition:color 0.4s;letter-spacing:0.5px;">${dn.toUpperCase()} <span class="day-head-date" style="font-size:14px;font-weight:400;color:#94A3B8;transition:color 0.4s;">${fechaStr}</span></div>
-                        <div class="day-head-meta" style="font-size:13px;color:#64748B;margin-top:5px;line-height:1.7;transition:color 0.4s;">
-                            <span class="day-temp-min" style="color:#3B82F6;font-weight:700;font-size:22px;transition:color 0.4s;">${minT}°</span>
+                        <div class="day-head-title" style="font-size:19px;font-weight:700;color:${isToday ? '#1a2e44' : '#2C3E50'};transition:color 0.4s;letter-spacing:0.5px;">${dn.toUpperCase()} <span class="day-head-date" style="font-size:14px;font-weight:400;color:${isToday ? 'rgba(20,50,80,0.7)' : '#94A3B8'};transition:color 0.4s;">${fechaStr}</span></div>
+                        <div class="day-head-meta" style="font-size:13px;color:${isToday ? 'rgba(20,50,80,0.85)' : '#64748B'};margin-top:5px;line-height:1.7;transition:color 0.4s;">
+                            <span class="day-temp-min" style="color:${isToday ? '#1a5a9a' : '#3B82F6'};font-weight:700;font-size:22px;transition:color 0.4s;">${minT}°</span>
                             <span class="day-sep" style="margin:0 4px;opacity:0.4;">/</span>
-                            <span class="day-temp-max" style="color:#EF4444;font-weight:700;font-size:22px;transition:color 0.4s;">${maxT}°</span>
+                            <span class="day-temp-max" style="color:${isToday ? '#c05000' : '#EF4444'};font-weight:700;font-size:22px;transition:color 0.4s;">${maxT}°</span>
                             <br>
                             ${rainCountdown
                                 ? `<span class="day-rain-lbl" style="transition:color 0.4s;color:${rainCountdown.color};font-weight:700;">${rainCountdown.label} (${daily.precipitation_probability_max?.[off]??'--'}%)</span>`
@@ -3188,7 +3195,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="ds-arrow" style="font-size:12px;color:#94A3B8;transition:transform 0.3s,color 0.4s;flex-shrink:0;">▼</div>`;
+                <div class="ds-arrow" style="font-size:12px;color:${isToday ? 'rgba(20,50,80,0.6)' : '#94A3B8'};transition:transform 0.3s,color 0.4s;flex-shrink:0;">▼</div>`;
 
             // Contenido desplegable: strip deslizante idéntico al hourly
             const body=document.createElement('div');
@@ -3216,18 +3223,19 @@
                     head.querySelector('.ds-arrow').style.color='rgba(20,50,80,0.6)';
                     head.querySelectorAll('.day-sep').forEach(s=>s.style.color='rgba(20,50,80,0.25)');
                 } else {
-                    head.style.background='#fff';
-                    head.querySelector('.day-head-title').style.color='#2C3E50';
-                    head.querySelector('.day-head-date').style.color='#94A3B8';
-                    head.querySelector('.day-head-meta').style.color='#64748B';
-                    head.querySelector('.day-temp-min').style.color='#3B82F6';
-                    head.querySelector('.day-temp-max').style.color='#EF4444';
-                    head.querySelector('.day-rain-lbl').style.color='#64748B';
-                    head.querySelector('.day-wind-lbl').style.color='#64748B';
-                    head.querySelector('.day-sol-lbl').style.color='#64748B';
-                    head.querySelector('.day-uvi-lbl').style.color='#64748B';
-                    head.querySelector('.ds-arrow').style.color='#94A3B8';
-                    head.querySelectorAll('.day-sep').forEach(s=>s.style.color='#ccc');
+                    // Al cerrar: si es hoy, mantener el degradado; si es otro día, volver a blanco
+                    head.style.background=isToday ? HEADER_BG : '#fff';
+                    head.querySelector('.day-head-title').style.color=isToday ? '#1a2e44' : '#2C3E50';
+                    head.querySelector('.day-head-date').style.color=isToday ? 'rgba(20,50,80,0.7)' : '#94A3B8';
+                    head.querySelector('.day-head-meta').style.color=isToday ? 'rgba(20,50,80,0.85)' : '#64748B';
+                    head.querySelector('.day-temp-min').style.color=isToday ? '#1a5a9a' : '#3B82F6';
+                    head.querySelector('.day-temp-max').style.color=isToday ? '#c05000' : '#EF4444';
+                    head.querySelector('.day-rain-lbl').style.color=isToday ? 'rgba(20,50,80,0.85)' : '#64748B';
+                    head.querySelector('.day-wind-lbl').style.color=isToday ? 'rgba(20,50,80,0.85)' : '#64748B';
+                    head.querySelector('.day-sol-lbl').style.color=isToday ? 'rgba(20,50,80,0.85)' : '#64748B';
+                    head.querySelector('.day-uvi-lbl').style.color=isToday ? 'rgba(20,50,80,0.85)' : '#64748B';
+                    head.querySelector('.ds-arrow').style.color=isToday ? 'rgba(20,50,80,0.6)' : '#94A3B8';
+                    head.querySelectorAll('.day-sep').forEach(s=>s.style.color=isToday ? 'rgba(20,50,80,0.25)' : '#ccc');
                 }
             });
 
