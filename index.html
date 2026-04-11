@@ -755,65 +755,45 @@
         </div>
 
         <script>
-        /* ════════ RAINVIEWER — carga al desplegar ════════ */
-        (function() {
-            const BCN_LAT = 41.39, BCN_LNG = 2.17, ZOOM = 7;
-            let rvMap = null, rvLayer = null, rvInited = false;
+        /* ════════ RAINVIEWER — funciones globales ════════ */
+        window._rvInited = false;
+        window._rvMap = null;
 
-            const origToggle = window.toggleExtraSection;
-            window.toggleExtraSection = function(id) {
-                if (typeof origToggle === 'function') origToggle(id);
-                if (id === 'radar-rainviewer') {
-                    setTimeout(function() {
-                        const panel = document.getElementById('panel-radar-rainviewer');
-                        if (panel && panel.style.display !== 'none') {
-                            if (!rvInited) {
-                                rvInited = true;
-                                initRvMap();
-                            } else if (rvMap) {
-                                rvMap.invalidateSize();
-                            }
-                        }
-                    }, 150);
-                }
-            };
+        window._initRvMap = function() {
+            var BCN_LAT = 41.39, BCN_LNG = 2.17, ZOOM = 7;
+            if (typeof L === 'undefined') { setTimeout(window._initRvMap, 200); return; }
+            window._rvMap = L.map('rv-map', {
+                center: [BCN_LAT, BCN_LNG], zoom: ZOOM,
+                zoomControl: false, dragging: false, touchZoom: false,
+                doubleClickZoom: false, scrollWheelZoom: false,
+                boxZoom: false, keyboard: false, attributionControl: false
+            });
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19, subdomains: 'abcd'
+            }).addTo(window._rvMap);
+            setTimeout(function() { window._rvMap.invalidateSize(); _loadRvFrame(); }, 300);
+        };
 
-            function initRvMap() {
-                if (typeof L === 'undefined') { setTimeout(initRvMap, 200); return; }
-                rvMap = L.map('rv-map', {
-                    center: [BCN_LAT, BCN_LNG], zoom: ZOOM,
-                    zoomControl: false, dragging: false, touchZoom: false,
-                    doubleClickZoom: false, scrollWheelZoom: false,
-                    boxZoom: false, keyboard: false, attributionControl: false
-                });
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 19, subdomains: 'abcd'
-                }).addTo(rvMap);
-                setTimeout(function() { rvMap.invalidateSize(); }, 100);
-                loadRvFrame();
-            }
-
-            async function loadRvFrame() {
-                try {
-                    const resp = await fetch('https://api.rainviewer.com/public/weather-maps.json');
-                    const data = await resp.json();
-                    const frames = data.radar?.past ?? [];
+        function _loadRvFrame() {
+            fetch('https://api.rainviewer.com/public/weather-maps.json')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var frames = (data.radar && data.radar.past) ? data.radar.past : [];
                     if (!frames.length) return;
-                    const last = frames[frames.length - 1];
-                    if (rvLayer) { rvMap.removeLayer(rvLayer); rvLayer = null; }
-                    rvLayer = L.tileLayer(
-                        `https://tilecache.rainviewer.com${last.path}/256/{z}/{x}/{y}/6/1_1.png`,
+                    var last = frames[frames.length - 1];
+                    var layer = L.tileLayer(
+                        'https://tilecache.rainviewer.com' + last.path + '/256/{z}/{x}/{y}/6/1_1.png',
                         { opacity: 0.85, maxZoom: 19, tileSize: 256, zIndex: 10 }
                     );
-                    rvLayer.addTo(rvMap);
-                    const d = new Date(last.time * 1000);
-                    const hh = d.getHours().toString().padStart(2,'0');
-                    const mm = d.getMinutes().toString().padStart(2,'0');
-                    const ts = document.getElementById('rv-timestamp');
-                    if (ts) ts.textContent = `🕐 ${hh}:${mm} · AHORA`;
-                } catch(e) { console.warn('[RV]', e); }
-            }
-        })();
+                    layer.addTo(window._rvMap);
+                    var d = new Date(last.time * 1000);
+                    var hh = String(d.getHours()).padStart(2,'0');
+                    var mm = String(d.getMinutes()).padStart(2,'0');
+                    var ts = document.getElementById('rv-timestamp');
+                    if (ts) ts.textContent = '\u{1F550} ' + hh + ':' + mm + ' \u00B7 AHORA';
+                })
+                .catch(function(e) { console.warn('[RV]', e); });
+        }
         </script>
 
         <!-- ═══════════════════════════════════════════
@@ -906,6 +886,16 @@
                     var hora = now.getUTCHours() >= 12 ? '12' : '00';
                     img.src = 'https://weather.uwyo.edu/upperair/images/' + ts + hora + '.08181.skewt.gif';
                 }
+            }
+            if (!isOpen && id === 'radar-rainviewer') {
+                setTimeout(function() {
+                    if (!window._rvInited) {
+                        window._rvInited = true;
+                        window._initRvMap();
+                    } else if (window._rvMap) {
+                        window._rvMap.invalidateSize();
+                    }
+                }, 200);
             }
         }
         </script>
