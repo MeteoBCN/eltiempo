@@ -729,6 +729,9 @@
                 <div style="position:relative;width:100%;background:#0d1b2a;">
                     <div id="rv-map" style="width:100%;height:380px;"></div>
 
+                    <!-- Barra de frames -->
+                    <div id="rv-bar" style="position:absolute;bottom:0;left:0;right:0;z-index:1000;display:flex;gap:2px;padding:5px 8px;background:rgba(13,27,42,0.55);"></div>
+
                     <!-- Timestamp -->
                     <div id="rv-timestamp" style="position:absolute;top:10px;left:10px;z-index:1000;background:rgba(13,27,42,0.75);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:#fff;letter-spacing:0.3px;backdrop-filter:blur(3px);">Cargando...</div>
 
@@ -755,44 +758,102 @@
         </div>
 
         <script>
-        /* ════════ RAINVIEWER — funciones globales ════════ */
+        /* ════════ RAINVIEWER — animación últimos ~45 min ════════ */
         window._rvInited = false;
-        window._rvMap = null;
+        window._rvMap    = null;
+        var _rvLayers = [], _rvFrames = [], _rvIdx = 0, _rvTimer = null;
 
         window._initRvMap = function() {
-            var BCN_LAT = 41.39, BCN_LNG = 2.17, ZOOM = 7;
             if (typeof L === 'undefined') { setTimeout(window._initRvMap, 200); return; }
             window._rvMap = L.map('rv-map', {
-                center: [BCN_LAT, BCN_LNG], zoom: ZOOM,
+                center: [41.39, 2.17], zoom: 7,
                 zoomControl: false, dragging: false, touchZoom: false,
                 doubleClickZoom: false, scrollWheelZoom: false,
                 boxZoom: false, keyboard: false, attributionControl: false
             });
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                maxZoom: 19, subdomains: 'abcd'
+            /* Mapa base OSM — fiable y sin CORS */
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19, subdomains: 'abc', opacity: 1
             }).addTo(window._rvMap);
-            setTimeout(function() { window._rvMap.invalidateSize(); _loadRvFrame(); }, 300);
+            setTimeout(function() {
+                window._rvMap.invalidateSize();
+                _rvLoadFrames();
+            }, 350);
         };
 
-        function _loadRvFrame() {
+        function _rvLoadFrames() {
             fetch('https://api.rainviewer.com/public/weather-maps.json')
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
-                    var frames = (data.radar && data.radar.past) ? data.radar.past : [];
-                    if (!frames.length) return;
-                    var last = frames[frames.length - 1];
-                    var layer = L.tileLayer(
-                        'https://tilecache.rainviewer.com' + last.path + '/256/{z}/{x}/{y}/6/1_1.png',
-                        { opacity: 0.85, maxZoom: 19, tileSize: 256, zIndex: 10 }
-                    );
-                    layer.addTo(window._rvMap);
-                    var d = new Date(last.time * 1000);
-                    var hh = String(d.getHours()).padStart(2,'0');
-                    var mm = String(d.getMinutes()).padStart(2,'0');
-                    var ts = document.getElementById('rv-timestamp');
-                    if (ts) ts.textContent = '\u{1F550} ' + hh + ':' + mm + ' \u00B7 AHORA';
+                    var past = (data.radar && data.radar.past) ? data.radar.past : [];
+                    /* Últimos 9 frames ≈ 45 min (cada frame = ~5 min) */
+                    _rvFrames = past.slice(-9);
+                    if (!_rvFrames.length) return;
+
+                    /* Pre-cargar todos los layers */
+                    _rvLayers.forEach(function(l) { window._rvMap.removeLayer(l); });
+                    _rvLayers = [];
+                    _rvFrames.forEach(function(f, i) {
+                        var l = L.tileLayer(
+                            'https://tilecache.rainviewer.com' + f.path + '/256/{z}/{x}/{y}/6/1_1.png',
+                            { opacity: 0, maxZoom: 19, tileSize: 256, zIndex: 10 + i }
+                        );
+                        l.addTo(window._rvMap);
+                        _rvLayers.push(l);
+                    });
+
+                    _rvIdx = 0;
+                    _rvBuildBar();
+                    _rvShowFrame(0);
+                    _rvStartAnim();
                 })
                 .catch(function(e) { console.warn('[RV]', e); });
+        }
+
+        function _rvShowFrame(idx) {
+            _rvLayers.forEach(function(l, i) { l.setOpacity(i === idx ? 0.85 : 0); });
+            var f = _rvFrames[idx];
+            var d = new Date(f.time * 1000);
+            var hh = String(d.getHours()).padStart(2,'0');
+            var mm = String(d.getMinutes()).padStart(2,'0');
+            var esAhora = (idx === _rvFrames.length - 1);
+            var ts = document.getElementById('rv-timestamp');
+            if (ts) ts.textContent = (esAhora ? '🔴 ' : '🕐 ') + hh + ':' + mm + (esAhora ? ' · AHORA' : '');
+            /* Barra de progreso */
+            var bar = document.getElementById('rv-bar');
+            if (bar) {
+                var dots = bar.children;
+                for (var i = 0; i < dots.length; i++) {
+                    dots[i].style.background = i === idx ? '#60A5FA' : 'rgba(255,255,255,0.3)';
+                }
+            }
+        }
+
+        function _rvStartAnim() {
+            if (_rvTimer) clearInterval(_rvTimer);
+            _rvTimer = setInterval(function() {
+                _rvIdx = (_rvIdx + 1) % _rvFrames.length;
+                /* Pausa de 1.5s al llegar al frame más reciente */
+                if (_rvIdx === _rvFrames.length - 1) {
+                    clearInterval(_rvTimer);
+                    _rvShowFrame(_rvIdx);
+                    setTimeout(_rvStartAnim, 1500);
+                } else {
+                    _rvShowFrame(_rvIdx);
+                }
+            }, 600);
+        }
+
+        function _rvBuildBar() {
+            var bar = document.getElementById('rv-bar');
+            if (!bar) return;
+            bar.innerHTML = '';
+            _rvFrames.forEach(function(_, i) {
+                var d = document.createElement('div');
+                d.style.cssText = 'flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,0.3);cursor:pointer;transition:background 0.2s;';
+                d.onclick = (function(idx){ return function(){ _rvIdx = idx; _rvShowFrame(idx); }; })(i);
+                bar.appendChild(d);
+            });
         }
         </script>
 
