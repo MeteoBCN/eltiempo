@@ -722,64 +722,18 @@
                 <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">RADAR DE PRECIPITACIÓN</span>
             </div>
 
-            <!-- ── RADAR DE PRECIPITACIÓN (RainViewer + Leaflet) ── -->
-                <div id="ahora-radar-panel" style="display:block;">
-                    <div style="width:100%;background:#f0f6fa;position:relative;">
-                        <!-- Mapa -->
-                        <div id="ahora-radar-map" style="width:100%;height:420px;"></div>
-                        <!-- Barra de tiempo + controles -->
-                        <div style="background:#1e293b;padding:8px 12px;display:flex;align-items:center;gap:10px;">
-                            <span id="ahora-radar-time-label" style="font-size:12px;font-weight:700;color:#fff;min-width:38px;text-align:center;">--:--</span>
-                            <div style="flex:1;background:rgba(255,255,255,0.15);border-radius:4px;height:6px;overflow:hidden;">
-                                <div id="ahora-radar-progress" style="height:100%;background:#60a5fa;width:0%;transition:width 0.3s;border-radius:4px;"></div>
-                            </div>
-                            <button id="ahora-radar-btn-play" onclick="ahoraRadarTogglePlay()" style="background:#3b82f6;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">⏸ PAUSAR</button>
-                            <button onclick="ahoraRadarGoLive()" style="background:#10b981;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">EN VIVO</button>
-                        </div>
-                        <!-- Leyenda intensidad -->
-                        <div style="background:#1e293b;padding:8px 12px 10px;border-top:1px solid rgba(255,255,255,0.07);">
-                            <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">Intensidad · Paleta Universal Blue (dBZ)</div>
-                            <!-- Barra de color: segmentos extraídos del CSV oficial de RainViewer -->
-                            <div style="display:flex;align-items:stretch;border-radius:4px;overflow:hidden;height:16px;">
-                                <!-- ~10 dBZ: azul muy claro -->
-                                <div style="flex:1;background:#bfffff;"></div>
-                                <!-- ~15 dBZ -->
-                                <div style="flex:1;background:#9fdfff;"></div>
-                                <!-- ~20 dBZ -->
-                                <div style="flex:1;background:#7fbfff;"></div>
-                                <!-- ~25 dBZ -->
-                                <div style="flex:1;background:#5f9fff;"></div>
-                                <!-- ~30 dBZ -->
-                                <div style="flex:1;background:#4f8fff;"></div>
-                                <!-- ~35 dBZ: amarillo (umbral lluvia) -->
-                                <div style="flex:1;background:#ffee00;"></div>
-                                <!-- ~40 dBZ: naranja -->
-                                <div style="flex:1;background:#ffaa00;"></div>
-                                <!-- ~45 dBZ: naranja-rojo -->
-                                <div style="flex:1;background:#ff4400;"></div>
-                                <!-- ~50 dBZ: rojo -->
-                                <div style="flex:1;background:#c10000;"></div>
-                                <!-- ~55 dBZ: rosa -->
-                                <div style="flex:1;background:#ffaaff;"></div>
-                                <!-- ~60 dBZ: rosa claro -->
-                                <div style="flex:1;background:#ff77ff;"></div>
-                                <!-- ~65 dBZ: blanco -->
-                                <div style="flex:1;background:#ffffff;"></div>
-                            </div>
-                            <!-- Etiquetas dBZ -->
-                            <div style="display:flex;justify-content:space-between;margin-top:4px;">
-                                <span style="font-size:9px;color:rgba(255,255,255,0.5);">10 dBZ</span>
-                                <span style="font-size:9px;color:rgba(255,255,255,0.5);">35 dBZ</span>
-                                <span style="font-size:9px;color:rgba(255,255,255,0.5);">65 dBZ</span>
-                            </div>
-                            <div style="display:flex;justify-content:space-between;margin-top:1px;">
-                                <span style="font-size:9px;color:rgba(255,255,255,0.3);">Llovizna</span>
-                                <span style="font-size:9px;color:rgba(255,255,255,0.3);">Lluvia mod.</span>
-                                <span style="font-size:9px;color:rgba(255,255,255,0.3);">Tormenta</span>
-                            </div>
-                        </div>
-                    </div>
+            <!-- ── RADAR DE PRECIPITACIÓN (Meteocat XRAD) ── -->
+            <div id="ahora-radar-panel" style="display:block;">
+                <iframe
+                    src="https://static-m.meteo.cat/ginys/mapaRadar?language=es&color=2c3e50&target=_blank"
+                    style="width:100%;height:420px;border:none;display:block;"
+                    scrolling="no"
+                    title="Radar de precipitació Meteocat">
+                </iframe>
+                <div style="background:#1e293b;padding:6px 12px;text-align:center;">
+                    <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Meteocat · Red XRAD · Catalunya</span>
                 </div>
+            </div>
             </div>
 
 
