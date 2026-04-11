@@ -729,11 +729,17 @@
                 <div style="position:relative;width:100%;background:#0d1b2a;">
                     <div id="rv-map" style="width:100%;height:380px;"></div>
 
-                    <!-- Barra de frames -->
-                    <div id="rv-bar" style="position:absolute;bottom:0;left:0;right:0;z-index:1000;display:flex;gap:2px;padding:5px 8px;background:rgba(13,27,42,0.55);"></div>
-
-                    <!-- Timestamp -->
-                    <div id="rv-timestamp" style="position:absolute;top:10px;left:10px;z-index:1000;background:rgba(13,27,42,0.75);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:#fff;letter-spacing:0.3px;backdrop-filter:blur(3px);">Cargando...</div>
+                    <!-- Barra de frames + controles -->
+                    <div style="position:absolute;bottom:0;left:0;right:0;z-index:1000;background:rgba(13,27,42,0.7);">
+                        <!-- Frames -->
+                        <div id="rv-bar" style="display:flex;gap:2px;padding:6px 8px 4px;"></div>
+                        <!-- Controles -->
+                        <div style="display:flex;align-items:center;gap:8px;padding:4px 8px 6px;">
+                            <button id="rv-btn-play" onclick="_rvTogglePlay()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:13px;font-weight:700;padding:4px 12px;border-radius:5px;cursor:pointer;letter-spacing:0.3px;min-width:70px;">⏸ PAUSA</button>
+                            <button onclick="_rvGoLive()" style="background:rgba(239,68,68,0.25);border:1px solid rgba(239,68,68,0.5);color:#fca5a5;font-size:13px;font-weight:700;padding:4px 12px;border-radius:5px;cursor:pointer;letter-spacing:0.3px;">🔴 AHORA</button>
+                            <div id="rv-timestamp" style="flex:1;text-align:right;font-size:11px;font-weight:600;color:rgba(255,255,255,0.8);letter-spacing:0.3px;">Cargando...</div>
+                        </div>
+                    </div>
 
                     <!-- Leyenda de intensidad -->
                     <div style="position:absolute;bottom:12px;right:10px;z-index:1000;background:rgba(13,27,42,0.82);border-radius:8px;padding:8px 10px;backdrop-filter:blur(4px);">
@@ -758,10 +764,10 @@
         </div>
 
         <script>
-        /* ════════ RAINVIEWER — animación últimos ~45 min ════════ */
+        /* ════════ RAINVIEWER — animación ~45 min + controles ════════ */
         window._rvInited = false;
         window._rvMap    = null;
-        var _rvLayers = [], _rvFrames = [], _rvIdx = 0, _rvTimer = null;
+        var _rvLayers = [], _rvFrames = [], _rvIdx = 0, _rvTimer = null, _rvPlaying = true;
 
         window._initRvMap = function() {
             if (typeof L === 'undefined') { setTimeout(window._initRvMap, 200); return; }
@@ -771,7 +777,6 @@
                 doubleClickZoom: false, scrollWheelZoom: false,
                 boxZoom: false, keyboard: false, attributionControl: false
             });
-            /* Mapa base OSM — fiable y sin CORS */
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19, subdomains: 'abc', opacity: 1
             }).addTo(window._rvMap);
@@ -786,11 +791,8 @@
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     var past = (data.radar && data.radar.past) ? data.radar.past : [];
-                    /* Últimos 9 frames ≈ 45 min (cada frame = ~5 min) */
                     _rvFrames = past.slice(-9);
                     if (!_rvFrames.length) return;
-
-                    /* Pre-cargar todos los layers */
                     _rvLayers.forEach(function(l) { window._rvMap.removeLayer(l); });
                     _rvLayers = [];
                     _rvFrames.forEach(function(f, i) {
@@ -801,11 +803,12 @@
                         l.addTo(window._rvMap);
                         _rvLayers.push(l);
                     });
-
                     _rvIdx = 0;
+                    _rvPlaying = true;
                     _rvBuildBar();
                     _rvShowFrame(0);
                     _rvStartAnim();
+                    _rvUpdateBtn();
                 })
                 .catch(function(e) { console.warn('[RV]', e); });
         }
@@ -819,12 +822,10 @@
             var esAhora = (idx === _rvFrames.length - 1);
             var ts = document.getElementById('rv-timestamp');
             if (ts) ts.textContent = (esAhora ? '🔴 ' : '🕐 ') + hh + ':' + mm + (esAhora ? ' · AHORA' : '');
-            /* Barra de progreso */
             var bar = document.getElementById('rv-bar');
             if (bar) {
-                var dots = bar.children;
-                for (var i = 0; i < dots.length; i++) {
-                    dots[i].style.background = i === idx ? '#60A5FA' : 'rgba(255,255,255,0.3)';
+                for (var i = 0; i < bar.children.length; i++) {
+                    bar.children[i].style.background = i === idx ? '#60A5FA' : 'rgba(255,255,255,0.3)';
                 }
             }
         }
@@ -833,16 +834,35 @@
             if (_rvTimer) clearInterval(_rvTimer);
             _rvTimer = setInterval(function() {
                 _rvIdx = (_rvIdx + 1) % _rvFrames.length;
-                /* Pausa de 1.5s al llegar al frame más reciente */
+                _rvShowFrame(_rvIdx);
                 if (_rvIdx === _rvFrames.length - 1) {
                     clearInterval(_rvTimer);
-                    _rvShowFrame(_rvIdx);
-                    setTimeout(_rvStartAnim, 1500);
-                } else {
-                    _rvShowFrame(_rvIdx);
+                    setTimeout(function() { if (_rvPlaying) _rvStartAnim(); }, 1500);
                 }
             }, 600);
         }
+
+        function _rvUpdateBtn() {
+            var btn = document.getElementById('rv-btn-play');
+            if (btn) btn.textContent = _rvPlaying ? '⏸ PAUSA' : '▶ PLAY';
+        }
+
+        window._rvTogglePlay = function() {
+            _rvPlaying = !_rvPlaying;
+            if (_rvPlaying) {
+                _rvStartAnim();
+            } else {
+                if (_rvTimer) clearInterval(_rvTimer);
+                _rvTimer = null;
+            }
+            _rvUpdateBtn();
+        };
+
+        window._rvGoLive = function() {
+            _rvIdx = _rvFrames.length - 1;
+            _rvShowFrame(_rvIdx);
+            if (_rvPlaying) { _rvStartAnim(); }
+        };
 
         function _rvBuildBar() {
             var bar = document.getElementById('rv-bar');
@@ -851,7 +871,10 @@
             _rvFrames.forEach(function(_, i) {
                 var d = document.createElement('div');
                 d.style.cssText = 'flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,0.3);cursor:pointer;transition:background 0.2s;';
-                d.onclick = (function(idx){ return function(){ _rvIdx = idx; _rvShowFrame(idx); }; })(i);
+                d.onclick = (function(idx){ return function(){
+                    _rvIdx = idx; _rvShowFrame(idx);
+                    if (_rvPlaying) _rvStartAnim();
+                }; })(i);
                 bar.appendChild(d);
             });
         }
