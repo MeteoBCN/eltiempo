@@ -566,6 +566,12 @@
             <span id="proxima-lluvia-txt" style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">Calculando&hellip;</span>
         </div>
 
+        <!-- LLUVIA EN 20 KM -->
+        <div id="lluvia-20km-section" style="max-width:600px;margin:0 auto;background:#e8f6fb;padding:10px 20px;display:flex;align-items:center;justify-content:center;gap:8px;border-top:1px solid rgba(44,74,110,0.1);">
+            <span id="lluvia-20km-dot" style="width:8px;height:8px;border-radius:50%;background:#94a3b8;flex-shrink:0;display:inline-block;transition:background 0.6s;"></span>
+            <span id="lluvia-20km-txt" style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;transition:color 0.6s;">Comprobando radar…</span>
+        </div>
+
 
 
 <div class="content-section">
@@ -4670,6 +4676,79 @@ if (isStandalone && 'Notification' in window) {
     setTimeout(showNotifModal, 2000);
   });
 }
+</script>
+
+<!-- ═══════ LLUVIA EN 20 KM — detección automática ═══════ -->
+<script>
+(function() {
+    // 9 puntos: centro Barcelona + 8 en perímetro de ~20 km
+    var BCN_LAT = 41.39, BCN_LON = 2.17, R = 20;
+    var puntos = [{ lat: BCN_LAT, lon: BCN_LON }];
+    [0, 45, 90, 135, 180, 225, 270, 315].forEach(function(deg) {
+        var rad = deg * Math.PI / 180;
+        puntos.push({
+            lat: BCN_LAT + (R / 111.32) * Math.cos(rad),
+            lon: BCN_LON + (R / (111.32 * Math.cos(BCN_LAT * Math.PI / 180))) * Math.sin(rad)
+        });
+    });
+
+    function actualizarUI(lluvia) {
+        var txt  = document.getElementById('lluvia-20km-txt');
+        var dot  = document.getElementById('lluvia-20km-dot');
+        var sec  = document.getElementById('lluvia-20km-section');
+        if (!txt || !dot) return;
+
+        if (lluvia) {
+            txt.textContent  = 'LLUVIA A MENOS DE 20 KM DE BARCELONA';
+            txt.style.color  = '#1a5276';
+            dot.style.background = '#2980b9';
+            dot.style.boxShadow  = '0 0 0 3px rgba(41,128,185,0.25)';
+            sec.style.background = '#c8e6f7';
+        } else {
+            txt.textContent  = 'NO SE DETECTA LLUVIA A MENOS DE 20 KM DE BARCELONA';
+            txt.style.color  = '#2c4a6e';
+            dot.style.background = '#10b981';
+            dot.style.boxShadow  = '0 0 0 3px rgba(16,185,129,0.2)';
+            sec.style.background = '#e8f6fb';
+        }
+    }
+
+    function comprobarLluvia() {
+        var lats = puntos.map(function(p){ return p.lat.toFixed(3); }).join(',');
+        var lons = puntos.map(function(p){ return p.lon.toFixed(3); }).join(',');
+        var url  = 'https://api.open-meteo.com/v1/forecast?latitude=' + lats +
+                   '&longitude=' + lons +
+                   '&hourly=precipitation&forecast_days=1&timezone=Europe%2FMadrid';
+
+        fetch(url)
+            .then(function(r){ return r.json(); })
+            .then(function(data) {
+                var results = Array.isArray(data) ? data : [data];
+                var now     = new Date();
+                // Clave de hora actual: "YYYY-MM-DDTHH:00"
+                var horaKey = now.getFullYear() + '-' +
+                    String(now.getMonth()+1).padStart(2,'0') + '-' +
+                    String(now.getDate()).padStart(2,'0') + 'T' +
+                    String(now.getHours()).padStart(2,'0') + ':00';
+
+                var lluvia = results.some(function(loc) {
+                    if (!loc.hourly || !loc.hourly.time) return false;
+                    var idx = loc.hourly.time.findIndex(function(t){ return t === horaKey; });
+                    if (idx === -1) idx = loc.hourly.time.findIndex(function(t){ return t.startsWith(horaKey.slice(0,13)); });
+                    return idx !== -1 && (loc.hourly.precipitation[idx] || 0) > 0.1;
+                });
+
+                actualizarUI(lluvia);
+            })
+            .catch(function(e){ console.warn('[Lluvia20km]', e); });
+    }
+
+    // Ejecutar al cargar y cada 10 minutos
+    window.addEventListener('load', function() {
+        setTimeout(comprobarLluvia, 1500);
+        setInterval(comprobarLluvia, 10 * 60 * 1000);
+    });
+})();
 </script>
 
 </body>
