@@ -746,6 +746,100 @@
         </div>
 
         <!-- ═══════════════════════════════════════════
+             WEBCAMS Y RADIOSONDEO DESPLEGABLES
+        ════════════════════════════════════════════ -->
+        <div style="max-width:600px;margin:0 auto;">
+
+            <!-- Webcam Sagrada Família -->
+            <div style="border-bottom:1px solid #e2e8f0;">
+                <div onclick="toggleExtraSection('webcam-sagrada')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#6fcfe0;cursor:pointer;user-select:none;">
+                    <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">📷 WEBCAM SAGRADA FAMÍLIA</span>
+                    <span id="arrow-webcam-sagrada" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
+                </div>
+                <div id="panel-webcam-sagrada" style="display:none;background:#000;overflow:hidden;">
+                    <img src="https://imgproxy.windy.com/_/normal/plain/current/1448811166/original.jpg"
+                         alt="Sagrada Família"
+                         style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover;"
+                         loading="lazy"
+                         onerror="this.style.background='#1a252f'"/>
+                    <div style="background:#1e293b;padding:6px 12px;text-align:center;">
+                        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">Fuente: Windy · Se actualiza cada pocos minutos</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Webcam Vila Olímpica -->
+            <div style="border-bottom:1px solid #e2e8f0;">
+                <div onclick="toggleExtraSection('webcam-olimpica')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#6fcfe0;cursor:pointer;user-select:none;">
+                    <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">📷 WEBCAM VILA OLÍMPICA</span>
+                    <span id="arrow-webcam-olimpica" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
+                </div>
+                <div id="panel-webcam-olimpica" style="display:none;background:#000;overflow:hidden;">
+                    <img src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg"
+                         alt="Vila Olímpica"
+                         style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover;"
+                         loading="lazy"
+                         onerror="this.style.background='#1a252f'"/>
+                    <div style="background:#1e293b;padding:6px 12px;text-align:center;">
+                        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">Fuente: Windy · Se actualiza cada pocos minutos</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Último Radiosondeo -->
+            <div style="border-bottom:1px solid #e2e8f0;">
+                <div onclick="toggleExtraSection('radiosondeo')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#6fcfe0;cursor:pointer;user-select:none;">
+                    <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">🎈 ÚLTIMO RADIOSONDEO</span>
+                    <span id="arrow-radiosondeo" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
+                </div>
+                <div id="panel-radiosondeo" style="display:none;background:#f0f6fa;overflow:hidden;">
+                    <div style="padding:12px;">
+                        <img id="radiosondeo-img"
+                             src=""
+                             alt="Último radiosondeo Barcelona"
+                             style="width:100%;display:block;border-radius:4px;"
+                             loading="lazy"
+                             onerror="document.getElementById('radiosondeo-fallback').style.display='block';this.style.display='none';"/>
+                        <div id="radiosondeo-fallback" style="display:none;padding:16px;text-align:center;">
+                            <p style="font-size:13px;color:#2c4a6e;margin-bottom:12px;font-weight:600;">Ver radiosondeo en Universidad de Wyoming</p>
+                            <a href="https://weather.uwyo.edu/cgi-bin/bufrraob.py?TYPE=gif&RAOB=08181" target="_blank"
+                               style="display:inline-block;background:#2c4a6e;color:#fff;font-size:11px;font-weight:700;padding:8px 18px;border-radius:6px;text-decoration:none;letter-spacing:0.5px;">
+                               Ver Radiosondeo Barcelona (08181) ↗
+                            </a>
+                        </div>
+                        <div style="background:#1e293b;padding:6px 12px;text-align:center;margin-top:8px;border-radius:4px;">
+                            <a href="https://weather.uwyo.edu/cgi-bin/bufrraob.py?TYPE=gif&RAOB=08181" target="_blank"
+                               style="font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-transform:uppercase;text-decoration:none;">
+                               Fuente: Universidad de Wyoming · Estación Barcelona (08181) ↗
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- fin webcams/radiosondeo desplegables -->
+
+        <script>
+        function toggleExtraSection(id) {
+            var panel = document.getElementById('panel-' + id);
+            var arrow = document.getElementById('arrow-' + id);
+            var isOpen = panel.style.display !== 'none';
+            panel.style.display = isOpen ? 'none' : 'block';
+            arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+            if (!isOpen && id === 'radiosondeo') {
+                var img = document.getElementById('radiosondeo-img');
+                if (!img.getAttribute('data-loaded')) {
+                    img.setAttribute('data-loaded', '1');
+                    var now = new Date();
+                    var ts = now.getUTCFullYear() + String(now.getUTCMonth()+1).padStart(2,'0') + String(now.getUTCDate()).padStart(2,'0');
+                    var hora = now.getUTCHours() >= 12 ? '12' : '00';
+                    img.src = 'https://weather.uwyo.edu/upperair/images/' + ts + hora + '.08181.skewt.gif';
+                }
+            }
+        }
+        </script>
+
+        <!-- ═══════════════════════════════════════════
              RESUMEN 7 DIAS
         ════════════════════════════════════════════ -->
         <div style="height:35px;background:#ffffff;"></div>
@@ -796,7 +890,7 @@
         <div style="height:35px;background:#ffffff;"></div>
         <div id="mar3-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
             <!-- Cabecera -->
-            <div style="display:flex;align-items:center;justify-content:center;padding:14px 16px;background:#2c4a6e;">
+            <div style="display:flex;align-items:center;justify-content:flex-start;padding:14px 16px;background:#2c4a6e;">
                 <span style="font-size:12px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">PREVISIÓN PLAYAS - MAR 72 HORAS</span>
             </div>
 
