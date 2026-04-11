@@ -717,28 +717,99 @@
         ════════════════════════════════════════════ -->
         <div id="ahora-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
 
-            <!-- Cabecera principal -->
-            <div style="display:flex;align-items:center;justify-content:center;padding:14px 16px;background:#6fcfe0;">
-                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">RADAR DE PRECIPITACIÓN</span>
-            </div>
+            <!-- ── RADAR DE PRECIPITACIÓN (RainViewer) — desplegable ── -->
+            <div style="border-bottom:1px solid #e2e8f0;">
+                <div onclick="toggleExtraSection('radar-rainviewer')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#6fcfe0;cursor:pointer;user-select:none;">
+                    <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">RADAR DE PRECIPITACIÓN</span>
+                    <span id="arrow-radar-rainviewer" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
+                </div>
+            <div id="panel-radar-rainviewer" style="display:none;overflow:hidden;">
 
-            <!-- ── RADAR DE PRECIPITACIÓN (Meteocat XRAD) ── -->
-            <div id="ahora-radar-panel" style="display:block;">
-                <iframe
-                    src="https://static-m.meteo.cat/ginys/mapaRadar?language=es&color=2c3e50&target=_blank"
-                    style="width:100%;height:420px;border:none;display:block;"
-                    scrolling="no"
-                    title="Radar de precipitació Meteocat">
-                </iframe>
+                <!-- Mapa RainViewer -->
+                <div style="position:relative;width:100%;background:#0d1b2a;">
+                    <div id="rv-map" style="width:100%;height:380px;"></div>
+
+                    <!-- Timestamp -->
+                    <div id="rv-timestamp" style="position:absolute;top:10px;left:10px;z-index:1000;background:rgba(13,27,42,0.75);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:#fff;letter-spacing:0.3px;backdrop-filter:blur(3px);">Cargando...</div>
+
+                    <!-- Leyenda de intensidad -->
+                    <div style="position:absolute;bottom:12px;right:10px;z-index:1000;background:rgba(13,27,42,0.82);border-radius:8px;padding:8px 10px;backdrop-filter:blur(4px);">
+                        <div style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.6);letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:6px;">INTENSIDAD</div>
+                        <div style="display:flex;flex-direction:column;gap:3px;">
+                            <div style="display:flex;align-items:center;gap:6px;"><div style="width:28px;height:8px;border-radius:2px;background:#0000f0;"></div><span style="font-size:9px;color:#cdd8e3;">&lt; 0.1 mm/h</span></div>
+                            <div style="display:flex;align-items:center;gap:6px;"><div style="width:28px;height:8px;border-radius:2px;background:#00b4f0;"></div><span style="font-size:9px;color:#cdd8e3;">0.1 – 0.5</span></div>
+                            <div style="display:flex;align-items:center;gap:6px;"><div style="width:28px;height:8px;border-radius:2px;background:#00f000;"></div><span style="font-size:9px;color:#cdd8e3;">0.5 – 2</span></div>
+                            <div style="display:flex;align-items:center;gap:6px;"><div style="width:28px;height:8px;border-radius:2px;background:#f0f000;"></div><span style="font-size:9px;color:#cdd8e3;">2 – 5</span></div>
+                            <div style="display:flex;align-items:center;gap:6px;"><div style="width:28px;height:8px;border-radius:2px;background:#f09000;"></div><span style="font-size:9px;color:#cdd8e3;">5 – 20</span></div>
+                            <div style="display:flex;align-items:center;gap:6px;"><div style="width:28px;height:8px;border-radius:2px;background:#f00000;"></div><span style="font-size:9px;color:#cdd8e3;">&gt; 20 mm/h</span></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div style="background:#1e293b;padding:6px 12px;text-align:center;">
-                    <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Meteocat · Red XRAD · Catalunya</span>
+                    <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: RainViewer · Radar global</span>
                 </div>
             </div>
             </div>
 
-
-
         </div>
+
+        <script>
+        /* ════════ RAINVIEWER — carga al desplegar ════════ */
+        (function() {
+            const BCN_LAT = 41.39, BCN_LNG = 2.17, ZOOM = 7;
+            let rvMap = null, rvLayer = null, rvInited = false;
+
+            const origToggle = window.toggleExtraSection;
+            window.toggleExtraSection = function(id) {
+                if (typeof origToggle === 'function') origToggle(id);
+                if (id === 'radar-rainviewer' && !rvInited) {
+                    setTimeout(function() {
+                        const panel = document.getElementById('panel-radar-rainviewer');
+                        if (panel && panel.style.display !== 'none') {
+                            rvInited = true;
+                            initRvMap();
+                        }
+                    }, 50);
+                }
+            };
+
+            function initRvMap() {
+                if (typeof L === 'undefined') { setTimeout(initRvMap, 200); return; }
+                rvMap = L.map('rv-map', {
+                    center: [BCN_LAT, BCN_LNG], zoom: ZOOM,
+                    zoomControl: false, dragging: false, touchZoom: false,
+                    doubleClickZoom: false, scrollWheelZoom: false,
+                    boxZoom: false, keyboard: false, attributionControl: false
+                });
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 19, subdomains: 'abcd'
+                }).addTo(rvMap);
+                loadRvFrame();
+            }
+
+            async function loadRvFrame() {
+                try {
+                    const resp = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+                    const data = await resp.json();
+                    const frames = data.radar?.past ?? [];
+                    if (!frames.length) return;
+                    const last = frames[frames.length - 1];
+                    if (rvLayer) { rvMap.removeLayer(rvLayer); rvLayer = null; }
+                    rvLayer = L.tileLayer(
+                        `https://tilecache.rainviewer.com${last.path}/256/{z}/{x}/{y}/6/1_1.png`,
+                        { opacity: 0.85, maxZoom: 19, tileSize: 256, zIndex: 10 }
+                    );
+                    rvLayer.addTo(rvMap);
+                    const d = new Date(last.time * 1000);
+                    const hh = d.getHours().toString().padStart(2,'0');
+                    const mm = d.getMinutes().toString().padStart(2,'0');
+                    const ts = document.getElementById('rv-timestamp');
+                    if (ts) ts.textContent = `🕐 ${hh}:${mm} · AHORA`;
+                } catch(e) { console.warn('[RV]', e); }
+            }
+        })();
+        </script>
 
         <!-- ═══════════════════════════════════════════
              WEBCAMS Y RADIOSONDEO DESPLEGABLES
