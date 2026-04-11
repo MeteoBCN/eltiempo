@@ -688,12 +688,11 @@
                     <div style="margin-bottom:12px;">
                         <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Escala de calidad del aire</div>
                         <div style="display:flex;flex-wrap:wrap;gap:5px;">
-                            <span style="font-size:10px;font-weight:700;background:#22c55e;color:#fff;padding:3px 8px;border-radius:5px;">0–50 Bueno</span>
-                            <span style="font-size:10px;font-weight:700;background:#84cc16;color:#fff;padding:3px 8px;border-radius:5px;">51–100 Aceptable</span>
-                            <span style="font-size:10px;font-weight:700;background:#eab308;color:#fff;padding:3px 8px;border-radius:5px;">101–150 Regular</span>
-                            <span style="font-size:10px;font-weight:700;background:#f97316;color:#fff;padding:3px 8px;border-radius:5px;">151–200 Malo</span>
-                            <span style="font-size:10px;font-weight:700;background:#ef4444;color:#fff;padding:3px 8px;border-radius:5px;">201–300 Muy malo</span>
-                            <span style="font-size:10px;font-weight:700;background:#7c3aed;color:#fff;padding:3px 8px;border-radius:5px;">300+ Peligroso</span>
+                            <span style="font-size:10px;font-weight:700;background:#22c55e;color:#fff;padding:3px 8px;border-radius:5px;">0–50 Buena</span>
+                            <span style="font-size:10px;font-weight:700;background:#f59e0b;color:#fff;padding:3px 8px;border-radius:5px;">51–100 Moderada</span>
+                            <span style="font-size:10px;font-weight:700;background:#f97316;color:#fff;padding:3px 8px;border-radius:5px;">101–150 Mala</span>
+                            <span style="font-size:10px;font-weight:700;background:#ef4444;color:#fff;padding:3px 8px;border-radius:5px;">151–200 Muy mala</span>
+                            <span style="font-size:10px;font-weight:700;background:#7c3aed;color:#fff;padding:3px 8px;border-radius:5px;">201+ Peligrosa</span>
                         </div>
                     </div>
                     <!-- Leyenda contaminantes -->
@@ -1413,8 +1412,8 @@
 
         function updateAirQualityTable(ac) {
             function lvl(aqi) {
-                if(aqi<=20)return'Buena';if(aqi<=40)return'Aceptable';if(aqi<=60)return'Moderada';
-                if(aqi<=80)return'Desfavorable';if(aqi<=100)return'Muy desfavorable';return'Extremadamente desfavorable';
+                if(aqi<=20)return'Buena';if(aqi<=40)return'Moderada';if(aqi<=60)return'Mala';
+                if(aqi<=80)return'Muy mala';return'Peligrosa';
             }
             const el=document.getElementById('air-quality-current');
             if(el){el.textContent=lvl(ac.european_aqi||0); el.style.color='#1E293B';}
@@ -3809,12 +3808,11 @@
         /* ══════ SEMÁFORO CALIDAD DEL AIRE ══════ */
         (function() {
             const AQI_LEVELS = [
-                { min:0,   max:50,  color:'#22c55e', glow:'#16a34a', label:'Bueno',     sublabel:'Aire limpio y saludable',      emoji:'😊', light:'green',  advice:'Condiciones ideales para actividades al aire libre.', bg:'#f0fdf4' },
-                { min:51,  max:100, color:'#84cc16', glow:'#65a30d', label:'Aceptable', sublabel:'Calidad moderada',             emoji:'🙂', light:'green',  advice:'Aceptable para la mayoría. Personas muy sensibles podrían notar leve malestar.', bg:'#f7fee7' },
-                { min:101, max:150, color:'#eab308', glow:'#ca8a04', label:'Regular',   sublabel:'Dañino para grupos sensibles', emoji:'😐', light:'yellow', advice:'Personas con asma, niños y mayores deben reducir la actividad al aire libre.', bg:'#fefce8' },
-                { min:151, max:200, color:'#f97316', glow:'#ea580c', label:'Malo',      sublabel:'No saludable',                 emoji:'😷', light:'red',    advice:'Todo el mundo puede sufrir efectos. Grupos sensibles deben evitar el exterior.', bg:'#fff7ed' },
-                { min:201, max:300, color:'#ef4444', glow:'#dc2626', label:'Muy malo',  sublabel:'Muy poco saludable',           emoji:'🤢', light:'red',    advice:'Alerta sanitaria. Se recomienda evitar actividades al aire libre.', bg:'#fef2f2' },
-                { min:301, max:999, color:'#7c3aed', glow:'#6d28d9', label:'Peligroso', sublabel:'Peligro extremo',              emoji:'☠️', light:'red',    advice:'Emergencia de salud pública. Quedarse en interior con ventanas cerradas.', bg:'#faf5ff' },
+                { min:0,   max:50,  color:'#22c55e', glow:'#16a34a', label:'Buena',     sublabel:'Aire limpio y saludable',      emoji:'😊', light:'green',  advice:'Condiciones ideales para actividades al aire libre.', bg:'#f0fdf4' },
+                { min:51,  max:100, color:'#f59e0b', glow:'#d97706', label:'Moderada',  sublabel:'Calidad aceptable',            emoji:'🙂', light:'yellow', advice:'Aceptable para la mayoría. Personas muy sensibles podrían notar leve malestar.', bg:'#fffbeb' },
+                { min:101, max:150, color:'#f97316', glow:'#ea580c', label:'Mala',      sublabel:'Dañino para grupos sensibles', emoji:'😐', light:'yellow', advice:'Personas con asma, niños y mayores deben reducir la actividad al aire libre.', bg:'#fff7ed' },
+                { min:151, max:200, color:'#ef4444', glow:'#dc2626', label:'Muy mala',  sublabel:'No saludable',                 emoji:'😷', light:'red',    advice:'Todo el mundo puede sufrir efectos. Grupos sensibles deben evitar el exterior.', bg:'#fef2f2' },
+                { min:201, max:999, color:'#7c3aed', glow:'#6d28d9', label:'Peligrosa', sublabel:'Peligro extremo',              emoji:'☠️', light:'red',    advice:'Emergencia de salud pública. Quedarse en interior con ventanas cerradas.', bg:'#faf5ff' },
             ];
             function getLevel(aqi) { return AQI_LEVELS.find(l => aqi >= l.min && aqi <= l.max) || AQI_LEVELS[AQI_LEVELS.length-1]; }
 
