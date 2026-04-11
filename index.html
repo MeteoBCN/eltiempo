@@ -720,7 +720,7 @@
             <!-- ── RADAR DE PRECIPITACIÓN (RainViewer) — desplegable ── -->
             <div style="border-bottom:1px solid #e2e8f0;">
                 <div onclick="toggleExtraSection('radar-rainviewer')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#6fcfe0;cursor:pointer;user-select:none;">
-                    <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">RADAR LLUVIA</span>
+                    <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">RADAR DE PRECIPITACIÓN</span>
                     <span id="arrow-radar-rainviewer" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
                 </div>
             <div id="panel-radar-rainviewer" style="display:none;overflow:hidden;">
@@ -729,11 +729,13 @@
                 <div style="position:relative;width:100%;background:#0d1b2a;">
                     <div id="rv-map" style="width:100%;height:380px;"></div>
 
+                    <!-- Timestamp encima del mapa -->
+                    <div id="rv-timestamp" style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;background:rgba(13,27,42,0.82);border-radius:20px;padding:5px 16px;font-size:13px;font-weight:700;color:#fff;letter-spacing:0.5px;white-space:nowrap;backdrop-filter:blur(4px);">Cargando...</div>
+
                     <!-- Controles -->
                     <div style="position:absolute;bottom:0;left:0;right:0;z-index:1000;background:rgba(13,27,42,0.7);display:flex;align-items:center;gap:8px;padding:7px 10px;">
                         <button id="rv-btn-play" onclick="_rvTogglePlay()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.4);color:#fff;font-size:12px;font-weight:700;padding:5px 14px;border-radius:5px;cursor:pointer;letter-spacing:0.5px;">⏸ PAUSA</button>
                         <button id="rv-btn-live" onclick="_rvGoLive()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.4);color:#fff;font-size:12px;font-weight:700;padding:5px 14px;border-radius:5px;cursor:pointer;letter-spacing:0.5px;">AHORA</button>
-                        <div id="rv-timestamp" style="flex:1;text-align:right;font-size:11px;font-weight:600;color:rgba(255,255,255,0.75);letter-spacing:0.3px;">Cargando...</div>
                     </div>
 
                     <!-- Leyenda de intensidad -->
@@ -751,7 +753,7 @@
                 </div>
 
                 <div style="background:#1e293b;padding:6px 12px;text-align:center;">
-                    <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: RainViewer</span>
+                    <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: RainViewer · Radar global</span>
                 </div>
             </div>
             </div>
@@ -815,7 +817,7 @@
             var mm = String(d.getMinutes()).padStart(2,'0');
             var esAhora = (idx === _rvFrames.length - 1);
             var ts = document.getElementById('rv-timestamp');
-            if (ts) ts.textContent = (esAhora ? '🔴 ' : '🕐 ') + hh + ':' + mm + (esAhora ? ' · AHORA' : '');
+            if (ts) ts.textContent = hh + ':' + mm + (esAhora ? ' · AHORA' : '') + ' h';
 
         }
 
@@ -877,7 +879,7 @@
                          loading="lazy"
                          onerror="this.style.background='#1a252f'"/>
                     <div style="background:#1e293b;padding:6px 12px;text-align:center;">
-                        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">Fuente: Windy</span>
+                        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">Fuente: Windy · Se actualiza cada pocos minutos</span>
                     </div>
                 </div>
             </div>
@@ -895,7 +897,7 @@
                          loading="lazy"
                          onerror="this.style.background='#1a252f'"/>
                     <div style="background:#1e293b;padding:6px 12px;text-align:center;">
-                        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">Fuente: Windy</span>
+                        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">Fuente: Windy · Se actualiza cada pocos minutos</span>
                     </div>
                 </div>
             </div>
@@ -903,7 +905,7 @@
             <!-- Último Radiosondeo -->
             <div style="border-bottom:1px solid #e2e8f0;">
                 <div onclick="toggleExtraSection('radiosondeo')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#6fcfe0;cursor:pointer;user-select:none;">
-                    <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">ÚLTIMO RADIOSONDEO (METEOCAT)</span>
+                    <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">🎈 ÚLTIMO RADIOSONDEO</span>
                     <span id="arrow-radiosondeo" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
                 </div>
                 <div id="panel-radiosondeo" style="display:none;background:#000;overflow:hidden;">
@@ -912,7 +914,7 @@
                          style="width:100%;display:block;"
                          loading="lazy"/>
                     <div style="background:#1e293b;padding:6px 12px;text-align:center;">
-                        <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Meteocat</span>
+                        <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Meteocat · Últim radiosondatge</span>
                     </div>
                 </div>
             </div>
@@ -992,7 +994,7 @@
         <div id="mar3-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
             <!-- Cabecera -->
             <div style="display:flex;align-items:center;justify-content:flex-start;padding:14px 16px;background:#2c4a6e;">
-                <span style="font-size:12px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">PLAYAS DE BARELONA</span>
+                <span style="font-size:12px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">PREVISIÓN PLAYAS - MAR 72 HORAS</span>
             </div>
 
             <div id="mar3-loading" style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
