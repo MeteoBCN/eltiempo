@@ -763,14 +763,18 @@
             const origToggle = window.toggleExtraSection;
             window.toggleExtraSection = function(id) {
                 if (typeof origToggle === 'function') origToggle(id);
-                if (id === 'radar-rainviewer' && !rvInited) {
+                if (id === 'radar-rainviewer') {
                     setTimeout(function() {
                         const panel = document.getElementById('panel-radar-rainviewer');
                         if (panel && panel.style.display !== 'none') {
-                            rvInited = true;
-                            initRvMap();
+                            if (!rvInited) {
+                                rvInited = true;
+                                initRvMap();
+                            } else if (rvMap) {
+                                rvMap.invalidateSize();
+                            }
                         }
-                    }, 50);
+                    }, 150);
                 }
             };
 
@@ -785,6 +789,7 @@
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                     maxZoom: 19, subdomains: 'abcd'
                 }).addTo(rvMap);
+                setTimeout(function() { rvMap.invalidateSize(); }, 100);
                 loadRvFrame();
             }
 
