@@ -729,16 +729,11 @@
                 <div style="position:relative;width:100%;background:#0d1b2a;">
                     <div id="rv-map" style="width:100%;height:380px;"></div>
 
-                    <!-- Barra de frames + controles -->
-                    <div style="position:absolute;bottom:0;left:0;right:0;z-index:1000;background:rgba(13,27,42,0.7);">
-                        <!-- Frames -->
-                        <div id="rv-bar" style="display:flex;gap:2px;padding:6px 8px 4px;"></div>
-                        <!-- Controles -->
-                        <div style="display:flex;align-items:center;gap:8px;padding:4px 8px 6px;">
-                            <button id="rv-btn-play" onclick="_rvTogglePlay()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:13px;font-weight:700;padding:4px 12px;border-radius:5px;cursor:pointer;letter-spacing:0.3px;min-width:70px;">⏸ PAUSA</button>
-                            <button onclick="_rvGoLive()" style="background:rgba(239,68,68,0.25);border:1px solid rgba(239,68,68,0.5);color:#fca5a5;font-size:13px;font-weight:700;padding:4px 12px;border-radius:5px;cursor:pointer;letter-spacing:0.3px;">🔴 AHORA</button>
-                            <div id="rv-timestamp" style="flex:1;text-align:right;font-size:11px;font-weight:600;color:rgba(255,255,255,0.8);letter-spacing:0.3px;">Cargando...</div>
-                        </div>
+                    <!-- Controles -->
+                    <div style="position:absolute;bottom:0;left:0;right:0;z-index:1000;background:rgba(13,27,42,0.7);display:flex;align-items:center;gap:8px;padding:7px 10px;">
+                        <button id="rv-btn-play" onclick="_rvTogglePlay()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.4);color:#fff;font-size:12px;font-weight:700;padding:5px 14px;border-radius:5px;cursor:pointer;letter-spacing:0.5px;">⏸ PAUSA</button>
+                        <button id="rv-btn-live" onclick="_rvGoLive()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.4);color:#fff;font-size:12px;font-weight:700;padding:5px 14px;border-radius:5px;cursor:pointer;letter-spacing:0.5px;">🔴 AHORA</button>
+                        <div id="rv-timestamp" style="flex:1;text-align:right;font-size:11px;font-weight:600;color:rgba(255,255,255,0.75);letter-spacing:0.3px;">Cargando...</div>
                     </div>
 
                     <!-- Leyenda de intensidad -->
@@ -805,7 +800,6 @@
                     });
                     _rvIdx = 0;
                     _rvPlaying = true;
-                    _rvBuildBar();
                     _rvShowFrame(0);
                     _rvStartAnim();
                     _rvUpdateBtn();
@@ -822,12 +816,7 @@
             var esAhora = (idx === _rvFrames.length - 1);
             var ts = document.getElementById('rv-timestamp');
             if (ts) ts.textContent = (esAhora ? '🔴 ' : '🕐 ') + hh + ':' + mm + (esAhora ? ' · AHORA' : '');
-            var bar = document.getElementById('rv-bar');
-            if (bar) {
-                for (var i = 0; i < bar.children.length; i++) {
-                    bar.children[i].style.background = i === idx ? '#60A5FA' : 'rgba(255,255,255,0.3)';
-                }
-            }
+
         }
 
         function _rvStartAnim() {
@@ -859,25 +848,17 @@
         };
 
         window._rvGoLive = function() {
+            if (_rvTimer) clearInterval(_rvTimer);
+            _rvTimer = null;
             _rvIdx = _rvFrames.length - 1;
             _rvShowFrame(_rvIdx);
-            if (_rvPlaying) { _rvStartAnim(); }
+            /* Reanudar animación desde el principio tras pausa de 1.5s */
+            if (_rvPlaying) {
+                setTimeout(function() { _rvIdx = 0; _rvStartAnim(); }, 1500);
+            }
         };
 
-        function _rvBuildBar() {
-            var bar = document.getElementById('rv-bar');
-            if (!bar) return;
-            bar.innerHTML = '';
-            _rvFrames.forEach(function(_, i) {
-                var d = document.createElement('div');
-                d.style.cssText = 'flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,0.3);cursor:pointer;transition:background 0.2s;';
-                d.onclick = (function(idx){ return function(){
-                    _rvIdx = idx; _rvShowFrame(idx);
-                    if (_rvPlaying) _rvStartAnim();
-                }; })(i);
-                bar.appendChild(d);
-            });
-        }
+
         </script>
 
         <!-- ═══════════════════════════════════════════
