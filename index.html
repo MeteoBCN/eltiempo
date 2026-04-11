@@ -726,7 +726,7 @@
                 <div id="ahora-radar-panel" style="display:block;">
                     <div style="width:100%;background:#f0f6fa;position:relative;">
                         <!-- Mapa -->
-                        <div id="ahora-radar-map" style="width:100%;height:300px;cursor:default;"></div>
+                        <div id="ahora-radar-map" style="width:100%;height:300px;"></div>
                         <!-- Barra de tiempo + controles -->
                         <div style="background:#1e293b;padding:8px 12px;display:flex;align-items:center;gap:10px;">
                             <span id="ahora-radar-time-label" style="font-size:12px;font-weight:700;color:#fff;min-width:38px;text-align:center;">--:--</span>
@@ -3532,9 +3532,9 @@
             let map2, radarLayers2 = [], currentFrame2 = 0, animTimer2 = null, isPlaying2 = true, allFrames2 = [];
 
             map2 = L.map('ahora-radar-map', {
-                center: [BCN_LAT, BCN_LON], zoom: ZOOM, zoomControl: false, attributionControl: false,
-                dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false,
-                boxZoom: false, keyboard: false, tap: false, interactive: false
+                center: [BCN_LAT, BCN_LON], zoom: 8, zoomControl: true, attributionControl: false,
+                dragging: false, touchZoom: true, doubleClickZoom: true, scrollWheelZoom: true,
+                boxZoom: false, keyboard: false, tap: true, interactive: true
             });
             L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, opacity: 1, crossOrigin: true }).addTo(map2);
             const bcnIcon2 = L.divIcon({ className: '', html: '<div style="width:10px;height:10px;background:#3b82f6;border:2px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(59,130,246,0.8);"></div>', iconSize: [10,10], iconAnchor: [5,5] });
