@@ -561,6 +561,12 @@
 
         <div class="header-section"></div>
 
+        <!-- ══════ AVISOS METEOCAT (Barcelonès) ══════ -->
+        <div id="meteocat-avisos-section" style="max-width:600px;margin:0 auto;">
+            <div id="meteocat-avisos-inner" style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:1px;text-transform:uppercase;padding:0;"></div>
+        </div>
+        <!-- ══════ FIN AVISOS METEOCAT ══════ -->
+
         <!-- PRÓXIMA LLUVIA -->
         <div id="proxima-lluvia-section" style="max-width:600px;margin:0 auto;background:#6fcfe0;padding:10px 20px;display:flex;align-items:center;justify-content:center;">
             <span id="proxima-lluvia-txt" style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">Calculando&hellip;</span>
@@ -3612,6 +3618,123 @@
 
         loadWeatherData();
         setInterval(loadWeatherData, 600000);
+
+        // ══════════════════════════════════════════════
+        //  AVISOS METEOCAT — Barcelonès
+        // ══════════════════════════════════════════════
+        (async function loadMeteocatAvisos() {
+            const METEOCAT_KEY = 'wl6xXTQdkW23HcIORBehP4IqOtO0mCRTEngPxPxc';
+            const container = document.getElementById('meteocat-avisos-inner');
+            if (!container) return;
+
+            const nivellMap = {
+                '1': { label: 'VERDE',    bg: '#22c55e', border: '#16a34a', bgCard: '#f0fdf4', icon: '✅' },
+                '2': { label: 'AMARILLO', bg: '#f59e0b', border: '#d97706', bgCard: '#fffbeb', icon: '⚠️' },
+                '3': { label: 'NARANJA',  bg: '#f97316', border: '#ea580c', bgCard: '#fff7ed', icon: '🟠' },
+                '4': { label: 'ROJO',     bg: '#ef4444', border: '#dc2626', bgCard: '#fef2f2', icon: '🔴' },
+            };
+
+            const fenomenMap = {
+                'PLU': 'Lluvia', 'NEU': 'Nieve', 'VEN': 'Viento', 'TEM': 'Tormenta',
+                'FOG': 'Niebla', 'CAL': 'Calor', 'FRE': 'Frío', 'GLA': 'Deslizamientos',
+                'MAR': 'Fenómeno costero', 'RIU': 'Crecida de ríos', 'ONA': 'Olas',
+            };
+
+            // Mapa comarcas Meteocat: Barcelonès = codi 40 (según cataleg Meteocat)
+            // Se prueban varios identificadores posibles
+            const BARCELONES_CODIS = ['40', '40000', '8019', '08', '8'];
+
+            try {
+                const today = new Date().toISOString().slice(0, 10);
+                // Endpoint oficial de avisos Meteocat por comarca
+                const avisoUrl = `https://api.meteo.cat/prediccio/v1/avisos?data=${today}`;
+
+                const r = await fetch(avisoUrl, {
+                    headers: { 'X-Api-Key': METEOCAT_KEY }
+                });
+
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const data = await r.json();
+
+                // La respuesta es un array de avisos; cada aviso tiene .comarques (array)
+                let avisosComarca = [];
+
+                if (Array.isArray(data)) {
+                    avisosComarca = data.filter(aviso => {
+                        // Cada aviso puede tener comarques[] con {codi, nom}
+                        const comarques = aviso.comarques || aviso.municipalities || [];
+                        if (comarques.length) {
+                            return comarques.some(c => {
+                                const codi = String(c.codi || c.id || c.codiComarca || '');
+                                return BARCELONES_CODIS.includes(codi);
+                            });
+                        }
+                        // O directamente codi comarca en el aviso
+                        const codi = String(aviso.codiComarca || aviso.comarca || '');
+                        return BARCELONES_CODIS.includes(codi);
+                    });
+                }
+
+                if (!avisosComarca.length) {
+                    container.innerHTML = `
+                        <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:#f0fdf4;border-left:4px solid #22c55e;border-bottom:1px solid #dcfce7;">
+                            <span style="font-size:20px;flex-shrink:0;">✅</span>
+                            <div style="flex:1;min-width:0;">
+                                <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+                                    <span style="font-size:11px;font-weight:700;color:#1E293B;text-transform:uppercase;letter-spacing:0.5px;">Meteocat · Barcelonès</span>
+                                    <span style="font-size:9px;font-weight:800;background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;letter-spacing:0.8px;text-transform:uppercase;">VERDE</span>
+                                </div>
+                                <div style="font-size:11px;color:#475569;line-height:1.4;">Sin avisos meteorológicos activos en el Barcelonès.</div>
+                            </div>
+                        </div>`;
+                    return;
+                }
+
+                let html = '';
+                avisosComarca.forEach(aviso => {
+                    const nivell = String(aviso.nivell || aviso.nivel || aviso.gravetat || '2');
+                    const cfg = nivellMap[nivell] || nivellMap['2'];
+                    const fenomCodi = aviso.fenomen || aviso.fenomeno || aviso.tipus || '';
+                    const fenomText = fenomenMap[fenomCodi] || fenomCodi || 'Fenómeno meteorológico';
+                    const desc = aviso.descripcio || aviso.descripcion || aviso.text || '';
+                    const validIni = aviso.dataInici || aviso.fechaInicio || '';
+                    const validFi  = aviso.dataFi    || aviso.fechaFin   || '';
+                    let validStr = '';
+                    if (validIni) {
+                        const fmt = (d) => {
+                            try {
+                                const dd = new Date(d);
+                                return dd.toLocaleDateString('es-ES', {weekday:'short', day:'numeric', month:'short'})
+                                    + ' · ' + dd.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'}) + 'h';
+                            } catch(e) { return d; }
+                        };
+                        validStr = validFi ? fmt(validIni) + ' – ' + fmt(validFi) : fmt(validIni);
+                    }
+
+                    html += `
+                        <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:${cfg.bgCard};border-left:4px solid ${cfg.border};border-bottom:1px solid rgba(0,0,0,0.06);">
+                            <span style="font-size:20px;flex-shrink:0;">${cfg.icon}</span>
+                            <div style="flex:1;min-width:0;">
+                                <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+                                    <span style="font-size:11px;font-weight:700;color:#1E293B;text-transform:uppercase;letter-spacing:0.5px;">Meteocat · ${fenomText}</span>
+                                    <span style="font-size:9px;font-weight:800;background:${cfg.bg};color:#fff;padding:2px 7px;border-radius:4px;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;flex-shrink:0;">${cfg.label}</span>
+                                </div>
+                                ${desc ? `<div style="font-size:11px;color:#475569;line-height:1.4;">${desc}</div>` : ''}
+                                ${validStr ? `<div style="font-size:10px;color:#94a3b8;margin-top:3px;font-weight:500;">${validStr}</div>` : ''}
+                            </div>
+                        </div>`;
+                });
+
+                container.innerHTML = html;
+
+            } catch(err) {
+                console.warn('[Meteocat] Error cargando avisos:', err);
+                container.innerHTML = '';
+            }
+        })();
+        // ══════════════════════════════════════════════
+        //  FIN AVISOS METEOCAT
+        // ══════════════════════════════════════════════
 
         // ── Carga automática sección AHORA ──
 
