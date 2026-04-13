@@ -115,21 +115,18 @@
 </div>
 
 <script>
-// ── Worker URL ──
 const WORKER = 'https://proxy-meteoclimatic.lojasergi.workers.dev';
 
-// ── Bounding box de Barcelona ciudad (aproximado) ──
-// Solo mostramos estaciones dentro de estos límites
+// Bounding box Barcelona ciudad
 const BCN = { latMin:41.32, latMax:41.47, lngMin:2.05, lngMax:2.23 };
 
-// ── Mapa ──
-const map = L.map('map', { center:[41.3983,2.162], zoom:13 });
+// Mapa
+const map = L.map('map', { center:[41.3983, 2.162], zoom:12 });
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution:'&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
     subdomains:'abcd', maxZoom:19,
 }).addTo(map);
 
-// ── Helpers ──
 function tempColor(t) {
     if (t===null||isNaN(t)) return '#8fa3b8';
     if (t<10) return '#60a5fa'; if (t<20) return '#34d399';
@@ -149,83 +146,76 @@ function azimDir(d) {
     return ' '+['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'][Math.round(d/22.5)%16];
 }
 function f(v, dec=1) { return (v!==null&&v!==undefined&&!isNaN(v)) ? Number(v).toFixed(dec) : '—'; }
-function n(s) { return parseFloat(s.replace(',','.')); }
+function num(s) { return parseFloat(String(s).replace(',','.')); }
 
-// ── Parser RSS ──
-// Los datos están en comentarios HTML dentro de <description>:
-// <!-- [[<ID;(T;Tmax;Tmin;icono);(H;Hmax;Hmin);(B;Bmax;Bmin);(W;Wmax;Azim);(P);Nombre>]] -->
-// Las coordenadas vienen en <geo:lat> y <geo:long>
-function parseRSS(xmlText) {
-    const parser = new DOMParser();
-    const doc    = parser.parseFromString(xmlText, 'application/xml');
-    const items  = doc.querySelectorAll('item');
+// ── PARSER ──
+// Usa regex directamente sobre el texto XML crudo
+// Los datos están en comentarios: <!-- [[<ID;(...);Nombre>]] -->
+// Las coordenadas están en: <geo:lat>41.xx</geo:lat> <geo:long>2.xx</geo:long>
+function parseRSS(txt) {
     const estaciones = [];
 
-    items.forEach(item => {
+    // Dividir por <item> para procesar cada estación por separado
+    const items = txt.split('<item>');
+    items.shift(); // quitar el primer elemento vacío (cabecera del feed)
+
+    for (const item of items) {
         try {
             // Coordenadas
-            const lat = parseFloat(item.querySelector('lat')?.textContent);
-            const lng = parseFloat(item.querySelector('long')?.textContent);
-            if (isNaN(lat)||isNaN(lng)) return;
+            const latM = item.match(/<geo:lat>([\d.]+)<\/geo:lat>/);
+            const lngM = item.match(/<geo:long>([\d.]+)<\/geo:long>/);
+            if (!latM || !lngM) continue;
+
+            const lat = parseFloat(latM[1]);
+            const lng = parseFloat(lngM[1]);
+            if (isNaN(lat) || isNaN(lng)) continue;
 
             // Filtrar solo Barcelona ciudad
-            if (lat<BCN.latMin||lat>BCN.latMax||lng<BCN.lngMin||lng>BCN.lngMax) return;
+            if (lat < BCN.latMin || lat > BCN.latMax || lng < BCN.lngMin || lng > BCN.lngMax) continue;
 
-            // Link para extraer ID
-            const link  = item.querySelector('link')?.textContent || '';
-            const id    = link.split('/perfil/')[1] || '';
-            const title = item.querySelector('title')?.textContent || '';
+            // ID desde el link
+            const linkM = item.match(/perfil\/(ESCAT[A-Z0-9]+)/i);
+            const id = linkM ? linkM[1].toUpperCase() : '';
 
-            // Datos del comentario: [[<ID;(...);...;Nombre>]]
-            // El comentario está dentro de <description> como nodo hijo
-            const desc = item.querySelector('description');
-            let datos = null;
+            // Datos desde el comentario [[<ID;...;Nombre>]]
+            // Excluir los bloques BEGIN y END
+            const dataM = item.match(/\[\[<(ESCAT[^;>]+;[^>]+)>\]\]/);
+            if (!dataM) continue;
 
-            if (desc) {
-                // Obtener el texto completo incluyendo comentarios
-                const rawDesc = new XMLSerializer().serializeToString(desc);
+            const raw = dataM[1].trim();
 
-                // Buscar el bloque [[< ... >]]
-                const re = /\[\[<([^>]+)>\]\]/;
-                const m  = re.exec(rawDesc);
-                if (m) {
-                    const raw = m[1].trim();
-                    // Separar ID del resto
-                    const semi = raw.indexOf(';(');
-                    if (semi >= 0) {
-                        const grupos = [];
-                        const reG = /\(([^)]+)\)/g; let g;
-                        while ((g=reG.exec(raw))!==null) grupos.push(g[1].split(';').map(v=>n(v)));
-
-                        if (grupos.length >= 4) {
-                            // Nombre: después del último ')'
-                            const nombre = raw.substring(raw.lastIndexOf(')')+2).trim();
-                            datos = {
-                                temp:  grupos[0]?.[0] ?? null,
-                                tmax:  grupos[0]?.[1] ?? null,
-                                tmin:  grupos[0]?.[2] ?? null,
-                                hum:   grupos[1]?.[0] ?? null,
-                                baro:  grupos[2]?.[0] ?? null,
-                                viento:grupos[3]?.[0] ?? null,
-                                azim:  grupos[3]?.[2] ?? null,
-                                prec:  grupos[4]?.[0] ?? null,
-                                nombre: nombre || title,
-                            };
-                        }
-                    }
-                }
+            // Extraer grupos entre paréntesis
+            const grupos = [];
+            const reG = /\(([^)]+)\)/g;
+            let g;
+            while ((g = reG.exec(raw)) !== null) {
+                grupos.push(g[1].split(';').map(num));
             }
+            if (grupos.length < 4) continue;
 
-            if (datos) {
-                estaciones.push({ id, lat, lng, ...datos });
-            }
+            // Nombre: texto después del último ')'
+            const nombre = raw.substring(raw.lastIndexOf(')') + 2).trim();
+
+            estaciones.push({
+                id,
+                lat,
+                lng,
+                nombre,
+                temp:   grupos[0]?.[0] ?? null,
+                tmax:   grupos[0]?.[1] ?? null,
+                tmin:   grupos[0]?.[2] ?? null,
+                hum:    grupos[1]?.[0] ?? null,
+                baro:   grupos[2]?.[0] ?? null,
+                viento: grupos[3]?.[0] ?? null,
+                azim:   grupos[3]?.[2] ?? null,
+                prec:   grupos[4]?.[0] ?? null,
+            });
         } catch(e) {}
-    });
+    }
 
     return estaciones;
 }
 
-// ── Popup ──
 function popupHTML(e) {
     return `<div class="pw">
         <div class="ph">
@@ -255,11 +245,9 @@ function popupHTML(e) {
     </div>`;
 }
 
-// ── Marcadores ──
 const marcadores = {};
 
 function pintarEstaciones(estaciones) {
-    // Eliminar marcadores viejos
     Object.values(marcadores).forEach(m => map.removeLayer(m));
     Object.keys(marcadores).forEach(k => delete marcadores[k]);
 
@@ -271,7 +259,6 @@ function pintarEstaciones(estaciones) {
     });
 }
 
-// ── Carga de datos ──
 async function cargarDatos() {
     const sdot = document.getElementById('sdot');
     const stxt = document.getElementById('stxt');
@@ -288,7 +275,7 @@ async function cargarDatos() {
         const xml = await r.text();
 
         if (!xml || xml.includes('QUERY ERROR') || xml.length < 200) {
-            throw new Error('Respuesta inválida del servidor');
+            throw new Error('Respuesta inválida');
         }
 
         const estaciones = parseRSS(xml);
@@ -300,7 +287,7 @@ async function cargarDatos() {
         sdot.className = estaciones.length > 0 ? 'sdot ok' : 'sdot err';
         stxt.textContent = estaciones.length > 0
             ? 'Actualizado · ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})
-            : 'Sin estaciones en el área de Barcelona';
+            : 'Sin estaciones en el área de Barcelona ciudad';
         scnt.textContent = estaciones.length + ' estaciones';
 
     } catch(e) {
