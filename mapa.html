@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estaciones Meteoclimatic · Barcelona</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <style>
+        :root { --navy:#1a2533; --navy2:#243040; --accent:#6fcfe0; --muted:#8fa3b8; --text:#e8eef4; --border:rgba(111,207,224,0.18); }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Barlow',sans-serif; background:var(--navy); color:var(--text); min-height:100vh; display:flex; flex-direction:column; max-width:600px; margin:0 auto; }
+        .header { background:#2C3E50; background-image:url('banner.png'); background-size:cover; background-position:center; min-height:130px; position:relative; flex-shrink:0; }
+        .header-overlay { position:absolute; inset:0; background:linear-gradient(to bottom,rgba(26,37,51,0.3),rgba(26,37,51,0.75)); display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding:0 20px 16px; }
+        .header-title { font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#fff; }
+        .header-sub { font-size:10px; font-weight:600; letter-spacing:2.5px; text-transform:uppercase; color:var(--accent); margin-top:3px; }
+        .back-link { position:absolute; top:12px; left:12px; font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,0.85); text-decoration:none; background:rgba(26,37,51,0.55); border:1px solid rgba(255,255,255,0.2); border-radius:6px; padding:5px 10px; backdrop-filter:blur(4px); z-index:10; }
+        .status-bar { background:var(--navy2); border-bottom:1px solid var(--border); padding:9px 16px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+        .sdot { width:8px; height:8px; border-radius:50%; background:#f59e0b; flex-shrink:0; animation:pdot 2s ease-in-out infinite; }
+        .sdot.ok { background:#22c55e; } .sdot.err { background:#ef4444; animation:none; }
+        @keyframes pdot { 0%,100%{opacity:1}50%{opacity:0.4} }
+        .status-left { display:flex; align-items:center; gap:8px; }
+        .stxt { font-size:10px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--muted); }
+        .scnt { font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; color:var(--accent); }
+        #map-wrap { position:relative; flex:1; min-height:400px; }
+        #map { width:100%; height:100%; min-height:400px; }
+        #ov { position:absolute; inset:0; z-index:1000; background:rgba(26,37,51,0.85); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; transition:opacity 0.4s; }
+        #ov.hidden { opacity:0; pointer-events:none; }
+        .spinner { width:34px; height:34px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        .ov-txt { font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--accent); }
+        #err-panel { display:none; background:#0f1a24; border:1px solid #ef444466; margin:10px; border-radius:8px; padding:12px; font-size:11px; color:#fca5a5; line-height:1.7; }
+        #err-panel strong { color:#f87171; display:block; margin-bottom:4px; }
+        .leaflet-popup-content-wrapper { background:rgba(26,37,51,0.97)!important; border:1px solid var(--border)!important; border-radius:12px!important; box-shadow:0 8px 32px rgba(0,0,0,0.6)!important; padding:0!important; overflow:hidden; }
+        .leaflet-popup-tip-container { display:none; }
+        .leaflet-popup-content { margin:0!important; }
+        .leaflet-popup-close-button { color:var(--muted)!important; top:8px!important; right:10px!important; }
+        .pw { width:240px; font-family:'Barlow',sans-serif; }
+        .ph { background:linear-gradient(135deg,var(--navy2),#1e3048); border-bottom:1px solid var(--border); padding:11px 14px 9px; }
+        .ph-id { font-size:8px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent); margin-bottom:2px; }
+        .ph-name { font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:700; color:#fff; padding-right:18px; line-height:1.2; }
+        .pb { padding:11px 14px; }
+        .temp-row { display:flex; align-items:baseline; gap:5px; margin-bottom:11px; }
+        .temp-big { font-family:'Barlow Condensed',sans-serif; font-size:42px; font-weight:800; color:#fff; line-height:1; }
+        .temp-unit { font-size:15px; color:var(--muted); }
+        .temp-mm { display:flex; flex-direction:column; gap:1px; margin-left:4px; }
+        .tmax { font-size:12px; font-weight:700; color:#f97316; }
+        .tmin { font-size:12px; font-weight:700; color:#60a5fa; }
+        .pgrid { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-bottom:10px; }
+        .pd { background:rgba(111,207,224,0.06); border:1px solid var(--border); border-radius:7px; padding:7px 8px; }
+        .pdl { font-size:8px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:3px; }
+        .pdv { font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; color:var(--text); }
+        .pdv span { font-size:10px; font-weight:400; color:var(--muted); }
+        .pf { border-top:1px solid var(--border); padding:7px 14px; display:flex; align-items:center; justify-content:space-between; }
+        .pupd { font-size:9px; color:var(--muted); }
+        .plink { font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--accent); text-decoration:none; border:1px solid var(--border); border-radius:5px; padding:3px 8px; }
+        .pnodata { padding:14px; text-align:center; color:var(--muted); font-size:12px; }
+        .mc { display:flex; flex-direction:column; align-items:center; cursor:pointer; }
+        .mc-b { border-radius:50% 50% 50% 0; transform:rotate(-45deg); width:36px; height:36px; display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,0.35); box-shadow:0 3px 10px rgba(0,0,0,0.45); }
+        .mc-t { transform:rotate(45deg); font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:800; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.5); }
+        .mc-d { width:4px; height:4px; border-radius:50%; background:rgba(255,255,255,0.45); margin-top:2px; }
+        .legend { background:var(--navy2); border-top:1px solid var(--border); padding:9px 16px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:center; flex-shrink:0; }
+        .ll { font-size:8px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-right:3px; }
+        .li { display:flex; align-items:center; gap:4px; }
+        .ld { width:11px; height:11px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); }
+        .lt { font-size:9px; font-weight:600; color:var(--muted); }
+        .footer { background:var(--navy2); border-top:1px solid var(--border); padding:9px 16px; text-align:center; flex-shrink:0; }
+        .footer a { font-size:10px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-decoration:none; }
+        .leaflet-control-zoom a { background:var(--navy2)!important; color:var(--accent)!important; border-color:var(--border)!important; }
+        .leaflet-control-attribution { background:rgba(26,37,51,0.85)!important; color:var(--muted)!important; font-size:9px!important; }
+        .leaflet-control-attribution a { color:var(--accent)!important; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a class="back-link" href="index.html">← Volver</a>
+    <div class="header-overlay">
+        <div class="header-title">Estaciones Meteoclimatic</div>
+        <div class="header-sub">Barcelona · Datos en tiempo real</div>
+    </div>
+</div>
+
+<div class="status-bar">
+    <div class="status-left">
+        <div class="sdot" id="sdot"></div>
+        <span class="stxt" id="stxt">Cargando datos…</span>
+    </div>
+    <span class="scnt" id="scnt"></span>
+</div>
+
+<div id="err-panel"></div>
+
+<div id="map-wrap">
+    <div id="map"></div>
+    <div id="ov">
+        <div class="spinner"></div>
+        <div class="ov-txt">Cargando estaciones</div>
+    </div>
+</div>
+
+<div class="legend">
+    <span class="ll">Temperatura</span>
+    <div class="li"><div class="ld" style="background:#60a5fa"></div><span class="lt">&lt;10°</span></div>
+    <div class="li"><div class="ld" style="background:#34d399"></div><span class="lt">10–20°</span></div>
+    <div class="li"><div class="ld" style="background:#fbbf24"></div><span class="lt">20–28°</span></div>
+    <div class="li"><div class="ld" style="background:#f97316"></div><span class="lt">28–35°</span></div>
+    <div class="li"><div class="ld" style="background:#ef4444"></div><span class="lt">&gt;35°</span></div>
+</div>
+
+<div class="footer">
+    <a href="https://www.meteoclimatic.net" target="_blank" rel="noopener">Datos: Meteoclimatic.net</a>
+</div>
+
+<script>
+// ── Estaciones Barcelona ciudad con coordenadas fijas ──
+const ESTACIONES = [
+    { id:'ESCAT0800000008015A', nombre:'Eixample',          lat:41.3879, lng:2.1699 },
+    { id:'ESCAT0800000008023I', nombre:'Sant Gervasi',      lat:41.4061, lng:2.1381 },
+    { id:'ESCAT0800000008018A', nombre:'El Clot',           lat:41.4082, lng:2.1914 },
+    { id:'ESCAT0800000008014F', nombre:'Plaça Sants',       lat:41.3789, lng:2.1414 },
+    { id:'ESCAT0800000008032A', nombre:'Horta',             lat:41.4316, lng:2.1655 },
+    { id:'ESCAT0800000008014B', nombre:'Sants-Montjuïc',    lat:41.3699, lng:2.1539 },
+    { id:'ESCAT0800000008023D', nombre:'El Coll-Vallcarca', lat:41.4155, lng:2.1481 },
+    { id:'ESCAT0800000008035A', nombre:'Vallcarca',         lat:41.4133, lng:2.1422 },
+];
+
+// ── Proxy PHP propio (mismo servidor que la web) ──
+const PROXY_PHP = 'https://proxy-meteoclimatic.lojasergi.workers.dev';
+
+// ── Mapa ──
+const map = L.map('map', { center:[41.3983,2.162], zoom:13 });
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution:'&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+    subdomains:'abcd', maxZoom:19,
+}).addTo(map);
+
+// ── Helpers ──
+function tempColor(t) {
+    if (t===null||isNaN(t)) return '#8fa3b8';
+    if (t<10) return '#60a5fa'; if (t<20) return '#34d399';
+    if (t<28) return '#fbbf24'; if (t<35) return '#f97316';
+    return '#ef4444';
+}
+function crearIcono(temp) {
+    const c = tempColor(temp);
+    const l = (temp!==null&&!isNaN(temp)) ? Math.round(temp)+'°' : '?';
+    return L.divIcon({
+        html:`<div class="mc"><div class="mc-b" style="background:${c}"><span class="mc-t">${l}</span></div><div class="mc-d"></div></div>`,
+        className:'', iconSize:[36,46], iconAnchor:[18,46], popupAnchor:[0,-48],
+    });
+}
+function azimDir(d) {
+    if (d===null||d===undefined||isNaN(d)) return '';
+    return ' '+['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'][Math.round(d/22.5)%16];
+}
+function f(v,dec=1) { return (v!==null&&v!==undefined&&!isNaN(v)) ? Number(v).toFixed(dec) : '—'; }
+
+// ── Parser RSS Meteoclimatic ──
+// Formato: [[<ID;(T;Tmax;Tmin);(H;Hmax;Hmin);(B;Bmax;Bmin);(W;Wmax;Azim);(P);Nombre>]]
+function parseRSS(rawTxt) {
+    const mapa = {};
+    // Desescapar entidades HTML por si el servidor las devuelve escapadas
+    let txt = rawTxt
+        .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
+    // Extraer CDATA si existe
+    const cdata = txt.match(/<!\[CDATA\[([\s\S]*?)\]\]>/g);
+    if (cdata) txt = cdata.map(m=>m.replace(/<!\[CDATA\[|\]\]>/g,'')).join('\n');
+
+    const re = /\[\[<([\s\S]*?)>\]\]/g;
+    let m;
+    while ((m=re.exec(txt))!==null) {
+        try {
+            const raw = m[1].replace(/,/g,'.').replace(/\s+/g,' ').trim();
+            const idEnd = raw.indexOf(';(');
+            if (idEnd<0) continue;
+            const id = raw.substring(0,idEnd).trim().toUpperCase();
+            const grupos = [];
+            const reG = /\(([^)]+)\)/g; let g;
+            while ((g=reG.exec(raw))!==null) grupos.push(g[1].split(';').map(Number));
+            if (grupos.length<4) continue;
+            const nombre = raw.substring(raw.lastIndexOf(')')+2).trim();
+            mapa[id] = {
+                temp:grupos[0]?.[0]??null, tmax:grupos[0]?.[1]??null, tmin:grupos[0]?.[2]??null,
+                hum:grupos[1]?.[0]??null, baro:grupos[2]?.[0]??null,
+                viento:grupos[3]?.[0]??null, azim:grupos[3]?.[2]??null,
+                prec:grupos[4]?.[0]??null, nombre,
+            };
+        } catch(e) {}
+    }
+    return mapa;
+}
+
+// ── Popup ──
+function popupHTML(est, d) {
+    if (!d) return `<div class="pw"><div class="ph"><div class="ph-id">${est.id}</div><div class="ph-name">${est.nombre}</div></div><div class="pnodata">Sin datos disponibles</div><div class="pf"><span></span><a class="plink" href="https://www.meteoclimatic.net/perfil/${est.id.toLowerCase()}" target="_blank">Ver estación</a></div></div>`;
+    return `<div class="pw"><div class="ph"><div class="ph-id">${est.id}</div><div class="ph-name">${d.nombre||est.nombre}</div></div>
+    <div class="pb">
+        <div class="temp-row"><span class="temp-big">${f(d.temp)}</span><span class="temp-unit">°C</span>
+        <div class="temp-mm"><span class="tmax">▲ ${f(d.tmax)}°</span><span class="tmin">▼ ${f(d.tmin)}°</span></div></div>
+        <div class="pgrid">
+            <div class="pd"><div class="pdl">Humedad</div><div class="pdv">${f(d.hum,0)}<span> %</span></div></div>
+            <div class="pd"><div class="pdl">Presión</div><div class="pdv" style="font-size:13px">${f(d.baro)}<span> hPa</span></div></div>
+            <div class="pd"><div class="pdl">Viento</div><div class="pdv">${f(d.viento,0)}<span> km/h${azimDir(d.azim)}</span></div></div>
+            <div class="pd"><div class="pdl">Lluvia hoy</div><div class="pdv" style="color:#60a5fa">${f(d.prec)}<span> mm</span></div></div>
+        </div>
+    </div>
+    <div class="pf"><span class="pupd">Meteoclimatic · Tiempo real</span>
+    <a class="plink" href="https://www.meteoclimatic.net/perfil/${est.id.toLowerCase()}" target="_blank" rel="noopener">Ver más</a></div></div>`;
+}
+
+// ── Marcadores base ──
+const marcadores = {};
+ESTACIONES.forEach(est => {
+    marcadores[est.id] = L.marker([est.lat,est.lng], { icon:crearIcono(null) })
+        .bindPopup(L.popup({maxWidth:260,minWidth:240}).setContent(popupHTML(est,null)))
+        .addTo(map);
+});
+
+// ── Carga de datos ──
+async function cargarDatos() {
+    const sdot = document.getElementById('sdot');
+    const stxt = document.getElementById('stxt');
+    const scnt = document.getElementById('scnt');
+    const ov   = document.getElementById('ov');
+    const err  = document.getElementById('err-panel');
+
+    sdot.className = 'sdot';
+    stxt.textContent = 'Actualizando…';
+
+    let txt = null;
+    try {
+        const r = await fetch(PROXY_PHP, { signal: AbortSignal.timeout(12000) });
+        if (r.ok) txt = await r.text();
+    } catch(e) {
+        console.warn('[MC] Error fetch proxy PHP:', e.message);
+    }
+
+    ov.classList.add('hidden');
+
+    if (!txt || txt.length < 100 || txt.includes('Just a moment') || txt.includes('DOCTYPE')) {
+        sdot.className = 'sdot err';
+        stxt.textContent = 'Error al cargar datos';
+        err.style.display = 'block';
+        err.innerHTML = `<strong>⚠ No se pudo conectar con Meteoclimatic</strong>
+Asegúrate de que el archivo <b>proxy_mc.php</b> está subido al servidor junto a este mapa.<br>
+Meteoclimatic usa Cloudflare y bloquea los proxies públicos — el PHP del servidor propio es necesario.`;
+        return;
+    }
+
+    const datosMap = parseRSS(txt);
+    let activas = 0;
+    ESTACIONES.forEach(est => {
+        const d = datosMap[est.id] || null;
+        if (d) activas++;
+        marcadores[est.id].setIcon(crearIcono(d ? d.temp : null));
+        marcadores[est.id].setPopupContent(popupHTML(est, d));
+    });
+
+    err.style.display = 'none';
+
+    if (activas > 0) {
+        sdot.className = 'sdot ok';
+        stxt.textContent = 'Actualizado · ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+        scnt.textContent = activas + '/' + ESTACIONES.length + ' estaciones';
+    } else {
+        sdot.className = 'sdot err';
+        stxt.textContent = 'Sin datos de estas estaciones';
+        scnt.textContent = Object.keys(datosMap).length + ' en RSS';
+    }
+}
+
+cargarDatos();
+setInterval(cargarDatos, 10 * 60 * 1000);
+</script>
+</body>
+</html>
