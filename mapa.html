@@ -554,9 +554,19 @@ function popupHTML(e) {
 
 const marcadores = {};
 
+function corregirNombre(n) {
+    const norm = n.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    if (norm === 'beteve' || norm.includes('beteve')) return 'Poblenou (betevé)';
+    if (norm === 'rectoret' || norm === 'el rectoret') return 'Les Planes (El Rectoret)';
+    if (norm.includes('torguineu')) return 'Navas';
+    if (norm.includes('can bruixa')) return 'Les Corts (Can Bruixa)';
+    if (norm.includes("casa l") && norm.includes("aigua")) return "Trinitat Vella (Casa l'Aigua)";
+    return n;
+}
 function renderList(estaciones) {
     const wrap = document.getElementById('est-list');
     const cnt  = document.getElementById('list-count');
+    estaciones.forEach(e => { e.nombre = corregirNombre(e.nombre); });
     const sorted = [...estaciones].sort((a,b) => a.nombre.localeCompare(b.nombre, 'es'));
     cnt.textContent = sorted.length + ' estaciones';
     if (!sorted.length) { wrap.innerHTML = '<div class="list-empty">Sin estaciones en el área</div>'; return; }
