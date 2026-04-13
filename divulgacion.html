@@ -3,196 +3,357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aprende Meteorología - Barcelona</title>
+    <title>Aprende Meteorología · Barcelona</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --color-primary: #3B82F6;
+            --color-bg-card: rgba(255,255,255,0.85);
+            --color-text-primary: #1E293B;
+            --color-text-secondary: #64748B;
+            --color-text-tertiary: #94A3B8;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --border-radius: 16px;
+            --border-radius-sm: 12px;
+            --navy: #1e2d3d;
+            --navy2: #253546;
+            --accent: #6fcfe0;
+            --muted: #a8c4d8;
         }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #ebebeb;
-            color: #666;
-            line-height: 1.7;
-            max-width: 800px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--color-text-primary);
+            background: #FFFFFF;
+            max-width: 600px;
             margin: 0 auto;
-        }
-        
-        .container {
-            padding: 20px;
-        }
-        
-        /* HEADER */
-        .header {
-            text-align: center;
-            padding: 30px 20px;
-            margin-bottom: 30px;
-        }
-        
-        .back-link {
-            display: inline-block;
-            color: #888;
-            text-decoration: none;
-            font-size: 14px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid transparent;
-            transition: border-color 0.3s ease;
-        }
-        
-        .back-link:hover {
-            border-bottom-color: #888;
-        }
-        
-        h1 {
-            font-size: 32px;
-            font-weight: 300;
-            margin-bottom: 10px;
-            color: #555;
-        }
-        
-        .subtitle {
-            font-size: 16px;
-            color: #999;
-            font-weight: 300;
-        }
-        
-        /* SECTIONS */
-        .section {
-            margin-bottom: 50px;
-            padding: 30px 20px;
-        }
-        
-        h2 {
-            font-size: 24px;
+            min-height: 100vh;
             font-weight: 400;
-            margin-bottom: 20px;
-            color: #555;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 10px;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
         }
-        
+
+        /* ══════ BANNER ══════ */
+        .header-section {
+            background: #2C3E50;
+            background-image: url('banner.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 300px;
+            position: relative;
+        }
+
+        /* ══════ MENÚ NAVEGACIÓN ══════ */
+        .nav-menu {
+            background: #1e2d3d;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 100;
+        }
+        .nav-menu-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 20px;
+            cursor: pointer;
+            user-select: none;
+            background: #1e2d3d;
+            border: none;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        .nav-menu-toggle:hover { background: #253546; }
+        .nav-menu-toggle span {
+            font-size: 10px;
+            font-weight: 700;
+            color: #a8c4d8;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .nav-menu-arrow {
+            font-size: 10px;
+            color: #a8c4d8;
+            transition: transform 0.3s ease;
+        }
+        .nav-menu-arrow.open { transform: rotate(180deg); }
+        .nav-menu-hamburger {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-right: 4px;
+        }
+        .nav-menu-hamburger span {
+            display: block;
+            width: 16px;
+            height: 2px;
+            background: #a8c4d8;
+            border-radius: 2px;
+            letter-spacing: 0;
+        }
+        .nav-dropdown {
+            display: none;
+            flex-direction: column;
+            background: #253546;
+            border-top: 1px solid rgba(168,196,216,0.15);
+        }
+        .nav-dropdown.open { display: flex; }
+        .nav-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 24px;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(168,196,216,0.1);
+            transition: background 0.2s;
+        }
+        .nav-dropdown a.active { background: #1e2d3d; }
+        .nav-dropdown a:last-child { border-bottom: none; }
+        .nav-dropdown a:hover { background: #2e4058; }
+        .nav-dropdown-icon { font-size: 18px; flex-shrink: 0; }
+        .nav-dropdown-text { display: flex; flex-direction: column; gap: 2px; }
+        .nav-dropdown-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #e2eaf0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .nav-dropdown-sub {
+            font-size: 10px;
+            color: #7a9bb5;
+            letter-spacing: 0.3px;
+        }
+        /* ══════ FIN MENÚ ══════ */
+
+        /* ══════ TÍTULO SECCIÓN ══════ */
+        .page-title-bar {
+            background: #6fcfe0;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            border-bottom: 1px solid rgba(44,74,110,0.1);
+        }
+        .page-title-bar-icon { font-size: 18px; }
+        .page-title-bar-text {
+            font-size: 10px;
+            font-weight: 700;
+            color: #2c4a6e;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* ══════ CONTENIDO ══════ */
+        .content-wrap { padding: 28px 24px; }
+
+        .section-block { margin-bottom: 48px; }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1E293B;
+            letter-spacing: -0.3px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+        }
         h3 {
-            font-size: 18px;
-            font-weight: 500;
-            margin: 25px 0 15px;
-            color: #666;
+            font-size: 15px;
+            font-weight: 700;
+            color: #2C3E50;
+            margin: 24px 0 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
         }
-        
         p {
-            margin-bottom: 15px;
-            text-align: justify;
+            font-size: 15px;
+            color: var(--color-text-secondary);
+            line-height: 1.75;
+            margin-bottom: 14px;
         }
-        
-        .highlight {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
+        ul, ol {
+            margin: 10px 0 14px 20px;
         }
-        
-        .icon-text {
-            font-size: 32px;
-            text-align: center;
-            margin: 15px 0;
-        }
-        
-        ul {
-            margin: 15px 0 15px 30px;
-        }
-        
         li {
-            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            line-height: 1.7;
+            margin-bottom: 6px;
         }
-        
+        li strong { color: #2C3E50; }
+
         .data-box {
-            background: #f8f8f8;
-            padding: 15px;
-            border-left: 3px solid #999;
-            margin: 15px 0;
+            background: #f8fafc;
+            border-left: 4px solid #2C3E50;
+            border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+            padding: 16px 20px;
+            margin: 16px 0;
+            font-size: 14px;
         }
-        
+        .data-box strong { display: block; font-size: 12px; font-weight: 700; color: #2C3E50; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+
+        .highlight {
+            background: #f0f6fa;
+            border-radius: var(--border-radius-sm);
+            padding: 18px 20px;
+            margin: 16px 0;
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            line-height: 1.7;
+        }
+        .highlight strong { display: block; font-size: 12px; font-weight: 700; color: #2C3E50; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+        .highlight ol { margin-left: 20px; margin-top: 8px; }
+        .highlight ul { margin-left: 20px; margin-top: 8px; }
+
         .curiosity {
-            background: #f0f0f0;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
+            background: #f8fafc;
+            border-radius: var(--border-radius-sm);
+            padding: 16px 20px;
+            margin: 14px 0;
+            border: 1px solid #e2e8f0;
         }
-        
         .curiosity-title {
-            font-weight: 500;
-            color: #555;
-            margin-bottom: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #2C3E50;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
         }
-        
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 28px;
-            }
-            
-            h2 {
-                font-size: 22px;
-            }
-            
-            .section {
-                padding: 20px 10px;
-            }
-            
-            p {
-                text-align: left;
-            }
+        .curiosity p {
+            font-size: 14px;
+            margin-bottom: 0;
+        }
+
+        .icon-row {
+            font-size: 28px;
+            text-align: center;
+            letter-spacing: 6px;
+            margin: 14px 0;
+        }
+
+        /* ══════ FOOTER ══════ */
+        .page-footer {
+            background: #1e2d3d;
+            border-top: 1px solid rgba(168,196,216,0.15);
+            padding: 14px 20px;
+            text-align: center;
+        }
+        .page-footer a {
+            font-size: 10px;
+            font-weight: 700;
+            color: #a8c4d8;
+            text-decoration: none;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .page-footer a:hover { color: #6fcfe0; }
+
+        @media (max-width: 480px) {
+            .content-wrap { padding: 20px 16px; }
+            h2 { font-size: 18px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <a href="index.html" class="back-link">← Volver al tiempo</a>
-            <h1>Aprende Meteorología</h1>
-            <p class="subtitle">Descubre los fenómenos del tiempo y el clima de Barcelona</p>
+
+    <!-- BANNER IDÉNTICO AL INDEX -->
+    <div class="header-section"></div>
+
+    <!-- MENÚ DESPLEGABLE IDÉNTICO AL INDEX -->
+    <nav class="nav-menu">
+        <button class="nav-menu-toggle" onclick="toggleNavMenu()" id="nav-toggle">
+            <div class="nav-menu-hamburger">
+                <span></span><span></span><span></span>
+            </div>
+            <span>Más secciones</span>
+            <span class="nav-menu-arrow" id="nav-arrow">▼</span>
+        </button>
+        <div class="nav-dropdown" id="nav-dropdown">
+            <a href="index.html">
+                <span class="nav-dropdown-icon">🌤️</span>
+                <div class="nav-dropdown-text">
+                    <span class="nav-dropdown-title">Tiempo Barcelona</span>
+                    <span class="nav-dropdown-sub">Volver a la página principal</span>
+                </div>
+            </a>
+            <a href="divulgacion.html" class="active">
+                <span class="nav-dropdown-icon">📚</span>
+                <div class="nav-dropdown-text">
+                    <span class="nav-dropdown-title">Aprende Meteorología y Datos Curiosos</span>
+                    <span class="nav-dropdown-sub">Divulgación meteorológica</span>
+                </div>
+            </a>
+            <a href="mapa.html">
+                <span class="nav-dropdown-icon">📍</span>
+                <div class="nav-dropdown-text">
+                    <span class="nav-dropdown-title">Mapa Estaciones Automáticas</span>
+                    <span class="nav-dropdown-sub">Red de estaciones meteorológicas</span>
+                </div>
+            </a>
         </div>
+    </nav>
+    <script>
+    function toggleNavMenu() {
+        var dd = document.getElementById('nav-dropdown');
+        var arrow = document.getElementById('nav-arrow');
+        dd.classList.toggle('open');
+        arrow.classList.toggle('open');
+    }
+    </script>
+
+    <!-- BARRA TÍTULO PÁGINA -->
+    <div class="page-title-bar">
+        <span class="page-title-bar-icon">📚</span>
+        <span class="page-title-bar-text">Aprende Meteorología · Datos Curiosos</span>
+    </div>
+
+    <!-- CONTENIDO -->
+    <div class="content-wrap">
 
         <!-- CLIMA DE BARCELONA -->
-        <section class="section">
+        <div class="section-block">
             <h2>☀️ El Clima de Barcelona</h2>
-            
+
             <p>Barcelona disfruta de un clima mediterráneo típico, caracterizado por inviernos suaves y veranos cálidos. Esta privilegiada situación climática ha convertido a la ciudad en uno de los destinos más atractivos de Europa durante todo el año.</p>
-            
+
             <div class="data-box">
-                <strong>Datos climáticos de Barcelona:</strong>
+                <strong>Datos climáticos de Barcelona</strong>
                 <ul>
-                    <li><strong>Temperatura media anual:</strong> 16-17°C</li>
-                    <li><strong>Precipitación anual:</strong> 600-650 mm</li>
-                    <li><strong>Días de sol al año:</strong> Más de 2.500 horas</li>
-                    <li><strong>Humedad relativa:</strong> 65-70%</li>
+                    <li><strong>Temperatura media anual:</strong> 16–17 °C</li>
+                    <li><strong>Precipitación anual:</strong> 600–650 mm</li>
+                    <li><strong>Horas de sol al año:</strong> más de 2.500</li>
+                    <li><strong>Humedad relativa:</strong> 65–70 %</li>
                 </ul>
             </div>
 
             <h3>Las Estaciones en Barcelona</h3>
-            
-            <p><strong>Primavera (Marzo-Mayo):</strong> Temperaturas agradables entre 12-20°C. Es una época de lluvias moderadas, especialmente en abril y mayo. Perfecta para disfrutar de la ciudad.</p>
-            
-            <p><strong>Verano (Junio-Agosto):</strong> Cálido y seco, con temperaturas que oscilan entre 20-30°C. Julio y agosto pueden ser especialmente calurosos. La brisa marina del Mediterráneo ayuda a refrescar.</p>
-            
-            <p><strong>Otoño (Septiembre-Noviembre):</strong> Temperaturas suaves de 15-25°C. Septiembre es como un segundo verano. Octubre es el mes más lluvioso del año, con posibilidad de lluvias intensas.</p>
-            
-            <p><strong>Invierno (Diciembre-Febrero):</strong> Suave comparado con otras ciudades europeas, con temperaturas de 8-15°C. Las heladas son raras y la nieve excepcional.</p>
+
+            <p><strong>Primavera (marzo–mayo):</strong> Temperaturas agradables entre 12–20 °C, lluvias moderadas especialmente en abril y mayo. Perfecta para disfrutar la ciudad.</p>
+            <p><strong>Verano (junio–agosto):</strong> Cálido y seco, 20–30 °C. La brisa marina del Mediterráneo ayuda a refrescar.</p>
+            <p><strong>Otoño (septiembre–noviembre):</strong> Temperaturas suaves de 15–25 °C. Octubre es el mes más lluvioso, con posibilidad de lluvias intensas.</p>
+            <p><strong>Invierno (diciembre–febrero):</strong> Suave comparado con otras ciudades europeas, 8–15 °C. Las heladas son raras y la nieve, excepcional.</p>
 
             <div class="curiosity">
                 <div class="curiosity-title">💡 Dato Curioso</div>
-                Barcelona tiene uno de los climas más estables de Europa. Las temperaturas extremas son raras: el récord de calor es de 39.8°C (2023) y el de frío de -10°C (1956).
+                <p>Barcelona tiene uno de los climas más estables de Europa. Las temperaturas extremas son raras: el récord de calor es de 39,8 °C (2023) y el de frío, −10 °C (1956).</p>
             </div>
-        </section>
+        </div>
 
         <!-- FENÓMENOS METEOROLÓGICOS -->
-        <section class="section">
+        <div class="section-block">
             <h2>🌪️ Fenómenos Meteorológicos</h2>
 
             <h3>La Gota Fría (DANA)</h3>
             <p>Uno de los fenómenos más característicos del clima mediterráneo. Una DANA (Depresión Aislada en Niveles Altos) es una masa de aire frío en altura que puede provocar lluvias torrenciales, especialmente en otoño.</p>
-            
-            <p>En Barcelona, las DANAs suelen ocurrir entre septiembre y noviembre, pudiendo descargar en pocas horas la lluvia equivalente a varios meses. Las zonas más afectadas suelen ser el litoral y el interior.</p>
+            <p>En Barcelona suelen ocurrir entre septiembre y noviembre, pudiendo descargar en pocas horas la lluvia equivalente a varios meses.</p>
 
             <div class="highlight">
                 <strong>¿Cómo se forma una gota fría?</strong>
@@ -205,139 +366,134 @@
             </div>
 
             <h3>La Tramontana</h3>
-            <div class="icon-text">💨</div>
-            <p>Viento del norte característico de Cataluña. Seco y frío, puede alcanzar velocidades de más de 100 km/h en zonas expuestas. En Barcelona es menos intenso que en el norte de Cataluña, pero trae aire fresco y cielos despejados.</p>
+            <div class="icon-row">💨</div>
+            <p>Viento del norte característico de Cataluña. Seco y frío, puede superar los 100 km/h en zonas expuestas. En Barcelona es menos intenso que en el norte de Cataluña, pero trae aire fresco y cielos despejados.</p>
 
             <h3>El Levante</h3>
             <p>Viento del este que trae humedad del Mediterráneo. Asociado con cielos nublados, marejada y, en ocasiones, lluvias. Más frecuente en primavera y otoño.</p>
 
             <h3>Tormentas de Verano</h3>
-            <p>Aunque el verano es generalmente seco, pueden producirse tormentas intensas, especialmente por la tarde. La combinación de calor acumulado durante el día y la humedad del mar puede generar nubes de desarrollo vertical (cumulonimbos) que descargan lluvias fuertes pero breves.</p>
+            <p>Aunque el verano es generalmente seco, pueden producirse tormentas intensas por las tardes. La combinación de calor acumulado y humedad marina genera cumulonimbos que descargan lluvias fuertes pero breves.</p>
 
             <div class="curiosity">
-                <div class="curiosity-title">⚡ Sabías que...</div>
-                Barcelona registra una media de 20-25 días de tormenta al año, concentrados principalmente en primavera y otoño. En verano, las tormentas suelen ser más espectaculares pero menos frecuentes.
+                <div class="curiosity-title">⚡ Sabías que…</div>
+                <p>Barcelona registra una media de 20–25 días de tormenta al año, concentrados principalmente en primavera y otoño. En verano las tormentas son más espectaculares pero menos frecuentes.</p>
             </div>
-        </section>
+        </div>
 
         <!-- INTERPRETAR MAPAS -->
-        <section class="section">
+        <div class="section-block">
             <h2>🗺️ Cómo Interpretar Mapas Meteorológicos</h2>
 
             <h3>Mapas de Presión Atmosférica</h3>
             <p>Las isobaras (líneas que conectan puntos de igual presión) son fundamentales para entender el tiempo:</p>
-            
             <ul>
-                <li><strong>Altas presiones (anticiclón):</strong> Tiempo estable y despejado. En invierno puede traer nieblas.</li>
-                <li><strong>Bajas presiones (borrasca):</strong> Inestabilidad, nubes y precipitaciones.</li>
-                <li><strong>Isobaras juntas:</strong> Vientos fuertes.</li>
-                <li><strong>Isobaras separadas:</strong> Vientos débiles o calma.</li>
+                <li><strong>Altas presiones (anticiclón):</strong> tiempo estable y despejado.</li>
+                <li><strong>Bajas presiones (borrasca):</strong> inestabilidad, nubes y precipitaciones.</li>
+                <li><strong>Isobaras juntas:</strong> vientos fuertes.</li>
+                <li><strong>Isobaras separadas:</strong> vientos débiles o calma.</li>
             </ul>
 
             <h3>Frentes Meteorológicos</h3>
             <div class="highlight">
-                <p><strong>Frente Frío:</strong> Línea azul con triángulos. Trae descenso de temperatura, chubascos y vientos del norte/noroeste.</p>
-                <p><strong>Frente Cálido:</strong> Línea roja con semicírculos. Temperaturas más suaves, nubes bajas y lluvia persistente.</p>
-                <p><strong>Frente Ocluido:</strong> Combinación de ambos. Tiempo variable e inestable.</p>
+                <strong>Tipos de frentes</strong>
+                <p><strong>Frente Frío:</strong> línea azul con triángulos. Trae descenso de temperatura, chubascos y vientos del norte/noroeste.</p>
+                <p><strong>Frente Cálido:</strong> línea roja con semicírculos. Temperaturas más suaves, nubes bajas y lluvia persistente.</p>
+                <p><strong>Frente Ocluido:</strong> combinación de ambos. Tiempo variable e inestable.</p>
             </div>
 
             <h3>Radar de Precipitación</h3>
-            <p>Los colores en el radar indican la intensidad de la lluvia:</p>
             <ul>
-                <li><strong>Verde/Azul:</strong> Lluvia débil (1-2 mm/h)</li>
-                <li><strong>Amarillo:</strong> Lluvia moderada (2-10 mm/h)</li>
-                <li><strong>Naranja:</strong> Lluvia fuerte (10-30 mm/h)</li>
-                <li><strong>Rojo/Púrpura:</strong> Lluvia muy intensa (>30 mm/h), posible granizo</li>
+                <li><strong>Verde/Azul:</strong> lluvia débil (1–2 mm/h)</li>
+                <li><strong>Amarillo:</strong> lluvia moderada (2–10 mm/h)</li>
+                <li><strong>Naranja:</strong> lluvia fuerte (10–30 mm/h)</li>
+                <li><strong>Rojo/Púrpura:</strong> lluvia muy intensa (&gt;30 mm/h), posible granizo</li>
             </ul>
 
             <h3>Símbolos del Tiempo</h3>
-            <div class="icon-text">☀️ 🌤️ ⛅ ☁️ 🌧️ ⛈️ 🌨️</div>
-            <p>Los símbolos representan las condiciones esperadas. Aprende a distinguir entre nubosidad parcial (⛅) y nubosidad alta (🌥️), o entre lluvia (🌧️) y chubascos (🌦️).</p>
+            <div class="icon-row">☀️ 🌤️ ⛅ ☁️ 🌧️ ⛈️ 🌨️</div>
+            <p>Los símbolos representan las condiciones esperadas. Distingue entre nubosidad parcial (⛅) y nubosidad alta (🌥️), o entre lluvia (🌧️) y chubascos (🌦️).</p>
 
             <div class="curiosity">
                 <div class="curiosity-title">🎯 Consejo Práctico</div>
-                Para Barcelona, presta especial atención al radar cuando veas sistemas del este o sur. Estos pueden traer lluvias más intensas que los sistemas atlánticos que vienen del oeste.
+                <p>Para Barcelona, presta especial atención al radar cuando veas sistemas del este o sur. Pueden traer lluvias más intensas que los sistemas atlánticos del oeste.</p>
             </div>
-        </section>
+        </div>
 
         <!-- DATOS CURIOSOS -->
-        <section class="section">
+        <div class="section-block">
             <h2>🔍 Datos Curiosos sobre el Tiempo</h2>
 
             <div class="curiosity">
                 <div class="curiosity-title">🌡️ Temperatura del Mediterráneo</div>
-                El mar Mediterráneo frente a Barcelona alcanza su máxima temperatura en agosto (24-26°C) y su mínima en febrero (12-14°C). Esta temperatura del agua influye directamente en el clima de la ciudad.
+                <p>El mar frente a Barcelona alcanza su máxima en agosto (24–26 °C) y su mínima en febrero (12–14 °C). Esta temperatura influye directamente en el clima de la ciudad.</p>
             </div>
-
             <div class="curiosity">
                 <div class="curiosity-title">☔ El Día Más Lluvioso</div>
-                El 25 de septiembre de 1962 cayeron 212 mm en Barcelona, la mayor cantidad registrada en 24 horas. Para comparar, normalmente llueve 600-650 mm en todo un año.
+                <p>El 25 de septiembre de 1962 cayeron 212 mm en Barcelona en solo 24 horas. Para comparar, normalmente llueve 600–650 mm en todo un año.</p>
             </div>
-
             <div class="curiosity">
                 <div class="curiosity-title">❄️ Nieve en Barcelona</div>
-                La última gran nevada en Barcelona fue en marzo de 2010, cuando cayeron hasta 25 cm en algunas zonas. Antes de eso, había que remontarse a 1962. La nieve en la ciudad es un evento excepcional que ocurre aproximadamente una vez cada década.
+                <p>La última gran nevada fue en marzo de 2010, con hasta 25 cm en algunas zonas. Antes de eso, había que remontarse a 1962. Es un evento excepcional que ocurre aproximadamente una vez por década.</p>
             </div>
-
             <div class="curiosity">
                 <div class="curiosity-title">🌅 Efecto Isla de Calor</div>
-                Barcelona, como gran ciudad, experimenta el efecto "isla de calor urbana". Las temperaturas en el centro pueden ser 2-4°C más altas que en las zonas periféricas, especialmente durante la noche.
+                <p>Barcelona experimenta el efecto "isla de calor urbana". Las temperaturas en el centro pueden ser 2–4 °C más altas que en zonas periféricas, especialmente de noche.</p>
             </div>
-
             <div class="curiosity">
                 <div class="curiosity-title">🌊 La Brisa Marina</div>
-                Durante el verano, la brisa del mar (marinada) entra por la tarde refrescando la ciudad. Puede bajar la temperatura hasta 5°C en pocas horas, siendo más intensa en la franja costera.
+                <p>Durante el verano, la marinada entra por la tarde refrescando la ciudad. Puede bajar la temperatura hasta 5 °C en pocas horas, siendo más intensa en la franja costera.</p>
             </div>
-
             <div class="curiosity">
                 <div class="curiosity-title">⏱️ Horas de Sol</div>
-                Barcelona disfruta de más de 2.500 horas de sol al año, lo que equivale a casi 7 horas diarias de media. Julio es el mes más soleado con más de 300 horas de sol.
+                <p>Barcelona disfruta de más de 2.500 horas de sol al año, casi 7 horas diarias de media. Julio es el mes más soleado, con más de 300 horas.</p>
             </div>
-
             <div class="curiosity">
                 <div class="curiosity-title">🌈 Arco Iris Urbano</div>
-                Los arco iris son más frecuentes en Barcelona durante la primavera y el otoño, cuando se alternan sol y chubascos. Las mejores condiciones se dan por la tarde, cuando el sol está bajo en el horizonte.
+                <p>Los arco iris son más frecuentes en primavera y otoño, cuando alternan sol y chubascos. Las mejores condiciones se dan por la tarde, con el sol bajo en el horizonte.</p>
             </div>
-        </section>
+        </div>
 
-        <!-- PREDICCIÓN -->
-        <section class="section">
+        <!-- ENTENDIENDO LAS PREDICCIONES -->
+        <div class="section-block">
             <h2>🔮 Entendiendo las Predicciones</h2>
 
             <h3>Probabilidad de Precipitación</h3>
-            <p>Cuando ves "40% de probabilidad de lluvia", significa que en 10 días con condiciones similares, llovería en 4 de ellos. No indica ni la intensidad ni la duración de la lluvia.</p>
+            <p>Cuando ves "40 % de probabilidad de lluvia", significa que en 10 días con condiciones similares, llovería en 4 de ellos. No indica ni la intensidad ni la duración.</p>
 
             <h3>Sensación Térmica</h3>
-            <p>La temperatura que realmente percibimos depende de:</p>
             <ul>
-                <li><strong>Viento:</strong> Incrementa la sensación de frío</li>
-                <li><strong>Humedad:</strong> Aumenta la sensación de calor en verano</li>
-                <li><strong>Sol:</strong> La radiación solar calienta más que el aire</li>
+                <li><strong>Viento:</strong> incrementa la sensación de frío</li>
+                <li><strong>Humedad:</strong> aumenta la sensación de calor en verano</li>
+                <li><strong>Sol:</strong> la radiación solar calienta más que el aire</li>
             </ul>
 
             <h3>Índice UV</h3>
-            <p>En Barcelona, el índice UV puede alcanzar valores muy altos (8-10) en verano, especialmente entre las 12 y las 16 horas. Usa protección solar incluso en días nublados, ya que el 80% de los rayos UV atraviesan las nubes.</p>
+            <p>En Barcelona el índice UV puede alcanzar valores muy altos (8–10) en verano, especialmente entre las 12 y las 16 h. El 80 % de los rayos UV atraviesan las nubes.</p>
 
             <div class="highlight">
-                <strong>Escala del Índice UV:</strong>
+                <strong>Escala del Índice UV</strong>
                 <ul>
-                    <li>1-2: Bajo - No necesitas protección</li>
-                    <li>3-5: Moderado - Protección recomendada</li>
-                    <li>6-7: Alto - Protección necesaria</li>
-                    <li>8-10: Muy alto - Protección extra necesaria</li>
-                    <li>11+: Extremo - Evita exposición al sol</li>
+                    <li>1–2: Bajo — no necesitas protección</li>
+                    <li>3–5: Moderado — protección recomendada</li>
+                    <li>6–7: Alto — protección necesaria</li>
+                    <li>8–10: Muy alto — protección extra</li>
+                    <li>11+: Extremo — evita la exposición</li>
                 </ul>
             </div>
 
             <div class="curiosity">
                 <div class="curiosity-title">📱 Apps y Recursos</div>
-                Para Barcelona, las mejores fuentes de información meteorológica son AEMET (Agencia Estatal de Meteorología), Meteocat (Servei Meteorològic de Catalunya) y el radar de precipitación en tiempo real.
+                <p>Para Barcelona, las mejores fuentes son AEMET (Agencia Estatal de Meteorología), Meteocat (Servei Meteorològic de Catalunya) y el radar de precipitación en tiempo real.</p>
             </div>
-        </section>
-
-        <div class="header" style="padding-top: 20px;">
-            <a href="index.html" class="back-link">← Volver al tiempo</a>
         </div>
+
+    </div><!-- fin content-wrap -->
+
+    <!-- FOOTER -->
+    <div class="page-footer">
+        <a href="index.html">← Volver al tiempo</a>
     </div>
+
 </body>
 </html>
