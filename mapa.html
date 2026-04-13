@@ -500,7 +500,7 @@ function parseRSS(txt) {
                 grupos.push(g[1].split(';').map(num));
             }
             if (grupos.length < 4) continue;
-            const nombre = raw.substring(raw.lastIndexOf(')') + 2).trim().replace(/^Barcelona\s*[-–]\s*/i, '');
+            const nombre = raw.substring(raw.lastIndexOf(')') + 2).trim().replace(/^Barcelona\s*[-–]\s*/i, '').replace(/^Barcelona\s+/i, '');
             if (EXCLUIR.has(id)) continue;
             estaciones.push({
                 id, lat, lng, nombre,
