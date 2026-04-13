@@ -169,6 +169,46 @@
             color: #1a3a5c;
         }
 
+
+        /* ══════ LEYENDA MAPA ══════ */
+        #map-legend {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 999;
+            background: rgba(26,37,51,0.92);
+            border-radius: 8px;
+            padding: 7px 9px;
+            border: 1px solid rgba(168,196,216,0.2);
+            font-family: 'Inter', sans-serif;
+        }
+        #map-legend .leg-title {
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #a8c4d8;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        #map-legend .leg-bar {
+            display: flex;
+            height: 10px;
+            border-radius: 4px;
+            overflow: hidden;
+            width: 180px;
+            margin-bottom: 3px;
+        }
+        #map-legend .leg-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 180px;
+        }
+        #map-legend .leg-labels span {
+            font-size: 7px;
+            font-weight: 600;
+            color: #a8c4d8;
+        }
         /* ══════ MAPA ══════ */
         #map-wrap {
             position: relative;
@@ -405,6 +445,19 @@
             <div class="spinner"></div>
             <div class="ov-txt">Cargando estaciones</div>
         </div>
+
+        <div id="map-legend">
+            <div class="leg-title">°C</div>
+            <div class="leg-bar" id="leg-bar"></div>
+            <div class="leg-labels">
+                <span>-4</span>
+                <span>0</span>
+                <span>10</span>
+                <span>20</span>
+                <span>30</span>
+                <span>40</span>
+            </div>
+        </div>
     </div>
 
     <!-- LEYENDA -->
@@ -616,6 +669,39 @@ async function cargarDatos() {
     }
 }
 
+
+// Build legend gradient
+(function() {
+    const steps = [];
+    for (let t = -4; t <= 40; t += 0.5) {
+        const pct = (t + 4) / 44 * 100;
+        let c;
+        if      (t < -2) c = '#7b2ff7';
+        else if (t <  0) c = '#5b5fff';
+        else if (t <  2) c = '#4499ff';
+        else if (t <  4) c = '#33bbff';
+        else if (t <  6) c = '#22ddee';
+        else if (t <  8) c = '#11eecc';
+        else if (t < 10) c = '#00e5aa';
+        else if (t < 12) c = '#22d47a';
+        else if (t < 14) c = '#55cc44';
+        else if (t < 16) c = '#88cc22';
+        else if (t < 18) c = '#aace00';
+        else if (t < 20) c = '#cccc00';
+        else if (t < 22) c = '#eebb00';
+        else if (t < 24) c = '#ffaa00';
+        else if (t < 26) c = '#ff8800';
+        else if (t < 28) c = '#ff6600';
+        else if (t < 30) c = '#ff4400';
+        else if (t < 32) c = '#ee2200';
+        else if (t < 34) c = '#dd0000';
+        else if (t < 36) c = '#bb0000';
+        else if (t < 38) c = '#990022';
+        else             c = '#770044';
+        steps.push(c + ' ' + pct.toFixed(1) + '%');
+    }
+    document.getElementById('leg-bar').style.background = 'linear-gradient(to right,' + steps.join(',') + ')';
+})();
 cargarDatos();
 setInterval(cargarDatos, 10 * 60 * 1000);
 </script>
