@@ -75,8 +75,7 @@
         .list-header-title { font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--accent); }
         .list-count { font-size:10px; color:var(--muted); }
         .list-wrap { background:var(--navy); flex-shrink:0; }
-        .est-row { border-bottom:1px solid var(--border); padding:10px 16px; display:grid; grid-template-columns:1fr auto; gap:6px; cursor:pointer; transition:background 0.15s; }
-        .est-row:hover { background:rgba(111,207,224,0.05); }
+        .est-row { border-bottom:1px solid var(--border); padding:10px 16px; display:grid; grid-template-columns:1fr auto; gap:6px; }
         .est-row:last-child { border-bottom:none; }
         .est-nombre { font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:700; color:#fff; line-height:1.2; }
         .est-id { font-size:8px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-top:1px; }
@@ -143,7 +142,12 @@ const WORKER = 'https://proxy-meteoclimatic.lojasergi.workers.dev';
 const BCN = { latMin:41.32, latMax:41.47, lngMin:2.05, lngMax:2.23 };
 
 // Mapa
-const map = L.map('map', { center:[41.3983, 2.162], zoom:12 });
+const map = L.map('map', {
+    center:[41.3983, 2.162], zoom:12,
+    zoomControl:false, dragging:false, scrollWheelZoom:false,
+    doubleClickZoom:false, touchZoom:false, boxZoom:false,
+    keyboard:false, tap:false, interactive:false
+});
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution:'&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
     subdomains:'abcd', maxZoom:19,
@@ -285,7 +289,7 @@ function renderList(estaciones) {
     if (!sorted.length) { wrap.innerHTML = '<div class="list-empty">Sin estaciones en el área</div>'; return; }
     wrap.innerHTML = sorted.map(e => {
         const tc = tempColor(e.temp);
-        return `<div class="est-row" onclick="abrirPopup('${e.id}')">
+        return `<div class="est-row">
             <div>
                 <div class="est-nombre">${e.nombre}</div>
                 <div class="est-id">${e.id}</div>
@@ -304,21 +308,12 @@ function renderList(estaciones) {
     }).join('');
 }
 
-function abrirPopup(id) {
-    const mk = marcadores[id];
-    if (!mk) return;
-    map.setView(mk.getLatLng(), Math.max(map.getZoom(), 14));
-    mk.openPopup();
-    window.scrollTo({top:0, behavior:'smooth'});
-}
-
 function pintarEstaciones(estaciones) {
     Object.values(marcadores).forEach(m => map.removeLayer(m));
     Object.keys(marcadores).forEach(k => delete marcadores[k]);
 
     estaciones.forEach(e => {
-        const mk = L.marker([e.lat, e.lng], { icon: crearIcono(e.temp) })
-            .bindPopup(L.popup({maxWidth:270, minWidth:250}).setContent(popupHTML(e)))
+        const mk = L.marker([e.lat, e.lng], { icon: crearIcono(e.temp), interactive:false })
             .addTo(map);
         marcadores[e.id] = mk;
     });
