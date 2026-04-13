@@ -500,7 +500,9 @@ function parseRSS(txt) {
                 grupos.push(g[1].split(';').map(num));
             }
             if (grupos.length < 4) continue;
-            const nombre = raw.substring(raw.lastIndexOf(')') + 2).trim().replace(/^Barcelona\s*[-–]\s*/i, '').replace(/^Barcelona\s+/i, '');
+            const CORRECCIONES = {"Can Bruixa":"Les Corts (Can Bruixa)","Torguineu":"Navas","betevé":"Poblenou (betevé)","Casa l'Aigua":"Trinitat Vella (Casa l'Aigua)"};
+            let nombre = raw.substring(raw.lastIndexOf(')') + 2).trim().replace(/^Barcelona\s*[-\u2013]\s*/i, '').replace(/^Barcelona\s+/i, '');
+            if (nombre in CORRECCIONES) { if (!CORRECCIONES[nombre]) continue; nombre = CORRECCIONES[nombre]; }
             if (EXCLUIR.has(id)) continue;
             estaciones.push({
                 id, lat, lng, nombre,
