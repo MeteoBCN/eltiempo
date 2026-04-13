@@ -32,10 +32,8 @@
         .spinner { width:34px; height:34px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
         @keyframes spin { to{transform:rotate(360deg)} }
         .ov-txt { font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--accent); }
-        #debug-panel { display:none; background:#0f1a24; border:1px solid #ef444466; margin:10px; border-radius:8px; padding:12px; font-size:11px; color:#fca5a5; line-height:1.7; font-family:monospace; word-break:break-word; }
-        #debug-panel strong { color:#f87171; display:block; margin-bottom:6px; font-size:12px; }
-        #rss-raw { display:none; background:#0a1520; border:1px solid var(--border); margin:10px; border-radius:8px; padding:12px; font-size:10px; color:#80c8d8; line-height:1.6; font-family:monospace; word-break:break-all; white-space:pre-wrap; max-height:300px; overflow-y:auto; }
-        #rss-raw strong { color:var(--accent); display:block; margin-bottom:6px; font-size:11px; }
+        #err-panel { display:none; background:#0f1a24; border:1px solid #ef444466; margin:10px; border-radius:8px; padding:12px; font-size:11px; color:#fca5a5; line-height:1.7; }
+        #err-panel strong { color:#f87171; display:block; margin-bottom:4px; }
         .leaflet-popup-content-wrapper { background:rgba(26,37,51,0.97)!important; border:1px solid var(--border)!important; border-radius:12px!important; box-shadow:0 8px 32px rgba(0,0,0,0.6)!important; padding:0!important; overflow:hidden; }
         .leaflet-popup-tip-container { display:none; }
         .leaflet-popup-content { margin:0!important; }
@@ -94,9 +92,7 @@
     <span class="scnt" id="scnt"></span>
 </div>
 
-<!-- Panel diagnóstico: muestra el RSS crudo para depurar el formato -->
-<div id="rss-raw"></div>
-<div id="debug-panel"></div>
+<div id="err-panel"></div>
 
 <div id="map-wrap">
     <div id="map"></div>
@@ -120,6 +116,7 @@
 </div>
 
 <script>
+// ── Estaciones Barcelona ciudad con coordenadas fijas ──
 const ESTACIONES = [
     { id:'ESCAT0800000008015A', nombre:'Eixample',          lat:41.3879, lng:2.1699 },
     { id:'ESCAT0800000008023I', nombre:'Sant Gervasi',      lat:41.4061, lng:2.1381 },
@@ -131,22 +128,17 @@ const ESTACIONES = [
     { id:'ESCAT0800000008035A', nombre:'Vallcarca',         lat:41.4133, lng:2.1422 },
 ];
 
-const RSS_BASE = 'https://www.meteoclimatic.net/feed/RSS/';
-const RSS_PROV = RSS_BASE + 'ESCAT08';
+// ── Proxy PHP propio (mismo servidor que la web) ──
+const PROXY_PHP = 'proxy_mc.php?url=https://www.meteoclimatic.net/feed/RSS/ESCAT08';
 
-const PROXIES = [
-    u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-    u => `https://thingproxy.freeboard.io/fetch/${u}`,
-];
-
+// ── Mapa ──
 const map = L.map('map', { center:[41.3983,2.162], zoom:13 });
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution:'&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
     subdomains:'abcd', maxZoom:19,
 }).addTo(map);
 
+// ── Helpers ──
 function tempColor(t) {
     if (t===null||isNaN(t)) return '#8fa3b8';
     if (t<10) return '#60a5fa'; if (t<20) return '#34d399';
@@ -154,77 +146,73 @@ function tempColor(t) {
     return '#ef4444';
 }
 function crearIcono(temp) {
-    const c=tempColor(temp), l=(temp!==null&&!isNaN(temp))?Math.round(temp)+'°':'?';
-    return L.divIcon({ html:`<div class="mc"><div class="mc-b" style="background:${c}"><span class="mc-t">${l}</span></div><div class="mc-d"></div></div>`, className:'', iconSize:[36,46], iconAnchor:[18,46], popupAnchor:[0,-48] });
+    const c = tempColor(temp);
+    const l = (temp!==null&&!isNaN(temp)) ? Math.round(temp)+'°' : '?';
+    return L.divIcon({
+        html:`<div class="mc"><div class="mc-b" style="background:${c}"><span class="mc-t">${l}</span></div><div class="mc-d"></div></div>`,
+        className:'', iconSize:[36,46], iconAnchor:[18,46], popupAnchor:[0,-48],
+    });
 }
 function azimDir(d) {
     if (d===null||d===undefined||isNaN(d)) return '';
     return ' '+['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'][Math.round(d/22.5)%16];
 }
-function f(v,dec=1) { return (v!==null&&v!==undefined&&!isNaN(v))?Number(v).toFixed(dec):'—'; }
+function f(v,dec=1) { return (v!==null&&v!==undefined&&!isNaN(v)) ? Number(v).toFixed(dec) : '—'; }
 
-// ─── PARSER: soporta texto crudo y HTML-escapado ───
+// ── Parser RSS Meteoclimatic ──
+// Formato: [[<ID;(T;Tmax;Tmin);(H;Hmax;Hmin);(B;Bmax;Bmin);(W;Wmax;Azim);(P);Nombre>]]
 function parseRSS(rawTxt) {
     const mapa = {};
-
-    // Desescapar entidades HTML si el proxy devuelve &lt; en vez de <
+    // Desescapar entidades HTML por si el servidor las devuelve escapadas
     let txt = rawTxt
-        .replace(/&lt;/g,  '<')
-        .replace(/&gt;/g,  '>')
-        .replace(/&amp;/g, '&')
-        .replace(/&#x5B;/g,'[')
-        .replace(/&#x5D;/g,']');
+        .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
+    // Extraer CDATA si existe
+    const cdata = txt.match(/<!\[CDATA\[([\s\S]*?)\]\]>/g);
+    if (cdata) txt = cdata.map(m=>m.replace(/<!\[CDATA\[|\]\]>/g,'')).join('\n');
 
-    // Intentar extraer contenido de CDATA si existe
-    // <![CDATA[ ... ]]>
-    const cdataMatches = txt.match(/<!\[CDATA\[([\s\S]*?)\]\]>/g);
-    if (cdataMatches) {
-        txt = cdataMatches.map(m => m.replace(/<!\[CDATA\[|\]\]>/g,'')).join('\n');
-    }
-
-    // Ahora buscar bloques [[< ... >]]
-    // Regex flexible: admite espacios y saltos de línea dentro del bloque
     const re = /\[\[<([\s\S]*?)>\]\]/g;
     let m;
-    while ((m = re.exec(txt)) !== null) {
+    while ((m=re.exec(txt))!==null) {
         try {
             const raw = m[1].replace(/,/g,'.').replace(/\s+/g,' ').trim();
             const idEnd = raw.indexOf(';(');
-            if (idEnd < 0) continue;
-            const id = raw.substring(0, idEnd).trim().toUpperCase();
-
+            if (idEnd<0) continue;
+            const id = raw.substring(0,idEnd).trim().toUpperCase();
             const grupos = [];
-            const reG = /\(([^)]+)\)/g;
-            let g;
-            while ((g = reG.exec(raw)) !== null) {
-                grupos.push(g[1].split(';').map(Number));
-            }
-            if (grupos.length < 4) continue;
-
-            const lastP = raw.lastIndexOf(')');
-            const nombre = raw.substring(lastP+2).trim();
-
+            const reG = /\(([^)]+)\)/g; let g;
+            while ((g=reG.exec(raw))!==null) grupos.push(g[1].split(';').map(Number));
+            if (grupos.length<4) continue;
+            const nombre = raw.substring(raw.lastIndexOf(')')+2).trim();
             mapa[id] = {
-                temp:   grupos[0]?.[0] ?? null,
-                tmax:   grupos[0]?.[1] ?? null,
-                tmin:   grupos[0]?.[2] ?? null,
-                hum:    grupos[1]?.[0] ?? null,
-                baro:   grupos[2]?.[0] ?? null,
-                viento: grupos[3]?.[0] ?? null,
-                azim:   grupos[3]?.[2] ?? null,
-                prec:   grupos[4]?.[0] ?? null,
-                nombre,
+                temp:grupos[0]?.[0]??null, tmax:grupos[0]?.[1]??null, tmin:grupos[0]?.[2]??null,
+                hum:grupos[1]?.[0]??null, baro:grupos[2]?.[0]??null,
+                viento:grupos[3]?.[0]??null, azim:grupos[3]?.[2]??null,
+                prec:grupos[4]?.[0]??null, nombre,
             };
         } catch(e) {}
     }
     return mapa;
 }
 
+// ── Popup ──
 function popupHTML(est, d) {
-    if (!d) return `<div class="pw"><div class="ph"><div class="ph-id">${est.id}</div><div class="ph-name">${est.nombre}</div></div><div class="pnodata">Sin datos disponibles</div><div class="pf"><span class="pupd"></span><a class="plink" href="https://www.meteoclimatic.net/perfil/${est.id.toLowerCase()}" target="_blank">Ver estación</a></div></div>`;
-    return `<div class="pw"><div class="ph"><div class="ph-id">${est.id}</div><div class="ph-name">${d.nombre||est.nombre}</div></div><div class="pb"><div class="temp-row"><span class="temp-big">${f(d.temp)}</span><span class="temp-unit">°C</span><div class="temp-mm"><span class="tmax">▲ ${f(d.tmax)}°</span><span class="tmin">▼ ${f(d.tmin)}°</span></div></div><div class="pgrid"><div class="pd"><div class="pdl">Humedad</div><div class="pdv">${f(d.hum,0)}<span> %</span></div></div><div class="pd"><div class="pdl">Presión</div><div class="pdv" style="font-size:13px">${f(d.baro)}<span> hPa</span></div></div><div class="pd"><div class="pdl">Viento</div><div class="pdv">${f(d.viento,0)}<span> km/h${azimDir(d.azim)}</span></div></div><div class="pd"><div class="pdl">Lluvia hoy</div><div class="pdv" style="color:#60a5fa">${f(d.prec)}<span> mm</span></div></div></div></div><div class="pf"><span class="pupd">Meteoclimatic · Tiempo real</span><a class="plink" href="https://www.meteoclimatic.net/perfil/${est.id.toLowerCase()}" target="_blank" rel="noopener">Ver más</a></div></div>`;
+    if (!d) return `<div class="pw"><div class="ph"><div class="ph-id">${est.id}</div><div class="ph-name">${est.nombre}</div></div><div class="pnodata">Sin datos disponibles</div><div class="pf"><span></span><a class="plink" href="https://www.meteoclimatic.net/perfil/${est.id.toLowerCase()}" target="_blank">Ver estación</a></div></div>`;
+    return `<div class="pw"><div class="ph"><div class="ph-id">${est.id}</div><div class="ph-name">${d.nombre||est.nombre}</div></div>
+    <div class="pb">
+        <div class="temp-row"><span class="temp-big">${f(d.temp)}</span><span class="temp-unit">°C</span>
+        <div class="temp-mm"><span class="tmax">▲ ${f(d.tmax)}°</span><span class="tmin">▼ ${f(d.tmin)}°</span></div></div>
+        <div class="pgrid">
+            <div class="pd"><div class="pdl">Humedad</div><div class="pdv">${f(d.hum,0)}<span> %</span></div></div>
+            <div class="pd"><div class="pdl">Presión</div><div class="pdv" style="font-size:13px">${f(d.baro)}<span> hPa</span></div></div>
+            <div class="pd"><div class="pdl">Viento</div><div class="pdv">${f(d.viento,0)}<span> km/h${azimDir(d.azim)}</span></div></div>
+            <div class="pd"><div class="pdl">Lluvia hoy</div><div class="pdv" style="color:#60a5fa">${f(d.prec)}<span> mm</span></div></div>
+        </div>
+    </div>
+    <div class="pf"><span class="pupd">Meteoclimatic · Tiempo real</span>
+    <a class="plink" href="https://www.meteoclimatic.net/perfil/${est.id.toLowerCase()}" target="_blank" rel="noopener">Ver más</a></div></div>`;
 }
 
+// ── Marcadores base ──
 const marcadores = {};
 ESTACIONES.forEach(est => {
     marcadores[est.id] = L.marker([est.lat,est.lng], { icon:crearIcono(null) })
@@ -232,54 +220,38 @@ ESTACIONES.forEach(est => {
         .addTo(map);
 });
 
-async function intentarFetch(targetUrl) {
-    const errores = [];
-    for (const px of PROXIES) {
-        const url = px(targetUrl);
-        try {
-            const r = await fetch(url, { signal:AbortSignal.timeout(10000) });
-            if (!r.ok) { errores.push(`[${r.status}] ${url.substring(0,50)}`); continue; }
-            const txt = await r.text();
-            if (!txt || txt.length < 50) { errores.push(`[vacío] ${url.substring(0,50)}`); continue; }
-            return { ok:true, txt, proxy:url };
-        } catch(e) {
-            errores.push(`[err] ${url.substring(0,50)}: ${e.message}`);
-        }
-    }
-    return { ok:false, errores };
-}
-
+// ── Carga de datos ──
 async function cargarDatos() {
     const sdot = document.getElementById('sdot');
     const stxt = document.getElementById('stxt');
     const scnt = document.getElementById('scnt');
     const ov   = document.getElementById('ov');
-    const dbg  = document.getElementById('debug-panel');
-    const raw  = document.getElementById('rss-raw');
+    const err  = document.getElementById('err-panel');
 
     sdot.className = 'sdot';
     stxt.textContent = 'Actualizando…';
 
-    const res = await intentarFetch(RSS_PROV);
+    let txt = null;
+    try {
+        const r = await fetch(PROXY_PHP, { signal: AbortSignal.timeout(12000) });
+        if (r.ok) txt = await r.text();
+    } catch(e) {
+        console.warn('[MC] Error fetch proxy PHP:', e.message);
+    }
 
-    if (!res.ok) {
-        ov.classList.add('hidden');
+    ov.classList.add('hidden');
+
+    if (!txt || txt.length < 100 || txt.includes('Just a moment') || txt.includes('DOCTYPE')) {
         sdot.className = 'sdot err';
-        stxt.textContent = 'Error de conexión';
-        dbg.style.display = 'block';
-        dbg.innerHTML = `<strong>⚠ No se pudo obtener el RSS</strong>${res.errores.join('<br>')}`;
+        stxt.textContent = 'Error al cargar datos';
+        err.style.display = 'block';
+        err.innerHTML = `<strong>⚠ No se pudo conectar con Meteoclimatic</strong>
+Asegúrate de que el archivo <b>proxy_mc.php</b> está subido al servidor junto a este mapa.<br>
+Meteoclimatic usa Cloudflare y bloquea los proxies públicos — el PHP del servidor propio es necesario.`;
         return;
     }
 
-    // ── DIAGNÓSTICO: mostrar primeros 800 chars del RSS recibido ──
-    // Esto nos permite ver el formato real y ajustar el parser
-    raw.style.display = 'block';
-    raw.innerHTML = `<strong>📡 RSS recibido (primeros 800 chars) — proxy: ${res.proxy.substring(0,60)}</strong>${escapeHTML(res.txt.substring(0,800))}`;
-
-    const datosMap = parseRSS(res.txt);
-    const claves   = Object.keys(datosMap);
-
-    // Actualizar marcadores
+    const datosMap = parseRSS(txt);
     let activas = 0;
     ESTACIONES.forEach(est => {
         const d = datosMap[est.id] || null;
@@ -288,32 +260,17 @@ async function cargarDatos() {
         marcadores[est.id].setPopupContent(popupHTML(est, d));
     });
 
-    ov.classList.add('hidden');
+    err.style.display = 'none';
 
     if (activas > 0) {
         sdot.className = 'sdot ok';
         stxt.textContent = 'Actualizado · ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
         scnt.textContent = activas + '/' + ESTACIONES.length + ' estaciones';
-        dbg.style.display = 'none';
-        // Una vez funciona, ocultar el panel raw
-        raw.style.display = 'none';
     } else {
         sdot.className = 'sdot err';
-        stxt.textContent = 'RSS OK pero sin datos coincidentes';
-        dbg.style.display = 'block';
-        dbg.innerHTML = `<strong>📋 Diagnóstico del parser</strong>
-RSS recibido: ${res.txt.length} caracteres<br>
-Estaciones parseadas: ${claves.length}<br>
-Muestra de IDs encontrados: ${claves.slice(0,5).join(', ') || 'ninguno'}<br>
-¿Contiene ESCAT?: ${res.txt.includes('ESCAT')}<br>
-¿Contiene [[&lt;?: ${res.txt.includes('[[<')}<br>
-¿Contiene &#91;&#91;&lt;? (escapado): ${res.txt.includes('[[&lt;')}<br>
-Mira el panel azul arriba para ver el contenido real del RSS.`;
+        stxt.textContent = 'Sin datos de estas estaciones';
+        scnt.textContent = Object.keys(datosMap).length + ' en RSS';
     }
-}
-
-function escapeHTML(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 cargarDatos();
