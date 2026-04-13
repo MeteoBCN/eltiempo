@@ -25,8 +25,8 @@
         .status-left { display:flex; align-items:center; gap:8px; }
         .stxt { font-size:10px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--muted); }
         .scnt { font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; color:var(--accent); }
-        #map-wrap { position:relative; flex:1; min-height:400px; }
-        #map { width:100%; height:100%; min-height:400px; }
+        #map-wrap { position:relative; flex:1; min-height:420px; }
+        #map { width:100%; height:100%; min-height:420px; }
         #ov { position:absolute; inset:0; z-index:1000; background:rgba(26,37,51,0.85); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; transition:opacity 0.4s; }
         #ov.hidden { opacity:0; pointer-events:none; }
         .spinner { width:34px; height:34px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
@@ -38,7 +38,7 @@
         .leaflet-popup-tip-container { display:none; }
         .leaflet-popup-content { margin:0!important; }
         .leaflet-popup-close-button { color:var(--muted)!important; top:8px!important; right:10px!important; }
-        .pw { width:240px; font-family:'Barlow',sans-serif; }
+        .pw { width:250px; font-family:'Barlow',sans-serif; }
         .ph { background:linear-gradient(135deg,var(--navy2),#1e3048); border-bottom:1px solid var(--border); padding:11px 14px 9px; }
         .ph-id { font-size:8px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent); margin-bottom:2px; }
         .ph-name { font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:700; color:#fff; padding-right:18px; line-height:1.2; }
@@ -57,7 +57,6 @@
         .pf { border-top:1px solid var(--border); padding:7px 14px; display:flex; align-items:center; justify-content:space-between; }
         .pupd { font-size:9px; color:var(--muted); }
         .plink { font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--accent); text-decoration:none; border:1px solid var(--border); border-radius:5px; padding:3px 8px; }
-        .pnodata { padding:14px; text-align:center; color:var(--muted); font-size:12px; }
         .mc { display:flex; flex-direction:column; align-items:center; cursor:pointer; }
         .mc-b { border-radius:50% 50% 50% 0; transform:rotate(-45deg); width:36px; height:36px; display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,0.35); box-shadow:0 3px 10px rgba(0,0,0,0.45); }
         .mc-t { transform:rotate(45deg); font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:800; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.5); }
@@ -116,20 +115,12 @@
 </div>
 
 <script>
-// ── Estaciones Barcelona ciudad con coordenadas fijas ──
-const ESTACIONES = [
-    { id:'ESCAT0800000008015A', nombre:'Eixample',          lat:41.3879, lng:2.1699 },
-    { id:'ESCAT0800000008023I', nombre:'Sant Gervasi',      lat:41.4061, lng:2.1381 },
-    { id:'ESCAT0800000008018A', nombre:'El Clot',           lat:41.4082, lng:2.1914 },
-    { id:'ESCAT0800000008014F', nombre:'Plaça Sants',       lat:41.3789, lng:2.1414 },
-    { id:'ESCAT0800000008032A', nombre:'Horta',             lat:41.4316, lng:2.1655 },
-    { id:'ESCAT0800000008014B', nombre:'Sants-Montjuïc',    lat:41.3699, lng:2.1539 },
-    { id:'ESCAT0800000008023D', nombre:'El Coll-Vallcarca', lat:41.4155, lng:2.1481 },
-    { id:'ESCAT0800000008035A', nombre:'Vallcarca',         lat:41.4133, lng:2.1422 },
-];
+// ── Worker URL ──
+const WORKER = 'https://proxy-meteoclimatic.lojasergi.workers.dev';
 
-// ── Proxy PHP propio (mismo servidor que la web) ──
-const PROXY_PHP = 'https://proxy-meteoclimatic.lojasergi.workers.dev';
+// ── Bounding box de Barcelona ciudad (aproximado) ──
+// Solo mostramos estaciones dentro de estos límites
+const BCN = { latMin:41.32, latMax:41.47, lngMin:2.05, lngMax:2.23 };
 
 // ── Mapa ──
 const map = L.map('map', { center:[41.3983,2.162], zoom:13 });
@@ -157,68 +148,128 @@ function azimDir(d) {
     if (d===null||d===undefined||isNaN(d)) return '';
     return ' '+['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'][Math.round(d/22.5)%16];
 }
-function f(v,dec=1) { return (v!==null&&v!==undefined&&!isNaN(v)) ? Number(v).toFixed(dec) : '—'; }
+function f(v, dec=1) { return (v!==null&&v!==undefined&&!isNaN(v)) ? Number(v).toFixed(dec) : '—'; }
+function n(s) { return parseFloat(s.replace(',','.')); }
 
-// ── Parser RSS Meteoclimatic ──
-// Formato: [[<ID;(T;Tmax;Tmin);(H;Hmax;Hmin);(B;Bmax;Bmin);(W;Wmax;Azim);(P);Nombre>]]
-function parseRSS(rawTxt) {
-    const mapa = {};
-    // Desescapar entidades HTML por si el servidor las devuelve escapadas
-    let txt = rawTxt
-        .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
-    // Extraer CDATA si existe
-    const cdata = txt.match(/<!\[CDATA\[([\s\S]*?)\]\]>/g);
-    if (cdata) txt = cdata.map(m=>m.replace(/<!\[CDATA\[|\]\]>/g,'')).join('\n');
+// ── Parser RSS ──
+// Los datos están en comentarios HTML dentro de <description>:
+// <!-- [[<ID;(T;Tmax;Tmin;icono);(H;Hmax;Hmin);(B;Bmax;Bmin);(W;Wmax;Azim);(P);Nombre>]] -->
+// Las coordenadas vienen en <geo:lat> y <geo:long>
+function parseRSS(xmlText) {
+    const parser = new DOMParser();
+    const doc    = parser.parseFromString(xmlText, 'application/xml');
+    const items  = doc.querySelectorAll('item');
+    const estaciones = [];
 
-    const re = /\[\[<([\s\S]*?)>\]\]/g;
-    let m;
-    while ((m=re.exec(txt))!==null) {
+    items.forEach(item => {
         try {
-            const raw = m[1].replace(/,/g,'.').replace(/\s+/g,' ').trim();
-            const idEnd = raw.indexOf(';(');
-            if (idEnd<0) continue;
-            const id = raw.substring(0,idEnd).trim().toUpperCase();
-            const grupos = [];
-            const reG = /\(([^)]+)\)/g; let g;
-            while ((g=reG.exec(raw))!==null) grupos.push(g[1].split(';').map(Number));
-            if (grupos.length<4) continue;
-            const nombre = raw.substring(raw.lastIndexOf(')')+2).trim();
-            mapa[id] = {
-                temp:grupos[0]?.[0]??null, tmax:grupos[0]?.[1]??null, tmin:grupos[0]?.[2]??null,
-                hum:grupos[1]?.[0]??null, baro:grupos[2]?.[0]??null,
-                viento:grupos[3]?.[0]??null, azim:grupos[3]?.[2]??null,
-                prec:grupos[4]?.[0]??null, nombre,
-            };
+            // Coordenadas
+            const lat = parseFloat(item.querySelector('lat')?.textContent);
+            const lng = parseFloat(item.querySelector('long')?.textContent);
+            if (isNaN(lat)||isNaN(lng)) return;
+
+            // Filtrar solo Barcelona ciudad
+            if (lat<BCN.latMin||lat>BCN.latMax||lng<BCN.lngMin||lng>BCN.lngMax) return;
+
+            // Link para extraer ID
+            const link  = item.querySelector('link')?.textContent || '';
+            const id    = link.split('/perfil/')[1] || '';
+            const title = item.querySelector('title')?.textContent || '';
+
+            // Datos del comentario: [[<ID;(...);...;Nombre>]]
+            // El comentario está dentro de <description> como nodo hijo
+            const desc = item.querySelector('description');
+            let datos = null;
+
+            if (desc) {
+                // Obtener el texto completo incluyendo comentarios
+                const rawDesc = new XMLSerializer().serializeToString(desc);
+
+                // Buscar el bloque [[< ... >]]
+                const re = /\[\[<([^>]+)>\]\]/;
+                const m  = re.exec(rawDesc);
+                if (m) {
+                    const raw = m[1].trim();
+                    // Separar ID del resto
+                    const semi = raw.indexOf(';(');
+                    if (semi >= 0) {
+                        const grupos = [];
+                        const reG = /\(([^)]+)\)/g; let g;
+                        while ((g=reG.exec(raw))!==null) grupos.push(g[1].split(';').map(v=>n(v)));
+
+                        if (grupos.length >= 4) {
+                            // Nombre: después del último ')'
+                            const nombre = raw.substring(raw.lastIndexOf(')')+2).trim();
+                            datos = {
+                                temp:  grupos[0]?.[0] ?? null,
+                                tmax:  grupos[0]?.[1] ?? null,
+                                tmin:  grupos[0]?.[2] ?? null,
+                                hum:   grupos[1]?.[0] ?? null,
+                                baro:  grupos[2]?.[0] ?? null,
+                                viento:grupos[3]?.[0] ?? null,
+                                azim:  grupos[3]?.[2] ?? null,
+                                prec:  grupos[4]?.[0] ?? null,
+                                nombre: nombre || title,
+                            };
+                        }
+                    }
+                }
+            }
+
+            if (datos) {
+                estaciones.push({ id, lat, lng, ...datos });
+            }
         } catch(e) {}
-    }
-    return mapa;
+    });
+
+    return estaciones;
 }
 
 // ── Popup ──
-function popupHTML(est, d) {
-    if (!d) return `<div class="pw"><div class="ph"><div class="ph-id">${est.id}</div><div class="ph-name">${est.nombre}</div></div><div class="pnodata">Sin datos disponibles</div><div class="pf"><span></span><a class="plink" href="https://www.meteoclimatic.net/perfil/${est.id.toLowerCase()}" target="_blank">Ver estación</a></div></div>`;
-    return `<div class="pw"><div class="ph"><div class="ph-id">${est.id}</div><div class="ph-name">${d.nombre||est.nombre}</div></div>
-    <div class="pb">
-        <div class="temp-row"><span class="temp-big">${f(d.temp)}</span><span class="temp-unit">°C</span>
-        <div class="temp-mm"><span class="tmax">▲ ${f(d.tmax)}°</span><span class="tmin">▼ ${f(d.tmin)}°</span></div></div>
-        <div class="pgrid">
-            <div class="pd"><div class="pdl">Humedad</div><div class="pdv">${f(d.hum,0)}<span> %</span></div></div>
-            <div class="pd"><div class="pdl">Presión</div><div class="pdv" style="font-size:13px">${f(d.baro)}<span> hPa</span></div></div>
-            <div class="pd"><div class="pdl">Viento</div><div class="pdv">${f(d.viento,0)}<span> km/h${azimDir(d.azim)}</span></div></div>
-            <div class="pd"><div class="pdl">Lluvia hoy</div><div class="pdv" style="color:#60a5fa">${f(d.prec)}<span> mm</span></div></div>
+function popupHTML(e) {
+    return `<div class="pw">
+        <div class="ph">
+            <div class="ph-id">${e.id}</div>
+            <div class="ph-name">${e.nombre}</div>
         </div>
-    </div>
-    <div class="pf"><span class="pupd">Meteoclimatic · Tiempo real</span>
-    <a class="plink" href="https://www.meteoclimatic.net/perfil/${est.id.toLowerCase()}" target="_blank" rel="noopener">Ver más</a></div></div>`;
+        <div class="pb">
+            <div class="temp-row">
+                <span class="temp-big">${f(e.temp)}</span>
+                <span class="temp-unit">°C</span>
+                <div class="temp-mm">
+                    <span class="tmax">▲ ${f(e.tmax)}°</span>
+                    <span class="tmin">▼ ${f(e.tmin)}°</span>
+                </div>
+            </div>
+            <div class="pgrid">
+                <div class="pd"><div class="pdl">Humedad</div><div class="pdv">${f(e.hum,0)}<span> %</span></div></div>
+                <div class="pd"><div class="pdl">Presión</div><div class="pdv" style="font-size:13px">${f(e.baro)}<span> hPa</span></div></div>
+                <div class="pd"><div class="pdl">Viento</div><div class="pdv">${f(e.viento,0)}<span> km/h${azimDir(e.azim)}</span></div></div>
+                <div class="pd"><div class="pdl">Lluvia hoy</div><div class="pdv" style="color:#60a5fa">${f(e.prec)}<span> mm</span></div></div>
+            </div>
+        </div>
+        <div class="pf">
+            <span class="pupd">Meteoclimatic · Tiempo real</span>
+            <a class="plink" href="https://www.meteoclimatic.net/perfil/${e.id.toLowerCase()}" target="_blank" rel="noopener">Ver más</a>
+        </div>
+    </div>`;
 }
 
-// ── Marcadores base ──
+// ── Marcadores ──
 const marcadores = {};
-ESTACIONES.forEach(est => {
-    marcadores[est.id] = L.marker([est.lat,est.lng], { icon:crearIcono(null) })
-        .bindPopup(L.popup({maxWidth:260,minWidth:240}).setContent(popupHTML(est,null)))
-        .addTo(map);
-});
+
+function pintarEstaciones(estaciones) {
+    // Eliminar marcadores viejos
+    Object.values(marcadores).forEach(m => map.removeLayer(m));
+    Object.keys(marcadores).forEach(k => delete marcadores[k]);
+
+    estaciones.forEach(e => {
+        const mk = L.marker([e.lat, e.lng], { icon: crearIcono(e.temp) })
+            .bindPopup(L.popup({maxWidth:270, minWidth:250}).setContent(popupHTML(e)))
+            .addTo(map);
+        marcadores[e.id] = mk;
+    });
+}
 
 // ── Carga de datos ──
 async function cargarDatos() {
@@ -231,45 +282,33 @@ async function cargarDatos() {
     sdot.className = 'sdot';
     stxt.textContent = 'Actualizando…';
 
-    let txt = null;
     try {
-        const r = await fetch(PROXY_PHP, { signal: AbortSignal.timeout(12000) });
-        if (r.ok) txt = await r.text();
+        const r = await fetch(WORKER, { signal: AbortSignal.timeout(15000) });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const xml = await r.text();
+
+        if (!xml || xml.includes('QUERY ERROR') || xml.length < 200) {
+            throw new Error('Respuesta inválida del servidor');
+        }
+
+        const estaciones = parseRSS(xml);
+
+        ov.classList.add('hidden');
+        err.style.display = 'none';
+        pintarEstaciones(estaciones);
+
+        sdot.className = estaciones.length > 0 ? 'sdot ok' : 'sdot err';
+        stxt.textContent = estaciones.length > 0
+            ? 'Actualizado · ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})
+            : 'Sin estaciones en el área de Barcelona';
+        scnt.textContent = estaciones.length + ' estaciones';
+
     } catch(e) {
-        console.warn('[MC] Error fetch proxy PHP:', e.message);
-    }
-
-    ov.classList.add('hidden');
-
-    if (!txt || txt.length < 100 || txt.includes('Just a moment') || txt.includes('DOCTYPE')) {
+        ov.classList.add('hidden');
         sdot.className = 'sdot err';
         stxt.textContent = 'Error al cargar datos';
         err.style.display = 'block';
-        err.innerHTML = `<strong>⚠ No se pudo conectar con Meteoclimatic</strong>
-Asegúrate de que el archivo <b>proxy_mc.php</b> está subido al servidor junto a este mapa.<br>
-Meteoclimatic usa Cloudflare y bloquea los proxies públicos — el PHP del servidor propio es necesario.`;
-        return;
-    }
-
-    const datosMap = parseRSS(txt);
-    let activas = 0;
-    ESTACIONES.forEach(est => {
-        const d = datosMap[est.id] || null;
-        if (d) activas++;
-        marcadores[est.id].setIcon(crearIcono(d ? d.temp : null));
-        marcadores[est.id].setPopupContent(popupHTML(est, d));
-    });
-
-    err.style.display = 'none';
-
-    if (activas > 0) {
-        sdot.className = 'sdot ok';
-        stxt.textContent = 'Actualizado · ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-        scnt.textContent = activas + '/' + ESTACIONES.length + ' estaciones';
-    } else {
-        sdot.className = 'sdot err';
-        stxt.textContent = 'Sin datos de estas estaciones';
-        scnt.textContent = Object.keys(datosMap).length + ' en RSS';
+        err.innerHTML = `<strong>⚠ Error</strong>${e.message}`;
     }
 }
 
