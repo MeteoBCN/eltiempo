@@ -500,9 +500,12 @@ function parseRSS(txt) {
                 grupos.push(g[1].split(';').map(num));
             }
             if (grupos.length < 4) continue;
-            const CORRECCIONES = {"Can Bruixa":"Les Corts (Can Bruixa)","Torguineu":"Navas","betevé":"Poblenou (betevé)","Casa l'Aigua":"Trinitat Vella (Casa l'Aigua)","El Rectoret":"Les Planes (El Rectoret)"};
+            const CORRECCIONES_RAW = {"can bruixa":"Les Corts (Can Bruixa)","torguineu":"Navas","beteve":"Poblenou (betevé)","casa l'aigua":"Trinitat Vella (Casa l'Aigua)","el rectoret":"Les Planes (El Rectoret)"};
+            function normalizar(s) { return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
             let nombre = raw.substring(raw.lastIndexOf(')') + 2).trim().replace(/^Barcelona\s*[-\u2013]\s*/i, '').replace(/^Barcelona\s+/i, '');
-            if (nombre in CORRECCIONES) { if (!CORRECCIONES[nombre]) continue; nombre = CORRECCIONES[nombre]; }
+            const nombreNorm = normalizar(nombre);
+            const corr = Object.entries(CORRECCIONES_RAW).find(([k]) => normalizar(k) === nombreNorm);
+            if (corr) { if (!corr[1]) continue; nombre = corr[1]; }
             if (EXCLUIR.has(id)) continue;
             estaciones.push({
                 id, lat, lng, nombre,
