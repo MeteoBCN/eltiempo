@@ -554,12 +554,131 @@
         .f7-tab:hover { background: rgba(44,74,110,0.06) !important; }
         #f7-icons-row svg { width:24px !important; height:24px !important; display:block; }
         /* ══════════ FIN RESUMEN 7 DÍAS ══════════ */
+
+        /* ══════════ MENÚ NAVEGACIÓN ══════════ */
+        .nav-menu {
+            background: #1e2d3d;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 100;
+        }
+        .nav-menu-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 20px;
+            cursor: pointer;
+            user-select: none;
+            background: #1e2d3d;
+            border: none;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        .nav-menu-toggle:hover { background: #253546; }
+        .nav-menu-toggle span {
+            font-size: 10px;
+            font-weight: 700;
+            color: #a8c4d8;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .nav-menu-arrow {
+            font-size: 10px;
+            color: #a8c4d8;
+            transition: transform 0.3s ease;
+        }
+        .nav-menu-arrow.open { transform: rotate(180deg); }
+        .nav-menu-hamburger {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-right: 4px;
+        }
+        .nav-menu-hamburger span {
+            display: block;
+            width: 16px;
+            height: 2px;
+            background: #a8c4d8;
+            border-radius: 2px;
+            letter-spacing: 0;
+        }
+        .nav-dropdown {
+            display: none;
+            flex-direction: column;
+            background: #253546;
+            border-top: 1px solid rgba(168,196,216,0.15);
+        }
+        .nav-dropdown.open { display: flex; }
+        .nav-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 24px;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(168,196,216,0.1);
+            transition: background 0.2s;
+        }
+        .nav-dropdown a:last-child { border-bottom: none; }
+        .nav-dropdown a:hover { background: #2e4058; }
+        .nav-dropdown-icon { font-size: 18px; flex-shrink: 0; }
+        .nav-dropdown-text { display: flex; flex-direction: column; gap: 2px; }
+        .nav-dropdown-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #e2eaf0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .nav-dropdown-sub {
+            font-size: 10px;
+            color: #7a9bb5;
+            letter-spacing: 0.3px;
+        }
+        /* ══════════ FIN MENÚ NAVEGACIÓN ══════════ */
     </style>
 </head>
 <body>
     <div class="container">
 
         <div class="header-section"></div>
+
+        <!-- ══════ MENÚ NAVEGACIÓN ══════ -->
+        <nav class="nav-menu">
+            <button class="nav-menu-toggle" onclick="toggleNavMenu()" id="nav-toggle">
+                <div class="nav-menu-hamburger">
+                    <span></span><span></span><span></span>
+                </div>
+                <span>Más secciones</span>
+                <span class="nav-menu-arrow" id="nav-arrow">▼</span>
+            </button>
+            <div class="nav-dropdown" id="nav-dropdown">
+                <a href="divulgacion.htm">
+                    <span class="nav-dropdown-icon">📚</span>
+                    <div class="nav-dropdown-text">
+                        <span class="nav-dropdown-title">Aprende Meteorología y Datos Curiosos</span>
+                        <span class="nav-dropdown-sub">Divulgación meteorológica</span>
+                    </div>
+                </a>
+                <a href="mapa.html">
+                    <span class="nav-dropdown-icon">📍</span>
+                    <div class="nav-dropdown-text">
+                        <span class="nav-dropdown-title">Mapa Estaciones Automáticas</span>
+                        <span class="nav-dropdown-sub">Red de estaciones meteorológicas</span>
+                    </div>
+                </a>
+            </div>
+        </nav>
+        <script>
+        function toggleNavMenu() {
+            var dd = document.getElementById('nav-dropdown');
+            var arrow = document.getElementById('nav-arrow');
+            dd.classList.toggle('open');
+            arrow.classList.toggle('open');
+        }
+        </script>
+        <!-- ══════ FIN MENÚ NAVEGACIÓN ══════ -->
 
         <!-- ══════ AVISOS METEOCAT (Barcelonès) ══════ -->
         <div id="meteocat-avisos-section" style="max-width:600px;margin:0 auto;">
