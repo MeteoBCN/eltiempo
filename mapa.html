@@ -243,7 +243,7 @@
         .est-dato-v { font-size: 12px; font-weight: 700; color: var(--text); }
         .list-empty { padding: 30px 16px; text-align: center; font-size: 11px; color: var(--muted); }
 
-        /* ══════ GALLETA RESUMEN DÍA ══════ */
+        /* ══════ TABLA RESUMEN DÍA ══════ */
         #resumen-dia {
             background: linear-gradient(135deg, #1a2d3e 0%, #1e3a50 100%);
             border-top: 2px solid var(--accent);
@@ -251,7 +251,7 @@
             padding: 12px 16px;
             display: none;
             flex-direction: column;
-            gap: 6px;
+            gap: 10px;
             flex-shrink: 0;
         }
         #resumen-dia.visible { display: flex; }
@@ -261,56 +261,70 @@
             letter-spacing: 2px;
             text-transform: uppercase;
             color: var(--accent);
-            margin-bottom: 2px;
+            margin-bottom: 0;
         }
-        .resumen-cards {
-            display: flex;
-            gap: 8px;
-        }
-        .resumen-card {
-            flex: 1;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 9px 10px;
+        .resumen-tabla-wrap {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 2px;
-            min-width: 0;
+            gap: 8px;
         }
-        .resumen-card-icon { font-size: 16px; line-height: 1; }
-        .resumen-card-label {
-            font-size: 7px;
+        .resumen-tabla-bloque {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .resumen-tabla-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .resumen-tabla-header-label {
+            font-size: 8px;
             font-weight: 700;
-            letter-spacing: 1.2px;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
             color: var(--muted);
-            text-align: center;
         }
-        .resumen-card-value {
-            font-size: 20px;
-            font-weight: 300;
-            line-height: 1;
-            color: #fff;
+        .resumen-tabla-header.tmin .resumen-tabla-header-label { color: #60a5fa; }
+        .resumen-tabla-header.tmax .resumen-tabla-header-label { color: #f97316; }
+        .resumen-tabla-header.prec .resumen-tabla-header-label { color: #6fcfe0; }
+        .resumen-fila {
+            display: grid;
+            grid-template-columns: 18px 1fr auto;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-bottom: 1px solid rgba(168,196,216,0.08);
         }
-        .resumen-card-value span {
-            font-size: 11px;
-            font-weight: 400;
+        .resumen-fila:last-child { border-bottom: none; }
+        .resumen-fila-pos {
+            font-size: 9px;
+            font-weight: 700;
             color: var(--muted);
-        }
-        .resumen-card-station {
-            font-size: 8px;
-            color: #7a9bb5;
+            opacity: 0.6;
             text-align: center;
+        }
+        .resumen-fila-pos.gold { color: #fbbf24; opacity: 1; }
+        .resumen-fila-nombre {
+            font-size: 11px;
+            font-weight: 600;
+            color: #cde0ef;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 100%;
         }
-        .resumen-card.tmin .resumen-card-value { color: #60a5fa; }
-        .resumen-card.tmax .resumen-card-value { color: #f97316; }
-        .resumen-card.prec .resumen-card-value { color: #60a5fa; }
+        .resumen-fila-val {
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .resumen-fila-val span { font-size: 9px; font-weight: 400; color: var(--muted); }
+        .tmin .resumen-fila-val { color: #60a5fa; }
+        .tmax .resumen-fila-val { color: #f97316; }
+        .prec .resumen-fila-val { color: #6fcfe0; }
 
         /* ══════ FOOTER ══════ */
         .page-footer {
@@ -382,24 +396,30 @@
         </div>
     </div>
 
-    <!-- GALLETA RESUMEN DEL DÍA -->
+    <!-- TABLA RESUMEN DEL DÍA -->
     <div id="resumen-dia">
         <div class="resumen-title">Resumen del día · Barcelona</div>
-        <div class="resumen-cards">
-            <div class="resumen-card tmin">
-                <div class="resumen-card-label">Mínima</div>
-                <div class="resumen-card-value" id="res-tmin">—<span>°C</span></div>
-                <div class="resumen-card-station" id="res-tmin-sta">—</div>
+        <div class="resumen-tabla-wrap">
+            <!-- Mínimas -->
+            <div class="resumen-tabla-bloque">
+                <div class="resumen-tabla-header tmin">
+                    <span class="resumen-tabla-header-label">🔵 Mínimas del día</span>
+                </div>
+                <div id="res-tmin-rows"></div>
             </div>
-            <div class="resumen-card tmax">
-                <div class="resumen-card-label">Máxima</div>
-                <div class="resumen-card-value" id="res-tmax">—<span>°C</span></div>
-                <div class="resumen-card-station" id="res-tmax-sta">—</div>
+            <!-- Máximas -->
+            <div class="resumen-tabla-bloque">
+                <div class="resumen-tabla-header tmax">
+                    <span class="resumen-tabla-header-label">🔴 Máximas del día</span>
+                </div>
+                <div id="res-tmax-rows"></div>
             </div>
-            <div class="resumen-card prec">
-                <div class="resumen-card-label">Lluvia máxima</div>
-                <div class="resumen-card-value" id="res-prec">—<span> mm</span></div>
-                <div class="resumen-card-station" id="res-prec-sta">—</div>
+            <!-- Precipitación -->
+            <div class="resumen-tabla-bloque">
+                <div class="resumen-tabla-header prec">
+                    <span class="resumen-tabla-header-label">🌧 Lluvia acumulada</span>
+                </div>
+                <div id="res-prec-rows"></div>
             </div>
         </div>
     </div>
@@ -503,35 +523,40 @@ function parseRSS(txt) {
 }
 
 function actualizarResumen(estaciones) {
-    let tminVal = Infinity, tminSta = '';
-    let tmaxVal = -Infinity, tmaxSta = '';
-    let precVal = -Infinity, precSta = '';
+    const tminList = [], tmaxList = [], precList = [];
 
     for (const e of estaciones) {
         const tmin = (e.tmin !== null && !isNaN(e.tmin)) ? Number(e.tmin) : null;
         const tmax = (e.tmax !== null && !isNaN(e.tmax)) ? Number(e.tmax) : null;
         const prec = (e.prec !== null && !isNaN(e.prec)) ? Number(e.prec) : null;
-        if (tmin !== null && tmin < tminVal) { tminVal = tmin; tminSta = e.nombre; }
-        if (tmax !== null && tmax > tmaxVal) { tmaxVal = tmax; tmaxSta = e.nombre; }
-        if (prec !== null && prec > precVal) { precVal = prec; precSta = e.nombre; }
+        if (tmin !== null) tminList.push({ val: tmin, nombre: e.nombre });
+        if (tmax !== null) tmaxList.push({ val: tmax, nombre: e.nombre });
+        if (prec !== null) precList.push({ val: prec, nombre: e.nombre });
     }
 
-    const box = document.getElementById('resumen-dia');
-    if (tminVal === Infinity && tmaxVal === -Infinity) return;
-    box.classList.add('visible');
+    if (!tminList.length && !tmaxList.length) return;
+    document.getElementById('resumen-dia').classList.add('visible');
 
-    if (tminVal !== Infinity) {
-        document.getElementById('res-tmin').innerHTML = Number(tminVal).toFixed(1) + '<span>°C</span>';
-        document.getElementById('res-tmin-sta').textContent = tminSta;
+    tminList.sort((a,b) => a.val - b.val);
+    tmaxList.sort((a,b) => b.val - a.val);
+    precList.sort((a,b) => b.val - a.val);
+
+    const MEDALS = ['🥇','🥈','🥉'];
+
+    function renderRows(containerId, list, unit, cssClass) {
+        const wrap = document.getElementById(containerId);
+        const top3 = list.slice(0, 3);
+        wrap.innerHTML = top3.map((item, i) => `
+            <div class="resumen-fila ${cssClass}">
+                <div class="resumen-fila-pos${i===0?' gold':''}">${MEDALS[i]}</div>
+                <div class="resumen-fila-nombre">${item.nombre}</div>
+                <div class="resumen-fila-val">${item.val.toFixed(1)}<span>${unit}</span></div>
+            </div>`).join('');
     }
-    if (tmaxVal !== -Infinity) {
-        document.getElementById('res-tmax').innerHTML = Number(tmaxVal).toFixed(1) + '<span>°C</span>';
-        document.getElementById('res-tmax-sta').textContent = tmaxSta;
-    }
-    if (precVal !== -Infinity) {
-        document.getElementById('res-prec').innerHTML = Number(precVal).toFixed(1) + '<span> mm</span>';
-        document.getElementById('res-prec-sta').textContent = precSta;
-    }
+
+    renderRows('res-tmin-rows', tminList, ' °C', 'tmin');
+    renderRows('res-tmax-rows', tmaxList, ' °C', 'tmax');
+    renderRows('res-prec-rows', precList, ' mm', 'prec');
 }
 
 function corregirNombre(n) {
