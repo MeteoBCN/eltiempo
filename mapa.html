@@ -233,7 +233,7 @@
         .est-nombre { font-size: 14px; font-weight: 700; color: #fff; line-height: 1.2; }
         .est-id { font-size: 8px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-top: 1px; }
         .est-temp-col { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
-        .est-temp { font-size: 22px; font-weight: 300; line-height: 1; }
+        .est-temp { font-size: 22px; font-weight: 300; line-height: 1; color: #fff; }
         .est-mm { font-size: 9px; color: var(--muted); margin-top: 1px; }
         .est-mm span { color: #f97316; }
         .est-mm span.mn { color: #60a5fa; }
@@ -427,16 +427,6 @@
     <!-- ERROR -->
     <div id="err-panel"></div>
 
-    <!-- LEYENDA -->
-    <div class="legend">
-        <span class="ll">Temperatura</span>
-        <div class="li"><div class="ld" style="background:#60a5fa"></div><span class="lt">&lt;10°</span></div>
-        <div class="li"><div class="ld" style="background:#34d399"></div><span class="lt">10–20°</span></div>
-        <div class="li"><div class="ld" style="background:#fbbf24"></div><span class="lt">20–28°</span></div>
-        <div class="li"><div class="ld" style="background:#f97316"></div><span class="lt">28–35°</span></div>
-        <div class="li"><div class="ld" style="background:#ef4444"></div><span class="lt">&gt;35°</span></div>
-    </div>
-
     <!-- LISTA ESTACIONES -->
     <div class="list-header">
         <span class="list-header-title">Estaciones · A–Z</span>
@@ -575,13 +565,12 @@ function renderList(estaciones) {
     cnt.textContent = sorted.length + ' estaciones';
     if (!sorted.length) { wrap.innerHTML = '<div class="list-empty">Sin estaciones en el área</div>'; return; }
     wrap.innerHTML = sorted.map(e => {
-        const tc = tempColor(e.temp);
         return `<div class="est-row">
             <div>
                 <div class="est-nombre">${e.nombre}</div>
             </div>
             <div class="est-temp-col">
-                <span class="est-temp" style="color:${tc}">${f(e.temp)}°</span>
+                <span class="est-temp">${f(e.temp)}°</span>
                 <span class="est-mm"><span>▲${f(e.tmax)}°</span> <span class="mn">▼${f(e.tmin)}°</span></span>
             </div>
             <div class="est-datos">
