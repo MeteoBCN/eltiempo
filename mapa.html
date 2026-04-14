@@ -361,6 +361,75 @@
         .est-dato-v { font-size: 12px; font-weight: 700; color: var(--text); }
         .list-empty { padding: 30px 16px; text-align: center; font-size: 11px; color: var(--muted); }
 
+        /* ══════ GALLETA RESUMEN DÍA ══════ */
+        #resumen-dia {
+            background: linear-gradient(135deg, #1a2d3e 0%, #1e3a50 100%);
+            border-top: 2px solid var(--accent);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        #resumen-dia.visible { display: flex; }
+        .resumen-title {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 2px;
+        }
+        .resumen-cards {
+            display: flex;
+            gap: 8px;
+        }
+        .resumen-card {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 9px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            min-width: 0;
+        }
+        .resumen-card-icon { font-size: 16px; line-height: 1; }
+        .resumen-card-label {
+            font-size: 7px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            text-align: center;
+        }
+        .resumen-card-value {
+            font-size: 20px;
+            font-weight: 300;
+            line-height: 1;
+            color: #fff;
+        }
+        .resumen-card-value span {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--muted);
+        }
+        .resumen-card-station {
+            font-size: 8px;
+            color: #7a9bb5;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        .resumen-card.tmin .resumen-card-value { color: #60a5fa; }
+        .resumen-card.tmax .resumen-card-value { color: #f97316; }
+        .resumen-card.prec .resumen-card-value { color: #60a5fa; }
+
         /* ══════ FOOTER ══════ */
         .page-footer {
             background: var(--navy2);
@@ -432,6 +501,31 @@
         <div class="title-bar-text">
             <span class="title-bar-sub">Datos en tiempo real · Barcelona</span>
             <span class="title-bar-name">Estaciones Meteoclimatic</span>
+        </div>
+    </div>
+
+    <!-- GALLETA RESUMEN DEL DÍA -->
+    <div id="resumen-dia">
+        <div class="resumen-title">📊 Resumen del día · Barcelona</div>
+        <div class="resumen-cards">
+            <div class="resumen-card tmin">
+                <div class="resumen-card-icon">🥶</div>
+                <div class="resumen-card-label">Mín. más baja</div>
+                <div class="resumen-card-value" id="res-tmin">—<span>°C</span></div>
+                <div class="resumen-card-station" id="res-tmin-sta">—</div>
+            </div>
+            <div class="resumen-card tmax">
+                <div class="resumen-card-icon">🔥</div>
+                <div class="resumen-card-label">Máx. más alta</div>
+                <div class="resumen-card-value" id="res-tmax">—<span>°C</span></div>
+                <div class="resumen-card-station" id="res-tmax-sta">—</div>
+            </div>
+            <div class="resumen-card prec">
+                <div class="resumen-card-icon">🌧️</div>
+                <div class="resumen-card-label">Lluvia máx.</div>
+                <div class="resumen-card-value" id="res-prec">—<span> mm</span></div>
+                <div class="resumen-card-station" id="res-prec-sta">—</div>
+            </div>
         </div>
     </div>
 
@@ -603,7 +697,38 @@ function popupHTML(e) {
     </div>`;
 }
 
-const marcadores = {};
+function actualizarResumen(estaciones) {
+    let tminVal = Infinity, tminSta = '';
+    let tmaxVal = -Infinity, tmaxSta = '';
+    let precVal = -Infinity, precSta = '';
+
+    for (const e of estaciones) {
+        const tmin = (e.tmin !== null && !isNaN(e.tmin)) ? Number(e.tmin) : null;
+        const tmax = (e.tmax !== null && !isNaN(e.tmax)) ? Number(e.tmax) : null;
+        const prec = (e.prec !== null && !isNaN(e.prec)) ? Number(e.prec) : null;
+        if (tmin !== null && tmin < tminVal) { tminVal = tmin; tminSta = e.nombre; }
+        if (tmax !== null && tmax > tmaxVal) { tmaxVal = tmax; tmaxSta = e.nombre; }
+        if (prec !== null && prec > precVal) { precVal = prec; precSta = e.nombre; }
+    }
+
+    const box = document.getElementById('resumen-dia');
+    if (tminVal === Infinity && tmaxVal === -Infinity) return;
+    box.classList.add('visible');
+
+    if (tminVal !== Infinity) {
+        document.getElementById('res-tmin').innerHTML = Number(tminVal).toFixed(1) + '<span>°C</span>';
+        document.getElementById('res-tmin-sta').textContent = tminSta;
+    }
+    if (tmaxVal !== -Infinity) {
+        document.getElementById('res-tmax').innerHTML = Number(tmaxVal).toFixed(1) + '<span>°C</span>';
+        document.getElementById('res-tmax-sta').textContent = tmaxSta;
+    }
+    if (precVal !== -Infinity) {
+        document.getElementById('res-prec').innerHTML = Number(precVal).toFixed(1) + '<span> mm</span>';
+        document.getElementById('res-prec-sta').textContent = precSta;
+    }
+}
+
 
 function corregirNombre(n) {
     if (n.includes('betev')) return 'Poblenou (Betevé)';
@@ -662,6 +787,7 @@ async function cargarDatos() {
         err.style.display = 'none';
         pintarEstaciones(estaciones);
         renderList(estaciones);
+        actualizarResumen(estaciones);
     } catch(e) {
         ov.classList.add('hidden');
         err.style.display = 'block';
