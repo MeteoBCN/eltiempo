@@ -7,8 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
     <style>
         :root {
             --navy: #1e2d3d;
@@ -170,85 +169,6 @@
         }
 
 
-        /* ══════ LEYENDA MAPA ══════ */
-        #map-legend {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            z-index: 999;
-            background: rgba(26,37,51,0.92);
-            border-radius: 8px;
-            padding: 7px 9px;
-            border: 1px solid rgba(168,196,216,0.2);
-            font-family: 'Inter', sans-serif;
-        }
-        #map-legend .leg-title {
-            font-size: 8px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: #a8c4d8;
-            margin-bottom: 5px;
-            text-align: center;
-        }
-        #map-legend .leg-bar {
-            display: flex;
-            height: 10px;
-            border-radius: 4px;
-            overflow: hidden;
-            width: 180px;
-            margin-bottom: 3px;
-        }
-        #map-legend .leg-labels {
-            display: flex;
-            justify-content: space-between;
-            width: 180px;
-        }
-        #map-legend .leg-labels span {
-            font-size: 7px;
-            font-weight: 600;
-            color: #a8c4d8;
-        }
-        /* ══════ MAPA ══════ */
-        #map-wrap {
-            position: relative;
-            height: 380px;
-            flex-shrink: 0;
-            overflow: hidden;
-        }
-        #map { position: absolute; inset: 0; }
-
-        /* Overlay loading */
-        #ov {
-            position: absolute;
-            inset: 0;
-            z-index: 1000;
-            background: rgba(26,37,51,0.85);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            transition: opacity 0.4s;
-        }
-        #ov.hidden { opacity: 0; pointer-events: none; }
-        .spinner {
-            width: 34px;
-            height: 34px;
-            border: 3px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .ov-txt {
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--accent);
-        }
-
         /* Error */
         #err-panel {
             display: none;
@@ -263,44 +183,6 @@
             flex-shrink: 0;
         }
         #err-panel strong { color: #f87171; display: block; margin-bottom: 4px; }
-
-        /* ══════ POPUPS ══════ */
-        .leaflet-popup-content-wrapper {
-            background: rgba(26,37,51,0.97) !important;
-            border: 1px solid var(--border) !important;
-            border-radius: 12px !important;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
-            padding: 0 !important;
-            overflow: hidden;
-        }
-        .leaflet-popup-tip-container { display: none; }
-        .leaflet-popup-content { margin: 0 !important; }
-        .leaflet-popup-close-button { color: var(--muted) !important; top: 8px !important; right: 10px !important; }
-        .pw { width: 250px; font-family: 'Inter', sans-serif; }
-        .ph { background: linear-gradient(135deg, var(--navy2), #1e3048); border-bottom: 1px solid var(--border); padding: 11px 14px 9px; }
-        .ph-id { font-size: 8px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 2px; }
-        .ph-name { font-size: 15px; font-weight: 700; color: #fff; padding-right: 18px; line-height: 1.2; }
-        .pb { padding: 11px 14px; }
-        .temp-row { display: flex; align-items: baseline; gap: 5px; margin-bottom: 11px; }
-        .temp-big { font-size: 42px; font-weight: 300; color: #fff; line-height: 1; }
-        .temp-unit { font-size: 15px; color: var(--muted); }
-        .temp-mm { display: flex; flex-direction: column; gap: 1px; margin-left: 4px; }
-        .tmax { font-size: 12px; font-weight: 700; color: #f97316; }
-        .tmin { font-size: 12px; font-weight: 700; color: #60a5fa; }
-        .pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 10px; }
-        .pd { background: rgba(111,207,224,0.06); border: 1px solid var(--border); border-radius: 7px; padding: 7px 8px; }
-        .pdl { font-size: 8px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
-        .pdv { font-size: 15px; font-weight: 700; color: var(--text); }
-        .pdv span { font-size: 10px; font-weight: 400; color: var(--muted); }
-        .pf { border-top: 1px solid var(--border); padding: 7px 14px; display: flex; align-items: center; justify-content: space-between; }
-        .pupd { font-size: 9px; color: var(--muted); }
-        .plink { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); text-decoration: none; border: 1px solid var(--border); border-radius: 5px; padding: 3px 8px; }
-
-        /* ══════ MARCADORES ══════ */
-        .mc { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
-        .mc-b { border-radius: 50% 50% 50% 0; transform: rotate(-45deg); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,0.35); box-shadow: 0 3px 10px rgba(0,0,0,0.45); }
-        .mc-t { transform: rotate(45deg); font-size: 12px; font-weight: 800; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
-        .mc-d { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.45); margin-top: 2px; }
 
         /* ══════ LEYENDA ══════ */
         .legend {
@@ -449,10 +331,6 @@
         }
         .page-footer a:hover { color: var(--accent); }
 
-        /* Leaflet overrides */
-        .leaflet-control-zoom a { background: #fff !important; color: #1a2533 !important; border-color: #ccc !important; }
-        .leaflet-control-attribution { background: rgba(255,255,255,0.85) !important; color: #555 !important; font-size: 9px !important; }
-        .leaflet-control-attribution a { color: #1a7db5 !important; }
     </style>
 </head>
 <body>
@@ -532,28 +410,6 @@
     <!-- ERROR -->
     <div id="err-panel"></div>
 
-    <!-- MAPA -->
-    <div id="map-wrap">
-        <div id="map"></div>
-        <div id="ov">
-            <div class="spinner"></div>
-            <div class="ov-txt">Cargando estaciones</div>
-        </div>
-
-        <div id="map-legend">
-            <div class="leg-title">°C</div>
-            <div class="leg-bar" id="leg-bar"></div>
-            <div class="leg-labels">
-                <span>-4</span>
-                <span>0</span>
-                <span>10</span>
-                <span>20</span>
-                <span>30</span>
-                <span>40</span>
-            </div>
-        </div>
-    </div>
-
     <!-- LEYENDA -->
     <div class="legend">
         <span class="ll">Temperatura</span>
@@ -582,30 +438,11 @@
 const WORKER = 'https://proxy-meteoclimatic.lojasergi.workers.dev';
 const BCN = { latMin:41.32, latMax:41.47, lngMin:2.05, lngMax:2.23 };
 
-const map = L.map('map', {
-    center:[41.414780, 2.159326], zoom:12,
-    zoomControl:false, dragging:false, scrollWheelZoom:false,
-    doubleClickZoom:false, touchZoom:false, boxZoom:false,
-    keyboard:false, tap:false, interactive:false
-});
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution:'&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-    subdomains:'abcd', maxZoom:19,
-}).addTo(map);
-
 function tempColor(t) {
     if (t===null||isNaN(t)) return '#8fa3b8';
     if (t<10) return '#60a5fa'; if (t<20) return '#34d399';
     if (t<28) return '#fbbf24'; if (t<35) return '#f97316';
     return '#ef4444';
-}
-function crearIcono(temp) {
-    const c = tempColor(temp);
-    const l = (temp!==null&&!isNaN(temp)) ? Math.round(temp)+'°' : '?';
-    return L.divIcon({
-        html:`<div class="mc"><div class="mc-b" style="background:${c}"><span class="mc-t">${l}</span></div><div class="mc-d"></div></div>`,
-        className:'', iconSize:[36,46], iconAnchor:[18,46], popupAnchor:[0,-48],
-    });
 }
 function azimDir(d) {
     if (d===null||d===undefined||isNaN(d)) return '';
@@ -668,35 +505,6 @@ function parseRSS(txt) {
     return estaciones;
 }
 
-function popupHTML(e) {
-    return `<div class="pw">
-        <div class="ph">
-            <div class="ph-id">${e.id}</div>
-            <div class="ph-name">${e.nombre}</div>
-        </div>
-        <div class="pb">
-            <div class="temp-row">
-                <span class="temp-big">${f(e.temp)}</span>
-                <span class="temp-unit">°C</span>
-                <div class="temp-mm">
-                    <span class="tmax">▲ ${f(e.tmax)}°</span>
-                    <span class="tmin">▼ ${f(e.tmin)}°</span>
-                </div>
-            </div>
-            <div class="pgrid">
-                <div class="pd"><div class="pdl">Humedad</div><div class="pdv">${f(e.hum,0)}<span> %</span></div></div>
-                <div class="pd"><div class="pdl">Presión</div><div class="pdv" style="font-size:13px">${f(e.baro)}<span> hPa</span></div></div>
-                <div class="pd"><div class="pdl">Viento</div><div class="pdv">${f(e.viento,0)}<span> km/h${azimDir(e.azim)}</span></div></div>
-                <div class="pd"><div class="pdl">Lluvia hoy</div><div class="pdv" style="color:#60a5fa">${f(e.prec)}<span> mm</span></div></div>
-            </div>
-        </div>
-        <div class="pf">
-            <span class="pupd">Meteoclimatic · Tiempo real</span>
-            <a class="plink" href="https://www.meteoclimatic.net/perfil/${e.id.toLowerCase()}" target="_blank" rel="noopener">Ver más</a>
-        </div>
-    </div>`;
-}
-
 function actualizarResumen(estaciones) {
     let tminVal = Infinity, tminSta = '';
     let tmaxVal = -Infinity, tmaxSta = '';
@@ -729,7 +537,6 @@ function actualizarResumen(estaciones) {
     }
 }
 
-
 function corregirNombre(n) {
     if (n.includes('betev')) return 'Poblenou (Betevé)';
     if (n.includes('Torguineu') || n.includes('torguineu')) return 'Navas';
@@ -737,6 +544,7 @@ function corregirNombre(n) {
     if (n.includes('Aigua') || n.includes('aigua')) return "Trinitat Vella (Casa l'Aigua)";
     return n;
 }
+
 function renderList(estaciones) {
     const wrap = document.getElementById('est-list');
     const cnt  = document.getElementById('list-count');
@@ -764,17 +572,7 @@ function renderList(estaciones) {
     }).join('');
 }
 
-function pintarEstaciones(estaciones) {
-    Object.values(marcadores).forEach(m => map.removeLayer(m));
-    Object.keys(marcadores).forEach(k => delete marcadores[k]);
-    estaciones.forEach(e => {
-        const mk = L.marker([e.lat, e.lng], { icon: crearIcono(e.temp), interactive:false }).addTo(map);
-        marcadores[e.id] = mk;
-    });
-}
-
 async function cargarDatos() {
-    const ov  = document.getElementById('ov');
     const err = document.getElementById('err-panel');
     try {
         const r = await fetch(WORKER, { signal: AbortSignal.timeout(15000) });
@@ -782,52 +580,15 @@ async function cargarDatos() {
         const xml = await r.text();
         if (!xml || xml.includes('QUERY ERROR') || xml.length < 200) throw new Error('Respuesta inválida');
         const estaciones = parseRSS(xml);
-
-        ov.classList.add('hidden');
         err.style.display = 'none';
-        pintarEstaciones(estaciones);
         renderList(estaciones);
         actualizarResumen(estaciones);
     } catch(e) {
-        ov.classList.add('hidden');
         err.style.display = 'block';
         err.innerHTML = `<strong>⚠ Error</strong>${e.message}`;
     }
 }
 
-
-// Build legend gradient
-(function() {
-    const steps = [];
-    for (let t = -4; t <= 40; t += 0.5) {
-        const pct = (t + 4) / 44 * 100;
-        let c;
-        if      (t < -2) c = '#7b2ff7';
-        else if (t <  0) c = '#5b5fff';
-        else if (t <  2) c = '#4499ff';
-        else if (t <  4) c = '#33bbff';
-        else if (t <  6) c = '#22ddee';
-        else if (t <  8) c = '#11eecc';
-        else if (t < 10) c = '#00e5aa';
-        else if (t < 12) c = '#22d47a';
-        else if (t < 14) c = '#55cc44';
-        else if (t < 16) c = '#88cc22';
-        else if (t < 18) c = '#aace00';
-        else if (t < 20) c = '#cccc00';
-        else if (t < 22) c = '#eebb00';
-        else if (t < 24) c = '#ffaa00';
-        else if (t < 26) c = '#ff8800';
-        else if (t < 28) c = '#ff6600';
-        else if (t < 30) c = '#ff4400';
-        else if (t < 32) c = '#ee2200';
-        else if (t < 34) c = '#dd0000';
-        else if (t < 36) c = '#bb0000';
-        else if (t < 38) c = '#990022';
-        else             c = '#770044';
-        steps.push(c + ' ' + pct.toFixed(1) + '%');
-    }
-    document.getElementById('leg-bar').style.background = 'linear-gradient(to right,' + steps.join(',') + ')';
-})();
 cargarDatos();
 setInterval(cargarDatos, 10 * 60 * 1000);
 </script>
