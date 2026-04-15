@@ -847,28 +847,16 @@
                     <span id="arrow-radar-rainviewer" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
                 </div>
             <div id="panel-radar-rainviewer" style="display:none;overflow:hidden;">
-                <!-- Radar AEMET Barcelona (GIF animado oficial) -->
-                <div style="position:relative;width:100%;background:#0d1b2a;text-align:center;min-height:180px;">
-                    <!-- Spinner de carga -->
-                    <div id="aemet-radar-spinner" style="display:flex;align-items:center;justify-content:center;gap:10px;position:absolute;inset:0;z-index:5;background:rgba(13,27,42,0.85);">
-                        <div style="width:22px;height:22px;border:3px solid rgba(255,255,255,0.2);border-top-color:#6fcfe0;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-                        <span style="font-size:12px;color:rgba(255,255,255,0.6);letter-spacing:0.5px;">Cargando radar…</span>
+                <!-- Radar animado RainViewer via Leaflet -->
+                <div style="position:relative;width:100%;background:#0d1b2a;">
+                    <div id="rv-radar-map" style="width:100%;height:320px;"></div>
+                    <div style="background:#1a2a3a;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 12px;flex-wrap:wrap;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <button id="rv-play-btn" onclick="_rvTogglePlay()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.4);color:#fff;font-size:12px;font-weight:700;padding:4px 14px;border-radius:5px;cursor:pointer;">&#9646;&#9646; PAUSA</button>
+                            <span id="rv-time-lbl" style="font-size:11px;color:rgba(255,255,255,0.55);"></span>
+                        </div>
+                        <span style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase;">Fuente: RainViewer</span>
                     </div>
-                    <img id="aemet-radar-img"
-                         src=""
-                         alt="Radar AEMET Barcelona"
-                         style="width:100%;display:block;max-width:600px;margin:0 auto;"
-                         onerror="this.style.display='none';var s=document.getElementById('aemet-radar-spinner');if(s)s.innerHTML='<span style=&quot;font-size:12px;color:rgba(255,255,255,0.5);&quot;>Radar no disponible</span>';" />
-                    <div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(13,27,42,0.82);border-radius:16px;padding:4px 14px;font-size:11px;font-weight:700;color:#fff;letter-spacing:0.5px;white-space:nowrap;backdrop-filter:blur(4px);">
-                        Radar AEMET · Barcelona
-                    </div>
-                    <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(13,27,42,0.70);display:flex;align-items:center;justify-content:center;gap:12px;padding:7px 10px;">
-                        <button onclick="_aemetRadarReload()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.4);color:#fff;font-size:12px;font-weight:700;padding:5px 16px;border-radius:5px;cursor:pointer;letter-spacing:0.5px;">🔄 ACTUALIZAR</button>
-                        <span id="aemet-radar-ts" style="font-size:11px;color:rgba(255,255,255,0.55);"></span>
-                    </div>
-                </div>
-                <div style="background:#1e293b;padding:6px 12px;text-align:center;">
-                    <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: AEMET · Radar PEN-BAR</span>
                 </div>
             </div>
             </div>
@@ -882,86 +870,82 @@
         // lo convertimos a data URL para el <img>.
         var AEMET_RADAR_URL = 'https://www.aemet.es/imagenes_d/eltiempo/observacion/radar/BAR_z.gif';
 
-        // Convierte un ArrayBuffer a data URI base64
-        function _bufferToDataURI(buffer, mimeType) {
-            var bytes = new Uint8Array(buffer);
-            var chunkSize = 8192;
-            var binary = '';
-            for (var i = 0; i < bytes.byteLength; i += chunkSize) {
-                var chunk = bytes.subarray(i, i + chunkSize);
-                binary += String.fromCharCode.apply(null, chunk);
-            }
-            return 'data:' + mimeType + ';base64,' + btoa(binary);
-        }
+        /* ════════ RADAR RAINVIEWER — Leaflet animado ════════ */
+        var _rvMap = null, _rvLayers = [], _rvFrames = [], _rvIdx = 0;
+        var _rvTimer = null, _rvPlaying = true, _rvInited = false;
 
-        // Verifica que el buffer sea un GIF válido (empieza con GIF87a o GIF89a)
-        function _isValidGif(buffer) {
-            var bytes = new Uint8Array(buffer);
-            return bytes.length > 6 &&
-                bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46; // "GIF"
-        }
+        function _rvInit() {
+            if (_rvInited) return;
+            _rvInited = true;
 
-        function _aemetRadarLoad() {
-            var img     = document.getElementById('aemet-radar-img');
-            var ts      = document.getElementById('aemet-radar-ts');
-            var spinner = document.getElementById('aemet-radar-spinner');
-            if (!img) return;
+            // Esperar a que el div sea visible (está en panel oculto)
+            var mapEl = document.getElementById('rv-radar-map');
+            if (!mapEl) return;
 
-            if (spinner) spinner.style.display = 'flex';
-            img.style.opacity = '0.4';
+            _rvMap = L.map('rv-radar-map', {
+                center: [41.39, 2.15],
+                zoom: 7,
+                zoomControl: true,
+                attributionControl: false
+            });
 
-            var t = Date.now();
-            var targetUrl = AEMET_RADAR_URL + '?t=' + t;
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 18
+            }).addTo(_rvMap);
 
-            // Lista de proxies a intentar en orden
-            var proxies = [
-                'https://corsproxy.io/?' + encodeURIComponent(targetUrl),
-                'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl),
-                'https://thingproxy.freeboard.io/fetch/' + targetUrl,
-            ];
-
-            function tryProxy(index) {
-                if (index >= proxies.length) {
-                    console.warn('[Radar AEMET] Todos los proxies fallaron');
-                    if (spinner) spinner.innerHTML = '<span style="font-size:12px;color:rgba(255,255,255,0.5);">Radar no disponible</span>';
-                    img.style.opacity = '0';
-                    return;
-                }
-
-                console.log('[Radar AEMET] Intentando proxy ' + index + ':', proxies[index]);
-
-                fetch(proxies[index], { signal: AbortSignal.timeout(15000) })
-                    .then(function(r) {
-                        if (!r.ok) throw new Error('HTTP ' + r.status);
-                        return r.arrayBuffer();
-                    })
-                    .then(function(buffer) {
-                        if (!_isValidGif(buffer)) {
-                            throw new Error('Respuesta no es un GIF válido (' + buffer.byteLength + ' bytes)');
-                        }
-                        var dataUri = _bufferToDataURI(buffer, 'image/gif');
-                        img.src = dataUri;
-                        img.style.opacity = '1';
-                        if (spinner) spinner.style.display = 'none';
-                        if (ts) {
-                            var now = new Date();
-                            ts.textContent = 'Actualizado ' + now.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'}) + ' h';
-                        }
-                        console.log('[Radar AEMET] OK con proxy ' + index + ', ' + buffer.byteLength + ' bytes');
-                    })
-                    .catch(function(err) {
-                        console.warn('[Radar AEMET] Proxy ' + index + ' falló:', err.message);
-                        tryProxy(index + 1);
+            fetch('https://api.rainviewer.com/public/weather-maps.json')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    _rvFrames = (data.radar && data.radar.past) ? data.radar.past.slice(-10) : [];
+                    if (!_rvFrames.length) return;
+                    _rvFrames.forEach(function(f) {
+                        var l = L.tileLayer(
+                            'https://tilecache.rainviewer.com' + f.path + '/256/{z}/{x}/{y}/2/1_1.png',
+                            { opacity: 0, maxZoom: 18 }
+                        ).addTo(_rvMap);
+                        _rvLayers.push(l);
                     });
-            }
-
-            tryProxy(0);
+                    _rvShowFrame(0);
+                    _rvStartAnim();
+                })
+                .catch(function(e) { console.warn('[RVRadar]', e); });
         }
 
-        window._aemetRadarReload = function() { _aemetRadarLoad(); };
+        function _rvShowFrame(idx) {
+            _rvLayers.forEach(function(l, i) { l.setOpacity(i === idx ? 0.8 : 0); });
+            var lbl = document.getElementById('rv-time-lbl');
+            if (lbl && _rvFrames[idx]) {
+                var d = new Date(_rvFrames[idx].time * 1000);
+                lbl.textContent = d.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'}) + ' h';
+            }
+        }
 
-        // Auto-refresh cada 10 minutos
-        setInterval(_aemetRadarLoad, 10 * 60 * 1000);
+        function _rvStartAnim() {
+            if (_rvTimer) clearInterval(_rvTimer);
+            _rvTimer = setInterval(function() {
+                _rvIdx = (_rvIdx + 1) % _rvLayers.length;
+                _rvShowFrame(_rvIdx);
+                if (_rvIdx === _rvLayers.length - 1) {
+                    clearInterval(_rvTimer);
+                    setTimeout(function() { if (_rvPlaying) _rvStartAnim(); }, 1800);
+                }
+            }, 500);
+        }
+
+        window._rvTogglePlay = function() {
+            var btn = document.getElementById('rv-play-btn');
+            if (_rvPlaying) {
+                _rvPlaying = false;
+                if (_rvTimer) clearInterval(_rvTimer);
+                if (btn) btn.textContent = '▶ PLAY';
+            } else {
+                _rvPlaying = true;
+                if (btn) btn.textContent = '⏸ PAUSA';
+                _rvStartAnim();
+            }
+        };
+
+        // Se inicializa al abrir el desplegable (ver toggleExtraSection)
         </script>
 
         <!-- ═══════════════════════════════════════════
@@ -1033,16 +1017,13 @@
             arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
 
             if (!isOpen && id === 'radar-rainviewer') {
-                // Cargar/refrescar imagen AEMET al abrir el panel
-                setTimeout(function() { _aemetRadarLoad(); }, 50);
+                // Iniciar radar RainViewer al abrir el panel
+                setTimeout(function() {
+                    _rvInit();
+                    if (_rvMap) _rvMap.invalidateSize();
+                }, 80);
             }
         }
-
-        // Precarga del radar AEMET al cargar la página — así cuando
-        // el usuario abra el panel ya está descargado del proxy
-        document.addEventListener('DOMContentLoaded', function() {
-            _aemetRadarLoad();
-        });
         </script>
 
         <!-- ═══════════════════════════════════════════
