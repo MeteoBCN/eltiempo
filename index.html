@@ -3791,17 +3791,20 @@
 
             try {
                 // Paso 1: obtener URL de datos desde endpoint de AEMET (doble petición)
-                const meta = await fetch(`${AEMET_URL}?api_key=${AEMET_KEY}`, {
-                    headers: { 'Accept': 'application/json' },
-                    signal: AbortSignal.timeout(10000)
+                // La API de AEMET soporta CORS en el primer endpoint, pero el XML de datos no.
+                // Usamos allorigins.win como proxy CORS para ambas peticiones.
+                const PROXY = 'https://api.allorigins.win/raw?url=';
+
+                const meta = await fetch(PROXY + encodeURIComponent(`${AEMET_URL}?api_key=${AEMET_KEY}`), {
+                    signal: AbortSignal.timeout(15000)
                 });
                 if (!meta.ok) { console.warn('[AEMET] Meta HTTP', meta.status); renderSinAvisos(); return; }
                 const metaJson = await meta.json();
                 const dataUrl = metaJson.datos;
                 if (!dataUrl) { console.warn('[AEMET] Sin URL de datos'); renderSinAvisos(); return; }
 
-                // Paso 2: obtener el XML CAP
-                const resp = await fetch(dataUrl, { signal: AbortSignal.timeout(15000) });
+                // Paso 2: obtener el XML CAP a través del proxy CORS
+                const resp = await fetch(PROXY + encodeURIComponent(dataUrl), { signal: AbortSignal.timeout(20000) });
                 if (!resp.ok) { console.warn('[AEMET] Datos HTTP', resp.status); renderSinAvisos(); return; }
                 const xmlText = await resp.text();
                 if (!xmlText || xmlText.length < 100) { renderSinAvisos(); return; }
