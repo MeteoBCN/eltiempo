@@ -735,32 +735,6 @@
         <!-- ══════════════════════════════════════════════
              SEMÁFORO CALIDAD DEL AIRE
         ═══════════════════════════════════════════════ -->
-        <!-- EXTREMOS DEL DIA METEOCLIMATIC -->
-        <div id="extremos-dia-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;display:none;">
-            <div style="display:flex;align-items:center;justify-content:flex-start;padding:14px 16px;background:#6fcfe0;">
-                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">Extremos del día · Estaciones automáticas</span>
-            </div>
-            <div style="background:#ffffff;padding:12px 16px;display:flex;flex-direction:column;gap:8px;">
-                <div style="background:#f8fafc;border:1px solid #d1dce6;border-radius:10px;overflow:hidden;">
-                    <div style="display:flex;align-items:center;padding:6px 12px;border-bottom:1px solid #d1dce6;background:#f0f9ff;">
-                        <span style="font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#1e293b;">Temperaturas mínimas</span>
-                    </div>
-                    <div id="idx-tmin-rows"></div>
-                </div>
-                <div style="background:#f8fafc;border:1px solid #d1dce6;border-radius:10px;overflow:hidden;">
-                    <div style="display:flex;align-items:center;padding:6px 12px;border-bottom:1px solid #d1dce6;background:#fff7f0;">
-                        <span style="font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#1e293b;">Temperaturas máximas</span>
-                    </div>
-                    <div id="idx-tmax-rows"></div>
-                </div>
-                <div style="background:#f8fafc;border:1px solid #d1dce6;border-radius:10px;overflow:hidden;">
-                    <div style="display:flex;align-items:center;padding:6px 12px;border-bottom:1px solid #d1dce6;background:#f0f9fb;">
-                        <span style="font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#1e293b;">Lluvia máxima acumulada</span>
-                    </div>
-                    <div id="idx-prec-rows"></div>
-                </div>
-            </div>
-        </div>
 
         <div id="aqi-semaforo-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
             <!-- Cabecera fija (no clicable) -->
@@ -4968,104 +4942,7 @@ if (isStandalone && 'Notification' in window) {
 }
 </script>
 
-<script>
-/* ══════ EXTREMOS DEL DÍA · METEOCLIMATIC ══════ */
-(function() {
-    const WORKER = 'https://proxy-meteoclimatic.lojasergi.workers.dev';
-    const BCN = { latMin:41.32, latMax:41.47, lngMin:2.05, lngMax:2.23 };
-    const EXCLUIR = new Set([
-        'ESCAT0800000008080A','ESCAT0800000008913B','ESCAT0800000008940C',
-        'ESCAT0800000008820D','ESCAT0800000008901D','ESCAT0800000008198A',
-        'ESCAT0800000008980A','ESCAT0800000008980C'
-    ]);
-    const CORRECCIONES = {"can bruixa":"Les Corts (Can Bruixa)","torguineu navas":"Navas","beteve":"Poblenou (Betevé)","casa l'aigua":"Trinitat Vella (Casa l'Aigua)","rectoret":"Les Planes (Rectoret)"};
-    function normalizar(s) { return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
-    function num(s) { return parseFloat(String(s).replace(',','.')); }
 
-    function parseRSS(txt) {
-        const estaciones = [];
-        const items = txt.split('<item>');
-        items.shift();
-        for (const item of items) {
-            try {
-                const latM = item.match(/<geo:lat>([\d.]+)<\/geo:lat>/);
-                const lngM = item.match(/<geo:long>([\d.]+)<\/geo:long>/);
-                if (!latM || !lngM) continue;
-                const lat = parseFloat(latM[1]), lng = parseFloat(lngM[1]);
-                if (isNaN(lat)||isNaN(lng)) continue;
-                if (lat<BCN.latMin||lat>BCN.latMax||lng<BCN.lngMin||lng>BCN.lngMax) continue;
-                const linkM = item.match(/perfil\/(ESCAT[A-Z0-9]+)/i);
-                const id = linkM ? linkM[1].toUpperCase() : '';
-                if (EXCLUIR.has(id)) continue;
-                const dataM = item.match(/\[\[<(ESCAT[^;>]+;[^>]+)>\]\]/);
-                if (!dataM) continue;
-                const raw = dataM[1].trim();
-                const grupos = [];
-                const reG = /\(([^)]+)\)/g; let g;
-                while ((g = reG.exec(raw)) !== null) grupos.push(g[1].split(';').map(num));
-                if (grupos.length < 4) continue;
-                let nombre = raw.substring(raw.lastIndexOf(')')+2).trim()
-                    .replace(/^Barcelona\s*[-–]\s*/i,'').replace(/^Barcelona\s+/i,'');
-                const nn = normalizar(nombre);
-                const corr = Object.entries(CORRECCIONES).find(([k])=>normalizar(k)===nn);
-                if (corr) { if (!corr[1]) continue; nombre=corr[1]; }
-                estaciones.push({
-                    nombre,
-                    tmax: grupos[0]?.[1] ?? null,
-                    tmin: grupos[0]?.[2] ?? null,
-                    prec: grupos[4]?.[0] ?? null,
-                });
-            } catch(e){}
-        }
-        return estaciones;
-    }
-
-    function renderRows(containerId, list, unit, valColor) {
-        const wrap = document.getElementById(containerId);
-        if (!wrap) return;
-        const MEDALS = ['','',''];
-        wrap.innerHTML = list.slice(0,3).map((item,i) => `
-            <div style="display:grid;grid-template-columns:20px 1fr auto;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid #e8eef4;">
-                <span style="font-size:13px;text-align:center;">${MEDALS[i]}</span>
-                <span style="font-size:11px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.nombre}</span>
-                <span style="font-size:13px;font-weight:700;color:${valColor};white-space:nowrap;">${Math.round(item.val)}<span style="font-size:9px;font-weight:400;color:#64748b;"> ${unit}</span></span>
-            </div>`).join('');
-        const divs = wrap.querySelectorAll('div');
-        if (divs.length) divs[divs.length-1].style.borderBottom = 'none';
-    }
-
-    async function cargarExtremosIdx() {
-        try {
-            const r = await fetch(WORKER, { signal: AbortSignal.timeout(15000) });
-            if (!r.ok) throw new Error('HTTP '+r.status);
-            const xml = await r.text();
-            if (!xml || xml.includes('QUERY ERROR') || xml.length < 200) return;
-            const ests = parseRSS(xml);
-            const tminList=[], tmaxList=[], precList=[];
-            for (const e of ests) {
-                const tmin = (e.tmin!==null&&!isNaN(e.tmin)) ? Number(e.tmin) : null;
-                const tmax = (e.tmax!==null&&!isNaN(e.tmax)) ? Number(e.tmax) : null;
-                const prec = (e.prec!==null&&!isNaN(e.prec)) ? Number(e.prec) : null;
-                if (tmin!==null) tminList.push({val:tmin, nombre:e.nombre});
-                if (tmax!==null) tmaxList.push({val:tmax, nombre:e.nombre});
-                if (prec!==null) precList.push({val:prec, nombre:e.nombre});
-            }
-            if (!tminList.length && !tmaxList.length) return;
-            tminList.sort((a,b)=>a.val-b.val);
-            tmaxList.sort((a,b)=>b.val-a.val);
-            precList.sort((a,b)=>b.val-a.val);
-            renderRows('idx-tmin-rows', tminList, '°C', '#3b82f6');
-            renderRows('idx-tmax-rows', tmaxList, '°C', '#f97316');
-            renderRows('idx-prec-rows', precList, 'mm', '#0ea5e9');
-            const sec = document.getElementById('extremos-dia-section');
-            if (sec) sec.style.display = 'block';
-        } catch(e) { console.warn('[Extremos] Error:', e.message); }
-    }
-
-    cargarExtremosIdx();
-    setInterval(cargarExtremosIdx, 10*60*1000);
-})();
-</script>
 
 </body>
 </html>
