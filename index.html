@@ -891,22 +891,21 @@
             if (spinner) spinner.style.display = 'flex';
             img.style.opacity = '0.4';
 
-            var proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(AEMET_RADAR_URL + '?t=' + Date.now());
+            var proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(AEMET_RADAR_URL + '?t=' + Date.now());
 
             fetch(proxyUrl, { signal: AbortSignal.timeout(20000) })
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    // allorigins devuelve el contenido binario codificado en base64 en data.contents
-                    // cuando el tipo es binario, contents viene como data URI directamente
-                    var contents = data.contents || '';
-                    if (!contents) throw new Error('Sin contenido');
-                    // Si ya es data URI (empieza por "data:"), usarlo directamente
-                    if (contents.startsWith('data:')) {
-                        img.src = contents;
-                    } else {
-                        // Construir data URI manualmente
-                        img.src = 'data:image/gif;base64,' + btoa(contents);
+                .then(function(r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.arrayBuffer();
+                })
+                .then(function(buffer) {
+                    // Convertir el buffer binario a base64 correctamente
+                    var bytes = new Uint8Array(buffer);
+                    var binary = '';
+                    for (var i = 0; i < bytes.byteLength; i++) {
+                        binary += String.fromCharCode(bytes[i]);
                     }
+                    img.src = 'data:image/gif;base64,' + btoa(binary);
                     img.style.opacity = '1';
                     if (spinner) spinner.style.display = 'none';
                     if (ts) {
@@ -916,10 +915,8 @@
                 })
                 .catch(function(err) {
                     console.warn('[Radar AEMET] Error proxy:', err);
-                    // Fallback: intentar carga directa (puede fallar por CORS en algunos navegadores)
-                    img.src = AEMET_RADAR_URL + '?t=' + Date.now();
-                    img.style.opacity = '1';
-                    if (spinner) spinner.style.display = 'none';
+                    if (spinner) spinner.innerHTML = '<span style="font-size:12px;color:rgba(255,255,255,0.5);">Radar no disponible</span>';
+                    img.style.opacity = '0';
                 });
         }
 
