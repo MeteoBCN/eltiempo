@@ -882,6 +882,25 @@
         // lo convertimos a data URL para el <img>.
         var AEMET_RADAR_URL = 'https://www.aemet.es/imagenes_d/eltiempo/observacion/radar/BAR_z.gif';
 
+        // Convierte un ArrayBuffer a data URI base64
+        function _bufferToDataURI(buffer, mimeType) {
+            var bytes = new Uint8Array(buffer);
+            var chunkSize = 8192;
+            var binary = '';
+            for (var i = 0; i < bytes.byteLength; i += chunkSize) {
+                var chunk = bytes.subarray(i, i + chunkSize);
+                binary += String.fromCharCode.apply(null, chunk);
+            }
+            return 'data:' + mimeType + ';base64,' + btoa(binary);
+        }
+
+        // Verifica que el buffer sea un GIF válido (empieza con GIF87a o GIF89a)
+        function _isValidGif(buffer) {
+            var bytes = new Uint8Array(buffer);
+            return bytes.length > 6 &&
+                bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46; // "GIF"
+        }
+
         function _aemetRadarLoad() {
             var img     = document.getElementById('aemet-radar-img');
             var ts      = document.getElementById('aemet-radar-ts');
@@ -891,33 +910,52 @@
             if (spinner) spinner.style.display = 'flex';
             img.style.opacity = '0.4';
 
-            var proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(AEMET_RADAR_URL + '?t=' + Date.now());
+            var t = Date.now();
+            var targetUrl = AEMET_RADAR_URL + '?t=' + t;
 
-            fetch(proxyUrl, { signal: AbortSignal.timeout(20000) })
-                .then(function(r) {
-                    if (!r.ok) throw new Error('HTTP ' + r.status);
-                    return r.arrayBuffer();
-                })
-                .then(function(buffer) {
-                    // Convertir el buffer binario a base64 correctamente
-                    var bytes = new Uint8Array(buffer);
-                    var binary = '';
-                    for (var i = 0; i < bytes.byteLength; i++) {
-                        binary += String.fromCharCode(bytes[i]);
-                    }
-                    img.src = 'data:image/gif;base64,' + btoa(binary);
-                    img.style.opacity = '1';
-                    if (spinner) spinner.style.display = 'none';
-                    if (ts) {
-                        var now = new Date();
-                        ts.textContent = 'Actualizado ' + now.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'}) + ' h';
-                    }
-                })
-                .catch(function(err) {
-                    console.warn('[Radar AEMET] Error proxy:', err);
+            // Lista de proxies a intentar en orden
+            var proxies = [
+                'https://corsproxy.io/?' + encodeURIComponent(targetUrl),
+                'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl),
+                'https://thingproxy.freeboard.io/fetch/' + targetUrl,
+            ];
+
+            function tryProxy(index) {
+                if (index >= proxies.length) {
+                    console.warn('[Radar AEMET] Todos los proxies fallaron');
                     if (spinner) spinner.innerHTML = '<span style="font-size:12px;color:rgba(255,255,255,0.5);">Radar no disponible</span>';
                     img.style.opacity = '0';
-                });
+                    return;
+                }
+
+                console.log('[Radar AEMET] Intentando proxy ' + index + ':', proxies[index]);
+
+                fetch(proxies[index], { signal: AbortSignal.timeout(15000) })
+                    .then(function(r) {
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        return r.arrayBuffer();
+                    })
+                    .then(function(buffer) {
+                        if (!_isValidGif(buffer)) {
+                            throw new Error('Respuesta no es un GIF válido (' + buffer.byteLength + ' bytes)');
+                        }
+                        var dataUri = _bufferToDataURI(buffer, 'image/gif');
+                        img.src = dataUri;
+                        img.style.opacity = '1';
+                        if (spinner) spinner.style.display = 'none';
+                        if (ts) {
+                            var now = new Date();
+                            ts.textContent = 'Actualizado ' + now.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'}) + ' h';
+                        }
+                        console.log('[Radar AEMET] OK con proxy ' + index + ', ' + buffer.byteLength + ' bytes');
+                    })
+                    .catch(function(err) {
+                        console.warn('[Radar AEMET] Proxy ' + index + ' falló:', err.message);
+                        tryProxy(index + 1);
+                    });
+            }
+
+            tryProxy(0);
         }
 
         window._aemetRadarReload = function() { _aemetRadarLoad(); };
