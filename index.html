@@ -872,17 +872,16 @@
 
         <script>
         /* ════════ RADAR AEMET BARCELONA ════════ */
-        // URL del GIF animado oficial AEMET (radar de Barcelona, zona PEN)
-        // AEMET sirve este recurso con CORS abierto, no necesita proxy.
-        var AEMET_RADAR_BASE = 'https://www.aemet.es/imagenes_d/eltiempo/observacion/radar/';
-        var AEMET_RADAR_FILE = 'BAR_z.gif';
+        // AEMET bloquea peticiones directas por CORS — usamos el mismo proxy allorigins.win
+        var AEMET_RADAR_DIRECT = 'https://www.aemet.es/imagenes_d/eltiempo/observacion/radar/BAR_z.gif';
+        var AEMET_RADAR_PROXY  = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(AEMET_RADAR_DIRECT);
 
         function _aemetRadarLoad() {
             var img = document.getElementById('aemet-radar-img');
             var ts  = document.getElementById('aemet-radar-ts');
             if (!img) return;
-            var bust = '?t=' + Date.now();
-            img.src  = AEMET_RADAR_BASE + AEMET_RADAR_FILE + bust;
+            // Cache-bust en la URL proxiada
+            img.src = AEMET_RADAR_PROXY + '&t=' + Date.now();
             if (ts) {
                 var now = new Date();
                 ts.textContent = 'Actualizado ' + now.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'}) + ' h';
@@ -964,10 +963,16 @@
             arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
 
             if (!isOpen && id === 'radar-rainviewer') {
-                // Cargar imagen AEMET al abrir el panel
-                setTimeout(function() { _aemetRadarLoad(); }, 100);
+                // Cargar/refrescar imagen AEMET al abrir el panel
+                setTimeout(function() { _aemetRadarLoad(); }, 50);
             }
         }
+
+        // Precarga del radar AEMET al cargar la página — así cuando
+        // el usuario abra el panel ya está descargado del proxy
+        document.addEventListener('DOMContentLoaded', function() {
+            _aemetRadarLoad();
+        });
         </script>
 
         <!-- ═══════════════════════════════════════════
@@ -3592,12 +3597,20 @@
         // ══════════════════════════════════════════════
         //  AVISOS AEMET — Barcelona (provincia 08)
         // ══════════════════════════════════════════════
-        (async function loadAemetAvisos() {
+        async function loadAemetAvisos() {
             const AEMET_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsb2phc2VyZ2lAZ21haWwuY29tIiwianRpIjoiZjRmY2VlNzYtNTQzNC00YjFmLTgyY2MtYWZhYjZjYzQwNDdmIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE3NzYyNTIxOTMsInVzZXJJZCI6ImY0ZmNlZTc2LTU0MzQtNGIxZi04MmNjLWFmYWI2Y2M0MDQ3ZiIsInJvbGUiOiIifQ.KBFz2bShIorecG3KUC_eyksKC8HSPDYRFP0ItmbaZOg';
             // Provincia de Barcelona = 08
             const AEMET_URL = 'https://opendata.aemet.es/opendata/api/avisos_cap/ultimoelaborado/provincia/08';
             const container = document.getElementById('aemet-avisos-inner');
             if (!container) return;
+
+            // Mostrar spinner inmediatamente si el contenedor está vacío
+            if (!container.innerHTML.trim()) {
+                container.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;color:#94a3b8;font-size:12px;">
+                    <div style="width:14px;height:14px;border:2px solid #e2e8f0;border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></div>
+                    Consultando avisos AEMET…
+                </div>`;
+            }
 
             const nivelMap = {
                 'Amarillo':  { label: 'AMARILLO', bg: '#f59e0b', border: '#d97706', bgCard: '#fffbeb', icon: '⚠️' },
@@ -3701,7 +3714,7 @@
                 const PROXY = 'https://api.allorigins.win/raw?url=';
 
                 const meta = await fetch(PROXY + encodeURIComponent(`${AEMET_URL}?api_key=${AEMET_KEY}`), {
-                    signal: AbortSignal.timeout(15000)
+                    signal: AbortSignal.timeout(10000)
                 });
                 if (!meta.ok) { console.warn('[AEMET] Meta HTTP', meta.status); renderSinAvisos(); return; }
                 const metaJson = await meta.json();
@@ -3709,7 +3722,7 @@
                 if (!dataUrl) { console.warn('[AEMET] Sin URL de datos'); renderSinAvisos(); return; }
 
                 // Paso 2: obtener el XML CAP a través del proxy CORS
-                const resp = await fetch(PROXY + encodeURIComponent(dataUrl), { signal: AbortSignal.timeout(20000) });
+                const resp = await fetch(PROXY + encodeURIComponent(dataUrl), { signal: AbortSignal.timeout(12000) });
                 if (!resp.ok) { console.warn('[AEMET] Datos HTTP', resp.status); renderSinAvisos(); return; }
                 const xmlText = await resp.text();
                 if (!xmlText || xmlText.length < 100) { renderSinAvisos(); return; }
@@ -3726,10 +3739,11 @@
                 console.warn('[AEMET] Error:', err.message);
                 renderSinAvisos();
             }
+        }
 
-            // Refrescar cada 30 minutos
-            setInterval(loadAemetAvisos, 30 * 60 * 1000);
-        })();
+        // Llamada inicial y refresco cada 30 minutos
+        loadAemetAvisos();
+        setInterval(loadAemetAvisos, 30 * 60 * 1000);
         // ══════════════════════════════════════════════
         //  FIN AVISOS AEMET
         // ══════════════════════════════════════════════
