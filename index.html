@@ -734,7 +734,7 @@
         <div id="aqi-semaforo-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
             <!-- Cabecera fija (no clicable) -->
             <div style="display:flex;align-items:center;justify-content:flex-start;padding:14px 16px;background:#6fcfe0;">
-                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">CALIDAD DEL AIRE</span>
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">CALIDAD DEL AIRE ACTUAL</span>
             </div>
             <!-- Contenido principal SIEMPRE visible -->
             <div style="position:relative;overflow:hidden;background:#f0f6fa;">
@@ -840,11 +840,71 @@
         </div>
 
         <!-- ═══════════════════════════════════════════
+             MAPA POLVO EN SUSPENSIÓN — BDRC
+        ════════════════════════════════════════════ -->
+        <div id="dust-map-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+
+            <!-- Cabecera desplegable -->
+            <div onclick="toggleExtraSection('dust-map-panel')"
+                 style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#c8a97e;cursor:pointer;user-select:none;">
+                <span style="font-size:10px;font-weight:700;color:#3b1f00;letter-spacing:2px;text-transform:uppercase;">🌫️ MAPA DE POLVO EN SUSPENSIÓN</span>
+                <span id="arrow-dust-map-panel" style="font-size:12px;color:#3b1f00;transition:transform 0.3s;">▼</span>
+            </div>
+
+            <div id="panel-dust-map-panel" style="display:none;overflow:hidden;">
+
+                <!-- Selector de producto -->
+                <div style="background:#f5ece0;padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid #e2d9c8;">
+                    <span style="font-size:11px;font-weight:600;color:#6b4423;text-transform:uppercase;letter-spacing:0.8px;">Producto:</span>
+                    <select id="dust-product-select"
+                        onchange="updateDustMap()"
+                        style="font-size:12px;font-weight:600;color:#3b1f00;background:#fff;border:1px solid #c8a97e;border-radius:6px;padding:5px 10px;cursor:pointer;outline:none;flex:1;min-width:0;">
+                        <option value="NMMB_BSC_DUST_D1_DAILY_AOD550" selected>Óptica del aerosol (AOD 550nm) — hoy</option>
+                        <option value="NMMB_BSC_DUST_D2_DAILY_AOD550">Óptica del aerosol (AOD 550nm) — mañana</option>
+                        <option value="NMMB_BSC_DUST_D1_DAILY_SCONC">Concentración PM10 en superficie — hoy</option>
+                        <option value="NMMB_BSC_DUST_D2_DAILY_SCONC">Concentración PM10 en superficie — mañana</option>
+                        <option value="NMMB_BSC_DUST_D1_DAILY_LOAD">Carga total de polvo — hoy</option>
+                        <option value="NMMB_BSC_DUST_D2_DAILY_LOAD">Carga total de polvo — mañana</option>
+                    </select>
+                </div>
+
+                <!-- Imagen del mapa -->
+                <div style="position:relative;width:100%;background:#e8ddd0;min-height:260px;display:flex;align-items:center;justify-content:center;">
+                    <img id="dust-map-img"
+                         src=""
+                         alt="Mapa de polvo en suspensión — Barcelona Dust Regional Center"
+                         style="width:100%;display:block;object-fit:contain;"
+                         onerror="this.style.display='none';document.getElementById('dust-map-error').style.display='flex';" />
+                    <div id="dust-map-error"
+                         style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:30px 20px;text-align:center;">
+                        <span style="font-size:32px;">🌫️</span>
+                        <span style="font-size:13px;color:#8b6a4a;font-weight:600;">No se pudo cargar el mapa.</span>
+                        <a id="dust-bdrc-link" href="https://dust.aemet.es/products/daily-forecast-products" target="_blank" rel="noopener"
+                           style="font-size:12px;color:#b45309;font-weight:700;text-decoration:underline;">Ver en BDRC →</a>
+                    </div>
+                </div>
+
+                <!-- Pie: fuente + enlace -->
+                <div style="background:#f5ece0;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+                    <div>
+                        <div style="font-size:10px;font-weight:700;color:#6b4423;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;">Fuente</div>
+                        <div style="font-size:11px;color:#8b6a4a;">Barcelona Dust Regional Center (BSC-CNS / AEMET)</div>
+                    </div>
+                    <a href="https://dust.aemet.es/products/daily-forecast-products" target="_blank" rel="noopener"
+                       style="font-size:11px;font-weight:700;color:#b45309;text-decoration:none;border:1px solid #c8a97e;border-radius:6px;padding:5px 10px;background:#fff;white-space:nowrap;">
+                        Ver BDRC →
+                    </a>
+                </div>
+
+            </div><!-- /panel-dust-map-panel -->
+        </div><!-- /dust-map-section -->
+
+        <!-- ═══════════════════════════════════════════
              PROBABILIDAD DE TORMENTA
         ════════════════════════════════════════════ -->
         <div id="tormenta-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
             <div style="display:flex;align-items:center;justify-content:flex-start;padding:14px 16px;background:#6fcfe0;">
-                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">PROBABILIDAD DE TORMENTA</span>
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">⛈️ PROBABILIDAD DE TORMENTA HOY</span>
             </div>
             <div id="tormenta-content" style="background:#f0f6fa;padding:14px 16px;">
                 <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
@@ -1039,6 +1099,28 @@
                     if (_rvMap) _rvMap.invalidateSize();
                 }, 80);
             }
+            if (!isOpen && id === 'dust-map-panel') {
+                updateDustMap();
+            }
+        }
+
+        // ── MAPA POLVO BDRC ─────────────────────────────────────────
+        function updateDustMap() {
+            var select = document.getElementById('dust-product-select');
+            var img    = document.getElementById('dust-map-img');
+            var errDiv = document.getElementById('dust-map-error');
+            if (!select || !img) return;
+            var product = select.value;
+            var now  = new Date();
+            var yyyy = now.getUTCFullYear();
+            var mm   = String(now.getUTCMonth() + 1).padStart(2, '0');
+            var dd   = String(now.getUTCDate()).padStart(2, '0');
+            var dateStr = yyyy + mm + dd;
+            // URL imagen diaria del portal BDRC (dust.aemet.es)
+            var url = 'https://dust.aemet.es/images/forecasts/' + dateStr + '/' + product + '.png';
+            img.style.display = 'block';
+            errDiv.style.display = 'none';
+            img.src = url + '?t=' + dateStr;
         }
         </script>
 
@@ -3865,7 +3947,7 @@
                         <span style="font-size:20px;flex-shrink:0;">✅</span>
                         <div style="flex:1;min-width:0;">
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
-                                <span style="font-size:11px;font-weight:700;color:#1E293B;text-transform:uppercase;letter-spacing:0.5px;">avisos para Barcelona</span>
+                                <span style="font-size:11px;font-weight:700;color:#1E293B;text-transform:uppercase;letter-spacing:0.5px;">Barcelona (Municipio)</span>
                                 <span style="font-size:9px;font-weight:800;background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;letter-spacing:0.8px;text-transform:uppercase;">VERDE</span>
                             </div>
                             <div style="font-size:11px;color:#475569;line-height:1.4;">Sin fenómenos adversos previstos.</div>
