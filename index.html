@@ -671,11 +671,7 @@
         </script>
         <!-- ══════ FIN MENÚ NAVEGACIÓN ══════ -->
 
-        <!-- ══════ AVISOS AEMET (Barcelona) ══════ -->
-        <div id="aemet-avisos-section" style="max-width:600px;margin:0 auto;">
-            <div id="aemet-avisos-inner" style="padding:0;"></div>
-        </div>
-        <!-- ══════ FIN AVISOS AEMET ══════ -->
+
 
 
 
@@ -923,7 +919,12 @@
             <div style="display:flex;align-items:center;justify-content:flex-start;padding:9px 16px;background:#2c4a6e;">
                 <span style="font-size:9px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">AVISOS - LLUVIA - TORMENTA</span>
             </div>
-            <div id="proxima-lluvia-content" style="background:#f0f6fa;padding:14px 16px;">
+            <!-- ══════ AVISOS AEMET (Barcelona) ══════ -->
+            <div id="aemet-avisos-section" style="border-bottom:1px solid rgba(0,0,0,0.07);">
+                <div id="aemet-avisos-inner" style="background:#f0f6fa;padding:14px 16px;"></div>
+            </div>
+            <!-- ══════ FIN AVISOS AEMET ══════ -->
+            <div id="proxima-lluvia-content" style="background:#f0f6fa;padding:14px 16px;border-bottom:1px solid rgba(0,0,0,0.07);">
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div style="font-size:32px;line-height:1;">🌧️</div>
                     <div style="flex:1;">
@@ -4055,7 +4056,7 @@
 
             // Mostrar spinner inmediatamente si el contenedor está vacío
             if (!container.innerHTML.trim()) {
-                container.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;color:#94a3b8;font-size:12px;">
+                container.innerHTML = `<div style="display:flex;align-items:center;gap:10px;color:#94a3b8;font-size:12px;">
                     <div style="width:14px;height:14px;border:2px solid #e2e8f0;border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></div>
                     Consultando avisos AEMET…
                 </div>`;
@@ -4082,7 +4083,7 @@
 
             function renderSinAvisos() {
                 container.innerHTML = `
-                    <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:#f0fdf4;border-left:4px solid #22c55e;border-bottom:1px solid #dcfce7;">
+                    <div style="display:flex;align-items:center;gap:12px;">
                         <span style="font-size:20px;flex-shrink:0;">✅</span>
                         <div style="flex:1;min-width:0;">
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
@@ -4141,7 +4142,7 @@
                         ? fmtFecha(av.onset) + (av.expires ? ' – ' + fmtFecha(av.expires) : '')
                         : '';
                     html += `
-                        <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:${cfg.bgCard};border-left:4px solid ${cfg.border};border-bottom:1px solid rgba(0,0,0,0.06);">
+                        <div style="display:flex;align-items:center;gap:12px;border-left:4px solid ${cfg.border};padding-left:12px;margin-bottom:8px;">
                             <span style="font-size:20px;flex-shrink:0;">${cfg.icon}</span>
                             <div style="flex:1;min-width:0;">
                                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
