@@ -2973,50 +2973,6 @@
         }
 
 
-
-        /* ── METAR LEBL Barcelona (aviationweather.gov) ── */
-        async function cargarMetar() {
-            const container = document.getElementById('metar-container-new');
-            try {
-                const resp = await fetch('https://aviationweather.gov/api/data/metar?ids=LEBL&format=json&hours=3');
-                if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                const data = await resp.json();
-                if (!data || data.length === 0) throw new Error('Sin datos');
-                function decodeMetar(m) {
-                    const rows = [];
-                    if (m.rawOb)      rows.push(['RAW', '<code style="font-size:11px;word-break:break-all;background:#e2e8f0;padding:4px 6px;border-radius:4px;display:inline-block;">'+m.rawOb+'</code>']);
-                    if (m.reportTime) rows.push(['Hora (UTC)', m.reportTime.replace('T',' ').replace('Z',' Z')]);
-                    if (m.temp !== undefined) rows.push(['Temperatura', m.temp+' \u00b0C']);
-                    if (m.dewp !== undefined) rows.push(['Punto de roc\u00edo', m.dewp+' \u00b0C']);
-                    if (m.visib !== undefined) rows.push(['Visibilidad', m.visib >= 9999 ? '\u226510 km' : m.visib+' m']);
-                    if (m.wdir !== undefined && m.wspd !== undefined) rows.push(['Viento', m.wdir+'\u00b0 / '+m.wspd+' kt'+(m.wgst ? ' (r\u00e1fagas '+m.wgst+' kt)' : '')]);
-                    if (m.altim !== undefined) rows.push(['Alt\u00edmetro (QNH)', m.altim+' hPa']);
-                    if (m.wx)         rows.push(['Fen\u00f3menos', m.wx]);
-                    if (m.clds && m.clds.length) {
-                        const cielo = m.clds.map(function(c){ return c.cover+(c.base ? ' '+c.base+' ft' : ''); }).join(' \u00b7 ');
-                        rows.push(['Nubes', cielo]);
-                    }
-                    if (m.fltcat)     rows.push(['Categor\u00eda vuelo', '<span style="font-weight:700;color:'+(m.fltcat==='VFR'?'#22c55e':m.fltcat==='MVFR'?'#3b82f6':m.fltcat==='IFR'?'#ef4444':'#f59e0b')+'">'+m.fltcat+'</span>']);
-                    return rows;
-                }
-                let html = '';
-                data.forEach(function(m, i) {
-                    const rows = decodeMetar(m);
-                    const sep = i < data.length-1 ? 'margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #e2e8f0;' : '';
-                    const badge = i === 0
-                        ? '<span style="font-size:9px;font-weight:700;color:#22c55e;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;display:inline-block;">\u25cf \u00daLTIMO METAR</span>'
-                        : '<span style="font-size:9px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;display:inline-block;">ANTERIOR</span>';
-                    html += '<div style="'+sep+'">' + badge +
-                        '<table style="width:100%;border-collapse:collapse;background:rgba(255,255,255,0.7);border-radius:8px;overflow:hidden;">' +
-                        rows.map(function(r){ return '<tr><td style="font-size:10px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:0.6px;padding:6px 8px 6px 10px;white-space:nowrap;vertical-align:top;background:rgba(11,76,144,0.06);">'+r[0]+'</td><td style="font-size:13px;color:#1a3a5c;font-weight:600;padding:6px 10px;">'+r[1]+'</td></tr>'; }).join('') +
-                        '</table></div>';
-                });
-                container.innerHTML = html;
-            } catch(e) {
-                container.innerHTML = '<div style="padding:12px;background:rgba(255,255,255,0.7);border-radius:8px;text-align:center;"><p style="color:#1a3a5c;font-size:13px;margin-bottom:8px;">METAR no disponible en este momento.</p><a href="https://aviationweather.gov/metar/data/?ids=LEBL" target="_blank" style="display:inline-block;background:#0b4c90;color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:6px;text-decoration:none;">Ver en aviationweather.gov ↗</a></div>';
-            }
-        }
-
         /* ══════════════════════════════════════════════
            RESUMEN 7 DÍAS — carga y renderizado
         ══════════════════════════════════════════════ */
@@ -4084,12 +4040,12 @@
             function renderSinAvisos() {
                 container.innerHTML = `
                     <div style="display:flex;align-items:center;gap:12px;">
-                        <span style="font-size:35px;flex-shrink:0;">✅</span>
+                        <span style="font-size:32px;flex-shrink:0;">✅</span>
                         <div style="flex:1;min-width:0;">
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
                                 <span style="font-size:9px;font-weight:800;background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;letter-spacing:0.8px;text-transform:uppercase;">VERDE</span>
                             </div>
-                            <div style="font-size:11px;color:#475569;line-height:1.4;">Sin fenómenos adversos previstos.</div>
+                            <div style="font-size:12px;color:#475569;line-height:1.4;">Sin fenómenos adversos previstos.</div>
                         </div>
                     </div>`;
             }
