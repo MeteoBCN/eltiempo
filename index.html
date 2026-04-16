@@ -677,7 +677,20 @@
         </div>
         <!-- ══════ FIN AVISOS AEMET ══════ -->
 
-
+        <!-- PRÓXIMA LLUVIA -->
+        <div id="proxima-lluvia-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <div style="display:flex;align-items:center;justify-content:flex-start;padding:14px 16px;background:#2c4a6e;">
+                <span style="font-size:9px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">SE ESPERA LLUVIA EN…</span>
+            </div>
+            <div id="proxima-lluvia-content" style="background:#f0f6fa;padding:14px 16px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="font-size:32px;line-height:1;">🌧️</div>
+                    <div style="flex:1;">
+                        <div style="font-size:12px;color:#94a3b8;text-align:left;">Calculando…</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
 
 
@@ -828,6 +841,28 @@
         </div>
 
         <!-- ═══════════════════════════════════════════
+             ALERGIAS · ÍNDICE DE POLEN
+        ════════════════════════════════════════════ -->
+        <div id="pollen-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <div onclick="toggleExtraSection('pollen-panel')"
+                 style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#6fcfe0;cursor:pointer;user-select:none;">
+                <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">🌿 ALERGIAS · ÍNDICE DE POLEN</span>
+                <span id="arrow-pollen-panel" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
+            </div>
+            <div id="panel-pollen-panel" style="display:none;background:#f0f9f4;overflow:hidden;">
+                <div id="pollen-content" style="padding:16px;">
+                    <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
+                </div>
+                <div style="background:#e6f5ed;padding:8px 16px 10px;border-top:1px solid rgba(44,120,80,0.12);">
+                    <div style="font-size:9px;color:#4a8a64;letter-spacing:0.5px;">Fuente: Open-Meteo Air Quality · Valores en granos/m³</div>
+                </div>
+            </div>
+        </div>
+        <!-- ═══════════════════════════════════════════
+             FIN ALERGIAS
+        ════════════════════════════════════════════ -->
+
+        <!-- ═══════════════════════════════════════════
              EPISODIO DE CALIMA
         ════════════════════════════════════════════ -->
         <div id="calima-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
@@ -898,13 +933,6 @@
 
             </div><!-- /panel-dust-map-panel -->
         </div><!-- /dust-map-section -->
-
-        <div style="height:35px;background:#ffffff;"></div>
-
-        <!-- PRÓXIMA LLUVIA -->
-        <div id="proxima-lluvia-section" style="max-width:600px;margin:0 auto;background:#6fcfe0;padding:10px 20px;display:flex;align-items:center;justify-content:center;">
-            <span id="proxima-lluvia-txt" style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">Calculando&hellip;</span>
-        </div>
 
         <!-- ═══════════════════════════════════════════
              PROBABILIDAD DE TORMENTA
@@ -1676,6 +1704,101 @@
                 </div>
                 ${horaPreviewHTML}
             `;
+        }
+
+        function updatePollenSection(aqCurrent) {
+            const el = document.getElementById('pollen-content');
+            if (!el) return;
+
+            const polenes = [
+                { key: 'alder_pollen',    nombre: 'Aliso',      emoji: '🌿', color: '#16a34a' },
+                { key: 'birch_pollen',    nombre: 'Abedul',     emoji: '🌳', color: '#15803d' },
+                { key: 'grass_pollen',    nombre: 'Gramíneas',  emoji: '🌾', color: '#65a30d' },
+                { key: 'mugwort_pollen',  nombre: 'Artemisia',  emoji: '🌱', color: '#4d7c0f' },
+                { key: 'olive_pollen',    nombre: 'Olivo',      emoji: '🫒', color: '#84cc16' },
+                { key: 'ragweed_pollen',  nombre: 'Ambrosía',   emoji: '🌻', color: '#a16207' },
+            ];
+
+            function nivel(v) {
+                if (v === null || v === undefined) return { lbl: '—',      color: '#94a3b8', bg: '#f1f5f9', pct: 0 };
+                if (v <   10) return { lbl: 'Muy bajo',  color: '#10b981', bg: '#d1fae5', pct: Math.round(v/200*100) };
+                if (v <   50) return { lbl: 'Bajo',      color: '#22c55e', bg: '#dcfce7', pct: Math.round(v/200*100) };
+                if (v <  150) return { lbl: 'Moderado',  color: '#f59e0b', bg: '#fef9c3', pct: Math.round(v/200*100) };
+                if (v <  500) return { lbl: 'Alto',      color: '#f97316', bg: '#ffedd5', pct: Math.min(Math.round(v/200*100),95) };
+                return            { lbl: 'Muy alto',  color: '#ef4444', bg: '#fee2e2', pct: 100 };
+            }
+
+            // Resumen: nivel máximo entre todos los pólenes
+            let maxVal = 0, maxNombre = '', maxEmoji = '';
+            polenes.forEach(p => {
+                const v = aqCurrent?.[p.key] ?? null;
+                if (v !== null && v > maxVal) { maxVal = v; maxNombre = p.nombre; maxEmoji = p.emoji; }
+            });
+            const resumen = nivel(maxVal);
+
+            // Consejo según nivel máximo
+            const consejos = {
+                'Muy bajo':  'Condiciones favorables. El riesgo de reacción alérgica es mínimo.',
+                'Bajo':      'Concentración baja de polen. Personas muy sensibles pueden notar síntomas leves.',
+                'Moderado':  'Concentración moderada. Se recomienda llevar medicación a personas alérgicas.',
+                'Alto':      'Concentración alta. Evita estar al aire libre en horas centrales del día.',
+                'Muy alto':  'Concentración muy alta. Permanece en interiores y ventila a primera hora.',
+                '—':         'Sin datos de polen disponibles en este momento.',
+            };
+
+            let html = '';
+
+            // Badge resumen
+            html += `
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid rgba(44,120,80,0.15);">
+                    <div style="font-size:28px;line-height:1;">${maxEmoji || '🌿'}</div>
+                    <div style="flex:1;">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                            <div style="display:inline-block;background:${resumen.color};color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;">${resumen.lbl.toUpperCase()}</div>
+                            ${maxNombre ? `<span style="font-size:11px;color:#2c4a6e;font-weight:600;">${maxNombre} (máx.)</span>` : ''}
+                        </div>
+                        <div style="font-size:11px;color:#1e3a5f;line-height:1.45;">${consejos[resumen.lbl]}</div>
+                    </div>
+                </div>`;
+
+            // Grid de pólenes individuales
+            html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">`;
+            polenes.forEach(p => {
+                const v = aqCurrent?.[p.key] ?? null;
+                const n = nivel(v);
+                const val = v !== null ? Math.round(v) : null;
+                const pct = n.pct;
+                html += `
+                    <div style="background:${n.bg};border-radius:10px;padding:10px 12px;border:1px solid rgba(0,0,0,0.06);">
+                        <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;">
+                            <span style="font-size:18px;">${p.emoji}</span>
+                            <div>
+                                <div style="font-size:10px;font-weight:700;color:#1a3a1a;letter-spacing:0.3px;">${p.nombre}</div>
+                                <div style="font-size:9px;font-weight:700;color:${n.color};text-transform:uppercase;letter-spacing:0.5px;">${n.lbl}</div>
+                            </div>
+                            <div style="margin-left:auto;font-size:13px;font-weight:800;color:${n.color};">${val !== null ? val : '—'}</div>
+                        </div>
+                        <div style="height:5px;background:rgba(0,0,0,0.08);border-radius:3px;overflow:hidden;">
+                            <div style="height:100%;width:${pct}%;background:${n.color};border-radius:3px;transition:width 0.6s;"></div>
+                        </div>
+                    </div>`;
+            });
+            html += `</div>`;
+
+            // Leyenda escala
+            html += `
+                <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(44,120,80,0.15);">
+                    <div style="font-size:9px;font-weight:700;color:#4a8a64;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Escala (granos/m³)</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                        <span style="font-size:9px;font-weight:700;background:#10b981;color:#fff;padding:2px 7px;border-radius:4px;">&lt;10 Muy bajo</span>
+                        <span style="font-size:9px;font-weight:700;background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;">10–49 Bajo</span>
+                        <span style="font-size:9px;font-weight:700;background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;">50–149 Moderado</span>
+                        <span style="font-size:9px;font-weight:700;background:#f97316;color:#fff;padding:2px 7px;border-radius:4px;">150–499 Alto</span>
+                        <span style="font-size:9px;font-weight:700;background:#ef4444;color:#fff;padding:2px 7px;border-radius:4px;">≥500 Muy alto</span>
+                    </div>
+                </div>`;
+
+            el.innerHTML = html;
         }
 
         function updateCalimaSection(aqCurrent, hourly) {
@@ -3271,7 +3394,7 @@
         ══════════════════════════════════════════════ */
 
         function updateProximaLluvia(hourly) {
-            const el = document.getElementById('proxima-lluvia-txt');
+            const el = document.getElementById('proxima-lluvia-content');
             if (!el || !hourly?.time) return;
 
             const now = new Date();
@@ -3284,14 +3407,21 @@
             }
 
             if (!found) {
-                el.textContent = 'No se espera lluvia los próximos días';
+                el.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="font-size:32px;line-height:1;">☀️</div>
+                        <div style="flex:1;">
+                            <div style="display:inline-block;background:#10b981;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">SIN LLUVIA PREVISTA</div>
+                            <div style="font-size:12px;color:#1e3a5f;line-height:1.4;">No se espera lluvia los próximos días en Barcelona.</div>
+                        </div>
+                    </div>`;
                 return;
             }
+
             const diffMs = found - now;
             const diffH  = diffMs / 3600000;
             const diffD  = Math.floor(diffH / 24);
             const remH   = Math.floor(diffH % 24);
-            const remMin = Math.round((diffMs % 3600000) / 60000);
 
             let cuando;
             if (diffH < 1)        cuando = 'menos de 1 hora';
@@ -3299,7 +3429,23 @@
             else if (diffD === 1) cuando = remH > 0 ? '1 día y ' + remH + 'h' : '1 día';
             else                  cuando = remH > 0 ? diffD + ' días y ' + remH + 'h' : diffD + ' días';
 
-            el.textContent = 'Se espera lluvia en ' + cuando;
+            let badgeColor = '#3B82F6';
+            let badgeText  = 'LLUVIA EN ' + cuando.toUpperCase();
+            let icono      = '🌧️';
+            let consejo    = 'Se prevé lluvia en aproximadamente ' + cuando + '. Lleva paraguas si sales.';
+            if (diffH < 3) {
+                badgeColor = '#2563EB'; icono = '⛈️';
+                consejo = 'Lluvia inminente en menos de ' + cuando + '. Ten paraguas a mano.';
+            }
+
+            el.innerHTML = `
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="font-size:32px;line-height:1;">${icono}</div>
+                    <div style="flex:1;">
+                        <div style="display:inline-block;background:${badgeColor};color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">${badgeText}</div>
+                        <div style="font-size:12px;color:#1e3a5f;line-height:1.4;">${consejo}</div>
+                    </div>
+                </div>`;
         }
 
         async function loadWeatherData() {
@@ -3360,6 +3506,7 @@
                 if (aqData?.current) updateAirQualityTable(aqData.current);
                 updateTormentaSection(data.hourly);
                 updateCalimaSection(aqData?.current ?? {}, data.hourly);
+                updatePollenSection(aqData?.current ?? {});
                 if (marineData) updatePlayasTable(marineData.current, data.daily, marineData.hourly, data.hourly);
                 updateWeatherTable(data.hourly);
                 updateRainTable(data.hourly, data.daily);
