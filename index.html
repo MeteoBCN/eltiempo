@@ -831,6 +831,30 @@
         </div>
 
         <!-- ═══════════════════════════════════════════
+             PROBABILIDAD DE TORMENTA
+        ════════════════════════════════════════════ -->
+        <div id="tormenta-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <div style="display:flex;align-items:center;justify-content:flex-start;padding:14px 16px;background:#6fcfe0;">
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">⛈️ PROBABILIDAD DE TORMENTA HOY</span>
+            </div>
+            <div id="tormenta-content" style="background:#f0f6fa;padding:14px 16px;">
+                <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+             EPISODIO DE CALIMA
+        ════════════════════════════════════════════ -->
+        <div id="calima-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <div style="display:flex;align-items:center;justify-content:flex-start;padding:14px 16px;background:#6fcfe0;">
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">🌫️ EPISODIO DE CALIMA</span>
+            </div>
+            <div id="calima-content" style="background:#f0f6fa;padding:14px 16px;">
+                <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
              AHORA
         ════════════════════════════════════════════ -->
         <div id="ahora-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
@@ -1073,14 +1097,14 @@
         <div id="mar3-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
             <!-- Cabecera -->
             <div style="display:flex;align-items:center;justify-content:flex-start;padding:14px 16px;background:#0e6fa8;min-height:74px;position:relative;overflow:hidden;">
-                <!-- Olas SVG unificadas y animadas -->
-                <svg style="position:absolute;bottom:0;left:0;width:200%;height:100%;animation:waveMove 8s linear infinite;" viewBox="0 0 1200 74" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Ola principal blanca -->
-                    <path opacity="0.25" d="M0,40 C120,55 240,20 360,38 C480,56 600,18 720,36 C840,54 960,22 1080,40 C1140,48 1170,44 1200,42 L1200,74 L0,74 Z" fill="#ffffff"/>
-                    <!-- Ola secundaria azul claro -->
-                    <path opacity="0.15" d="M0,52 C100,62 220,35 340,50 C460,65 580,32 700,50 C820,68 940,38 1060,52 C1120,59 1160,55 1200,53 L1200,74 L0,74 Z" fill="#7ecfff"/>
-                    <!-- Ola superior sutil -->
-                    <path opacity="0.12" d="M0,20 C100,5 200,35 300,20 C400,5 500,35 600,20 C700,5 800,35 900,20 C1000,5 1100,35 1200,20 L1200,30 L0,30 Z" fill="#ffffff"/>
+                <!-- Olas SVG de fondo -->
+                <svg style="position:absolute;bottom:0;left:0;width:100%;height:100%;opacity:0.25;" viewBox="0 0 600 74" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0,40 C60,55 120,20 180,38 C240,56 300,18 360,36 C420,54 480,22 540,40 C570,48 585,44 600,42 L600,74 L0,74 Z" fill="#ffffff"/>
+                    <path d="M0,52 C50,62 110,35 170,50 C230,65 290,32 350,50 C410,68 470,38 530,52 C560,59 580,55 600,53 L600,74 L0,74 Z" fill="#7ecfff" opacity="0.6"/>
+                </svg>
+                <!-- Olas animadas superiores -->
+                <svg style="position:absolute;top:0;left:0;width:200%;height:40%;opacity:0.15;animation:waveMove 6s linear infinite;" viewBox="0 0 1200 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0,20 C100,5 200,35 300,20 C400,5 500,35 600,20 C700,5 800,35 900,20 C1000,5 1100,35 1200,20 L1200,40 L0,40 Z" fill="#ffffff"/>
                 </svg>
                 <style>@keyframes waveMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}</style>
                 <span style="font-size:12px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;position:relative;z-index:1;text-shadow:0 1px 4px rgba(0,0,0,0.3);">PLAYAS DE BARCELONA</span>
@@ -1503,6 +1527,169 @@
             }
             const el=document.getElementById('air-quality-current');
             if(el){el.textContent=lvl(ac.european_aqi||0); el.style.color='#1E293B';}
+        }
+
+        function updateTormentaSection(hourly) {
+            const el = document.getElementById('tormenta-content');
+            if (!el || !hourly?.time) return;
+
+            const now = new Date();
+            const todayStr = now.toISOString().slice(0, 10);
+
+            // Filtrar horas del día de hoy desde ahora
+            const horasHoy = [];
+            for (let i = 0; i < hourly.time.length; i++) {
+                if (!hourly.time[i].startsWith(todayStr)) continue;
+                const h = new Date(hourly.time[i]);
+                const wcode = hourly.weather_code?.[i] ?? 0;
+                const prob = hourly.precipitation_probability?.[i] ?? 0;
+                // Prob tormenta: si wcode>=95, prob tormenta = prob lluvia; si no, estimamos por wcode
+                let probTorm = 0;
+                if (wcode >= 95) probTorm = Math.max(prob, 80);
+                else if (wcode >= 80) probTorm = Math.round(prob * 0.5);
+                else if (wcode >= 61) probTorm = Math.round(prob * 0.2);
+                horasHoy.push({ h, hora: h.getHours(), wcode, prob, probTorm });
+            }
+
+            if (!horasHoy.length) {
+                el.innerHTML = '<div style="font-size:12px;color:#94a3b8;text-align:center;">Sin datos disponibles</div>';
+                return;
+            }
+
+            const maxProbTorm = Math.max(...horasHoy.map(x => x.probTorm));
+
+            // Badge resumen
+            let badgeColor, badgeText, badgeIcon, consejoText;
+            if (maxProbTorm >= 70) {
+                badgeColor = '#7c3aed'; badgeIcon = '⛈️';
+                badgeText = 'RIESGO ALTO';
+                consejoText = 'Alta probabilidad de tormenta hoy. Evita actividades al aire libre.';
+            } else if (maxProbTorm >= 40) {
+                badgeColor = '#f97316'; badgeIcon = '🌩️';
+                badgeText = 'RIESGO MODERADO';
+                consejoText = 'Puede haber tormentas durante el día. Lleva paraguas.';
+            } else if (maxProbTorm >= 15) {
+                badgeColor = '#f59e0b'; badgeIcon = '🌦️';
+                badgeText = 'RIESGO BAJO';
+                consejoText = 'Posibilidad baja de tormenta. Sin preocupación especial.';
+            } else {
+                badgeColor = '#10b981'; badgeIcon = '☀️';
+                badgeText = 'SIN RIESGO';
+                consejoText = 'No se esperan tormentas hoy en Barcelona.';
+            }
+
+            // Barras horarias
+            const horasRestantes = horasHoy.filter(x => x.h >= now || x.hora === now.getHours());
+            let barrasHTML = '';
+            for (const slot of horasRestantes) {
+                const pct = slot.probTorm;
+                const col = pct >= 70 ? '#7c3aed' : pct >= 40 ? '#f97316' : pct >= 15 ? '#f59e0b' : '#c7d2e0';
+                const label = String(slot.hora).padStart(2,'0') + 'h';
+                barrasHTML += `
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:0;">
+                        <div style="font-size:8px;color:#64748b;font-weight:600;">${pct > 0 ? pct + '%' : ''}</div>
+                        <div style="width:100%;height:40px;background:#e2e8f0;border-radius:4px;display:flex;align-items:flex-end;overflow:hidden;">
+                            <div style="width:100%;height:${Math.max(pct,2)}%;background:${col};border-radius:4px;transition:height 0.5s;"></div>
+                        </div>
+                        <div style="font-size:9px;color:#94a3b8;">${label}</div>
+                    </div>`;
+            }
+
+            el.innerHTML = `
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                    <div style="font-size:32px;">${badgeIcon}</div>
+                    <div style="flex:1;">
+                        <div style="display:inline-block;background:${badgeColor};color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">${badgeText}</div>
+                        <div style="font-size:12px;color:#1e3a5f;line-height:1.4;">${consejoText}</div>
+                    </div>
+                </div>
+                ${horasRestantes.length > 0 ? `
+                <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Evolución horaria</div>
+                <div style="display:flex;gap:4px;align-items:flex-end;">${barrasHTML}</div>` : ''}
+            `;
+        }
+
+        function updateCalimaSection(aqCurrent, hourly) {
+            const el = document.getElementById('calima-content');
+            if (!el) return;
+
+            const pm10 = aqCurrent?.pm10 ?? null;
+            const pm25 = aqCurrent?.pm2_5 ?? null;
+
+            // Dirección del viento actual (viento del sur/sureste = sospecha de calima)
+            const now = new Date();
+            let windDir = null;
+            if (hourly?.wind_direction_10m && hourly?.time) {
+                const idx = hourly.time.findIndex(t => new Date(t) > now) - 1;
+                if (idx >= 0) windDir = hourly.wind_direction_10m[idx];
+            }
+
+            // Detectar viento del sur/sureste (120–240°) = flujo sahariano
+            const vientoSahara = windDir !== null && windDir >= 120 && windDir <= 240;
+
+            // Nivel de calima basado en PM10
+            let nivel, color, icono, descripcion, consejo;
+            if (pm10 === null) {
+                el.innerHTML = '<div style="font-size:12px;color:#94a3b8;text-align:center;">Sin datos disponibles</div>';
+                return;
+            }
+
+            if (pm10 >= 100) {
+                nivel = 'CALIMA INTENSA'; color = '#b45309'; icono = '🟤';
+                descripcion = `PM10 muy elevado (${Math.round(pm10)} µg/m³). Episodio de polvo sahariano activo.`;
+                consejo = 'Evita actividades físicas al aire libre. Mantén ventanas cerradas.';
+            } else if (pm10 >= 50) {
+                nivel = 'CALIMA MODERADA'; color = '#d97706'; icono = '🟠';
+                descripcion = `PM10 elevado (${Math.round(pm10)} µg/m³). Posible aporte de polvo del desierto.`;
+                consejo = 'Personas con problemas respiratorios deben limitar la exposición exterior.';
+            } else if (pm10 >= 30) {
+                nivel = 'PARTÍCULAS ELEVADAS'; color = '#f59e0b'; icono = '🟡';
+                descripcion = `PM10 moderado (${Math.round(pm10)} µg/m³). Aire con partículas en suspensión.`;
+                consejo = 'Calidad del aire aceptable, pero con partículas por encima de lo habitual.';
+            } else {
+                nivel = 'SIN CALIMA'; color = '#10b981'; icono = '✅';
+                descripcion = `PM10 normal (${Math.round(pm10)} µg/m³). No se detecta polvo sahariano.`;
+                consejo = 'Condiciones normales de partículas en el aire.';
+            }
+
+            // Indicador de flujo sahariano
+            const sahararaHTML = vientoSahara
+                ? `<div style="display:flex;align-items:center;gap:6px;margin-top:10px;background:rgba(217,119,6,0.12);border-left:3px solid #d97706;padding:7px 10px;border-radius:0 6px 6px 0;">
+                    <span style="font-size:14px;">🧭</span>
+                    <span style="font-size:11px;color:#92400e;font-weight:600;">Viento del sur detectado (${Math.round(windDir)}°) — posible transporte de polvo sahariano</span>
+                   </div>`
+                : '';
+
+            // Barra de nivel PM10
+            const pct = Math.min(Math.round((pm10 / 150) * 100), 100);
+            const pm25txt = pm25 !== null ? `<span style="font-size:10px;color:#64748b;margin-left:10px;">PM2.5: <b>${Math.round(pm25)} µg/m³</b></span>` : '';
+
+            el.innerHTML = `
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                    <div style="font-size:32px;">${icono}</div>
+                    <div style="flex:1;">
+                        <div style="display:inline-block;background:${color};color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">${nivel}</div>
+                        <div style="font-size:12px;color:#1e3a5f;line-height:1.4;">${descripcion}</div>
+                        <div style="font-size:11px;color:#64748b;margin-top:4px;">${consejo}</div>
+                    </div>
+                </div>
+                <div style="margin-top:8px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                        <span style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Nivel PM10</span>
+                        ${pm25txt}
+                    </div>
+                    <div style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
+                        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#10b981,#f59e0b,#b45309);border-radius:4px;transition:width 0.6s;"></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin-top:3px;">
+                        <span style="font-size:9px;color:#94a3b8;">0</span>
+                        <span style="font-size:9px;color:#f59e0b;">50</span>
+                        <span style="font-size:9px;color:#b45309;">150 µg/m³</span>
+                    </div>
+                </div>
+                ${sahararaHTML}
+                <div style="margin-top:10px;font-size:9px;color:#94a3b8;text-align:right;">Fuente: Open-Meteo Air Quality</div>
+            `;
         }
 
         function updatePlayasTable(marine, daily, marineHourly, weatherHourly) {
@@ -3110,6 +3297,8 @@
                 updateFranjasTable(data.hourly, data.daily);
                 updateTodayTable(data.daily, data.hourly);
                 if (aqData?.current) updateAirQualityTable(aqData.current);
+                updateTormentaSection(data.hourly);
+                updateCalimaSection(aqData?.current ?? {}, data.hourly);
                 if (marineData) updatePlayasTable(marineData.current, data.daily, marineData.hourly, data.hourly);
                 updateWeatherTable(data.hourly);
                 updateRainTable(data.hourly, data.daily);
