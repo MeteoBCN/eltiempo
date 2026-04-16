@@ -847,7 +847,7 @@
             <!-- Cabecera desplegable -->
             <div onclick="toggleExtraSection('dust-map-panel')"
                  style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#b5c7d8;cursor:pointer;user-select:none;">
-                <span style="font-size:10px;font-weight:700;color:#3b1f00;letter-spacing:2px;text-transform:uppercase;">MAPA DE POLVO EN SUSPENSIÓN</span>
+                <span style="font-size:9px;font-weight:700;color:#3b1f00;letter-spacing:2px;text-transform:uppercase;">MAPA DE POLVO EN SUSPENSIÓN</span>
                 <span id="arrow-dust-map-panel" style="font-size:12px;color:#3b1f00;transition:transform 0.3s;">▼</span>
             </div>
 
@@ -4299,11 +4299,11 @@
         /* ══════ SEMÁFORO CALIDAD DEL AIRE ══════ */
         (function() {
             const AQI_LEVELS = [
-                { min:0,   max:50,  color:'#22c55e', glow:'#16a34a', label:'Buena',     sublabel:'Aire limpio y saludable',      emoji:'😊', light:'green',  advice:'Condiciones ideales para actividades al aire libre.', bg:'#f0fdf4' },
-                { min:51,  max:100, color:'#f59e0b', glow:'#d97706', label:'Moderada',  sublabel:'Calidad aceptable',            emoji:'🙂', light:'yellow', advice:'Aceptable para la mayoría. Personas muy sensibles podrían notar leve malestar.', bg:'#fffbeb' },
-                { min:101, max:150, color:'#f97316', glow:'#ea580c', label:'Mala',      sublabel:'Dañino para grupos sensibles', emoji:'😐', light:'yellow', advice:'Personas con asma, niños y mayores deben reducir la actividad al aire libre.', bg:'#fff7ed' },
-                { min:151, max:200, color:'#ef4444', glow:'#dc2626', label:'Muy mala',  sublabel:'No saludable',                 emoji:'😷', light:'red',    advice:'Todo el mundo puede sufrir efectos. Grupos sensibles deben evitar el exterior.', bg:'#fef2f2' },
-                { min:201, max:999, color:'#7c3aed', glow:'#6d28d9', label:'Peligrosa', sublabel:'Peligro extremo',              emoji:'☠️', light:'red',    advice:'Emergencia de salud pública. Quedarse en interior con ventanas cerradas.', bg:'#faf5ff' },
+                { min:0,   max:50,  color:'#22c55e', glow:'#16a34a', label:'Buena',     sublabel:'Aire limpio y saludable',      light:'green',  advice:'Condiciones ideales para actividades al aire libre.', bg:'#f0fdf4' },
+                { min:51,  max:100, color:'#f59e0b', glow:'#d97706', label:'Moderada',  sublabel:'Calidad aceptable',            light:'yellow', advice:'Aceptable para la mayoría. Personas muy sensibles podrían notar leve malestar.', bg:'#fffbeb' },
+                { min:101, max:150, color:'#f97316', glow:'#ea580c', label:'Mala',      sublabel:'Dañino para grupos sensibles', light:'yellow', advice:'Personas con asma, niños y mayores deben reducir la actividad al aire libre.', bg:'#fff7ed' },
+                { min:151, max:200, color:'#ef4444', glow:'#dc2626', label:'Muy mala',  sublabel:'No saludable',                 light:'red',    advice:'Todo el mundo puede sufrir efectos. Grupos sensibles deben evitar el exterior.', bg:'#fef2f2' },
+                { min:201, max:999, color:'#7c3aed', glow:'#6d28d9', label:'Peligrosa', sublabel:'Peligro',                      light:'red',    advice:'Emergencia de salud pública. Quedarse en interior con ventanas cerradas.', bg:'#faf5ff' },
             ];
             function getLevel(aqi) { return AQI_LEVELS.find(l => aqi >= l.min && aqi <= l.max) || AQI_LEVELS[AQI_LEVELS.length-1]; }
 
@@ -4317,7 +4317,6 @@
                 const level = getLevel(aqi);
                 const valEl = document.getElementById('aqi-value');
                 if (valEl) { valEl.textContent = aqi; }
-                const emojiEl = document.getElementById('aqi-emoji'); if (emojiEl) emojiEl.textContent = level.emoji;
                 const lblEl = document.getElementById('aqi-label'); if (lblEl) { lblEl.textContent = level.label; lblEl.style.color = level.color; }
                 const badgeEl = document.getElementById('aqi-badge'); if (badgeEl) { badgeEl.style.background = level.bg; badgeEl.style.borderColor = level.color+'60'; }
                 const subEl = document.getElementById('aqi-sublabel'); if (subEl) subEl.textContent = level.sublabel;
