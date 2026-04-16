@@ -853,34 +853,37 @@
 
             <div id="panel-dust-map-panel" style="display:none;overflow:hidden;">
 
-                <!-- Selector de producto -->
-                <div style="background:#f5ece0;padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid #e2d9c8;">
-                    <span style="font-size:11px;font-weight:600;color:#6b4423;text-transform:uppercase;letter-spacing:0.8px;">Producto:</span>
-                    <select id="dust-product-select"
-                        onchange="updateDustMap()"
-                        style="font-size:12px;font-weight:600;color:#3b1f00;background:#fff;border:1px solid #c8a97e;border-radius:6px;padding:5px 10px;cursor:pointer;outline:none;flex:1;min-width:0;">
-                        <option value="NMMB_BSC_DUST_D1_DAILY_AOD550" selected>Óptica del aerosol (AOD 550nm) — hoy</option>
-                        <option value="NMMB_BSC_DUST_D2_DAILY_AOD550">Óptica del aerosol (AOD 550nm) — mañana</option>
-                        <option value="NMMB_BSC_DUST_D1_DAILY_SCONC">Concentración PM10 en superficie — hoy</option>
-                        <option value="NMMB_BSC_DUST_D2_DAILY_SCONC">Concentración PM10 en superficie — mañana</option>
-                        <option value="NMMB_BSC_DUST_D1_DAILY_LOAD">Carga total de polvo — hoy</option>
-                        <option value="NMMB_BSC_DUST_D2_DAILY_LOAD">Carga total de polvo — mañana</option>
-                    </select>
-                </div>
-
-                <!-- Imagen del mapa -->
-                <div style="position:relative;width:100%;background:#e8ddd0;min-height:260px;display:flex;align-items:center;justify-content:center;">
-                    <img id="dust-map-img"
-                         src=""
-                         alt="Mapa de polvo en suspensión — Barcelona Dust Regional Center"
-                         style="width:100%;display:block;object-fit:contain;"
-                         onerror="this.style.display='none';document.getElementById('dust-map-error').style.display='flex';" />
-                    <div id="dust-map-error"
-                         style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:30px 20px;text-align:center;">
-                        <span style="font-size:32px;">🌫️</span>
-                        <span style="font-size:13px;color:#8b6a4a;font-weight:600;">No se pudo cargar el mapa.</span>
-                        <a id="dust-bdrc-link" href="https://dust.aemet.es/products/daily-forecast-products" target="_blank" rel="noopener"
-                           style="font-size:12px;color:#b45309;font-weight:700;text-decoration:underline;">Ver en BDRC →</a>
+                <!-- Visor interactivo BDRC embebido -->
+                <div style="position:relative;width:100%;background:#1a1a2e;">
+                    <!-- Spinner de carga -->
+                    <div id="dust-iframe-loader" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#1a1a2e;z-index:2;pointer-events:none;">
+                        <div style="width:36px;height:36px;border:3px solid rgba(200,169,126,0.3);border-top-color:#c8a97e;border-radius:50%;animation:spin 0.9s linear infinite;"></div>
+                        <span style="font-size:11px;color:#c8a97e;letter-spacing:1px;text-transform:uppercase;font-weight:600;">Cargando visor BDRC…</span>
+                    </div>
+                    <iframe
+                        id="dust-bdrc-iframe"
+                        src="https://dust.aemet.es/products/daily-dust-products"
+                        title="Visor de polvo en suspensión — Barcelona Dust Regional Center"
+                        width="100%"
+                        height="520"
+                        style="border:none;display:block;"
+                        loading="lazy"
+                        onload="document.getElementById('dust-iframe-loader').style.display='none';"
+                        onerror="document.getElementById('dust-iframe-loader').style.display='none';document.getElementById('dust-iframe-fallback').style.display='flex';"
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
+                    </iframe>
+                    <!-- Fallback si el iframe falla (X-Frame-Options) -->
+                    <div id="dust-iframe-fallback"
+                         style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:36px 24px;background:#f5ece0;text-align:center;min-height:200px;">
+                        <span style="font-size:40px;">🌫️</span>
+                        <div style="font-size:14px;font-weight:700;color:#6b4423;">El visor BDRC no permite ser embebido.</div>
+                        <div style="font-size:12px;color:#8b6a4a;line-height:1.6;max-width:320px;">
+                            Accede directamente al portal oficial para ver el mapa interactivo de polvo en suspensión con previsión a 72 h.
+                        </div>
+                        <a href="https://dust.aemet.es/products/daily-dust-products" target="_blank" rel="noopener"
+                           style="display:inline-block;margin-top:4px;padding:10px 20px;background:#b45309;color:#fff;font-size:13px;font-weight:700;border-radius:8px;text-decoration:none;letter-spacing:0.5px;">
+                            🔗 Abrir en BDRC
+                        </a>
                     </div>
                 </div>
 
@@ -888,9 +891,9 @@
                 <div style="background:#f5ece0;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
                     <div>
                         <div style="font-size:10px;font-weight:700;color:#6b4423;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;">Fuente</div>
-                        <div style="font-size:11px;color:#8b6a4a;">Barcelona Dust Regional Center (BSC-CNS / AEMET)</div>
+                        <div style="font-size:11px;color:#8b6a4a;">Barcelona Dust Regional Center (BSC-CNS / AEMET) · Previsión 72h</div>
                     </div>
-                    <a href="https://dust.aemet.es/products/daily-forecast-products" target="_blank" rel="noopener"
+                    <a href="https://dust.aemet.es/products/daily-dust-products" target="_blank" rel="noopener"
                        style="font-size:11px;font-weight:700;color:#b45309;text-decoration:none;border:1px solid #c8a97e;border-radius:6px;padding:5px 10px;background:#fff;white-space:nowrap;">
                         Ver BDRC →
                     </a>
@@ -1100,27 +1103,21 @@
                 }, 80);
             }
             if (!isOpen && id === 'dust-map-panel') {
-                updateDustMap();
+                // El iframe tiene loading="lazy"; al abrir el panel forzamos src si aún no está cargado
+                var iframe = document.getElementById('dust-bdrc-iframe');
+                if (iframe && !iframe.dataset.loaded) {
+                    iframe.dataset.loaded = '1';
+                    // Si el navegador bloqueó el iframe (X-Frame-Options), mostramos fallback
+                    setTimeout(function() {
+                        var loader = document.getElementById('dust-iframe-loader');
+                        if (loader && loader.style.display !== 'none') {
+                            loader.style.display = 'none';
+                            var fb = document.getElementById('dust-iframe-fallback');
+                            if (fb) fb.style.display = 'flex';
+                        }
+                    }, 8000); // 8 s de timeout para detectar bloqueo
+                }
             }
-        }
-
-        // ── MAPA POLVO BDRC ─────────────────────────────────────────
-        function updateDustMap() {
-            var select = document.getElementById('dust-product-select');
-            var img    = document.getElementById('dust-map-img');
-            var errDiv = document.getElementById('dust-map-error');
-            if (!select || !img) return;
-            var product = select.value;
-            var now  = new Date();
-            var yyyy = now.getUTCFullYear();
-            var mm   = String(now.getUTCMonth() + 1).padStart(2, '0');
-            var dd   = String(now.getUTCDate()).padStart(2, '0');
-            var dateStr = yyyy + mm + dd;
-            // URL imagen diaria del portal BDRC (dust.aemet.es)
-            var url = 'https://dust.aemet.es/images/forecasts/' + dateStr + '/' + product + '.png';
-            img.style.display = 'block';
-            errDiv.style.display = 'none';
-            img.src = url + '?t=' + dateStr;
         }
         </script>
 
