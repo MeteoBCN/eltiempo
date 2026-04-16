@@ -831,18 +831,6 @@
         </div>
 
         <!-- ═══════════════════════════════════════════
-             PROBABILIDAD DE TORMENTA
-        ════════════════════════════════════════════ -->
-        <div id="tormenta-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <div style="display:flex;align-items:center;justify-content:flex-start;padding:14px 16px;background:#6fcfe0;">
-                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">⛈️ PROBABILIDAD DE TORMENTA HOY</span>
-            </div>
-            <div id="tormenta-content" style="background:#f0f6fa;padding:14px 16px;">
-                <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
-            </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════
              EPISODIO DE CALIMA
         ════════════════════════════════════════════ -->
         <div id="calima-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
@@ -850,6 +838,18 @@
                 <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">🌫️ EPISODIO DE CALIMA</span>
             </div>
             <div id="calima-content" style="background:#f0f6fa;padding:14px 16px;">
+                <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+             PROBABILIDAD DE TORMENTA
+        ════════════════════════════════════════════ -->
+        <div id="tormenta-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <div style="display:flex;align-items:center;justify-content:flex-start;padding:14px 16px;background:#6fcfe0;">
+                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">⛈️ PROBABILIDAD DE TORMENTA HOY</span>
+            </div>
+            <div id="tormenta-content" style="background:#f0f6fa;padding:14px 16px;">
                 <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
             </div>
         </div>
@@ -1578,34 +1578,30 @@
                 consejoText = 'No se esperan tormentas hoy en Barcelona.';
             }
 
-            // Barras horarias
+            // Hora prevista con mayor probabilidad de tormenta
             const horasRestantes = horasHoy.filter(x => x.h >= now || x.hora === now.getHours());
-            let barrasHTML = '';
-            for (const slot of horasRestantes) {
-                const pct = slot.probTorm;
-                const col = pct >= 70 ? '#7c3aed' : pct >= 40 ? '#f97316' : pct >= 15 ? '#f59e0b' : '#c7d2e0';
-                const label = String(slot.hora).padStart(2,'0') + 'h';
-                barrasHTML += `
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:0;">
-                        <div style="font-size:8px;color:#64748b;font-weight:600;">${pct > 0 ? pct + '%' : ''}</div>
-                        <div style="width:100%;height:40px;background:#e2e8f0;border-radius:4px;display:flex;align-items:flex-end;overflow:hidden;">
-                            <div style="width:100%;height:${Math.max(pct,2)}%;background:${col};border-radius:4px;transition:height 0.5s;"></div>
-                        </div>
-                        <div style="font-size:9px;color:#94a3b8;">${label}</div>
-                    </div>`;
+            const slotPico = horasRestantes.reduce((a, b) => b.probTorm > a.probTorm ? b : a, horasRestantes[0] || {probTorm: 0});
+            let horaPreviewHTML = '';
+            if (maxProbTorm >= 15 && slotPico && slotPico.probTorm > 0) {
+                const horaLabel = String(slotPico.hora).padStart(2,'0') + ':00 h';
+                horaPreviewHTML = `<div style="margin-top:10px;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.04);border-radius:8px;padding:8px 12px;">
+                    <span style="font-size:16px;">🕐</span>
+                    <div>
+                        <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Hora prevista de mayor riesgo</div>
+                        <div style="font-size:14px;font-weight:700;color:#1e3a5f;">${horaLabel} <span style="font-size:11px;font-weight:600;color:${badgeColor};">(${slotPico.probTorm}%)</span></div>
+                    </div>
+                </div>`;
             }
 
             el.innerHTML = `
-                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                <div style="display:flex;align-items:center;gap:12px;">
                     <div style="font-size:32px;">${badgeIcon}</div>
                     <div style="flex:1;">
                         <div style="display:inline-block;background:${badgeColor};color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">${badgeText}</div>
                         <div style="font-size:12px;color:#1e3a5f;line-height:1.4;">${consejoText}</div>
                     </div>
                 </div>
-                ${horasRestantes.length > 0 ? `
-                <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Evolución horaria</div>
-                <div style="display:flex;gap:4px;align-items:flex-end;">${barrasHTML}</div>` : ''}
+                ${horaPreviewHTML}
             `;
         }
 
@@ -1647,7 +1643,7 @@
                 descripcion = `PM10 moderado (${Math.round(pm10)} µg/m³). Aire con partículas en suspensión.`;
                 consejo = 'Calidad del aire aceptable, pero con partículas por encima de lo habitual.';
             } else {
-                nivel = 'SIN CALIMA'; color = '#10b981'; icono = '✅';
+                nivel = 'SIN CALIMA'; color = '#10b981'; icono = '🌿';
                 descripcion = `PM10 normal (${Math.round(pm10)} µg/m³). No se detecta polvo sahariano.`;
                 consejo = 'Condiciones normales de partículas en el aire.';
             }
