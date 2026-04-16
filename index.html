@@ -834,9 +834,6 @@
              EPISODIO DE CALIMA
         ════════════════════════════════════════════ -->
         <div id="calima-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <div style="display:flex;align-items:center;justify-content:flex-start;padding:14px 16px;background:#6fcfe0;">
-                <span style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">🌫️ EPISODIO DE CALIMA</span>
-            </div>
             <div id="calima-content" style="background:#f0f6fa;padding:14px 16px;">
                 <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
             </div>
@@ -1584,12 +1581,9 @@
             let horaPreviewHTML = '';
             if (maxProbTorm >= 15 && slotPico && slotPico.probTorm > 0) {
                 const horaLabel = String(slotPico.hora).padStart(2,'0') + ':00 h';
-                horaPreviewHTML = `<div style="margin-top:10px;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.04);border-radius:8px;padding:8px 12px;">
-                    <span style="font-size:16px;">🕐</span>
-                    <div>
-                        <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Hora prevista de mayor riesgo</div>
-                        <div style="font-size:14px;font-weight:700;color:#1e3a5f;">${horaLabel} <span style="font-size:11px;font-weight:600;color:${badgeColor};">(${slotPico.probTorm}%)</span></div>
-                    </div>
+                horaPreviewHTML = `<div style="margin-top:10px;background:rgba(0,0,0,0.04);border-radius:8px;padding:8px 12px;">
+                    <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Hora prevista de mayor riesgo</div>
+                    <div style="font-size:14px;font-weight:700;color:#1e3a5f;">${horaLabel} <span style="font-size:11px;font-weight:600;color:${badgeColor};">(${slotPico.probTorm}%)</span></div>
                 </div>`;
             }
 
@@ -1631,30 +1625,24 @@
             }
 
             if (pm10 >= 100) {
-                nivel = 'CALIMA INTENSA'; color = '#b45309'; icono = '🟤';
+                nivel = 'CALIMA INTENSA'; color = '#b45309'; icono = '';
                 descripcion = `PM10 muy elevado (${Math.round(pm10)} µg/m³). Episodio de polvo sahariano activo.`;
                 consejo = 'Evita actividades físicas al aire libre. Mantén ventanas cerradas.';
             } else if (pm10 >= 50) {
-                nivel = 'CALIMA MODERADA'; color = '#d97706'; icono = '🟠';
+                nivel = 'CALIMA MODERADA'; color = '#d97706'; icono = '';
                 descripcion = `PM10 elevado (${Math.round(pm10)} µg/m³). Posible aporte de polvo del desierto.`;
                 consejo = 'Personas con problemas respiratorios deben limitar la exposición exterior.';
             } else if (pm10 >= 30) {
-                nivel = 'PARTÍCULAS ELEVADAS'; color = '#f59e0b'; icono = '🟡';
+                nivel = 'PARTÍCULAS ELEVADAS'; color = '#f59e0b'; icono = '';
                 descripcion = `PM10 moderado (${Math.round(pm10)} µg/m³). Aire con partículas en suspensión.`;
                 consejo = 'Calidad del aire aceptable, pero con partículas por encima de lo habitual.';
             } else {
-                nivel = 'SIN CALIMA'; color = '#10b981'; icono = '🌿';
+                nivel = 'SIN CALIMA'; color = '#10b981'; icono = '';
                 descripcion = `PM10 normal (${Math.round(pm10)} µg/m³). No se detecta polvo sahariano.`;
                 consejo = 'Condiciones normales de partículas en el aire.';
             }
 
-            // Indicador de flujo sahariano
-            const sahararaHTML = vientoSahara
-                ? `<div style="display:flex;align-items:center;gap:6px;margin-top:10px;background:rgba(217,119,6,0.12);border-left:3px solid #d97706;padding:7px 10px;border-radius:0 6px 6px 0;">
-                    <span style="font-size:14px;">🧭</span>
-                    <span style="font-size:11px;color:#92400e;font-weight:600;">Viento del sur detectado (${Math.round(windDir)}°) — posible transporte de polvo sahariano</span>
-                   </div>`
-                : '';
+            // Indicador de flujo sahariano — eliminado
 
             // Barra de nivel PM10
             const pct = Math.min(Math.round((pm10 / 150) * 100), 100);
@@ -1662,7 +1650,6 @@
 
             el.innerHTML = `
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-                    <div style="font-size:32px;">${icono}</div>
                     <div style="flex:1;">
                         <div style="display:inline-block;background:${color};color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">${nivel}</div>
                         <div style="font-size:12px;color:#1e3a5f;line-height:1.4;">${descripcion}</div>
@@ -1683,7 +1670,6 @@
                         <span style="font-size:9px;color:#b45309;">150 µg/m³</span>
                     </div>
                 </div>
-                ${sahararaHTML}
                 <div style="margin-top:10px;font-size:9px;color:#94a3b8;text-align:right;">Fuente: Open-Meteo Air Quality</div>
             `;
         }
