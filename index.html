@@ -1098,27 +1098,27 @@
                     <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">METAR / TAF — LEBL</span>
                     <span id="arrow-metartaf" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
                 </div>
-                <div id="panel-metartaf" style="display:none;background:#0f1923;overflow:hidden;">
+                <div id="panel-metartaf" style="display:none;background:#f4f6f8;overflow:hidden;">
                     <!-- Tabs -->
-                    <div style="display:flex;border-bottom:1px solid rgba(255,255,255,0.08);">
+                    <div style="display:flex;border-bottom:2px solid #e2e8f0;background:#fff;">
                         <button id="tab-metar-btn" onclick="switchMetarTab('metar')"
-                            style="flex:1;padding:9px 0;background:#1a252f;border:none;border-bottom:2px solid #6fcfe0;cursor:pointer;font-size:10px;font-weight:700;color:#6fcfe0;letter-spacing:1.5px;text-transform:uppercase;transition:all 0.2s;">METAR</button>
+                            style="flex:1;padding:10px 0;background:#fff;border:none;border-bottom:2px solid #2c4a6e;cursor:pointer;font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:1.5px;text-transform:uppercase;transition:all 0.2s;margin-bottom:-2px;">METAR</button>
                         <button id="tab-taf-btn" onclick="switchMetarTab('taf')"
-                            style="flex:1;padding:9px 0;background:#0f1923;border:none;border-bottom:2px solid transparent;cursor:pointer;font-size:10px;font-weight:700;color:#546e7a;letter-spacing:1.5px;text-transform:uppercase;transition:all 0.2s;">TAF</button>
+                            style="flex:1;padding:10px 0;background:#fff;border:none;border-bottom:2px solid transparent;cursor:pointer;font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;transition:all 0.2s;margin-bottom:-2px;">TAF</button>
                     </div>
                     <!-- METAR panel -->
-                    <div id="metar-panel" style="padding:16px;">
-                        <div id="metar-loading" style="text-align:center;padding:20px 0;color:#546e7a;font-size:12px;letter-spacing:1px;">Cargando METAR…</div>
-                        <div id="metar-raw" style="display:none;font-family:'Courier New',monospace;font-size:12px;color:#80cbc4;background:rgba(0,0,0,0.35);padding:12px 14px;border-radius:8px;line-height:1.7;word-break:break-all;margin-bottom:12px;"></div>
+                    <div id="metar-panel" style="padding:14px 16px;">
+                        <div id="metar-loading" style="text-align:center;padding:20px 0;color:#94a3b8;font-size:12px;letter-spacing:1px;">Cargando METAR…</div>
+                        <div id="metar-raw" style="display:none;font-family:'Courier New',monospace;font-size:11px;color:#334155;background:#e8edf2;padding:10px 12px;border-radius:6px;line-height:1.7;word-break:break-all;margin-bottom:12px;border-left:3px solid #6fcfe0;"></div>
                         <div id="metar-decoded" style="display:none;"></div>
-                        <div id="metar-source" style="text-align:right;font-size:9px;color:rgba(255,255,255,0.25);letter-spacing:1px;text-transform:uppercase;margin-top:8px;">Fuente: CheckWX</div>
+                        <div id="metar-source" style="text-align:right;font-size:9px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-top:8px;">Fuente: CheckWX</div>
                     </div>
                     <!-- TAF panel -->
-                    <div id="taf-panel" style="display:none;padding:16px;">
-                        <div id="taf-loading" style="text-align:center;padding:20px 0;color:#546e7a;font-size:12px;letter-spacing:1px;">Cargando TAF…</div>
-                        <div id="taf-raw" style="display:none;font-family:'Courier New',monospace;font-size:12px;color:#80cbc4;background:rgba(0,0,0,0.35);padding:12px 14px;border-radius:8px;line-height:1.7;word-break:break-all;margin-bottom:12px;"></div>
+                    <div id="taf-panel" style="display:none;padding:14px 16px;">
+                        <div id="taf-loading" style="text-align:center;padding:20px 0;color:#94a3b8;font-size:12px;letter-spacing:1px;">Cargando TAF…</div>
+                        <div id="taf-raw" style="display:none;font-family:'Courier New',monospace;font-size:11px;color:#334155;background:#e8edf2;padding:10px 12px;border-radius:6px;line-height:1.7;word-break:break-all;margin-bottom:12px;border-left:3px solid #6fcfe0;"></div>
                         <div id="taf-decoded" style="display:none;"></div>
-                        <div id="taf-source" style="text-align:right;font-size:9px;color:rgba(255,255,255,0.25);letter-spacing:1px;text-transform:uppercase;margin-top:8px;">Fuente: CheckWX</div>
+                        <div id="taf-source" style="text-align:right;font-size:9px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-top:8px;">Fuente: CheckWX</div>
                     </div>
                 </div>
             </div>
@@ -1178,13 +1178,12 @@
 
         <script>
         // ══════════════════════════════════════════════
-        //  METAR / TAF — CheckWX
+        //  METAR / TAF — CheckWX (fondo claro)
         // ══════════════════════════════════════════════
         var _metarLoaded = false;
         var _tafLoaded   = false;
-        var _currentMetarTab = 'metar';
-        var CHECKWX_KEY = 'd075135901364b829a1de78487d27397';
-        var ICAO = 'LEBL';
+        var CHECKWX_KEY  = 'd075135901364b829a1de78487d27397';
+        var ICAO         = 'LEBL';
 
         function toggleMetarTaf() {
             var panel = document.getElementById('panel-metartaf');
@@ -1192,122 +1191,180 @@
             var isOpen = panel.style.display !== 'none';
             panel.style.display = isOpen ? 'none' : 'block';
             arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
-            if (!isOpen && !_metarLoaded) { fetchMetar(); }
+            if (!isOpen && !_metarLoaded) fetchMetar();
         }
 
         function switchMetarTab(tab) {
-            _currentMetarTab = tab;
             var isMetar = tab === 'metar';
-            document.getElementById('metar-panel').style.display  = isMetar ? 'block' : 'none';
-            document.getElementById('taf-panel').style.display    = isMetar ? 'none'  : 'block';
-            // Tab styles
+            document.getElementById('metar-panel').style.display = isMetar ? 'block' : 'none';
+            document.getElementById('taf-panel').style.display   = isMetar ? 'none'  : 'block';
             var mb = document.getElementById('tab-metar-btn');
             var tb = document.getElementById('tab-taf-btn');
-            mb.style.background     = isMetar ? '#1a252f' : '#0f1923';
-            mb.style.borderBottom   = isMetar ? '2px solid #6fcfe0' : '2px solid transparent';
-            mb.style.color          = isMetar ? '#6fcfe0' : '#546e7a';
-            tb.style.background     = isMetar ? '#0f1923' : '#1a252f';
-            tb.style.borderBottom   = isMetar ? '2px solid transparent' : '2px solid #6fcfe0';
-            tb.style.color          = isMetar ? '#546e7a' : '#6fcfe0';
-            if (!isMetar && !_tafLoaded) { fetchTaf(); }
+            mb.style.borderBottom = isMetar ? '2px solid #2c4a6e' : '2px solid transparent';
+            mb.style.color        = isMetar ? '#2c4a6e' : '#94a3b8';
+            tb.style.borderBottom = isMetar ? '2px solid transparent' : '2px solid #2c4a6e';
+            tb.style.color        = isMetar ? '#94a3b8' : '#2c4a6e';
+            if (!isMetar && !_tafLoaded) fetchTaf();
         }
 
-        function metarFlightRuleColor(cat) {
-            var map = { VFR: '#4caf50', MVFR: '#2196f3', IFR: '#f44336', LIFR: '#9c27b0' };
-            return map[cat] || '#90a4ae';
+        function catColor(cat) {
+            return { VFR:'#16a34a', MVFR:'#2563eb', IFR:'#dc2626', LIFR:'#9333ea' }[cat] || '#64748b';
         }
 
-        function metarWindDir(deg) {
-            var dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
-            return dirs[Math.round(deg / 22.5) % 16];
+        function windDir(deg) {
+            var d = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+            return d[Math.round(deg/22.5)%16];
+        }
+
+        // ── Obtiene metros de visibilidad compatibilizando v1 y v2
+        function visMetros(vis) {
+            if (!vis) return null;
+            // v1: meters_float  /  v2: meters
+            if (vis.meters_float != null) return vis.meters_float;
+            if (vis.meters != null)       return vis.meters;
+            return null;
+        }
+
+        // ── Altímetro en hPa, compatible v1 (altimeter.hpa) y v2 (barometer.hpa)
+        function qnh(d) {
+            if (d.barometer && d.barometer.hpa != null) return d.barometer.hpa + ' hPa';
+            if (d.altimeter && d.altimeter.hpa != null) return d.altimeter.hpa + ' hPa';
+            return '—';
+        }
+
+        // ── Temperatura: v1: temperature.celsius  /  v2: temp (número)
+        function getTemp(d) {
+            if (d.temperature && d.temperature.celsius != null) return d.temperature.celsius + ' °C';
+            if (d.temp != null) return d.temp + ' °C';
+            return '—';
+        }
+
+        // ── Rocío: v1: dewpoint.celsius  /  v2: dewpoint (número)
+        function getDew(d) {
+            if (d.dewpoint && typeof d.dewpoint === 'object' && d.dewpoint.celsius != null) return d.dewpoint.celsius + ' °C';
+            if (d.dewpoint != null && typeof d.dewpoint === 'number') return d.dewpoint + ' °C';
+            return '—';
+        }
+
+        // ── Nubes: base_meters_agl (v1) o base_feet_agl convertido
+        function renderClouds(clouds) {
+            if (!clouds || !clouds.length) return 'Despejado';
+            return clouds.map(function(c) {
+                var base;
+                if (c.base_meters_agl != null) base = Math.round(c.base_meters_agl) + ' m';
+                else if (c.base_feet_agl != null) base = Math.round(c.base_feet_agl * 0.3048) + ' m';
+                else base = '';
+                var texto = c.text ? ' (' + c.text + ')' : '';
+                return '<strong>' + (c.code||'') + '</strong>' + texto + (base ? ' ' + base : '');
+            }).join('<br>');
+        }
+
+        // ── Viento
+        function renderWind(w) {
+            if (!w) return '—';
+            // Velocidad: v1: speed_kts  /  v2: speed.kts
+            var spd = w.speed_kts != null ? w.speed_kts : (w.speed && w.speed.kts != null ? w.speed.kts : null);
+            var gst = w.gust_kts  != null ? w.gust_kts  : (w.gust  && w.gust.kts  != null ? w.gust.kts  : null);
+            if (spd === 0 || w.degrees == null) return 'Calma';
+            var txt = windDir(w.degrees) + ' (' + w.degrees + '°) ' + spd + ' kt';
+            if (gst) txt += ' — ráfagas ' + gst + ' kt';
+            return txt;
+        }
+
+        // ── Tiempo presente
+        function renderWx(conditions) {
+            if (!conditions || !conditions.length) return null;
+            return conditions.map(function(c){ return c.text || c.code || ''; }).join(', ');
+        }
+
+        // ── Humidity / Presión SLP
+        function extras(d) {
+            var out = [];
+            if (d.humidity && d.humidity.percent != null)
+                out.push(['💧 Humedad relativa', d.humidity.percent + ' %']);
+            if (d.pressure_tendency)
+                out.push(['📊 Tendencia presión', d.pressure_tendency]);
+            if (d.ceiling && (d.ceiling.meters != null || d.ceiling.feet != null)) {
+                var cm = d.ceiling.meters != null ? d.ceiling.meters : Math.round(d.ceiling.feet*0.3048);
+                out.push(['⬆️ Techo de nubes', cm + ' m']);
+            }
+            return out;
+        }
+
+        function row(label, val) {
+            return '<tr style="border-bottom:1px solid #e2e8f0;">' +
+                '<td style="padding:8px 6px 8px 0;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.7px;white-space:nowrap;vertical-align:top;min-width:110px;">' + label + '</td>' +
+                '<td style="padding:8px 0 8px 8px;font-size:12px;font-weight:600;color:#1e293b;">' + val + '</td>' +
+            '</tr>';
         }
 
         function renderMetarDecoded(d) {
-            var cat    = (d.flight_category || '—');
-            var catCol = metarFlightRuleColor(cat);
-            var temp   = d.temp != null ? d.temp + ' °C' : '—';
-            var dew    = d.dewpoint != null ? d.dewpoint + ' °C' : '—';
-            var qnh    = d.altimeter && d.altimeter.hpa != null ? d.altimeter.hpa + ' hPa' : '—';
-            var vis    = d.visibility && d.visibility.meters_float != null
-                            ? (d.visibility.meters_float >= 9999 ? '≥10 km' : (d.visibility.meters_float / 1000).toFixed(1) + ' km') : '—';
-            var wind   = '—';
-            if (d.wind) {
-                if (d.wind.degrees != null) {
-                    wind = metarWindDir(d.wind.degrees) + ' ' + (d.wind.speed_kts || 0) + ' kt';
-                    if (d.wind.gust_kts) wind += ' (ráfagas ' + d.wind.gust_kts + ' kt)';
-                } else if (d.wind.speed_kts === 0) { wind = 'Calma'; }
-            }
-            var clouds = '—';
-            if (d.clouds && d.clouds.length) {
-                clouds = d.clouds.map(function(c) {
-                    return (c.code || '') + ' ' + (c.base_feet_agl != null ? (c.base_feet_agl * 0.3048 / 100 | 0) * 100 + ' m' : '');
-                }).join(' · ');
-            }
-            var obs = d.observed ? d.observed.replace('T', ' ').substring(0, 16) + ' UTC' : '—';
+            var cat    = d.flight_category || '';
+            var catCol = catColor(cat);
+            var obs    = d.observed ? d.observed.replace('T',' ').substring(0,16) + ' UTC' : '—';
+            var vis    = visMetros(d.visibility);
+            var visStr = vis != null ? (vis >= 9999 ? '≥ 10 km' : (vis/1000).toFixed(1) + ' km') : '—';
+            var wx     = renderWx(d.conditions);
 
-            var rows = [
-                ['🕐 Observación', obs],
-                ['✈️ Categoría', '<span style="font-weight:800;color:' + catCol + ';font-size:13px;">' + cat + '</span>'],
-                ['🌡️ Temp / Rocío', temp + ' / ' + dew],
-                ['🔵 QNH', qnh],
-                ['👁️ Visibilidad', vis],
-                ['💨 Viento', wind],
-                ['☁️ Nubes', clouds]
-            ];
-            return '<table style="width:100%;border-collapse:collapse;">' +
-                rows.map(function(r) {
-                    return '<tr><td style="padding:7px 4px;font-size:10px;color:#78909c;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;width:38%;">' + r[0] +
-                           '</td><td style="padding:7px 4px;font-size:12px;font-weight:600;color:#cfd8dc;">' + r[1] + '</td></tr>';
-                }).join('') +
-            '</table>';
+            var rows = '';
+            rows += row('🕐 Observación', obs);
+            if (cat) rows += row('✈️ Categoría vuelo',
+                '<span style="display:inline-block;padding:2px 10px;border-radius:4px;background:' + catCol + ';color:#fff;font-size:11px;font-weight:800;letter-spacing:1px;">' + cat + '</span>');
+            rows += row('🌡️ Temperatura', getTemp(d));
+            rows += row('💦 Punto de rocío', getDew(d));
+            rows += row('🔵 QNH', qnh(d));
+            rows += row('👁️ Visibilidad', visStr);
+            rows += row('💨 Viento', renderWind(d.wind));
+            rows += row('☁️ Nubes', renderClouds(d.clouds));
+            if (wx) rows += row('🌧️ Tiempo presente', wx);
+            extras(d).forEach(function(e){ rows += row(e[0], e[1]); });
+
+            return '<table style="width:100%;border-collapse:collapse;">' + rows + '</table>';
         }
 
         function renderTafDecoded(d) {
-            if (!d.forecast || !d.forecast.length) return '<p style="color:#546e7a;font-size:12px;">Sin pronóstico disponible.</p>';
-            var rows = d.forecast.map(function(f, i) {
-                var from = f.timestamp && f.timestamp.from ? f.timestamp.from.substring(11,16) + ' UTC' : '—';
-                var to   = f.timestamp && f.timestamp.to   ? f.timestamp.to.substring(11,16) + ' UTC' : '—';
-                var wind = '—';
-                if (f.wind) {
-                    if (f.wind.degrees != null) {
-                        wind = metarWindDir(f.wind.degrees) + ' ' + (f.wind.speed_kts || 0) + ' kt';
-                        if (f.wind.gust_kts) wind += ' (ráf. ' + f.wind.gust_kts + ' kt)';
-                    } else { wind = 'Calma'; }
+            if (!d.forecast || !d.forecast.length)
+                return '<p style="color:#64748b;font-size:12px;padding:8px 0;">Sin pronóstico disponible.</p>';
+
+            return d.forecast.map(function(f, i) {
+                // Período temporal
+                var from = '—', to = '—';
+                if (f.timestamp) {
+                    from = (f.timestamp.from||'').replace('T',' ').substring(0,16);
+                    to   = (f.timestamp.to  ||'').replace('T',' ').substring(0,16);
                 }
-                var vis = f.visibility && f.visibility.meters_float != null
-                    ? (f.visibility.meters_float >= 9999 ? '≥10 km' : (f.visibility.meters_float / 1000).toFixed(1) + ' km') : '—';
-                var clouds = '—';
-                if (f.clouds && f.clouds.length) {
-                    clouds = f.clouds.map(function(c) {
-                        return (c.code || '') + ' ' + (c.base_feet_agl != null ? (c.base_feet_agl * 0.3048 / 100 | 0) * 100 + ' m' : '');
-                    }).join(' · ');
-                }
-                var type = f.change && f.change.indicator && f.change.indicator.code ? f.change.indicator.code : (i === 0 ? 'BASE' : '');
-                return '<tr style="border-top:1px solid rgba(255,255,255,0.06);">' +
-                    '<td style="padding:8px 4px;vertical-align:top;white-space:nowrap;">' +
-                        '<span style="font-size:9px;font-weight:800;color:#6fcfe0;letter-spacing:1px;">' + type + '</span><br>' +
-                        '<span style="font-size:9px;color:#546e7a;">' + from + '</span><br>' +
-                        '<span style="font-size:9px;color:#37474f;">→ ' + to + '</span>' +
-                    '</td>' +
-                    '<td style="padding:8px 4px;font-size:11px;color:#90a4ae;">' + wind + '</td>' +
-                    '<td style="padding:8px 4px;font-size:11px;color:#90a4ae;">' + vis + '</td>' +
-                    '<td style="padding:8px 4px;font-size:11px;color:#90a4ae;">' + clouds + '</td>' +
-                '</tr>';
+                var type = (f.change && f.change.indicator && f.change.indicator.code)
+                            ? f.change.indicator.code
+                            : (i === 0 ? 'BASE' : '');
+
+                var vis    = visMetros(f.visibility);
+                var visStr = vis != null ? (vis >= 9999 ? '≥ 10 km' : (vis/1000).toFixed(1) + ' km') : '—';
+                var wx     = renderWx(f.conditions);
+
+                var typeColors = { BASE:'#2c4a6e', BECMG:'#0369a1', TEMPO:'#b45309', PROB30:'#92400e', PROB40:'#92400e', FM:'#065f46' };
+                var tc = typeColors[type] || '#475569';
+
+                var html = '<div style="background:#fff;border-radius:8px;margin-bottom:10px;border:1px solid #e2e8f0;overflow:hidden;">';
+                html += '<div style="background:' + tc + ';padding:6px 12px;display:flex;align-items:center;justify-content:space-between;">';
+                html += '<span style="font-size:10px;font-weight:800;color:#fff;letter-spacing:1px;">' + type + '</span>';
+                html += '<span style="font-size:9px;color:rgba(255,255,255,0.8);">' + from.substring(11,16) + ' → ' + to.substring(11,16) + ' UTC · ' + from.substring(0,10) + '</span>';
+                html += '</div>';
+                html += '<table style="width:100%;border-collapse:collapse;padding:4px;">';
+                html += row('💨 Viento', renderWind(f.wind));
+                html += row('👁️ Visibilidad', visStr);
+                html += row('☁️ Nubes', renderClouds(f.clouds));
+                if (wx) html += row('🌧️ Tiempo', wx);
+                if (f.change && f.change.probability)
+                    html += row('📊 Probabilidad', f.change.probability + ' %');
+                html += '</table></div>';
+                return html;
             }).join('');
-            return '<table style="width:100%;border-collapse:collapse;">' +
-                '<thead><tr>' +
-                    '<th style="font-size:8px;color:#546e7a;text-transform:uppercase;letter-spacing:.8px;padding:4px 4px 8px;text-align:left;font-weight:700;">Período</th>' +
-                    '<th style="font-size:8px;color:#546e7a;text-transform:uppercase;letter-spacing:.8px;padding:4px 4px 8px;font-weight:700;">Viento</th>' +
-                    '<th style="font-size:8px;color:#546e7a;text-transform:uppercase;letter-spacing:.8px;padding:4px 4px 8px;font-weight:700;">Visib.</th>' +
-                    '<th style="font-size:8px;color:#546e7a;text-transform:uppercase;letter-spacing:.8px;padding:4px 4px 8px;font-weight:700;">Nubes</th>' +
-                '</tr></thead><tbody>' + rows + '</tbody></table>';
         }
 
         async function fetchMetar() {
             try {
-                var resp = await fetch('https://api.checkwx.com/metar/' + ICAO + '/decoded', {
-                    headers: { 'X-API-Key': CHECKWX_KEY }
-                });
+                var resp = await fetch('https://api.checkwx.com/metar/' + ICAO + '/decoded',
+                    { headers: { 'X-API-Key': CHECKWX_KEY } });
                 var json = await resp.json();
                 var d = json.data && json.data[0];
                 document.getElementById('metar-loading').style.display = 'none';
@@ -1317,20 +1374,19 @@
                     document.getElementById('metar-decoded').innerHTML = renderMetarDecoded(d);
                     document.getElementById('metar-decoded').style.display = 'block';
                 } else {
-                    document.getElementById('metar-raw').textContent = 'Sin datos disponibles.';
-                    document.getElementById('metar-raw').style.display = 'block';
+                    document.getElementById('metar-loading').textContent = 'Sin datos disponibles.';
+                    document.getElementById('metar-loading').style.display = 'block';
                 }
                 _metarLoaded = true;
             } catch(e) {
-                document.getElementById('metar-loading').textContent = 'Error al cargar METAR.';
+                document.getElementById('metar-loading').textContent = 'Error al cargar METAR: ' + e.message;
             }
         }
 
         async function fetchTaf() {
             try {
-                var resp = await fetch('https://api.checkwx.com/taf/' + ICAO + '/decoded', {
-                    headers: { 'X-API-Key': CHECKWX_KEY }
-                });
+                var resp = await fetch('https://api.checkwx.com/taf/' + ICAO + '/decoded',
+                    { headers: { 'X-API-Key': CHECKWX_KEY } });
                 var json = await resp.json();
                 var d = json.data && json.data[0];
                 document.getElementById('taf-loading').style.display = 'none';
@@ -1340,12 +1396,12 @@
                     document.getElementById('taf-decoded').innerHTML = renderTafDecoded(d);
                     document.getElementById('taf-decoded').style.display = 'block';
                 } else {
-                    document.getElementById('taf-raw').textContent = 'Sin datos disponibles.';
-                    document.getElementById('taf-raw').style.display = 'block';
+                    document.getElementById('taf-loading').textContent = 'Sin datos disponibles.';
+                    document.getElementById('taf-loading').style.display = 'block';
                 }
                 _tafLoaded = true;
             } catch(e) {
-                document.getElementById('taf-loading').textContent = 'Error al cargar TAF.';
+                document.getElementById('taf-loading').textContent = 'Error al cargar TAF: ' + e.message;
             }
         }
         </script>
