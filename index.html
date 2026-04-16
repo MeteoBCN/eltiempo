@@ -1556,21 +1556,22 @@
             const maxProbTorm = Math.max(...horasHoy.map(x => x.probTorm));
 
             // Badge resumen
-            let badgeColor, badgeText, badgeIcon, consejoText;
+            const badgeIcon = '⛈️';
+            let badgeColor, badgeText, consejoText;
             if (maxProbTorm >= 70) {
-                badgeColor = '#7c3aed'; badgeIcon = '⛈️';
+                badgeColor = '#7c3aed';
                 badgeText = 'RIESGO ALTO';
                 consejoText = 'Alta probabilidad de tormenta hoy. Evita actividades al aire libre.';
             } else if (maxProbTorm >= 40) {
-                badgeColor = '#f97316'; badgeIcon = '🌩️';
+                badgeColor = '#f97316';
                 badgeText = 'RIESGO MODERADO';
                 consejoText = 'Puede haber tormentas durante el día. Lleva paraguas.';
             } else if (maxProbTorm >= 15) {
-                badgeColor = '#f59e0b'; badgeIcon = '🌦️';
+                badgeColor = '#f59e0b';
                 badgeText = 'RIESGO BAJO';
                 consejoText = 'Posibilidad baja de tormenta. Sin preocupación especial.';
             } else {
-                badgeColor = '#10b981'; badgeIcon = '☀️';
+                badgeColor = '#10b981';
                 badgeText = 'SIN RIESGO';
                 consejoText = 'No se esperan tormentas hoy en Barcelona.';
             }
