@@ -973,7 +973,6 @@
             <!-- ══════ FIN AVISOS AEMET ══════ -->
             <div id="proxima-lluvia-content" style="background:#f0f6fa;padding:14px 16px;border-bottom:1px solid rgba(0,0,0,0.07);">
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="font-size:32px;line-height:1;">🌧️</div>
                     <div style="flex:1;">
                         <div style="font-size:12px;color:#94a3b8;text-align:left;">Calculando…</div>
                     </div>
@@ -1005,7 +1004,7 @@
                 <!-- Radar Windy embed -->
                 <div style="position:relative;width:100%;background:#0d1b2a;">
                     <iframe
-                        src="https://embed.windy.com/embed2.html?lat=41.385&lon=2.173&detailLat=41.385&detailLon=2.173&width=650&height=320&zoom=8&level=surface&overlay=radar&product=radar&menu=&message=&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1"
+                        src="https://embed.windy.com/embed2.html?lat=41.385&lon=2.173&detailLat=41.385&detailLon=2.173&width=650&height=320&zoom=7&level=surface&overlay=radar&product=radar&menu=&message=&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1"
                         width="100%"
                         height="320"
                         frameborder="0"
@@ -1876,23 +1875,22 @@
             const maxProbTorm = Math.max(...horasHoy.map(x => x.probTorm));
 
             // Badge resumen
-            const badgeIcon = '⛈️';
             let badgeColor, badgeText, consejoText;
             if (maxProbTorm >= 70) {
                 badgeColor = '#7c3aed';
-                badgeText = 'RIESGO ALTO';
+                badgeText = 'TORMENTA · RIESGO ALTO';
                 consejoText = 'Alta probabilidad de tormenta hoy. Evita actividades al aire libre.';
             } else if (maxProbTorm >= 40) {
                 badgeColor = '#f97316';
-                badgeText = 'RIESGO MODERADO';
+                badgeText = 'TORMENTA · RIESGO MODERADO';
                 consejoText = 'Puede haber tormentas durante el día. Lleva paraguas.';
             } else if (maxProbTorm >= 15) {
                 badgeColor = '#f59e0b';
-                badgeText = 'RIESGO BAJO';
+                badgeText = 'TORMENTA · RIESGO BAJO';
                 consejoText = 'Posibilidad baja de tormenta. Sin preocupación especial.';
             } else {
                 badgeColor = '#10b981';
-                badgeText = 'SIN RIESGO';
+                badgeText = 'SIN TORMENTA PREVISTA';
                 consejoText = 'No se esperan tormentas hoy en Barcelona.';
             }
 
@@ -1910,7 +1908,6 @@
 
             el.innerHTML = `
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="font-size:32px;">${badgeIcon}</div>
                     <div style="flex:1;">
                         <div style="display:inline-block;background:${badgeColor};color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">${badgeText}</div>
                         <div style="font-size:12px;color:#1e3a5f;line-height:1.4;">${consejoText}</div>
@@ -3579,7 +3576,6 @@
             if (!found) {
                 el.innerHTML = `
                     <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="font-size:32px;line-height:1;">🌧️</div>
                         <div style="flex:1;">
                             <div style="display:inline-block;background:#10b981;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">SIN LLUVIA PREVISTA</div>
                             <div style="font-size:12px;color:#1e3a5f;line-height:1.4;">No se espera lluvia los próximos días en Barcelona.</div>
@@ -3601,16 +3597,14 @@
 
             let badgeColor = '#3B82F6';
             let badgeText  = 'LLUVIA EN ' + cuando.toUpperCase();
-            let icono      = '🌧️';
             let consejo    = 'Se prevé lluvia en aproximadamente ' + cuando + '. Lleva paraguas si sales.';
             if (diffH < 3) {
-                badgeColor = '#2563EB'; icono = '⛈️';
+                badgeColor = '#2563EB';
                 consejo = 'Lluvia inminente en menos de ' + cuando + '. Ten paraguas a mano.';
             }
 
             el.innerHTML = `
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="font-size:32px;line-height:1;">${icono}</div>
                     <div style="flex:1;">
                         <div style="display:inline-block;background:${badgeColor};color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">${badgeText}</div>
                         <div style="font-size:12px;color:#1e3a5f;line-height:1.4;">${consejo}</div>
@@ -4257,7 +4251,6 @@
             function renderSinAvisos() {
                 container.innerHTML = `
                     <div style="display:flex;align-items:center;gap:12px;">
-                        <span style="font-size:32px;flex-shrink:0;">✅</span>
                         <div style="flex:1;min-width:0;">
                             <div style="display:inline-block;background:#10b981;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">SIN AVISOS ACTIVOS</div>
                             <div style="font-size:12px;color:#1e3a5f;line-height:1.4;">Sin fenómenos adversos previstos.</div>
@@ -4313,7 +4306,6 @@
                         : '';
                     html += `
                         <div style="display:flex;align-items:center;gap:12px;border-left:4px solid ${cfg.border};padding-left:12px;margin-bottom:8px;">
-                            <span style="font-size:20px;flex-shrink:0;">${cfg.icon}</span>
                             <div style="flex:1;min-width:0;">
                                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
                                     <span style="font-size:11px;font-weight:700;color:#1E293B;text-transform:uppercase;letter-spacing:0.5px;">AEMET · ${av.event}</span>
