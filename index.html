@@ -828,7 +828,7 @@
         </div>
 
         <!-- ═══════════════════════════════════════════
-             MAPA POLVO EN SUSPENSIÓN — CAMS Copernicus
+             MAPA POLVO EN SUSPENSIÓN — CAMS Copernicus (Leaflet + WMS)
         ════════════════════════════════════════════ -->
         <div id="dust-map-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
 
@@ -841,64 +841,33 @@
 
             <div id="panel-dust-map-panel" style="display:none;overflow:hidden;">
 
-                <!-- Visor CAMS Copernicus — capa DUST Suroeste Europa -->
-                <div style="position:relative;width:100%;background:#1a1a2e;">
-                    <!-- Spinner de carga -->
-                    <div id="dust-iframe-loader" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#1a1a2e;z-index:2;pointer-events:none;">
-                        <div style="width:36px;height:36px;border:3px solid rgba(200,169,126,0.3);border-top-color:#c8a97e;border-radius:50%;animation:spin 0.9s linear infinite;"></div>
-                        <span style="font-size:11px;color:#c8a97e;letter-spacing:1px;text-transform:uppercase;font-weight:600;">Cargando mapa CAMS…</span>
-                    </div>
-                    <iframe
-                        id="dust-cams-iframe"
-                        src="https://regional.atmosphere.copernicus.eu/index.php?category=regional_forecast&subCategory=concentration&pollutant=DUST&level=SFC&time=D0&region=southwest_europe"
-                        title="Mapa de polvo en suspensión — Copernicus CAMS"
-                        width="100%"
-                        height="520"
-                        style="border:none;display:block;"
-                        loading="lazy"
-                        onload="document.getElementById('dust-iframe-loader').style.display='none';document.getElementById('dust-iframe-fallback').style.display='none';"
-                        onerror="document.getElementById('dust-iframe-loader').style.display='none';document.getElementById('dust-iframe-fallback').style.display='flex';">
-                    </iframe>
-                    <!-- Fallback si el iframe también bloquea -->
-                    <div id="dust-iframe-fallback"
-                         style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:36px 24px;background:#e8f0f7;text-align:center;min-height:200px;">
-                        <span style="font-size:40px;">🌫️</span>
-                        <div style="font-size:14px;font-weight:700;color:#2c4a6e;">Abre el mapa de polvo en Copernicus CAMS</div>
-                        <div style="font-size:12px;color:#4a6a8a;line-height:1.6;max-width:320px;">
-                            Previsión 4 días · Capa DUST · Suroeste Europa. Datos oficiales de la UE.
-                        </div>
-                        <a href="https://regional.atmosphere.copernicus.eu/index.php?category=regional_forecast&subCategory=concentration&pollutant=DUST&level=SFC&time=D0&region=southwest_europe"
-                           target="_blank" rel="noopener"
-                           style="display:inline-block;margin-top:4px;padding:10px 20px;background:#2c6fad;color:#fff;font-size:13px;font-weight:700;border-radius:8px;text-decoration:none;letter-spacing:0.5px;">
-                            🔗 Abrir en Copernicus CAMS
-                        </a>
-                    </div>
-                </div>
+                <!-- Mapa Leaflet con capa WMS de CAMS/ECMWF -->
+                <div id="dust-leaflet-map" style="width:100%;height:400px;background:#cce0f0;"></div>
 
-                <!-- Timeout fallback: si en 12s no carga, mostrar botón -->
-                <script>
-                (function() {
-                    var iframeLoaded = false;
-                    var camsIframe = document.getElementById('dust-cams-iframe');
-                    if (camsIframe) {
-                        camsIframe.addEventListener('load', function() { iframeLoaded = true; });
-                        setTimeout(function() {
-                            if (!iframeLoaded) {
-                                document.getElementById('dust-iframe-loader').style.display = 'none';
-                                document.getElementById('dust-iframe-fallback').style.display = 'flex';
-                            }
-                        }, 12000);
-                    }
-                })();
-                </script>
+                <!-- Leyenda de colores PM10 polvo -->
+                <div style="background:#f0f4f8;padding:8px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <span style="font-size:10px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:0.8px;">PM10 polvo (µg/m³):</span>
+                    <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:#444;">
+                        <span style="display:inline-block;width:14px;height:10px;background:#ffffcc;border:1px solid #ccc;border-radius:2px;"></span>&lt;10
+                    </span>
+                    <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:#444;">
+                        <span style="display:inline-block;width:14px;height:10px;background:#fed976;border:1px solid #ccc;border-radius:2px;"></span>10–25
+                    </span>
+                    <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:#444;">
+                        <span style="display:inline-block;width:14px;height:10px;background:#fd8d3c;border:1px solid #ccc;border-radius:2px;"></span>25–50
+                    </span>
+                    <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:#444;">
+                        <span style="display:inline-block;width:14px;height:10px;background:#e31a1c;border:1px solid #ccc;border-radius:2px;"></span>&gt;50
+                    </span>
+                </div>
 
                 <!-- Pie: fuente + enlace -->
                 <div style="background:#e8f0f7;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
                     <div>
                         <div style="font-size:10px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;">Fuente</div>
-                        <div style="font-size:11px;color:#4a6a8a;">Copernicus Atmosphere Monitoring Service (CAMS / ECMWF) · Previsión 4 días</div>
+                        <div style="font-size:11px;color:#4a6a8a;">Copernicus CAMS / ECMWF · WMS · PM10 polvo en superficie · Previsión D+0</div>
                     </div>
-                    <a href="https://regional.atmosphere.copernicus.eu/index.php?category=regional_forecast&subCategory=concentration&pollutant=DUST&level=SFC&time=D0&region=southwest_europe"
+                    <a href="https://atmosphere.copernicus.eu/european-air-quality-forecast-plots"
                        target="_blank" rel="noopener"
                        style="font-size:11px;font-weight:700;color:#2c6fad;text-decoration:none;border:1px solid #8ab0d0;border-radius:6px;padding:5px 10px;background:#fff;white-space:nowrap;">
                         Ver CAMS →
@@ -907,6 +876,66 @@
 
             </div><!-- /panel-dust-map-panel -->
         </div><!-- /dust-map-section -->
+
+        <script>
+        /* ══════ MAPA POLVO — Leaflet + WMS CAMS/ECMWF ══════ */
+        var _dustMapInit = false;
+
+        function initDustMap() {
+            if (_dustMapInit) return;
+            _dustMapInit = true;
+
+            var dustMap = L.map('dust-leaflet-map', {
+                center: [40.5, -2.0],   // Centro Península Ibérica
+                zoom: 5,
+                zoomControl: true,
+                scrollWheelZoom: false
+            });
+
+            // Base: OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap',
+                opacity: 0.6
+            }).addTo(dustMap);
+
+            // Capa WMS de CAMS ECMWF — PM10 polvo en superficie
+            // Endpoint público WMS de CAMS regional (no requiere autenticación para GetMap)
+            L.tileLayer.wms('https://maps.cams.eu/wms', {
+                layers: 'composition_dust_surface_concentration',
+                format: 'image/png',
+                transparent: true,
+                opacity: 0.75,
+                version: '1.3.0',
+                attribution: '© Copernicus CAMS/ECMWF',
+                crossOrigin: true
+            }).addTo(dustMap);
+
+            // Marcador Barcelona
+            L.circleMarker([41.38, 2.17], {
+                radius: 6,
+                fillColor: '#2c4a6e',
+                color: '#fff',
+                weight: 2,
+                fillOpacity: 1
+            }).addTo(dustMap).bindTooltip('Barcelona', {permanent: true, direction: 'right', offset: [8, 0], className: 'dust-label'});
+
+            setTimeout(function() { dustMap.invalidateSize(); }, 200);
+        }
+        </script>
+
+        <style>
+        .dust-label {
+            background: rgba(44,74,110,0.85);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            box-shadow: none;
+        }
+        .dust-label::before { display: none; }
+        </style>
 
         <!-- ═══════════════════════════════════════════
              ALERGIAS · ÍNDICE DE POLEN
@@ -1176,13 +1205,8 @@
                 }, 80);
             }
             if (!isOpen && id === 'dust-map-panel') {
-                // Forzar carga del iframe CAMS al abrir el panel (lazy loading)
-                var iframe = document.getElementById('dust-cams-iframe');
-                if (iframe && !iframe.dataset.loaded) {
-                    iframe.dataset.loaded = '1';
-                    var src = iframe.getAttribute('src');
-                    iframe.setAttribute('src', src);
-                }
+                // Inicializar mapa Leaflet de polvo al abrir el panel
+                setTimeout(function() { initDustMap(); }, 80);
             }
         }
         </script>
