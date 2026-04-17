@@ -819,28 +819,6 @@
         </div>
 
         <!-- ═══════════════════════════════════════════
-             ALERGIAS · ÍNDICE DE POLEN
-        ════════════════════════════════════════════ -->
-        <div id="pollen-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <div onclick="toggleExtraSection('pollen-panel')"
-                 style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#cff6a7;cursor:pointer;user-select:none;">
-                <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">ALERGIAS · ÍNDICE DE POLEN</span>
-                <span id="arrow-pollen-panel" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
-            </div>
-            <div id="panel-pollen-panel" style="display:none;background:#f0f9f4;overflow:hidden;">
-                <div id="pollen-content" style="padding:16px;">
-                    <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
-                </div>
-                <div style="background:#e6f5ed;padding:8px 16px 10px;border-top:1px solid rgba(44,120,80,0.12);">
-                    <div style="font-size:9px;color:#4a8a64;letter-spacing:0.5px;">Fuente: Open-Meteo Air Quality · Valores en granos/m³</div>
-                </div>
-            </div>
-        </div>
-        <!-- ═══════════════════════════════════════════
-             FIN ALERGIAS
-        ════════════════════════════════════════════ -->
-
-        <!-- ═══════════════════════════════════════════
              EPISODIO DE CALIMA
         ════════════════════════════════════════════ -->
         <div id="calima-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
@@ -864,37 +842,17 @@
             <div id="panel-dust-map-panel" style="display:none;overflow:hidden;">
 
                 <!-- Visor interactivo BDRC embebido -->
-                <div style="position:relative;width:100%;background:#1a1a2e;">
-                    <!-- Spinner de carga -->
-                    <div id="dust-iframe-loader" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#1a1a2e;z-index:2;pointer-events:none;">
-                        <div style="width:36px;height:36px;border:3px solid rgba(200,169,126,0.3);border-top-color:#c8a97e;border-radius:50%;animation:spin 0.9s linear infinite;"></div>
-                        <span style="font-size:11px;color:#c8a97e;letter-spacing:1px;text-transform:uppercase;font-weight:600;">Cargando visor BDRC…</span>
+                <!-- BDRC bloquea iframes (X-Frame-Options), mostramos acceso directo -->
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:36px 24px;background:#f5ece0;text-align:center;min-height:200px;">
+                    <span style="font-size:40px;">🌫️</span>
+                    <div style="font-size:14px;font-weight:700;color:#6b4423;">El visor BDRC no permite ser embebido.</div>
+                    <div style="font-size:12px;color:#8b6a4a;line-height:1.6;max-width:320px;">
+                        Accede directamente al portal oficial para ver el mapa interactivo de polvo en suspensión con previsión a 72 h.
                     </div>
-                    <iframe
-                        id="dust-bdrc-iframe"
-                        src="https://dust.aemet.es/products/daily-dust-products"
-                        title="Visor de polvo en suspensión — Barcelona Dust Regional Center"
-                        width="100%"
-                        height="520"
-                        style="border:none;display:block;"
-                        loading="lazy"
-                        onload="document.getElementById('dust-iframe-loader').style.display='none';"
-                        onerror="document.getElementById('dust-iframe-loader').style.display='none';document.getElementById('dust-iframe-fallback').style.display='flex';"
-                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
-                    </iframe>
-                    <!-- Fallback si el iframe falla (X-Frame-Options) -->
-                    <div id="dust-iframe-fallback"
-                         style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:36px 24px;background:#f5ece0;text-align:center;min-height:200px;">
-                        <span style="font-size:40px;">🌫️</span>
-                        <div style="font-size:14px;font-weight:700;color:#6b4423;">El visor BDRC no permite ser embebido.</div>
-                        <div style="font-size:12px;color:#8b6a4a;line-height:1.6;max-width:320px;">
-                            Accede directamente al portal oficial para ver el mapa interactivo de polvo en suspensión con previsión a 72 h.
-                        </div>
-                        <a href="https://dust.aemet.es/products/daily-dust-products" target="_blank" rel="noopener"
-                           style="display:inline-block;margin-top:4px;padding:10px 20px;background:#b45309;color:#fff;font-size:13px;font-weight:700;border-radius:8px;text-decoration:none;letter-spacing:0.5px;">
-                            🔗 Abrir en BDRC
-                        </a>
-                    </div>
+                    <a href="https://dust.aemet.es/products/daily-dust-products" target="_blank" rel="noopener"
+                       style="display:inline-block;margin-top:4px;padding:10px 20px;background:#b45309;color:#fff;font-size:13px;font-weight:700;border-radius:8px;text-decoration:none;letter-spacing:0.5px;">
+                        🔗 Abrir en BDRC
+                    </a>
                 </div>
 
                 <!-- Pie: fuente + enlace -->
@@ -911,6 +869,28 @@
 
             </div><!-- /panel-dust-map-panel -->
         </div><!-- /dust-map-section -->
+
+        <!-- ═══════════════════════════════════════════
+             ALERGIAS · ÍNDICE DE POLEN
+        ════════════════════════════════════════════ -->
+        <div id="pollen-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <div onclick="toggleExtraSection('pollen-panel')"
+                 style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#cff6a7;cursor:pointer;user-select:none;">
+                <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">ALERGIAS · ÍNDICE DE POLEN</span>
+                <span id="arrow-pollen-panel" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
+            </div>
+            <div id="panel-pollen-panel" style="display:none;background:#f0f9f4;overflow:hidden;">
+                <div id="pollen-content" style="padding:16px;">
+                    <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
+                </div>
+                <div style="background:#e6f5ed;padding:8px 16px 10px;border-top:1px solid rgba(44,120,80,0.12);">
+                    <div style="font-size:9px;color:#4a8a64;letter-spacing:0.5px;">Fuente: Open-Meteo Air Quality · Valores en granos/m³</div>
+                </div>
+            </div>
+        </div>
+        <!-- ═══════════════════════════════════════════
+             FIN ALERGIAS
+        ════════════════════════════════════════════ -->
 
         <div style="height:60px;"></div>
 
