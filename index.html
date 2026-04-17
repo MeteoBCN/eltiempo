@@ -1850,102 +1850,82 @@
             if (!el || !hourly?.time) return;
 
             const now = new Date();
-            // Límite: 48 horas desde ahora
             const limite48h = new Date(now.getTime() + 48 * 60 * 60 * 1000);
 
-            // Helper: fecha local YYYY-MM-DD de un Date
             function dateStr(d) {
                 return d.getFullYear() + '-' +
                     String(d.getMonth()+1).padStart(2,'0') + '-' +
                     String(d.getDate()).padStart(2,'0');
             }
-
             const hoyStr     = dateStr(now);
             const manyanaDate = new Date(now); manyanaDate.setDate(manyanaDate.getDate()+1);
             const manyanaStr = dateStr(manyanaDate);
-            const pasadoDate  = new Date(now); pasadoDate.setDate(pasadoDate.getDate()+2);
-            const pasadoStr  = dateStr(pasadoDate);
 
-            // Agrupar horas por día (solo las próximas 48 h desde ahora)
-            const dias = { [hoyStr]: [], [manyanaStr]: [], [pasadoStr]: [] };
-
+            // Recoger todas las horas de las próximas 48 h
+            const horas48 = [];
             for (let i = 0; i < hourly.time.length; i++) {
                 const h = new Date(hourly.time[i]);
                 if (h < now || h > limite48h) continue;
-                const ds = dateStr(h);
-                if (!(ds in dias)) continue;
                 const wcode = hourly.weather_code?.[i] ?? 0;
                 const prob  = hourly.precipitation_probability?.[i] ?? 0;
                 let probTorm = 0;
                 if (wcode >= 95) probTorm = Math.max(prob, 80);
                 else if (wcode >= 80) probTorm = Math.round(prob * 0.5);
                 else if (wcode >= 61) probTorm = Math.round(prob * 0.2);
-                dias[ds].push({ h, hora: h.getHours(), wcode, prob, probTorm });
+                horas48.push({ h, dia: dateStr(h), hora: h.getHours(), probTorm });
             }
 
-            // Helper badge por nivel
-            function badgeInfo(maxP) {
-                if (maxP >= 70) return { color:'#7c3aed', text:'RIESGO ALTO' };
-                if (maxP >= 40) return { color:'#f97316', text:'RIESGO MODERADO' };
-                if (maxP >= 15) return { color:'#f59e0b', text:'RIESGO BAJO' };
-                return { color:'#10b981', text:'SIN TORMENTA' };
-            }
-
-            // Máximo global de las 48 h
-            const todasHoras = Object.values(dias).flat();
-            if (!todasHoras.length) {
+            if (!horas48.length) {
                 el.innerHTML = `<div style="display:flex;align-items:center;gap:12px;"><div style="flex:1;"><div style="display:inline-block;background:#10b981;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">SIN TORMENTA PREVISTA</div><div style="font-size:12px;color:#1e3a5f;line-height:1.4;">No se esperan tormentas en las próximas 48 h en Barcelona.</div></div></div>`;
                 return;
             }
 
-            const maxGlobal = Math.max(...todasHoras.map(x => x.probTorm));
-            const { color: badgeColor, text: badgeText } = badgeInfo(maxGlobal);
+            const maxGlobal = Math.max(...horas48.map(x => x.probTorm));
 
-            let consejoText;
-            if (maxGlobal >= 70) consejoText = 'Alta probabilidad de tormenta en las próximas 48 h. Evita actividades al aire libre en las horas de riesgo.';
-            else if (maxGlobal >= 40) consejoText = 'Posibles tormentas en las próximas 48 h. Lleva paraguas y consulta la evolución.';
-            else if (maxGlobal >= 15) consejoText = 'Riesgo bajo de tormenta en las próximas 48 h. Sin preocupación especial.';
-            else consejoText = 'No se esperan tormentas en las próximas 48 h en Barcelona.';
+            let badgeColor, badgeText, consejoText;
+            if (maxGlobal >= 70) {
+                badgeColor = '#7c3aed'; badgeText = 'TORMENTA · RIESGO ALTO';
+                consejoText = 'Alta probabilidad de tormenta en las próximas 48 h. Evita actividades al aire libre en las horas de riesgo.';
+            } else if (maxGlobal >= 40) {
+                badgeColor = '#f97316'; badgeText = 'TORMENTA · RIESGO MODERADO';
+                consejoText = 'Posibles tormentas en las próximas 48 h. Lleva paraguas y consulta la evolución.';
+            } else if (maxGlobal >= 15) {
+                badgeColor = '#f59e0b'; badgeText = 'TORMENTA · RIESGO BAJO';
+                consejoText = 'Riesgo bajo de tormenta en las próximas 48 h. Sin preocupación especial.';
+            } else {
+                badgeColor = '#10b981'; badgeText = 'SIN TORMENTA PREVISTA';
+                consejoText = 'No se esperan tormentas en las próximas 48 h en Barcelona.';
+            }
 
-            // Construir filas por día
-            const etiquetas = { [hoyStr]: 'Hoy', [manyanaStr]: 'Mañana', [pasadoStr]: dateStr(pasadoDate).slice(8)+'/'+dateStr(pasadoDate).slice(5,7) };
-            let filasHTML = '';
-            [hoyStr, manyanaStr, pasadoStr].forEach(ds => {
-                const horas = dias[ds];
-                // Si no hay horas de ese día dentro de las 48 h, omitir
-                if (!horas.length) return;
-                const maxDia = Math.max(...horas.map(x => x.probTorm));
-                const { color: dColor, text: dText } = badgeInfo(maxDia);
-                const pico = horas.reduce((a,b) => b.probTorm > a.probTorm ? b : a, horas[0]);
-                const picoLabel = maxDia >= 15 && pico.probTorm > 0
-                    ? `<span style="font-size:10px;color:#64748b;margin-left:6px;">pico ${String(pico.hora).padStart(2,'0')}:00 h (${pico.probTorm}%)</span>`
-                    : '';
-                // Barra visual
-                const pct = Math.min(maxDia, 100);
-                const barColor = maxDia >= 70 ? '#7c3aed' : maxDia >= 40 ? '#f97316' : maxDia >= 15 ? '#f59e0b' : '#10b981';
-                filasHTML += `
-                <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,0.06);">
-                    <div style="width:52px;font-size:11px;font-weight:700;color:#1e3a5f;flex-shrink:0;">${etiquetas[ds]}</div>
-                    <div style="flex:1;">
-                        <div style="height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;">
-                            <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width 0.6s;"></div>
-                        </div>
-                    </div>
-                    <div style="min-width:90px;text-align:right;">
-                        <span style="display:inline-block;background:${dColor};color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:0.4px;">${dText}</span>
-                        ${picoLabel}
-                    </div>
-                </div>`;
-            });
+            // Si hay riesgo, calcular los momentos con mayor probabilidad por día
+            let picoHTML = '';
+            if (maxGlobal >= 15) {
+                // Agrupar picos por día
+                const picosPorDia = {};
+                horas48.forEach(x => {
+                    if (x.probTorm < 15) return;
+                    if (!picosPorDia[x.dia] || x.probTorm > picosPorDia[x.dia].probTorm)
+                        picosPorDia[x.dia] = x;
+                });
+
+                const etiquetas = { [hoyStr]: 'hoy', [manyanaStr]: 'mañana' };
+                const lineas = Object.entries(picosPorDia).map(([ds, pico]) => {
+                    const diaLabel = etiquetas[ds] || `el ${pico.h.getDate()}/${pico.h.getMonth()+1}`;
+                    const horaLabel = String(pico.hora).padStart(2,'0') + ':00 h';
+                    return `⛈️ Mayor riesgo <b>${diaLabel}</b> hacia las <b>${horaLabel}</b> (${pico.probTorm}%)`;
+                }).join('<br>');
+
+                picoHTML = `<div style="margin-top:10px;background:rgba(0,0,0,0.04);border-radius:8px;padding:8px 12px;font-size:12px;color:#1e3a5f;line-height:1.8;">${lineas}</div>`;
+            }
 
             el.innerHTML = `
-                <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:12px;">
                     <div style="flex:1;">
-                        <div style="display:inline-block;background:${badgeColor};color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">TORMENTA · ${badgeText}</div>
+                        <div style="display:inline-block;background:${badgeColor};color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">${badgeText}</div>
                         <div style="font-size:12px;color:#1e3a5f;line-height:1.4;">${consejoText}</div>
                     </div>
                 </div>
-                <div style="margin-top:4px;">${filasHTML}</div>
+                ${picoHTML}
                 <div style="margin-top:8px;font-size:9px;color:#94a3b8;text-align:right;">Próximas 48 horas · Open-Meteo</div>
             `;
         }
