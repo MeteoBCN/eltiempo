@@ -1509,15 +1509,9 @@
 
 
 
-        <!-- ══════════════════════════════════════════════
-             PREVISIÓN PRÓXIMOS DÍAS
-        ═══════════════════════════════════════════════ -->
-        <div class="weather-table-container" style="margin-top: 0;">
-            <div id="days-detailed-container">
-                <div style="padding: 20px; text-align: center; color: var(--color-text-tertiary);">Cargando datos...</div>
-            </div>
-            <div id="days-summary-container" style="margin-top: 0;"></div>
-        </div>
+        <!-- days-detailed-container oculto — mantenido solo como fuente de iconos SVG para renderF7Icons -->
+        <div id="days-detailed-container" style="display:none;"></div>
+        <div id="days-summary-container"  style="display:none;"></div>
 
 
 
@@ -4392,11 +4386,14 @@
         }
 
         function updateDaysTable(hourly, daily) {
-            const container=document.getElementById('days-detailed-container'); if(!container) return; container.innerHTML='';
-            // Wrapper con borde
-            const box=document.createElement('div');
-            box.style.cssText='border:1px solid #e9ecef;border-top:none;background:#fff;';
-            for(let off=1;off<=6;off++){
+            // Los días se muestran ahora en el meteograma interactivo (openF7Day).
+            // Mantenemos la construcción en el DOM oculto solo para que renderF7Icons
+            // pueda leer los iconos SVG ya calculados por buildExpandableDay.
+            const container = document.getElementById('days-detailed-container');
+            if (!container) return;
+            container.innerHTML = '';
+            const box = document.createElement('div');
+            for (let off = 1; off <= 6; off++) {
                 buildExpandableDay(hourly, daily, off, box);
             }
             container.appendChild(box);
