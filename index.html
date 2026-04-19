@@ -1011,6 +1011,55 @@
              FIN ALERGIAS
         ════════════════════════════════════════════ -->
 
+        <!-- ═══════════════════════════════════════════
+             RESUMEN 7 DIAS
+        ════════════════════════════════════════════ -->
+        <div style="height:60px;background:#ffffff;"></div>
+        <div id="forecast7-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <!-- Cabecera fija (no clicable) -->
+            <div style="display:flex;align-items:center;justify-content:flex-start;padding:9px 16px;background:#2c4a6e;">
+                <span style="font-size:9px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">METEOGRAMA A 7 DÍAS</span>
+            </div>
+            <div id="panel-forecast7" style="background:#f0f6fa;">
+                <!-- Fila de iconos del tiempo por día -->
+                <div id="f7-icons-row" style="display:grid;grid-template-columns:repeat(7,1fr);background:#ffffff;padding:6px 4px 5px;border-bottom:1px solid #e2e8f0;overflow:hidden;">
+                    <!-- Se rellena por JS -->
+                </div>
+                <!-- Pestañas: 5 iguales, sin iconos -->
+                <div id="f7-tabs" style="display:grid;grid-template-columns:repeat(5,1fr);background:#e4eef6;border-bottom:2px solid #c9ddf0;">
+                    <button class="f7-tab active" data-chart="temp"  onclick="switchF7Tab('temp')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#2c4a6e;border-bottom:2px solid #0b4c90;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">TEMP</button>
+                    <button class="f7-tab"        data-chart="rain"  onclick="switchF7Tab('rain')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">LLUVIA</button>
+                    <button class="f7-tab"        data-chart="hum"   onclick="switchF7Tab('hum')"   style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">HUMEDAD</button>
+                    <button class="f7-tab"        data-chart="pres"  onclick="switchF7Tab('pres')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">PRESIÓN</button>
+                    <button class="f7-tab"        data-chart="wind"  onclick="switchF7Tab('wind')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">VIENTO</button>
+                </div>
+                <!-- Paneles gráficos -->
+                <div id="f7-panel-temp"  style="padding:14px 16px 18px;display:block;">
+                    <canvas id="f7-chart-temp"  style="display:block;width:100%;"></canvas>
+                </div>
+                <div id="f7-panel-rain"  style="padding:14px 16px 18px;display:none;">
+                    <canvas id="f7-chart-rain"  style="display:block;width:100%;"></canvas>
+                </div>
+                <div id="f7-panel-hum"   style="padding:14px 16px 18px;display:none;">
+                    <canvas id="f7-chart-hum"   style="display:block;width:100%;"></canvas>
+                </div>
+                <div id="f7-panel-pres"  style="padding:14px 16px 18px;display:none;">
+                    <canvas id="f7-chart-pres"  style="display:block;width:100%;"></canvas>
+                </div>
+                <div id="f7-panel-wind"  style="padding:14px 16px 18px;display:none;">
+                    <canvas id="f7-chart-wind"  style="display:block;width:100%;"></canvas>
+                </div>
+                <div id="forecast7-loading" style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
+                <!-- Panel de detalle del día seleccionado -->
+                <div id="f7-day-detail">
+                    <!-- Se rellena por JS al clicar un día -->
+                </div>
+            </div>
+        </div>
+        <!-- ═══════════════════════════════════════════
+             FIN RESUMEN 7 DÍAS
+        ════════════════════════════════════════════ -->
+
         <div style="height:60px;"></div>
 
         <!-- PRÓXIMA LLUVIA -->
@@ -1414,55 +1463,6 @@
         </script>
 
         <!-- ═══════════════════════════════════════════
-             RESUMEN 7 DIAS
-        ════════════════════════════════════════════ -->
-        <div style="height:60px;background:#ffffff;"></div>
-        <div id="forecast7-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <!-- Cabecera fija (no clicable) -->
-            <div style="display:flex;align-items:center;justify-content:flex-start;padding:9px 16px;background:#2c4a6e;">
-                <span style="font-size:9px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">METEOGRAMA A 7 DÍAS</span>
-            </div>
-            <div id="panel-forecast7" style="background:#f0f6fa;">
-                <!-- Fila de iconos del tiempo por día -->
-                <div id="f7-icons-row" style="display:grid;grid-template-columns:repeat(7,1fr);background:#ffffff;padding:6px 4px 5px;border-bottom:1px solid #e2e8f0;overflow:hidden;">
-                    <!-- Se rellena por JS -->
-                </div>
-                <!-- Pestañas: 5 iguales, sin iconos -->
-                <div id="f7-tabs" style="display:grid;grid-template-columns:repeat(5,1fr);background:#e4eef6;border-bottom:2px solid #c9ddf0;">
-                    <button class="f7-tab active" data-chart="temp"  onclick="switchF7Tab('temp')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#2c4a6e;border-bottom:2px solid #0b4c90;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">TEMP</button>
-                    <button class="f7-tab"        data-chart="rain"  onclick="switchF7Tab('rain')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">LLUVIA</button>
-                    <button class="f7-tab"        data-chart="hum"   onclick="switchF7Tab('hum')"   style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">HUMEDAD</button>
-                    <button class="f7-tab"        data-chart="pres"  onclick="switchF7Tab('pres')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">PRESIÓN</button>
-                    <button class="f7-tab"        data-chart="wind"  onclick="switchF7Tab('wind')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">VIENTO</button>
-                </div>
-                <!-- Paneles gráficos -->
-                <div id="f7-panel-temp"  style="padding:14px 16px 18px;display:block;">
-                    <canvas id="f7-chart-temp"  style="display:block;width:100%;"></canvas>
-                </div>
-                <div id="f7-panel-rain"  style="padding:14px 16px 18px;display:none;">
-                    <canvas id="f7-chart-rain"  style="display:block;width:100%;"></canvas>
-                </div>
-                <div id="f7-panel-hum"   style="padding:14px 16px 18px;display:none;">
-                    <canvas id="f7-chart-hum"   style="display:block;width:100%;"></canvas>
-                </div>
-                <div id="f7-panel-pres"  style="padding:14px 16px 18px;display:none;">
-                    <canvas id="f7-chart-pres"  style="display:block;width:100%;"></canvas>
-                </div>
-                <div id="f7-panel-wind"  style="padding:14px 16px 18px;display:none;">
-                    <canvas id="f7-chart-wind"  style="display:block;width:100%;"></canvas>
-                </div>
-                <div id="forecast7-loading" style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
-                <!-- Panel de detalle del día seleccionado -->
-                <div id="f7-day-detail">
-                    <!-- Se rellena por JS al clicar un día -->
-                </div>
-            </div>
-        </div>
-        <!-- ═══════════════════════════════════════════
-             FIN RESUMEN 7 DÍAS
-        ════════════════════════════════════════════ -->
-
-        <!-- ═══════════════════════════════════════════
              PREVISIÓN MAR · 3 DÍAS
         ════════════════════════════════════════════ -->
         <div style="height:60px;background:#ffffff;"></div>
@@ -1489,23 +1489,8 @@
              FIN PREVISIÓN MAR 3 DÍAS
         ════════════════════════════════════════════ -->
 
-        <div style="height:60px;background:#ffffff;"></div>
-
-        <!-- ══ SECCIÓN PREVISIÓN DETALLADA HOY ══ -->
-        <div style="max-width:600px;margin:0 auto;">
-            <div id="cabecera-detallada-hoy" style="display:flex;align-items:center;justify-content:flex-start;padding:9px 16px;background:#2c4a6e;">
-                <span style="font-size:9px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">PREVISIÓN DETALLADA POR HORAS</span>
-            </div>
-
-        </div>
-
-        <div class="hourly-section">
-            <div class="hourly-scroll-wrap">
-                <div class="hourly-inner" id="hourly-forecast-strip">
-                    <div style="padding:20px;color:rgba(255,255,255,0.3);font-size:13px;text-align:center;width:100%;">Cargando…</div>
-                </div>
-            </div>
-        </div>
+        <!-- hourly-forecast-strip oculto — usado internamente por updateHourlyStrip -->
+        <div id="hourly-forecast-strip" style="display:none;"></div>
 
 
 
@@ -2741,37 +2726,7 @@
             const hoyFechaStr=now.getDate()+' '+['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][now.getMonth()];
             const SKY_IMG_HOY=typeof SKY_IMG!=='undefined'?SKY_IMG:'';
 
-            // Insertar cabecera de HOY (icono + min/max + lluvia + sol + UVI)
-            let hoyHead = document.getElementById('hoy-daily-head');
-            if (!hoyHead) {
-                hoyHead = document.createElement('div');
-                hoyHead.id = 'hoy-daily-head';
-                hoyHead.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:18px 14px;background:linear-gradient(to bottom, #7ab8e8 0%, #b8d9f3 50%, #ffffff 100%);border-bottom:1px solid #e9ecef;';
-                strip.parentElement.parentElement.insertBefore(hoyHead, strip.parentElement);
-            }
-            hoyHead.innerHTML=`
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="display:flex;gap:6px;align-items:center;">
-                        <span style="line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">${hoyIconDia}</span>
-                    </div>
-                    <div>
-                        <div style="font-size:19px;font-weight:700;color:#0d2a45;letter-spacing:0.5px;">${hoyNombre.toUpperCase()} <span style="font-size:14px;font-weight:400;color:rgba(10,40,70,0.6);">${hoyFechaStr}</span></div>
-                        <div style="font-size:13px;color:#1a3a5c;margin-top:5px;line-height:1.9;">
-                            <span style="color:#3B82F6;font-weight:700;font-size:22px;">${hoyMinT}°</span>
-                            <span style="margin:0 4px;opacity:0.4;">/</span>
-                            <span style="color:#EF4444;font-weight:700;font-size:22px;">${hoyMaxT}°</span>
-                            <br>
-                            <span>Prob. lluvia: ${daily?.precipitation_probability_max?.[0]??'--'}%</span>
-                            <br>
-                            <span>Viento máx: ${hoyAw} km/h ${hoyWindDir(hoyAwd)}</span>
-                            <br>
-                            <span>SOL: ${hoySr} a ${hoySs}</span><br>
-                            <span>Horas de sol: ${hoyLuzStr}</span>
-                            <br>
-                            <span>UVI ${hoyUv!==null?Math.round(hoyUv):'--'} (${hoyUviLevel(hoyUv).lbl})</span>
-                        </div>
-                    </div>
-                </div>`;
+            // (cabecera de HOY eliminada — los datos de hoy se muestran en el meteograma interactivo)
 
             let html = '';
             slots.forEach((idx, pos) => {
@@ -3444,13 +3399,17 @@
             }
             const iconDia = iconForDay();
 
-            // ── Strip horario del día (0-23h) ──
+            // ── Strip horario del día: para HOY solo desde la hora actual ──
             function windDir8(deg){const d=['↑N','↗NE','→E','↘SE','↓S','↙SO','←O','↖NO'];return d[Math.round((deg||0)/45)%8];}
+            const nowHour = new Date().getHours();
             const daySlots = [];
             for(let i=0;i<hourly.time.length;i++){
                 if(!hourly.time[i].startsWith(r.dateStr)) continue;
                 const ht = new Date(hourly.time[i]);
-                daySlots.push({h:ht.getHours(),i,ht});
+                const h  = ht.getHours();
+                // Para HOY (idx===0) filtrar horas ya pasadas
+                if(idx === 0 && h < nowHour) continue;
+                daySlots.push({h,i,ht});
             }
             daySlots.sort((a,b)=>a.h-b.h);
 
