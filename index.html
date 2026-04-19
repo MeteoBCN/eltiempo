@@ -874,8 +874,39 @@
              EPISODIO DE CALIMA
         ════════════════════════════════════════════ -->
         <div id="calima-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <div id="calima-content" style="background:#f0f6fa;padding:14px 16px;">
-                <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
+            <!-- Cabecera desplegable -->
+            <div onclick="toggleExtraSection('calima-panel')"
+                 style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#d4a96a;cursor:pointer;user-select:none;">
+                <span style="font-size:9px;font-weight:700;color:#3b1f00;letter-spacing:2px;text-transform:uppercase;">EPISODIO DE CALIMA</span>
+                <span id="arrow-calima-panel" style="font-size:12px;color:#3b1f00;transition:transform 0.3s;">▼</span>
+            </div>
+            <div id="panel-calima-panel" style="display:none;overflow:hidden;">
+                <div id="calima-content" style="background:#fdf6ee;padding:14px 16px;">
+                    <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
+                </div>
+                <!-- Leyenda niveles -->
+                <div style="background:#fdf0e0;border-top:1px solid rgba(180,110,40,0.15);padding:10px 16px;">
+                    <div style="font-size:9px;font-weight:700;color:#7c4a00;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;">Leyenda — niveles de calima (PM10)</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10b981;flex-shrink:0;"></span>
+                            <span style="font-size:10px;color:#1e3a5f;line-height:1.4;"><b>Sin calima</b> — PM10 &lt; 30 µg/m³</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f59e0b;flex-shrink:0;"></span>
+                            <span style="font-size:10px;color:#1e3a5f;line-height:1.4;"><b>Partículas elevadas</b> — 30–49 µg/m³</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#d97706;flex-shrink:0;"></span>
+                            <span style="font-size:10px;color:#1e3a5f;line-height:1.4;"><b>Calima moderada</b> — 50–99 µg/m³</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#b45309;flex-shrink:0;"></span>
+                            <span style="font-size:10px;color:#1e3a5f;line-height:1.4;"><b>Calima intensa</b> — PM10 ≥ 100 µg/m³</span>
+                        </div>
+                    </div>
+                    <div style="margin-top:7px;font-size:9px;color:#94a3b8;">PM10: partículas en suspensión &lt;10µm. Valores altos indican polvo sahariano en el aire. Fuente: Open-Meteo Air Quality.</div>
+                </div>
             </div>
         </div>
 
@@ -1025,6 +1056,10 @@
                 <div id="f7-icons-row" style="display:grid;grid-template-columns:repeat(7,1fr);background:#ffffff;padding:6px 4px 5px;border-bottom:1px solid #e2e8f0;overflow:hidden;">
                     <!-- Se rellena por JS -->
                 </div>
+                <!-- Panel de detalle del día seleccionado (encima de los gráficos) -->
+                <div id="f7-day-detail">
+                    <!-- Se rellena por JS al clicar un día -->
+                </div>
                 <!-- Pestañas: 5 iguales, sin iconos -->
                 <div id="f7-tabs" style="display:grid;grid-template-columns:repeat(5,1fr);background:#e4eef6;border-bottom:2px solid #c9ddf0;">
                     <button class="f7-tab active" data-chart="temp"  onclick="switchF7Tab('temp')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#2c4a6e;border-bottom:2px solid #0b4c90;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">TEMP</button>
@@ -1050,10 +1085,6 @@
                     <canvas id="f7-chart-wind"  style="display:block;width:100%;"></canvas>
                 </div>
                 <div id="forecast7-loading" style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
-                <!-- Panel de detalle del día seleccionado -->
-                <div id="f7-day-detail">
-                    <!-- Se rellena por JS al clicar un día -->
-                </div>
             </div>
         </div>
         <!-- ═══════════════════════════════════════════
@@ -3466,7 +3497,7 @@
                             <span class="tmax">${r.tmax}°</span>
                         </div>
                         <div class="f7-detail-meta">
-                            <span>Prob. lluvia: <b>${pprob}%</b>${tp>0?' · '+tp+' mm':''} · UVI <b>${uv}</b> (${uviLbl(uv)})</span><br>
+                            <span>Prob. lluvia: <b>${pprob}%</b> · UVI <b>${uv}</b> (${uviLbl(uv)})</span><br>
                             <span>Viento máx: <b>${aw} km/h ${wdirStr}</b></span><br>
                             <span>Sol: ${sr} - ${ss} = ${luzStr}</span>
                         </div>
@@ -3481,8 +3512,8 @@
             // Abrir panel con animación
             if (!isOpen || prevIdx !== idx) {
                 detail.classList.add('open');
-                // Scroll suave hacia el panel
-                setTimeout(() => detail.scrollIntoView({behavior:'smooth', block:'nearest'}), 50);
+                // Scroll suave al detalle (ahora está encima de los gráficos)
+                setTimeout(() => detail.scrollIntoView({behavior:'smooth', block:'start'}), 50);
             }
         };
 
