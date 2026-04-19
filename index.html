@@ -592,19 +592,19 @@
         .f7-detail-head {
             display:flex; align-items:center; gap:14px;
             padding:14px 16px 12px;
-            background: linear-gradient(to bottom, #7ab8e8 0%, #b8d9f3 50%, #ffffff 100%);
+            background: #ffffff;
             border-bottom: 1px solid #e2e8f0;
         }
         .f7-detail-head-info { flex:1; }
         .f7-detail-dayname {
-            font-size:17px; font-weight:700; color:#0d2a45; letter-spacing:0.4px;
+            font-size:17px; font-weight:700; color:#1e293b; letter-spacing:0.4px;
         }
-        .f7-detail-dayname span { font-size:13px; font-weight:400; color:rgba(10,40,70,0.55); margin-left:6px; }
+        .f7-detail-dayname span { font-size:13px; font-weight:400; color:#94a3b8; margin-left:6px; }
         .f7-detail-temps { display:flex; align-items:baseline; gap:6px; margin:4px 0 6px; }
         .f7-detail-temps .tmin { font-size:22px; font-weight:700; color:#3B82F6; }
         .f7-detail-temps .tmax { font-size:22px; font-weight:700; color:#EF4444; }
         .f7-detail-temps .sep  { font-size:16px; opacity:0.35; }
-        .f7-detail-meta { font-size:12px; color:#1a3a5c; line-height:1.8; }
+        .f7-detail-meta { font-size:12px; color:#64748b; line-height:1.8; }
         /* ══════════ FIN RESUMEN 7 DÍAS ══════════ */
 
         /* ══════════ MENÚ NAVEGACIÓN ══════════ */
@@ -3367,7 +3367,9 @@
             const sr  = daily.sunrise?.[idx]  ? new Date(daily.sunrise[idx]).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) : '--:--';
             const ss  = daily.sunset?.[idx]   ? new Date(daily.sunset[idx]).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})  : '--:--';
             const luzMs = (daily.sunrise?.[idx] && daily.sunset?.[idx]) ? new Date(daily.sunset[idx]) - new Date(daily.sunrise[idx]) : 0;
-            const luzStr = luzMs ? `${Math.floor(luzMs/3600000)}h ${Math.round((luzMs%3600000)/60000)}min` : '--';
+            const luzH   = luzMs ? Math.floor(luzMs/3600000) : 0;
+            const luzMin = luzMs ? Math.round((luzMs%3600000)/60000) : 0;
+            const luzStr = luzMs ? `${luzH}h ${String(luzMin).padStart(2,'0')}min` : '--';
             const uv  = daily.uv_index_max?.[idx] !== undefined ? Math.round(daily.uv_index_max[idx]) : '--';
             function uviLbl(v){if(v==='--')return'--';const n=parseInt(v);if(n<=2)return'Bajo';if(n<=5)return'Moderado';if(n<=7)return'Alto';if(n<=10)return'Muy alto';return'Extremo';}
             const aw  = daily.wind_speed_10m_max?.[idx] != null ? Math.round(daily.wind_speed_10m_max[idx]) : r.wind;
@@ -3464,10 +3466,9 @@
                             <span class="tmax">${r.tmax}°</span>
                         </div>
                         <div class="f7-detail-meta">
-                            <span>Prob. lluvia: <b>${pprob}%</b>${tp>0?' · '+tp+' mm':''}</span><br>
+                            <span>Prob. lluvia: <b>${pprob}%</b>${tp>0?' · '+tp+' mm':''} · UVI <b>${uv}</b> (${uviLbl(uv)})</span><br>
                             <span>Viento máx: <b>${aw} km/h ${wdirStr}</b></span><br>
-                            <span>🌅 ${sr} · 🌇 ${ss} · ☀️ ${luzStr}</span><br>
-                            <span>UVI <b>${uv}</b> (${uviLbl(uv)})</span>
+                            <span>Sol: ${sr} - ${ss} = ${luzStr}</span>
                         </div>
                     </div>
                 </div>
