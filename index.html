@@ -553,6 +553,58 @@
         .f7-tab:focus { outline:none; }
         .f7-tab:hover { background: rgba(44,74,110,0.06) !important; }
         #f7-icons-row svg { width:24px !important; height:24px !important; display:block; }
+
+        /* Celdas clicables de la fila de iconos */
+        .f7-day-cell {
+            display:flex; flex-direction:column; align-items:center; gap:3px;
+            padding:6px 2px 8px; cursor:pointer; position:relative;
+            transition: background 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+        .f7-day-cell:hover { background: rgba(44,74,110,0.06); }
+        .f7-day-cell.active {
+            background: rgba(11,76,144,0.08);
+            border-bottom: 3px solid #0b4c90;
+        }
+        .f7-day-cell .f7-day-label {
+            font-size:8px; font-weight:700; color:#2c4a6e;
+            text-transform:uppercase; letter-spacing:0.5px;
+        }
+        .f7-day-cell.active .f7-day-label { color:#0b4c90; }
+        .f7-day-cell .f7-day-temps {
+            font-size:9px; font-weight:600; color:#64748b; margin-top:2px;
+            display:flex; gap:4px;
+        }
+        .f7-day-cell .f7-day-temps .tmax { color:#ef4444; }
+        .f7-day-cell .f7-day-temps .tmin { color:#3b82f6; }
+
+        /* Panel de detalle del día seleccionado */
+        #f7-day-detail {
+            background:#ffffff;
+            border-top: 1px solid #e2e8f0;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.4s ease;
+        }
+        #f7-day-detail.open { max-height: 800px; }
+
+        /* Cabecera del día dentro del detalle */
+        .f7-detail-head {
+            display:flex; align-items:center; gap:14px;
+            padding:14px 16px 12px;
+            background: linear-gradient(to bottom, #7ab8e8 0%, #b8d9f3 50%, #ffffff 100%);
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .f7-detail-head-info { flex:1; }
+        .f7-detail-dayname {
+            font-size:17px; font-weight:700; color:#0d2a45; letter-spacing:0.4px;
+        }
+        .f7-detail-dayname span { font-size:13px; font-weight:400; color:rgba(10,40,70,0.55); margin-left:6px; }
+        .f7-detail-temps { display:flex; align-items:baseline; gap:6px; margin:4px 0 6px; }
+        .f7-detail-temps .tmin { font-size:22px; font-weight:700; color:#3B82F6; }
+        .f7-detail-temps .tmax { font-size:22px; font-weight:700; color:#EF4444; }
+        .f7-detail-temps .sep  { font-size:16px; opacity:0.35; }
+        .f7-detail-meta { font-size:12px; color:#1a3a5c; line-height:1.8; }
         /* ══════════ FIN RESUMEN 7 DÍAS ══════════ */
 
         /* ══════════ MENÚ NAVEGACIÓN ══════════ */
@@ -1400,6 +1452,10 @@
                     <canvas id="f7-chart-wind"  style="display:block;width:100%;"></canvas>
                 </div>
                 <div id="forecast7-loading" style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
+                <!-- Panel de detalle del día seleccionado -->
+                <div id="f7-day-detail">
+                    <!-- Se rellena por JS al clicar un día -->
+                </div>
             </div>
         </div>
         <!-- ═══════════════════════════════════════════
@@ -3140,6 +3196,8 @@
 
         // ── Toggle desplegables ───────────────────────────────────────────────
         let _hourlyCache = null;
+        window._hourlyCache = null;
+        window._dailyCache  = null;
         function toggleChart(id) {
             const panel = document.getElementById('panel-'+id);
             const arrow = document.getElementById('arrow-'+id);
@@ -3299,12 +3357,8 @@
                 // Recoger los SVG ya renderizados en el DOM:
                 // HOY → #current-icon  |  días siguientes → .day-head-icon span (en orden)
                 const sources = [];
-
-                // HOY (off=0): icono del tiempo actual
                 const todayEl = document.getElementById('current-icon');
                 sources.push(todayEl ? todayEl.innerHTML : null);
-
-                // Días 1-6: cabeceras .day-head-icon dentro de #days-detailed-container
                 const dayIcons = document.querySelectorAll('#days-detailed-container .day-head-icon span');
                 for (let k = 0; k < 6; k++) {
                     sources.push(dayIcons[k] ? dayIcons[k].innerHTML : null);
@@ -3312,17 +3366,171 @@
 
                 container.innerHTML = rows.map((r, idx) => {
                     const dt = new Date(r.dateStr + 'T12:00:00');
-                    // Usar SVG del DOM si existe, si no fallback con getSvgIcon + wmo diario
-                    const icon = sources[idx] || getSvgIcon(r.wmo, 36, false);
-                    return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;">
-                        <div style="font-size:8px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:0.5px;">${r.isToday ? 'HOY' : DIAS[dt.getDay()]}</div>
+                    const icon = sources[idx] || getSvgIcon(r.wmo, 30, false);
+                    const label = r.isToday ? 'HOY' : DIAS[dt.getDay()];
+                    return `<div class="f7-day-cell" data-idx="${idx}" onclick="openF7Day(${idx})">
+                        <div class="f7-day-label">${label}</div>
                         <div style="line-height:1;">${icon}</div>
+                        <div class="f7-day-temps">
+                            <span class="tmax">${r.tmax}°</span>
+                            <span class="tmin">${r.tmin}°</span>
+                        </div>
                     </div>`;
                 }).join('');
-            }
+            };
 
             loadForecast7();
         })();
+
+        /* ── Abre el detalle de un día en el panel inferior de f7 ── */
+        window.openF7Day = function openF7Day(idx) {
+            const rows   = window._f7Data;
+            const hourly = window._hourlyCache;
+            const daily  = window._dailyCache;
+            if (!rows || !hourly || !daily) return;
+
+            const detail = document.getElementById('f7-day-detail');
+            const cells  = document.querySelectorAll('.f7-day-cell');
+
+            // Si ya está abierto el mismo día, lo cerramos (toggle)
+            const isOpen   = detail.classList.contains('open');
+            const prevIdx  = parseInt(detail.dataset.openIdx ?? '-1', 10);
+            if (isOpen && prevIdx === idx) {
+                detail.classList.remove('open');
+                detail.dataset.openIdx = '-1';
+                cells.forEach(c => c.classList.remove('active'));
+                return;
+            }
+
+            // Marcar celda activa
+            cells.forEach((c, i) => c.classList.toggle('active', i === idx));
+            detail.dataset.openIdx = idx;
+
+            // ── Construir cabecera del día ──
+            const r = rows[idx];
+            const DIAS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+            const MESES   = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+            const dt      = new Date(r.dateStr + 'T12:00:00');
+            const label   = r.isToday ? 'HOY' : DIAS_ES[dt.getDay()];
+            const fecha   = dt.getDate() + ' ' + MESES[dt.getMonth()];
+
+            // Datos diarios
+            const sr  = daily.sunrise?.[idx]  ? new Date(daily.sunrise[idx]).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) : '--:--';
+            const ss  = daily.sunset?.[idx]   ? new Date(daily.sunset[idx]).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})  : '--:--';
+            const luzMs = (daily.sunrise?.[idx] && daily.sunset?.[idx]) ? new Date(daily.sunset[idx]) - new Date(daily.sunrise[idx]) : 0;
+            const luzStr = luzMs ? `${Math.floor(luzMs/3600000)}h ${Math.round((luzMs%3600000)/60000)}min` : '--';
+            const uv  = daily.uv_index_max?.[idx] !== undefined ? Math.round(daily.uv_index_max[idx]) : '--';
+            function uviLbl(v){if(v==='--')return'--';const n=parseInt(v);if(n<=2)return'Bajo';if(n<=5)return'Moderado';if(n<=7)return'Alto';if(n<=10)return'Muy alto';return'Extremo';}
+            const aw  = daily.wind_speed_10m_max?.[idx] != null ? Math.round(daily.wind_speed_10m_max[idx]) : r.wind;
+            const awd = daily.wind_direction_10m_dominant?.[idx] != null ? Math.round(daily.wind_direction_10m_dominant[idx]) : 0;
+            const WDIRS = ['N','NE','E','SE','S','SO','O','NO'];
+            const wdirStr = WDIRS[Math.round((awd||0)/45)%8];
+            const pprob = daily.precipitation_probability_max?.[idx] ?? r.pprob;
+            const tp    = Math.round((daily.precipitation_sum?.[idx] || 0) * 10) / 10;
+
+            // Icono representativo del día (08-20h)
+            function iconForDay() {
+                const freq = {}; let bestIdx2 = {};
+                for(let i = 0; i < hourly.time.length; i++){
+                    if(!hourly.time[i].startsWith(r.dateStr)) continue;
+                    const h = parseInt(hourly.time[i].slice(11,13),10);
+                    if(h < 8 || h > 20) continue;
+                    const wmoRaw = hourly.weather_code?.[i] ?? 0;
+                    const pp2 = hourly.precipitation_probability?.[i] ?? 0;
+                    const isRain = (wmoRaw>=51&&wmoRaw<=82)||(wmoRaw>=85&&wmoRaw<=86)||(wmoRaw>=95&&wmoRaw<=99);
+                    const isFog  = (wmoRaw===45||wmoRaw===48);
+                    let wmo = wmoRaw;
+                    if(!isFog){ if(!isRain&&pp2>=50) wmo=80; else if(isRain&&pp2<50) wmo=3; }
+                    freq[wmo]=(freq[wmo]||0)+1;
+                    if(!bestIdx2[wmo]) bestIdx2[wmo]=i;
+                }
+                if(!Object.keys(freq).length) return getSvgIcon(r.wmo||0,56,false);
+                const best=Object.keys(freq).reduce((a,b)=>freq[a]>=freq[b]?a:b);
+                return getSvgIcon(Number(best),56,false);
+            }
+            const iconDia = iconForDay();
+
+            // ── Strip horario del día (0-23h) ──
+            function windDir8(deg){const d=['↑N','↗NE','→E','↘SE','↓S','↙SO','←O','↖NO'];return d[Math.round((deg||0)/45)%8];}
+            const daySlots = [];
+            for(let i=0;i<hourly.time.length;i++){
+                if(!hourly.time[i].startsWith(r.dateStr)) continue;
+                const ht = new Date(hourly.time[i]);
+                daySlots.push({h:ht.getHours(),i,ht});
+            }
+            daySlots.sort((a,b)=>a.h-b.h);
+
+            let stripCols = '';
+            daySlots.forEach(({h,i,ht})=>{
+                const isNight = isNightTime(ht);
+                const wmo = hourly.weather_code?.[i]??0;
+                const pp2 = hourly.precipitation_probability?.[i]??0;
+                const isFog = (wmo===45||wmo===48);
+                const isRain = (wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
+                let eWmo = wmo;
+                if(!isFog){ if(!isRain&&pp2>=50) eWmo=80; else if(isRain&&pp2<50) eWmo=3; }
+                const ico   = getSvgIcon(isFog?45:eWmo,36,isNight);
+                const temp  = hourly.temperature_2m?.[i]!==undefined ? Math.round(hourly.temperature_2m[i])+'°' : '--';
+                const feels = hourly.apparent_temperature?.[i]!==undefined ? Math.round(hourly.apparent_temperature[i])+'°' : '--';
+                const hum   = hourly.relative_humidity_2m?.[i]!==undefined ? hourly.relative_humidity_2m[i]+'%' : '--';
+                const pres  = hourly.pressure_msl?.[i]!==undefined ? Math.round(hourly.pressure_msl[i])+' hPa' : '--';
+                const ws2   = Math.round(hourly.wind_speed_10m?.[i]??0);
+                const wd2   = hourly.wind_direction_10m?.[i]??0;
+                const dirl  = WDIRS[Math.round(wd2/45)%8];
+                const precipStr = pp2>0 ? pp2+'%' : '—';
+                const precipCls = pp2>0 ? '' : ' no-rain';
+                const nightCls  = isNight ? ' is-night' : '';
+                const hh = String(h).padStart(2,'0')+':00';
+                stripCols += `<div class="hourly-col${nightCls}">
+                    <div class="hourly-time">${hh}</div>
+                    <div class="hourly-icon">${ico}</div>
+                    <div class="hourly-temp">${temp}</div>
+                    <div class="hourly-divider"></div>
+                    <div style="font-size:10px;color:#1a5a7a;margin-bottom:2px;line-height:1;">sens.</div>
+                    <div style="font-size:11px;font-weight:600;color:#1a5a7a;margin-bottom:6px;line-height:1;">${feels}</div>
+                    <div style="font-size:10px;color:#1a5a7a;margin-bottom:2px;line-height:1;">hum.</div>
+                    <div style="font-size:11px;font-weight:600;color:#1a5a7a;margin-bottom:6px;line-height:1;">${hum}</div>
+                    <div class="hourly-divider"></div>
+                    <div class="hourly-wind-spd">${ws2}km/h</div>
+                    <div class="hourly-wind-dir">${dirl}</div>
+                    <div style="font-size:10px;color:#1a5a7a;margin-top:4px;margin-bottom:2px;line-height:1;">pres.</div>
+                    <div style="font-size:10px;font-weight:600;color:#1a5a7a;line-height:1.2;text-align:center;">${pres}</div>
+                    <div class="hourly-precip${precipCls}" style="margin-top:6px;">💧${precipStr}</div>
+                </div>`;
+            });
+
+            // ── Renderizar en el panel ──
+            detail.innerHTML = `
+                <div class="f7-detail-head">
+                    <div style="line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));flex-shrink:0;">${iconDia}</div>
+                    <div class="f7-detail-head-info">
+                        <div class="f7-detail-dayname">${label} <span>${fecha}</span></div>
+                        <div class="f7-detail-temps">
+                            <span class="tmin">${r.tmin}°</span>
+                            <span class="sep">/</span>
+                            <span class="tmax">${r.tmax}°</span>
+                        </div>
+                        <div class="f7-detail-meta">
+                            <span>Prob. lluvia: <b>${pprob}%</b>${tp>0?' · '+tp+' mm':''}</span><br>
+                            <span>Viento máx: <b>${aw} km/h ${wdirStr}</b></span><br>
+                            <span>🌅 ${sr} · 🌇 ${ss} · ☀️ ${luzStr}</span><br>
+                            <span>UVI <b>${uv}</b> (${uviLbl(uv)})</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hourly-section" style="border-top:none;">
+                    <div class="hourly-scroll-wrap">
+                        <div class="hourly-inner">${stripCols || '<div style="padding:20px;color:#94a3b8;font-size:13px;">Sin datos horarios</div>'}</div>
+                    </div>
+                </div>`;
+
+            // Abrir panel con animación
+            if (!isOpen || prevIdx !== idx) {
+                detail.classList.add('open');
+                // Scroll suave hacia el panel
+                setTimeout(() => detail.scrollIntoView({behavior:'smooth', block:'nearest'}), 50);
+            }
+        };
 
         /* ── Motor de dibujo genérico ── */
         function drawF7Chart(type) {
@@ -3674,6 +3882,8 @@
                 updateDaysSummary(data.hourly, data.daily);
                 updateProximaLluvia(data.hourly);
                 _hourlyCache = data.hourly;
+                window._hourlyCache = data.hourly;
+                window._dailyCache  = data.daily;
                 // Construir datos 7 días desde los daily ya cargados y renderizar iconos
                 // con los datos horarios ya disponibles (misma lógica que cabeceras de días)
                 (function buildF7FromMainData(hourly, daily) {
