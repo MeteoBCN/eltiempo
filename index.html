@@ -1094,32 +1094,29 @@
                 <span id="arrow-pollen-panel" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
             </div>
             <div id="panel-pollen-panel" style="display:none;background:#f0f9f4;overflow:hidden;">
-                <div id="pollen-content" style="padding:16px;">
-                    <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
-                </div>
                 <!-- ── Sección PIA ── -->
-                <div id="pia-pollen-section" style="padding:0 16px 16px;">
-                    <div style="display:flex;align-items:center;gap:8px;padding:10px 0 10px;border-top:1px solid rgba(44,120,80,0.2);">
+                <div id="pia-pollen-section" style="padding:12px 16px 16px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
                         <div style="width:3px;height:18px;background:#2c7a4e;border-radius:2px;flex-shrink:0;"></div>
-                        <span style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1.5px;">Dades aerobiològiques · PIA Barcelona</span>
+                        <span style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1.5px;">Índice de Polen · Barcelona</span>
                         <span id="pia-date-badge" style="margin-left:auto;font-size:8px;font-weight:600;color:#fff;background:#2c7a4e;padding:2px 7px;border-radius:4px;letter-spacing:0.3px;"></span>
                     </div>
                     <div id="pia-pollen-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
                     <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(44,120,80,0.15);">
-                        <div style="font-size:9px;font-weight:700;color:#4a8a64;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Escala PIA · Nivell actual</div>
+                        <div style="font-size:9px;font-weight:700;color:#4a8a64;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Escala · Nivel actual</div>
                         <div style="display:flex;flex-wrap:wrap;gap:4px;">
-                            <span style="font-size:9px;font-weight:700;background:#94a3b8;color:#fff;padding:2px 7px;border-radius:4px;">0 Nul</span>
-                            <span style="font-size:9px;font-weight:700;background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;">1 Baix</span>
-                            <span style="font-size:9px;font-weight:700;background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;">2 Mig</span>
-                            <span style="font-size:9px;font-weight:700;background:#f97316;color:#fff;padding:2px 7px;border-radius:4px;">3 Alt</span>
-                            <span style="font-size:9px;font-weight:700;background:#ef4444;color:#fff;padding:2px 7px;border-radius:4px;">4 Màxim</span>
+                            <span style="font-size:9px;font-weight:700;background:#94a3b8;color:#fff;padding:2px 7px;border-radius:4px;">0 Nulo</span>
+                            <span style="font-size:9px;font-weight:700;background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;">1 Bajo</span>
+                            <span style="font-size:9px;font-weight:700;background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;">2 Medio</span>
+                            <span style="font-size:9px;font-weight:700;background:#f97316;color:#fff;padding:2px 7px;border-radius:4px;">3 Alto</span>
+                            <span style="font-size:9px;font-weight:700;background:#ef4444;color:#fff;padding:2px 7px;border-radius:4px;">4 Máximo</span>
                         </div>
-                        <div style="margin-top:5px;font-size:9px;color:#4a8a64;">Tendència: <span style="font-weight:600;">▲ Augment · = Estable · ▼ Descens</span></div>
+                        <div style="margin-top:5px;font-size:9px;color:#4a8a64;">Tendencia: <span style="font-weight:600;">▲ Aumento · = Estable · ▼ Descenso</span></div>
                     </div>
                 </div>
                 <!-- ── Fin PIA ── -->
                 <div style="background:#e6f5ed;padding:8px 16px 10px;border-top:1px solid rgba(44,120,80,0.12);">
-                    <div style="font-size:9px;color:#4a8a64;letter-spacing:0.5px;">Dades: <a href="https://aerobiologia.cat/pia/ca/forecast/barcelona" target="_blank" style="color:#2c7a4e;text-decoration:none;font-weight:600;">Punt d'Informació Aerobiològica</a> (CC BY-NC-SA 4.0) · Open-Meteo Air Quality</div>
+                    <div style="font-size:9px;color:#4a8a64;letter-spacing:0.5px;">Fuente: <a href="https://aerobiologia.cat/pia/ca/forecast/barcelona" target="_blank" style="color:#2c7a4e;text-decoration:none;font-weight:600;">Punt d'Informació Aerobiològica</a> · Licencia CC BY-NC-SA 4.0</div>
                 </div>
             </div>
         </div>
@@ -2005,101 +2002,6 @@
             `;
         }
 
-        function updatePollenSection(aqCurrent) {
-            const el = document.getElementById('pollen-content');
-            if (!el) return;
-
-            const polenes = [
-                { key: 'alder_pollen',    nombre: 'Aliso',      emoji: '🌿', color: '#16a34a' },
-                { key: 'birch_pollen',    nombre: 'Abedul',     emoji: '🌳', color: '#15803d' },
-                { key: 'grass_pollen',    nombre: 'Gramíneas',  emoji: '🌾', color: '#65a30d' },
-                { key: 'mugwort_pollen',  nombre: 'Artemisia',  emoji: '🌱', color: '#4d7c0f' },
-                { key: 'olive_pollen',    nombre: 'Olivo',      emoji: '🫒', color: '#84cc16' },
-                { key: 'ragweed_pollen',  nombre: 'Ambrosía',   emoji: '🌻', color: '#a16207' },
-            ];
-
-            function nivel(v) {
-                if (v === null || v === undefined) return { lbl: '—',      color: '#94a3b8', bg: '#f1f5f9', pct: 0 };
-                if (v <   10) return { lbl: 'Muy bajo',  color: '#10b981', bg: '#d1fae5', pct: Math.round(v/200*100) };
-                if (v <   50) return { lbl: 'Bajo',      color: '#22c55e', bg: '#dcfce7', pct: Math.round(v/200*100) };
-                if (v <  150) return { lbl: 'Moderado',  color: '#f59e0b', bg: '#fef9c3', pct: Math.round(v/200*100) };
-                if (v <  500) return { lbl: 'Alto',      color: '#f97316', bg: '#ffedd5', pct: Math.min(Math.round(v/200*100),95) };
-                return            { lbl: 'Muy alto',  color: '#ef4444', bg: '#fee2e2', pct: 100 };
-            }
-
-            // Resumen: nivel máximo entre todos los pólenes
-            let maxVal = 0, maxNombre = '', maxEmoji = '';
-            polenes.forEach(p => {
-                const v = aqCurrent?.[p.key] ?? null;
-                if (v !== null && v > maxVal) { maxVal = v; maxNombre = p.nombre; maxEmoji = p.emoji; }
-            });
-            const resumen = nivel(maxVal);
-
-            // Consejo según nivel máximo
-            const consejos = {
-                'Muy bajo':  'Condiciones favorables. El riesgo de reacción alérgica es mínimo.',
-                'Bajo':      'Concentración baja de polen. Personas muy sensibles pueden notar síntomas leves.',
-                'Moderado':  'Concentración moderada. Se recomienda llevar medicación a personas alérgicas.',
-                'Alto':      'Concentración alta. Evita estar al aire libre en horas centrales del día.',
-                'Muy alto':  'Concentración muy alta. Permanece en interiores y ventila a primera hora.',
-                '—':         'Sin datos de polen disponibles en este momento.',
-            };
-
-            let html = '';
-
-            // Badge resumen
-            html += `
-                <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid rgba(44,120,80,0.15);">
-                    <div style="font-size:28px;line-height:1;">${maxEmoji || '🌿'}</div>
-                    <div style="flex:1;">
-                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                            <div style="display:inline-block;background:${resumen.color};color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;">${resumen.lbl.toUpperCase()}</div>
-                            ${maxNombre ? `<span style="font-size:11px;color:#2c4a6e;font-weight:600;">${maxNombre} (máx.)</span>` : ''}
-                        </div>
-                        <div style="font-size:11px;color:#1e3a5f;line-height:1.45;">${consejos[resumen.lbl]}</div>
-                    </div>
-                </div>`;
-
-            // Grid de pólenes individuales
-            html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">`;
-            polenes.forEach(p => {
-                const v = aqCurrent?.[p.key] ?? null;
-                const n = nivel(v);
-                const val = v !== null ? Math.round(v) : null;
-                const pct = n.pct;
-                html += `
-                    <div style="background:${n.bg};border-radius:10px;padding:10px 12px;border:1px solid rgba(0,0,0,0.06);">
-                        <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;">
-                            <span style="font-size:18px;">${p.emoji}</span>
-                            <div>
-                                <div style="font-size:10px;font-weight:700;color:#1a3a1a;letter-spacing:0.3px;">${p.nombre}</div>
-                                <div style="font-size:9px;font-weight:700;color:${n.color};text-transform:uppercase;letter-spacing:0.5px;">${n.lbl}</div>
-                            </div>
-                            <div style="margin-left:auto;font-size:13px;font-weight:800;color:${n.color};">${val !== null ? val : '—'}</div>
-                        </div>
-                        <div style="height:5px;background:rgba(0,0,0,0.08);border-radius:3px;overflow:hidden;">
-                            <div style="height:100%;width:${pct}%;background:${n.color};border-radius:3px;transition:width 0.6s;"></div>
-                        </div>
-                    </div>`;
-            });
-            html += `</div>`;
-
-            // Leyenda escala
-            html += `
-                <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(44,120,80,0.15);">
-                    <div style="font-size:9px;font-weight:700;color:#4a8a64;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Escala (granos/m³)</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:4px;">
-                        <span style="font-size:9px;font-weight:700;background:#10b981;color:#fff;padding:2px 7px;border-radius:4px;">&lt;10 Muy bajo</span>
-                        <span style="font-size:9px;font-weight:700;background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;">10–49 Bajo</span>
-                        <span style="font-size:9px;font-weight:700;background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;">50–149 Moderado</span>
-                        <span style="font-size:9px;font-weight:700;background:#f97316;color:#fff;padding:2px 7px;border-radius:4px;">150–499 Alto</span>
-                        <span style="font-size:9px;font-weight:700;background:#ef4444;color:#fff;padding:2px 7px;border-radius:4px;">≥500 Muy alto</span>
-                    </div>
-                </div>`;
-
-            el.innerHTML = html;
-        }
-
         // ── PIA Aerobiología Barcelona ─────────────────────────────
         function renderPiaPollenData() {
             const grid = document.getElementById('pia-pollen-grid');
@@ -2111,28 +2013,28 @@
                 dateStart: '2026-04-20',
                 dateEnd:   '2026-04-26',
                 pollens: [
-                    { code:'URTI', ca:'Parietària',       emoji:'🌿', current:4, forecast:'=' },
-                    { code:'GRAM', ca:'Gramínies',         emoji:'🌾', current:2, forecast:'A' },
-                    { code:'OLEA', ca:'Olivera',           emoji:'🫒', current:1, forecast:'A' },
-                    { code:'PLAT', ca:'Plàtan',            emoji:'🍃', current:4, forecast:'D' },
-                    { code:'QTOT', ca:'Roure/Alzina',      emoji:'🌳', current:4, forecast:'=' },
-                    { code:'PIST', ca:'Llentiscle',        emoji:'🌱', current:2, forecast:'=' },
-                    { code:'PALM', ca:'Palmeres',          emoji:'🌴', current:2, forecast:'=' },
-                    { code:'PINU', ca:'Pi',                emoji:'🌲', current:2, forecast:'=' },
-                    { code:'BETU', ca:'Bedoll',            emoji:'🌳', current:1, forecast:'=' },
-                    { code:'ACER', ca:'Auró',              emoji:'🍁', current:1, forecast:'D' },
-                    { code:'FRAX', ca:'Freixe',            emoji:'🌿', current:1, forecast:'=' },
-                    { code:'PLAN', ca:'Plantatge',         emoji:'🌱', current:1, forecast:'A' },
-                    { code:'MORA', ca:'Moreres',           emoji:'🌿', current:1, forecast:'=' },
-                    { code:'MERC', ca:'Melcoratge',        emoji:'🌱', current:1, forecast:'=' },
-                    { code:'QUAM', ca:'Blets',             emoji:'🌿', current:1, forecast:'=' },
-                    { code:'CRUC', ca:'Crucíferes',        emoji:'🌸', current:1, forecast:'=' },
-                    { code:'SALI', ca:'Salze',             emoji:'🌿', current:1, forecast:'=' },
-                    { code:'POPU', ca:'Pollancre/Xop',     emoji:'🌳', current:1, forecast:'D' },
-                    { code:'CUPR', ca:'Xiprers',           emoji:'🌲', current:1, forecast:'=' },
+                    { code:'URTI', ca:'Parietaria',        emoji:'🌿', current:4, forecast:'=' },
+                    { code:'GRAM', ca:'Gramíneas',          emoji:'🌾', current:2, forecast:'A' },
+                    { code:'OLEA', ca:'Olivo',              emoji:'🫒', current:1, forecast:'A' },
+                    { code:'PLAT', ca:'Plátano de sombra',  emoji:'🍃', current:4, forecast:'D' },
+                    { code:'QTOT', ca:'Roble/Encina',       emoji:'🌳', current:4, forecast:'=' },
+                    { code:'PIST', ca:'Lentisco',           emoji:'🌱', current:2, forecast:'=' },
+                    { code:'PALM', ca:'Palmeras',           emoji:'🌴', current:2, forecast:'=' },
+                    { code:'PINU', ca:'Pino',               emoji:'🌲', current:2, forecast:'=' },
+                    { code:'BETU', ca:'Abedul',             emoji:'🌳', current:1, forecast:'=' },
+                    { code:'ACER', ca:'Arce',               emoji:'🍁', current:1, forecast:'D' },
+                    { code:'FRAX', ca:'Fresno',             emoji:'🌿', current:1, forecast:'=' },
+                    { code:'PLAN', ca:'Llantén',            emoji:'🌱', current:1, forecast:'A' },
+                    { code:'MORA', ca:'Moreras',            emoji:'🌿', current:1, forecast:'=' },
+                    { code:'MERC', ca:'Mercurial',          emoji:'🌱', current:1, forecast:'=' },
+                    { code:'QUAM', ca:'Cenizo/Bleo',        emoji:'🌿', current:1, forecast:'=' },
+                    { code:'CRUC', ca:'Crucíferas',         emoji:'🌸', current:1, forecast:'=' },
+                    { code:'SALI', ca:'Sauce',              emoji:'🌿', current:1, forecast:'=' },
+                    { code:'POPU', ca:'Álamo/Chopo',        emoji:'🌳', current:1, forecast:'D' },
+                    { code:'CUPR', ca:'Cipreses',           emoji:'🌲', current:1, forecast:'=' },
                 ],
                 spores: [
-                    { code:'ALTE', ca:'Alternària',  emoji:'🍄', current:1, forecast:'=' },
+                    { code:'ALTE', ca:'Alternaria',   emoji:'🍄', current:1, forecast:'=' },
                     { code:'CLAD', ca:'Cladosporium', emoji:'🍄', current:1, forecast:'=' },
                 ]
             };
@@ -2160,7 +2062,7 @@
             // Fecha del badge
             if (dateBadge) {
                 const d = new Date(piaData.dateStart);
-                dateBadge.textContent = d.toLocaleDateString('ca-ES', { day:'2-digit', month:'short', year:'numeric' });
+                dateBadge.textContent = d.toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
             }
 
             // Ordenar por nivel desc, mostrar solo pólenes con nivel ≥ 1
@@ -2194,7 +2096,7 @@
             // Espores si nivel > 0
             const esporasActivas = piaData.spores.filter(s => s.current >= 1);
             if (esporasActivas.length > 0) {
-                html += `<div style="grid-column:1/-1;font-size:9px;font-weight:700;color:#4a8a64;text-transform:uppercase;letter-spacing:1px;margin-top:4px;padding-top:6px;border-top:1px dashed rgba(44,120,80,0.25);">Espores</div>`;
+                html += `<div style="grid-column:1/-1;font-size:9px;font-weight:700;color:#4a8a64;text-transform:uppercase;letter-spacing:1px;margin-top:4px;padding-top:6px;border-top:1px dashed rgba(44,120,80,0.25);">Esporas</div>`;
                 esporasActivas.forEach(s => {
                     const n  = piaNivel(s.current);
                     const fc = forecastLabel(s.forecast);
@@ -4063,7 +3965,7 @@
                 updateTormentaSection(data.hourly);
                 updateUviSection(data.daily, data.hourly);
                 updateCalimaSection(aqData?.current ?? {}, data.hourly, aqData?.hourly ?? null);
-                updatePollenSection(aqData?.current ?? {});
+                // (Polen gestionado por PIA, no Open-Meteo)
                 if (marineData) updatePlayasTable(marineData.current, data.daily, marineData.hourly, data.hourly);
                 updateWeatherTable(data.hourly);
                 updateRainTable(data.hourly, data.daily);
