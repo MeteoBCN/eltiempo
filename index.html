@@ -1005,8 +1005,8 @@
             </div>
             <div id="panel-uvi-panel" style="display:none;overflow:hidden;">
                 <!-- Scroll horizontal con tarjetas por día -->
-                <div id="uvi-scroll-wrap" style="background:#fffbf0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:rgba(180,100,0,0.3) transparent;">
-                    <div id="uvi-cards-inner" style="display:flex;padding:14px 12px;gap:10px;min-width:max-content;">
+                <div id="uvi-scroll-wrap" style="background:#fffbf0;">
+                    <div id="uvi-cards-inner" style="display:flex;justify-content:center;padding:14px 12px;gap:10px;flex-wrap:wrap;">
                         <div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px;">Calculando…</div>
                     </div>
                 </div>
@@ -4179,7 +4179,7 @@
                 chartEl.parentNode.insertBefore(recomDiv, chartEl);
             }
 
-            // ── Gráfico SVG de UVI horario (próximas 96h) ─────────────────
+            // ── Gráfico SVG de UVI horario (próximas 72h) ─────────────────
             if (!hourly?.uv_index || !hourly?.time) return;
 
             const from = new Date(now.getTime() - 1 * 3600 * 1000);
@@ -4270,7 +4270,7 @@
 
             chartEl.innerHTML = `
             <div style="margin:0 12px 8px;background:#fffbf0;border-radius:8px;overflow:hidden;border:1px solid #fde68a;">
-                <div style="padding:8px 12px 4px;font-size:9px;font-weight:700;color:#92400e;letter-spacing:1px;text-transform:uppercase;">UVI horario — próximas 96 h</div>
+                <div style="padding:8px 12px 4px;font-size:9px;font-weight:700;color:#92400e;letter-spacing:1px;text-transform:uppercase;">UVI horario — próximas 72 h</div>
                 <svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="uviAreaGrad" x1="0" y1="0" x2="0" y2="1">
