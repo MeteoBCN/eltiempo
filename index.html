@@ -1097,8 +1097,29 @@
                 <div id="pollen-content" style="padding:16px;">
                     <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
                 </div>
+                <!-- ── Sección PIA ── -->
+                <div id="pia-pollen-section" style="padding:0 16px 16px;">
+                    <div style="display:flex;align-items:center;gap:8px;padding:10px 0 10px;border-top:1px solid rgba(44,120,80,0.2);">
+                        <div style="width:3px;height:18px;background:#2c7a4e;border-radius:2px;flex-shrink:0;"></div>
+                        <span style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1.5px;">Dades aerobiològiques · PIA Barcelona</span>
+                        <span id="pia-date-badge" style="margin-left:auto;font-size:8px;font-weight:600;color:#fff;background:#2c7a4e;padding:2px 7px;border-radius:4px;letter-spacing:0.3px;"></span>
+                    </div>
+                    <div id="pia-pollen-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
+                    <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(44,120,80,0.15);">
+                        <div style="font-size:9px;font-weight:700;color:#4a8a64;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Escala PIA · Nivell actual</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                            <span style="font-size:9px;font-weight:700;background:#94a3b8;color:#fff;padding:2px 7px;border-radius:4px;">0 Nul</span>
+                            <span style="font-size:9px;font-weight:700;background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;">1 Baix</span>
+                            <span style="font-size:9px;font-weight:700;background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;">2 Mig</span>
+                            <span style="font-size:9px;font-weight:700;background:#f97316;color:#fff;padding:2px 7px;border-radius:4px;">3 Alt</span>
+                            <span style="font-size:9px;font-weight:700;background:#ef4444;color:#fff;padding:2px 7px;border-radius:4px;">4 Màxim</span>
+                        </div>
+                        <div style="margin-top:5px;font-size:9px;color:#4a8a64;">Tendència: <span style="font-weight:600;">▲ Augment · = Estable · ▼ Descens</span></div>
+                    </div>
+                </div>
+                <!-- ── Fin PIA ── -->
                 <div style="background:#e6f5ed;padding:8px 16px 10px;border-top:1px solid rgba(44,120,80,0.12);">
-                    <div style="font-size:9px;color:#4a8a64;letter-spacing:0.5px;">Fuente: Open-Meteo Air Quality · Valores en granos/m³</div>
+                    <div style="font-size:9px;color:#4a8a64;letter-spacing:0.5px;">Dades: <a href="https://aerobiologia.cat/pia/ca/forecast/barcelona" target="_blank" style="color:#2c7a4e;text-decoration:none;font-weight:600;">Punt d'Informació Aerobiològica</a> (CC BY-NC-SA 4.0) · Open-Meteo Air Quality</div>
                 </div>
             </div>
         </div>
@@ -2078,6 +2099,130 @@
 
             el.innerHTML = html;
         }
+
+        // ── PIA Aerobiología Barcelona ─────────────────────────────
+        function renderPiaPollenData() {
+            const grid = document.getElementById('pia-pollen-grid');
+            const dateBadge = document.getElementById('pia-date-badge');
+            if (!grid) return;
+
+            // Datos incrustados de la API PIA (Barcelona, semana 2026-04-20 / 2026-04-26)
+            const piaData = {
+                dateStart: '2026-04-20',
+                dateEnd:   '2026-04-26',
+                pollens: [
+                    { code:'URTI', ca:'Parietària',       emoji:'🌿', current:4, forecast:'=' },
+                    { code:'GRAM', ca:'Gramínies',         emoji:'🌾', current:2, forecast:'A' },
+                    { code:'OLEA', ca:'Olivera',           emoji:'🫒', current:1, forecast:'A' },
+                    { code:'PLAT', ca:'Plàtan',            emoji:'🍃', current:4, forecast:'D' },
+                    { code:'QTOT', ca:'Roure/Alzina',      emoji:'🌳', current:4, forecast:'=' },
+                    { code:'PIST', ca:'Llentiscle',        emoji:'🌱', current:2, forecast:'=' },
+                    { code:'PALM', ca:'Palmeres',          emoji:'🌴', current:2, forecast:'=' },
+                    { code:'PINU', ca:'Pi',                emoji:'🌲', current:2, forecast:'=' },
+                    { code:'BETU', ca:'Bedoll',            emoji:'🌳', current:1, forecast:'=' },
+                    { code:'ACER', ca:'Auró',              emoji:'🍁', current:1, forecast:'D' },
+                    { code:'FRAX', ca:'Freixe',            emoji:'🌿', current:1, forecast:'=' },
+                    { code:'PLAN', ca:'Plantatge',         emoji:'🌱', current:1, forecast:'A' },
+                    { code:'MORA', ca:'Moreres',           emoji:'🌿', current:1, forecast:'=' },
+                    { code:'MERC', ca:'Melcoratge',        emoji:'🌱', current:1, forecast:'=' },
+                    { code:'QUAM', ca:'Blets',             emoji:'🌿', current:1, forecast:'=' },
+                    { code:'CRUC', ca:'Crucíferes',        emoji:'🌸', current:1, forecast:'=' },
+                    { code:'SALI', ca:'Salze',             emoji:'🌿', current:1, forecast:'=' },
+                    { code:'POPU', ca:'Pollancre/Xop',     emoji:'🌳', current:1, forecast:'D' },
+                    { code:'CUPR', ca:'Xiprers',           emoji:'🌲', current:1, forecast:'=' },
+                ],
+                spores: [
+                    { code:'ALTE', ca:'Alternària',  emoji:'🍄', current:1, forecast:'=' },
+                    { code:'CLAD', ca:'Cladosporium', emoji:'🍄', current:1, forecast:'=' },
+                ]
+            };
+
+            // Nivel PIA: 0=Nul, 1=Baix, 2=Mig, 3=Alt, 4=Màxim
+            function piaNivel(v) {
+                const map = [
+                    { lbl:'Nul',   color:'#94a3b8', bg:'#f1f5f9' },
+                    { lbl:'Baix',  color:'#22c55e', bg:'#dcfce7' },
+                    { lbl:'Mig',   color:'#f59e0b', bg:'#fef9c3' },
+                    { lbl:'Alt',   color:'#f97316', bg:'#ffedd5' },
+                    { lbl:'Màxim', color:'#ef4444', bg:'#fee2e2' },
+                ];
+                return map[Math.min(v, 4)] ?? map[0];
+            }
+
+            function forecastLabel(f) {
+                if (f === 'A') return { icon:'▲', color:'#ef4444', title:'Augment' };
+                if (f === 'D') return { icon:'▼', color:'#22c55e', title:'Descens' };
+                if (f === '=') return { icon:'=', color:'#94a3b8', title:'Estable'  };
+                if (f === '!') return { icon:'!', color:'#7c3aed', title:'Situació excepcional' };
+                return { icon:'—', color:'#94a3b8', title:'' };
+            }
+
+            // Fecha del badge
+            if (dateBadge) {
+                const d = new Date(piaData.dateStart);
+                dateBadge.textContent = d.toLocaleDateString('ca-ES', { day:'2-digit', month:'short', year:'numeric' });
+            }
+
+            // Ordenar por nivel desc, mostrar solo pólenes con nivel ≥ 1
+            const activos = piaData.pollens.filter(p => p.current >= 1)
+                .sort((a,b) => b.current - a.current);
+
+            let html = '';
+            activos.forEach(p => {
+                const n  = piaNivel(p.current);
+                const fc = forecastLabel(p.forecast);
+                const barW = (p.current / 4) * 100;
+                html += `
+                    <div style="background:${n.bg};border-radius:10px;padding:9px 11px;border:1px solid rgba(0,0,0,0.06);">
+                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
+                            <span style="font-size:16px;line-height:1;">${p.emoji}</span>
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:10px;font-weight:700;color:#1a3a1a;letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.ca}</div>
+                                <div style="font-size:9px;font-weight:700;color:${n.color};text-transform:uppercase;letter-spacing:0.5px;">${n.lbl}</div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+                                <span style="font-size:15px;font-weight:800;color:${n.color};line-height:1;">${p.current}</span>
+                                <span style="font-size:11px;font-weight:700;color:${fc.color};line-height:1;" title="${fc.title}">${fc.icon}</span>
+                            </div>
+                        </div>
+                        <div style="height:4px;background:rgba(0,0,0,0.08);border-radius:2px;overflow:hidden;">
+                            <div style="height:100%;width:${barW}%;background:${n.color};border-radius:2px;transition:width 0.6s;"></div>
+                        </div>
+                    </div>`;
+            });
+
+            // Espores si nivel > 0
+            const esporasActivas = piaData.spores.filter(s => s.current >= 1);
+            if (esporasActivas.length > 0) {
+                html += `<div style="grid-column:1/-1;font-size:9px;font-weight:700;color:#4a8a64;text-transform:uppercase;letter-spacing:1px;margin-top:4px;padding-top:6px;border-top:1px dashed rgba(44,120,80,0.25);">Espores</div>`;
+                esporasActivas.forEach(s => {
+                    const n  = piaNivel(s.current);
+                    const fc = forecastLabel(s.forecast);
+                    html += `
+                        <div style="background:${n.bg};border-radius:10px;padding:9px 11px;border:1px solid rgba(0,0,0,0.06);">
+                            <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
+                                <span style="font-size:16px;line-height:1;">${s.emoji}</span>
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-size:10px;font-weight:700;color:#1a3a1a;">${s.ca}</div>
+                                    <div style="font-size:9px;font-weight:700;color:${n.color};text-transform:uppercase;">${n.lbl}</div>
+                                </div>
+                                <div style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+                                    <span style="font-size:15px;font-weight:800;color:${n.color};line-height:1;">${s.current}</span>
+                                    <span style="font-size:11px;font-weight:700;color:${fc.color};line-height:1;" title="${fc.title}">${fc.icon}</span>
+                                </div>
+                            </div>
+                            <div style="height:4px;background:rgba(0,0,0,0.08);border-radius:2px;overflow:hidden;">
+                                <div style="height:100%;width:${(s.current/4)*100}%;background:${n.color};border-radius:2px;"></div>
+                            </div>
+                        </div>`;
+                });
+            }
+
+            grid.innerHTML = html;
+        }
+        // Llamar al renderizar la página
+        window.addEventListener('DOMContentLoaded', renderPiaPollenData);
+        // ── FIN PIA ──────────────────────────────────────────────
 
         function updateCalimaSection(aqCurrent, hourly, aqHourly) {
             const el = document.getElementById('calima-content');
