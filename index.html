@@ -768,6 +768,90 @@
 
         </div><!-- fin content-section -->
 
+
+
+        <!-- ═══════════════════════════════════════════
+             RESUMEN 7 DIAS
+        ════════════════════════════════════════════ -->
+        <div style="height:60px;background:#ffffff;"></div>
+        <div id="forecast7-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <!-- Cabecera fija (no clicable) -->
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;gap:3px;">
+                <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">PREVISIÓN POR HORAS &amp; METEOGRAMA</span>
+                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">PULSAR SOBRE EL DÍA A CONSULTAR</span>
+            </div>
+            <div id="panel-forecast7" style="background:#f0f6fa;">
+                <!-- Fila de iconos del tiempo por día -->
+                <div id="f7-icons-row" style="display:grid;grid-template-columns:repeat(7,1fr);background:#ffffff;padding:6px 4px 5px;border-bottom:1px solid #e2e8f0;overflow:hidden;">
+                    <!-- Se rellena por JS -->
+                </div>
+                <!-- Panel de detalle del día seleccionado (encima de los gráficos) -->
+                <div id="f7-day-detail">
+                    <!-- Se rellena por JS al clicar un día -->
+                </div>
+                <!-- Pestañas: 5 iguales, sin iconos -->
+                <div id="f7-tabs" style="display:grid;grid-template-columns:repeat(5,1fr);background:#e4eef6;border-bottom:2px solid #c9ddf0;">
+                    <button class="f7-tab active" data-chart="temp"  onclick="switchF7Tab('temp')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#2c4a6e;border-bottom:2px solid #0b4c90;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">TEMP</button>
+                    <button class="f7-tab"        data-chart="rain"  onclick="switchF7Tab('rain')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">LLUVIA</button>
+                    <button class="f7-tab"        data-chart="hum"   onclick="switchF7Tab('hum')"   style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">HUMEDAD</button>
+                    <button class="f7-tab"        data-chart="pres"  onclick="switchF7Tab('pres')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">PRESIÓN</button>
+                    <button class="f7-tab"        data-chart="wind"  onclick="switchF7Tab('wind')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">VIENTO</button>
+                </div>
+                <!-- Paneles gráficos -->
+                <div id="f7-panel-temp"  style="padding:14px 16px 18px;display:block;">
+                    <canvas id="f7-chart-temp"  style="display:block;width:100%;"></canvas>
+                </div>
+                <div id="f7-panel-rain"  style="padding:14px 16px 18px;display:none;">
+                    <canvas id="f7-chart-rain"  style="display:block;width:100%;"></canvas>
+                </div>
+                <div id="f7-panel-hum"   style="padding:14px 16px 18px;display:none;">
+                    <canvas id="f7-chart-hum"   style="display:block;width:100%;"></canvas>
+                </div>
+                <div id="f7-panel-pres"  style="padding:14px 16px 18px;display:none;">
+                    <canvas id="f7-chart-pres"  style="display:block;width:100%;"></canvas>
+                </div>
+                <div id="f7-panel-wind"  style="padding:14px 16px 18px;display:none;">
+                    <canvas id="f7-chart-wind"  style="display:block;width:100%;"></canvas>
+                </div>
+                <div id="forecast7-loading" style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
+            </div>
+        </div>
+        <!-- ═══════════════════════════════════════════
+             FIN RESUMEN 7 DÍAS
+        ════════════════════════════════════════════ -->
+
+        <div style="height:60px;"></div>
+
+        <!-- PRÓXIMA LLUVIA -->
+        <div id="proxima-lluvia-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <!-- Cabecera fija (no clicable) -->
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;gap:3px;">
+                <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">PANEL DE CONTROL</span>
+                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">AVISOS-RIESGOS-DIRECTO</span>
+            </div>
+            <!-- ══════ AVISOS AEMET (Barcelona) ══════ -->
+            <div id="aemet-avisos-section" style="border-bottom:1px solid rgba(0,0,0,0.07);">
+                <div id="aemet-avisos-inner" style="background:#f0f6fa;padding:14px 16px;"></div>
+            </div>
+            <!-- ══════ FIN AVISOS AEMET ══════ -->
+            <div id="proxima-lluvia-content" style="background:#f0f6fa;padding:14px 16px;border-bottom:1px solid rgba(0,0,0,0.07);">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="flex:1;">
+                        <div style="font-size:12px;color:#94a3b8;text-align:left;">Calculando…</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+             PROBABILIDAD DE TORMENTA
+        ════════════════════════════════════════════ -->
+        <div id="tormenta-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #ffffff;">
+            <div id="tormenta-content" style="background:#f0f6fa;padding:14px 16px;">
+                <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
+            </div>
+        </div>
+
         <!-- ══════════════════════════════════════════════
              SEMÁFORO CALIDAD DEL AIRE
         ═══════════════════════════════════════════════ -->
@@ -1041,88 +1125,6 @@
         <!-- ═══════════════════════════════════════════
              FIN ALERGIAS
         ════════════════════════════════════════════ -->
-
-        <!-- ═══════════════════════════════════════════
-             RESUMEN 7 DIAS
-        ════════════════════════════════════════════ -->
-        <div style="height:60px;background:#ffffff;"></div>
-        <div id="forecast7-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <!-- Cabecera fija (no clicable) -->
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;gap:3px;">
-                <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">PREVISIÓN POR HORAS &amp; METEOGRAMA</span>
-                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">PULSAR SOBRE EL DÍA A CONSULTAR</span>
-            </div>
-            <div id="panel-forecast7" style="background:#f0f6fa;">
-                <!-- Fila de iconos del tiempo por día -->
-                <div id="f7-icons-row" style="display:grid;grid-template-columns:repeat(7,1fr);background:#ffffff;padding:6px 4px 5px;border-bottom:1px solid #e2e8f0;overflow:hidden;">
-                    <!-- Se rellena por JS -->
-                </div>
-                <!-- Panel de detalle del día seleccionado (encima de los gráficos) -->
-                <div id="f7-day-detail">
-                    <!-- Se rellena por JS al clicar un día -->
-                </div>
-                <!-- Pestañas: 5 iguales, sin iconos -->
-                <div id="f7-tabs" style="display:grid;grid-template-columns:repeat(5,1fr);background:#e4eef6;border-bottom:2px solid #c9ddf0;">
-                    <button class="f7-tab active" data-chart="temp"  onclick="switchF7Tab('temp')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#2c4a6e;border-bottom:2px solid #0b4c90;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">TEMP</button>
-                    <button class="f7-tab"        data-chart="rain"  onclick="switchF7Tab('rain')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">LLUVIA</button>
-                    <button class="f7-tab"        data-chart="hum"   onclick="switchF7Tab('hum')"   style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">HUMEDAD</button>
-                    <button class="f7-tab"        data-chart="pres"  onclick="switchF7Tab('pres')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">PRESIÓN</button>
-                    <button class="f7-tab"        data-chart="wind"  onclick="switchF7Tab('wind')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">VIENTO</button>
-                </div>
-                <!-- Paneles gráficos -->
-                <div id="f7-panel-temp"  style="padding:14px 16px 18px;display:block;">
-                    <canvas id="f7-chart-temp"  style="display:block;width:100%;"></canvas>
-                </div>
-                <div id="f7-panel-rain"  style="padding:14px 16px 18px;display:none;">
-                    <canvas id="f7-chart-rain"  style="display:block;width:100%;"></canvas>
-                </div>
-                <div id="f7-panel-hum"   style="padding:14px 16px 18px;display:none;">
-                    <canvas id="f7-chart-hum"   style="display:block;width:100%;"></canvas>
-                </div>
-                <div id="f7-panel-pres"  style="padding:14px 16px 18px;display:none;">
-                    <canvas id="f7-chart-pres"  style="display:block;width:100%;"></canvas>
-                </div>
-                <div id="f7-panel-wind"  style="padding:14px 16px 18px;display:none;">
-                    <canvas id="f7-chart-wind"  style="display:block;width:100%;"></canvas>
-                </div>
-                <div id="forecast7-loading" style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
-            </div>
-        </div>
-        <!-- ═══════════════════════════════════════════
-             FIN RESUMEN 7 DÍAS
-        ════════════════════════════════════════════ -->
-
-        <div style="height:60px;"></div>
-
-        <!-- PRÓXIMA LLUVIA -->
-        <div id="proxima-lluvia-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <!-- Cabecera fija (no clicable) -->
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;gap:3px;">
-                <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">PANEL DE CONTROL</span>
-                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">AVISOS-RIESGOS-DIRECTO</span>
-            </div>
-            <!-- ══════ AVISOS AEMET (Barcelona) ══════ -->
-            <div id="aemet-avisos-section" style="border-bottom:1px solid rgba(0,0,0,0.07);">
-                <div id="aemet-avisos-inner" style="background:#f0f6fa;padding:14px 16px;"></div>
-            </div>
-            <!-- ══════ FIN AVISOS AEMET ══════ -->
-            <div id="proxima-lluvia-content" style="background:#f0f6fa;padding:14px 16px;border-bottom:1px solid rgba(0,0,0,0.07);">
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="flex:1;">
-                        <div style="font-size:12px;color:#94a3b8;text-align:left;">Calculando…</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════
-             PROBABILIDAD DE TORMENTA
-        ════════════════════════════════════════════ -->
-        <div id="tormenta-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #ffffff;">
-            <div id="tormenta-content" style="background:#f0f6fa;padding:14px 16px;">
-                <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando…</div>
-            </div>
-        </div>
 
         <!-- ═══════════════════════════════════════════
              MAPA DE RISC D'INCENDIS (Gencat)
