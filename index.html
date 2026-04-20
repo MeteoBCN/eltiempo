@@ -2039,14 +2039,14 @@
                 ]
             };
 
-            // Nivel PIA: 0=Nul, 1=Baix, 2=Mig, 3=Alt, 4=Màxim
+            // Nivel PIA: 0=Nulo, 1=Bajo, 2=Medio, 3=Alto, 4=Máximo
             function piaNivel(v) {
                 const map = [
-                    { lbl:'Nul',   color:'#94a3b8', bg:'#f1f5f9' },
-                    { lbl:'Baix',  color:'#22c55e', bg:'#dcfce7' },
-                    { lbl:'Mig',   color:'#f59e0b', bg:'#fef9c3' },
-                    { lbl:'Alt',   color:'#f97316', bg:'#ffedd5' },
-                    { lbl:'Màxim', color:'#ef4444', bg:'#fee2e2' },
+                    { lbl:'Nulo',   color:'#94a3b8', bg:'#f1f5f9' },
+                    { lbl:'Bajo',   color:'#22c55e', bg:'#dcfce7' },
+                    { lbl:'Medio',  color:'#f59e0b', bg:'#fef9c3' },
+                    { lbl:'Alto',   color:'#f97316', bg:'#ffedd5' },
+                    { lbl:'Máximo', color:'#ef4444', bg:'#fee2e2' },
                 ];
                 return map[Math.min(v, 4)] ?? map[0];
             }
@@ -4006,8 +4006,7 @@
                         if (loading) loading.style.display = 'none';
                         // Renderizar iconos con datos horarios precisos
                         window.renderF7Icons(rows);
-                        // Abrir automáticamente el día de hoy
-                        requestAnimationFrame(() => { if (typeof openF7Day === 'function') openF7Day(0); });
+                        // Panel horario cerrado al cargar (el usuario lo abre al pulsar el día)
                         // Redibujar gráfico activo si el panel ya está visible
                         const activeTab = document.querySelector('.f7-tab.active');
                         if (activeTab) requestAnimationFrame(() => requestAnimationFrame(() => drawF7Chart(activeTab.dataset.chart || 'temp')));
