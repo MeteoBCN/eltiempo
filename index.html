@@ -4110,44 +4110,80 @@
             const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
             const DIAS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 
-            // ── Tarjetas por día (4 días) ──────────────────────────────────
+            // ── Tarjetas por día (3 días) ──────────────────────────────────
+            const consejosPorNivel = {
+                'Bajo':     'Sin protección especial necesaria. Exposición al sol sin riesgo.',
+                'Moderado': 'Aplica FPS 30+ y usa sombrero en horas centrales (12–16h).',
+                'Alto':     'FPS 50+. Busca sombra entre las 12h y 16h. Gafas UV recomendadas.',
+                'Muy alto': 'FPS 50+ obligatorio. Limita la exposición al mediodía. Camiseta y sombrero.',
+                'Extremo':  'Exposición mínima. Protección total. Evita el exterior en horas centrales.',
+            };
+
             let cardsHtml = '';
-            const numDays = Math.min(4, daily.time.length);
+            const numDays = Math.min(3, daily.time.length);
             for (let d = 0; d < numDays; d++) {
                 const uvMax = daily.uv_index_max[d] ?? null;
                 if (uvMax === null) continue;
-                const lvl   = uviLevel(uvMax);
-                const dt    = new Date(daily.time[d] + 'T12:00:00');
-                const isHoy = d === 0;
+                const lvl      = uviLevel(uvMax);
+                const dt       = new Date(daily.time[d] + 'T12:00:00');
+                const isHoy    = d === 0;
                 const dayLabel = isHoy ? 'Hoy' : DIAS[dt.getDay()];
                 const dateLabel = dt.getDate() + ' ' + MESES[dt.getMonth()];
-
-                // Barra visual de UVI (máx referencia = 12)
-                const barPct = Math.min(100, Math.round((uvMax / 12) * 100));
-
-                // Emoji sol según nivel
-                const sunEmoji = uvMax <= 2 ? '🌤️' : uvMax <= 5 ? '🌞' : uvMax <= 7 ? '☀️' : uvMax <= 10 ? '🔆' : '⚠️';
+                const barPct   = Math.min(100, Math.round((uvMax / 12) * 100));
+                const consejo  = consejosPorNivel[lvl.lbl] ?? '';
 
                 cardsHtml += `
-                <div style="display:flex;flex-direction:column;align-items:center;background:#fff;border-radius:12px;padding:14px 16px;min-width:110px;max-width:110px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1.5px solid ${lvl.color}22;flex-shrink:0;">
+                <div style="display:flex;flex-direction:column;align-items:center;background:#fff;border-radius:10px;padding:10px 12px;min-width:90px;max-width:90px;box-shadow:0 1px 5px rgba(0,0,0,0.07);border:1.5px solid ${lvl.color}33;flex-shrink:0;">
                     <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:0.8px;">${dayLabel}</div>
-                    <div style="font-size:9px;color:#94a3b8;margin-bottom:8px;">${dateLabel}</div>
-                    <div style="font-size:32px;line-height:1;margin-bottom:6px;">${sunEmoji}</div>
-                    <div style="font-size:30px;font-weight:900;color:${lvl.color};line-height:1;margin-bottom:4px;">${Math.round(uvMax)}</div>
-                    <div style="font-size:9px;font-weight:700;color:${lvl.color};text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">${lvl.lbl}</div>
-                    <!-- Barra UV -->
-                    <div style="width:100%;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden;">
+                    <div style="font-size:8px;color:#94a3b8;margin-bottom:6px;">${dateLabel}</div>
+                    <div style="font-size:26px;font-weight:900;color:${lvl.color};line-height:1;margin-bottom:3px;">${Math.round(uvMax)}</div>
+                    <div style="font-size:8px;font-weight:700;color:${lvl.color};text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">${lvl.lbl}</div>
+                    <div style="width:100%;height:5px;background:#f1f5f9;border-radius:3px;overflow:hidden;">
                         <div style="height:100%;width:${barPct}%;background:linear-gradient(90deg,#4caf50,#ffb300,#ff7043,#e53935,#9c27b0);border-radius:3px;transition:width 0.8s;"></div>
                     </div>
                 </div>`;
             }
+
+            // ── Recomendación del día de hoy ────────────────────────────────
+            const uvHoy   = daily.uv_index_max[0] ?? null;
+            const lvlHoy  = uvHoy !== null ? uviLevel(uvHoy) : null;
+            let recomHtml = '';
+            if (lvlHoy) {
+                const fps   = uvHoy <= 2 ? '15+' : uvHoy <= 5 ? '30+' : '50+';
+                const mins  = uvHoy <= 2 ? '60 min' : uvHoy <= 5 ? '30 min' : uvHoy <= 7 ? '20 min' : uvHoy <= 10 ? '10 min' : '< 5 min';
+                const consejo = consejosPorNivel[lvlHoy.lbl] ?? '';
+                recomHtml = `
+                <div style="padding:10px 14px 12px;background:#fffbf0;border-top:1px solid rgba(245,158,11,0.2);">
+                    <div style="font-size:8px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;">Recomendaciones para hoy</div>
+                    <div style="background:#fff;border-left:3px solid ${lvlHoy.color};border-radius:0 8px 8px 0;padding:8px 11px;margin-bottom:8px;">
+                        <div style="font-size:11px;color:#334155;line-height:1.55;">${consejo}</div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+                        <div style="background:#fff;border-radius:8px;padding:8px;text-align:center;border:1px solid #e2e8f0;">
+                            <div style="font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Protector solar</div>
+                            <div style="font-size:16px;font-weight:900;color:#0b4c90;">FPS ${fps}</div>
+                        </div>
+                        <div style="background:#fff;border-radius:8px;padding:8px;text-align:center;border:1px solid #e2e8f0;">
+                            <div style="font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Sin crema, quema en</div>
+                            <div style="font-size:16px;font-weight:900;color:${lvlHoy.color};">${mins}</div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
             cardsEl.innerHTML = cardsHtml;
+            // Insertar recomendación antes del gráfico
+            if (recomHtml) {
+                const recomDiv = document.createElement('div');
+                recomDiv.innerHTML = recomHtml;
+                chartEl.parentNode.insertBefore(recomDiv, chartEl);
+            }
 
             // ── Gráfico SVG de UVI horario (próximas 96h) ─────────────────
             if (!hourly?.uv_index || !hourly?.time) return;
 
             const from = new Date(now.getTime() - 1 * 3600 * 1000);
-            const to   = new Date(now.getTime() + 96 * 3600 * 1000);
+            const to   = new Date(now.getTime() + 72 * 3600 * 1000);
             const allTimes = hourly.time.map(t => new Date(t));
             const indices = [];
             for (let i = 0; i < allTimes.length; i++) {
