@@ -1060,27 +1060,15 @@
 
                 <!-- Panel HOY -->
                 <div id="dust-panel-hoy" style="background:#1a1a2e;padding:0;">
-                    <img src="https://polvomineral.aemet.es/images/iberia/D+1_probability_SCONC_DUST_50.png"
-                         alt="Probabilidad polvo mineral hoy – AEMET"
-                         style="width:100%;display:block;object-fit:contain;"
-                         loading="lazy"
-                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-                    <div style="display:none;padding:20px;text-align:center;color:#94a3b8;font-size:13px;">
-                        No se ha podido cargar la imagen.
-                        <a href="https://polvomineral.aemet.es" target="_blank" style="color:#6fcfe0;"> Ver en AEMET</a>
+                    <div id="dust-hoy-wrap" style="width:100%;min-height:300px;display:flex;align-items:center;justify-content:center;">
+                        <span style="color:#94a3b8;font-size:13px;">Cargando mapa…</span>
                     </div>
                 </div>
 
                 <!-- Panel MAÑANA (oculto por defecto) -->
                 <div id="dust-panel-man" style="background:#1a1a2e;padding:0;display:none;">
-                    <img src="https://polvomineral.aemet.es/images/iberia/D+2_probability_SCONC_DUST_50.png"
-                         alt="Probabilidad polvo mineral mañana – AEMET"
-                         style="width:100%;display:block;object-fit:contain;"
-                         loading="lazy"
-                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-                    <div style="display:none;padding:20px;text-align:center;color:#94a3b8;font-size:13px;">
-                        No se ha podido cargar la imagen.
-                        <a href="https://polvomineral.aemet.es" target="_blank" style="color:#6fcfe0;"> Ver en AEMET</a>
+                    <div id="dust-man-wrap" style="width:100%;min-height:300px;display:flex;align-items:center;justify-content:center;">
+                        <span style="color:#94a3b8;font-size:13px;">Cargando mapa…</span>
                     </div>
                 </div>
 
@@ -1096,6 +1084,31 @@
         </div><!-- /dust-map-section -->
 
         <script>
+        // Carga imágenes de AEMET polvo mineral usando fetch para añadir Referer correcto
+        var _dustLoaded = { hoy: false, man: false };
+
+        function loadDustImage(panel, url, wrapId) {
+            if (_dustLoaded[panel]) return;
+            _dustLoaded[panel] = true;
+            var wrap = document.getElementById(wrapId);
+            if (!wrap) return;
+
+            fetch(url, {
+                headers: { 'Referer': 'https://polvomineral.aemet.es/' }
+            })
+            .then(function(r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.blob();
+            })
+            .then(function(blob) {
+                var objectUrl = URL.createObjectURL(blob);
+                wrap.innerHTML = '<img src="' + objectUrl + '" alt="Mapa polvo en suspensión – AEMET" style="width:100%;display:block;object-fit:contain;">';
+            })
+            .catch(function() {
+                wrap.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">No se ha podido cargar la imagen.<br><a href="https://polvomineral.aemet.es" target="_blank" style="color:#6fcfe0;">Ver en AEMET →</a></div>';
+            });
+        }
+
         function switchDustTab(tab) {
             var isHoy = tab === 'hoy';
             document.getElementById('dust-panel-hoy').style.display = isHoy ? 'block' : 'none';
@@ -1106,7 +1119,27 @@
             btnHoy.style.color        = isHoy ? '#2c4a6e' : '#64748b';
             btnMan.style.borderBottom = isHoy ? '2px solid transparent' : '2px solid #0b4c90';
             btnMan.style.color        = isHoy ? '#64748b' : '#2c4a6e';
+            // Cargar imagen del panel visible
+            if (isHoy) {
+                loadDustImage('hoy', 'https://polvomineral.aemet.es/images/iberia/D+1_probability_SCONC_DUST_50.png', 'dust-hoy-wrap');
+            } else {
+                loadDustImage('man', 'https://polvomineral.aemet.es/images/iberia/D+2_probability_SCONC_DUST_50.png', 'dust-man-wrap');
+            }
         }
+
+        // Inicialización: cargar imagen "hoy" cuando se abre el panel de polvo
+        (function() {
+            var origToggle = window.toggleExtraSection;
+            window.toggleExtraSection = function(id) {
+                origToggle && origToggle(id);
+                if (id === 'dust-map-panel') {
+                    var panel = document.getElementById('panel-dust-map-panel');
+                    if (panel && panel.style.display !== 'none') {
+                        loadDustImage('hoy', 'https://polvomineral.aemet.es/images/iberia/D+1_probability_SCONC_DUST_50.png', 'dust-hoy-wrap');
+                    }
+                }
+            };
+        })();
         </script>
 
         <!-- ═══════════════════════════════════════════
@@ -3525,8 +3558,6 @@
             // Abrir panel con animación
             if (!isOpen || prevIdx !== idx) {
                 detail.classList.add('open');
-                // Scroll a la cabecera del meteograma para poder cambiar de día sin subir
-                setTimeout(() => document.getElementById('forecast7-section').scrollIntoView({behavior:'smooth', block:'start'}), 50);
             }
         };
 
