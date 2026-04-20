@@ -1033,114 +1033,7 @@
             </div>
         </div>
 
-        <!-- ═══════════════════════════════════════════
-             MAPA POLVO EN SUSPENSIÓN — AEMET
-        ════════════════════════════════════════════ -->
-        <div id="dust-map-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
 
-            <!-- Cabecera desplegable -->
-            <div onclick="toggleExtraSection('dust-map-panel')"
-                 style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;cursor:pointer;user-select:none;">
-                <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">MAPA DE POLVO EN SUSPENSIÓN</span>
-                <span id="arrow-dust-map-panel" style="font-size:12px;color:#3b1f00;transition:transform 0.3s;">▼</span>
-            </div>
-
-            <div id="panel-dust-map-panel" style="display:none;overflow:hidden;">
-                <!-- Pestañas Hoy / Mañana -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;background:#e4eef6;border-bottom:2px solid #c9ddf0;">
-                    <button id="dust-tab-hoy" onclick="switchDustTab('hoy')"
-                        style="padding:9px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#2c4a6e;border-bottom:2px solid #0b4c90;margin-bottom:-2px;transition:all .2s;">
-                        HOY
-                    </button>
-                    <button id="dust-tab-man" onclick="switchDustTab('man')"
-                        style="padding:9px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">
-                        MAÑANA
-                    </button>
-                </div>
-
-                <!-- Panel HOY -->
-                <div id="dust-panel-hoy" style="background:#1a1a2e;padding:0;">
-                    <div id="dust-hoy-wrap" style="width:100%;min-height:300px;display:flex;align-items:center;justify-content:center;">
-                        <span style="color:#94a3b8;font-size:13px;">Cargando mapa…</span>
-                    </div>
-                </div>
-
-                <!-- Panel MAÑANA (oculto por defecto) -->
-                <div id="dust-panel-man" style="background:#1a1a2e;padding:0;display:none;">
-                    <div id="dust-man-wrap" style="width:100%;min-height:300px;display:flex;align-items:center;justify-content:center;">
-                        <span style="color:#94a3b8;font-size:13px;">Cargando mapa…</span>
-                    </div>
-                </div>
-
-                <!-- Pie: fuente -->
-                <div style="background:#e8f0f7;padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
-                    <div style="font-size:11px;color:#4a6a8a;">Fuente: AEMET · Probabilidad concentración polvo mineral (&gt;50 µg/m³)</div>
-                    <a href="https://polvomineral.aemet.es" target="_blank" rel="noopener"
-                       style="font-size:11px;font-weight:700;color:#2c6fad;text-decoration:none;border:1px solid #8ab0d0;border-radius:6px;padding:4px 10px;background:#fff;white-space:nowrap;">
-                        Ver AEMET →
-                    </a>
-                </div>
-            </div><!-- /panel-dust-map-panel -->
-        </div><!-- /dust-map-section -->
-
-        <script>
-        // Carga imágenes de AEMET polvo mineral usando fetch para añadir Referer correcto
-        var _dustLoaded = { hoy: false, man: false };
-
-        function loadDustImage(panel, url, wrapId) {
-            if (_dustLoaded[panel]) return;
-            _dustLoaded[panel] = true;
-            var wrap = document.getElementById(wrapId);
-            if (!wrap) return;
-
-            fetch(url, {
-                headers: { 'Referer': 'https://polvomineral.aemet.es/' }
-            })
-            .then(function(r) {
-                if (!r.ok) throw new Error('HTTP ' + r.status);
-                return r.blob();
-            })
-            .then(function(blob) {
-                var objectUrl = URL.createObjectURL(blob);
-                wrap.innerHTML = '<img src="' + objectUrl + '" alt="Mapa polvo en suspensión – AEMET" style="width:100%;display:block;object-fit:contain;">';
-            })
-            .catch(function() {
-                wrap.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">No se ha podido cargar la imagen.<br><a href="https://polvomineral.aemet.es" target="_blank" style="color:#6fcfe0;">Ver en AEMET →</a></div>';
-            });
-        }
-
-        function switchDustTab(tab) {
-            var isHoy = tab === 'hoy';
-            document.getElementById('dust-panel-hoy').style.display = isHoy ? 'block' : 'none';
-            document.getElementById('dust-panel-man').style.display = isHoy ? 'none'  : 'block';
-            var btnHoy = document.getElementById('dust-tab-hoy');
-            var btnMan = document.getElementById('dust-tab-man');
-            btnHoy.style.borderBottom = isHoy ? '2px solid #0b4c90' : '2px solid transparent';
-            btnHoy.style.color        = isHoy ? '#2c4a6e' : '#64748b';
-            btnMan.style.borderBottom = isHoy ? '2px solid transparent' : '2px solid #0b4c90';
-            btnMan.style.color        = isHoy ? '#64748b' : '#2c4a6e';
-            // Cargar imagen del panel visible
-            if (isHoy) {
-                loadDustImage('hoy', 'https://polvomineral.aemet.es/images/iberia/D+1_probability_SCONC_DUST_50.png', 'dust-hoy-wrap');
-            } else {
-                loadDustImage('man', 'https://polvomineral.aemet.es/images/iberia/D+2_probability_SCONC_DUST_50.png', 'dust-man-wrap');
-            }
-        }
-
-        // Inicialización: cargar imagen "hoy" cuando se abre el panel de polvo
-        (function() {
-            var origToggle = window.toggleExtraSection;
-            window.toggleExtraSection = function(id) {
-                origToggle && origToggle(id);
-                if (id === 'dust-map-panel') {
-                    var panel = document.getElementById('panel-dust-map-panel');
-                    if (panel && panel.style.display !== 'none') {
-                        loadDustImage('hoy', 'https://polvomineral.aemet.es/images/iberia/D+1_probability_SCONC_DUST_50.png', 'dust-hoy-wrap');
-                    }
-                }
-            };
-        })();
-        </script>
 
         <!-- ═══════════════════════════════════════════
              ALERGIAS · ÍNDICE DE POLEN
@@ -2137,50 +2030,122 @@
             el.innerHTML = html;
         }
 
-        function updateCalimaSection(aqCurrent, hourly) {
+        function updateCalimaSection(aqCurrent, hourly, aqHourly) {
             const el = document.getElementById('calima-content');
             if (!el) return;
 
             const pm10 = aqCurrent?.pm10 ?? null;
-            const pm25 = aqCurrent?.pm2_5 ?? null;
-
-            // Dirección del viento actual (viento del sur/sureste = sospecha de calima)
-            const now = new Date();
-            let windDir = null;
-            if (hourly?.wind_direction_10m && hourly?.time) {
-                const idx = hourly.time.findIndex(t => new Date(t) > now) - 1;
-                if (idx >= 0) windDir = hourly.wind_direction_10m[idx];
-            }
-
-            // Detectar viento del sur/sureste (120–240°) = flujo sahariano
-            const vientoSahara = windDir !== null && windDir >= 120 && windDir <= 240;
 
             // Nivel de calima basado en PM10
-            let nivel, color, icono, descripcion, consejo;
+            let nivel, color, descripcion, consejo;
             if (pm10 === null) {
                 el.innerHTML = '<div style="font-size:12px;color:#94a3b8;text-align:center;">Sin datos disponibles</div>';
                 return;
             }
 
             if (pm10 >= 100) {
-                nivel = 'CALIMA INTENSA'; color = '#b45309'; icono = '';
+                nivel = 'CALIMA INTENSA'; color = '#b45309';
                 descripcion = `PM10 muy elevado (${Math.round(pm10)} µg/m³). Episodio de polvo sahariano activo.`;
                 consejo = 'Evita actividades físicas al aire libre. Mantén ventanas cerradas.';
             } else if (pm10 >= 50) {
-                nivel = 'CALIMA MODERADA'; color = '#d97706'; icono = '';
+                nivel = 'CALIMA MODERADA'; color = '#d97706';
                 descripcion = `PM10 elevado (${Math.round(pm10)} µg/m³). Posible aporte de polvo del desierto.`;
                 consejo = 'Personas con problemas respiratorios deben limitar la exposición exterior.';
             } else if (pm10 >= 30) {
-                nivel = 'PARTÍCULAS ELEVADAS'; color = '#f59e0b'; icono = '';
+                nivel = 'PARTÍCULAS ELEVADAS'; color = '#f59e0b';
                 descripcion = `PM10 moderado (${Math.round(pm10)} µg/m³). Aire con partículas en suspensión.`;
                 consejo = 'Calidad del aire aceptable, pero con partículas por encima de lo habitual.';
             } else {
-                nivel = 'SIN CALIMA'; color = '#10b981'; icono = '';
+                nivel = 'SIN CALIMA'; color = '#10b981';
                 descripcion = `PM10 normal (${Math.round(pm10)} µg/m³). No se detecta polvo sahariano.`;
                 consejo = 'Condiciones normales de partículas en el aire.';
             }
 
-            // Indicador de flujo sahariano — eliminado
+            // ── Construir gráfica SVG de PM10 horario ──────────────────────────
+            let chartHtml = '';
+            if (aqHourly?.pm10 && aqHourly?.time && aqHourly.pm10.length > 0) {
+                const now = new Date();
+                // Filtrar: últimas 12h y próximas 36h (48 puntos max)
+                const allTimes = aqHourly.time.map(t => new Date(t));
+                const from = new Date(now.getTime() - 12 * 3600 * 1000);
+                const indices = [];
+                for (let i = 0; i < allTimes.length; i++) {
+                    if (allTimes[i] >= from && indices.length < 48) indices.push(i);
+                }
+                const times  = indices.map(i => allTimes[i]);
+                const values = indices.map(i => aqHourly.pm10[i] ?? 0);
+
+                if (values.length >= 2) {
+                    const W = 560, H = 110, padL = 36, padR = 8, padT = 10, padB = 28;
+                    const gW = W - padL - padR, gH = H - padT - padB;
+                    const maxVal = Math.max(Math.max(...values), 50);
+                    const xPos = (i) => padL + (i / (values.length - 1)) * gW;
+                    const yPos = (v) => padT + gH - (v / maxVal) * gH;
+
+                    // Zonas de color de fondo
+                    const zones = [
+                        { y: 0,   h: 30,  fill: 'rgba(16,185,129,0.08)'  },
+                        { y: 30,  h: 20,  fill: 'rgba(245,158,11,0.10)'  },
+                        { y: 50,  h: 50,  fill: 'rgba(217,119,6,0.10)'   },
+                        { y: 100, h: 9999,fill: 'rgba(180,83,9,0.10)'    },
+                    ];
+                    let zoneSvg = zones.map(z => {
+                        const y1 = yPos(Math.min(z.y + z.h, maxVal));
+                        const y2 = yPos(z.y);
+                        if (y2 <= padT) return '';
+                        return `<rect x="${padL}" y="${Math.max(y1,padT)}" width="${gW}" height="${Math.min(y2,padT+gH)-Math.max(y1,padT)}" fill="${z.fill}"/>`;
+                    }).join('');
+
+                    // Líneas guía
+                    const guides = [30, 50, 100].filter(v => v < maxVal);
+                    let guideSvg = guides.map(v => {
+                        const y = yPos(v);
+                        return `<line x1="${padL}" y1="${y}" x2="${padL+gW}" y2="${y}" stroke="rgba(100,116,139,0.25)" stroke-width="0.8" stroke-dasharray="3,3"/>
+                                <text x="${padL-3}" y="${y+3.5}" font-size="7" fill="#94a3b8" text-anchor="end">${v}</text>`;
+                    }).join('');
+
+                    // Área rellena
+                    const areaPoints = values.map((v,i) => `${xPos(i)},${yPos(v)}`).join(' ');
+                    const areaPath = `M${xPos(0)},${yPos(0)} ` +
+                        values.map((v,i) => `L${xPos(i)},${yPos(v)}`).join(' ') +
+                        ` L${xPos(values.length-1)},${padT+gH} L${xPos(0)},${padT+gH} Z`;
+
+                    // Línea principal
+                    const linePath = `M` + values.map((v,i) => `${xPos(i)},${yPos(v)}`).join(' L');
+
+                    // Punto actual
+                    const nowIdx = times.findIndex(t => t >= now);
+                    const nowDot = nowIdx >= 0
+                        ? `<circle cx="${xPos(nowIdx)}" cy="${yPos(values[nowIdx])}" r="4" fill="${color}" stroke="#fff" stroke-width="1.5"/>`
+                        : '';
+
+                    // Etiquetas hora en eje X (cada 6h)
+                    let xLabels = '';
+                    for (let i = 0; i < times.length; i++) {
+                        const h = times[i].getHours();
+                        if (h % 6 === 0) {
+                            const dayStr = times[i].getDate() !== now.getDate()
+                                ? `${times[i].getDate()}/${times[i].getMonth()+1} ` : '';
+                            xLabels += `<text x="${xPos(i)}" y="${H-5}" font-size="7.5" fill="#64748b" text-anchor="middle">${dayStr}${String(h).padStart(2,'0')}h</text>`;
+                        }
+                    }
+
+                    chartHtml = `
+                    <div style="margin:12px 0 4px;background:#f8fafc;border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;">
+                        <div style="padding:8px 12px 4px;font-size:9px;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;">PM10 — Últimas 12h y próximas 36h (µg/m³)</div>
+                        <svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
+                            ${zoneSvg}
+                            ${guideSvg}
+                            <path d="${areaPath}" fill="${color}" opacity="0.15"/>
+                            <path d="${linePath}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+                            ${nowDot}
+                            ${xLabels}
+                            <text x="${padL-3}" y="${padT+4}" font-size="7" fill="#94a3b8" text-anchor="end">${Math.round(maxVal)}</text>
+                            <text x="${padL-3}" y="${padT+gH+3}" font-size="7" fill="#94a3b8" text-anchor="end">0</text>
+                        </svg>
+                    </div>`;
+                }
+            }
 
             el.innerHTML = `
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
@@ -2190,8 +2155,8 @@
                         <div style="font-size:11px;color:#64748b;margin-top:4px;">${consejo}</div>
                     </div>
                 </div>
-
-                <div style="margin-top:10px;font-size:9px;color:#94a3b8;text-align:right;">Fuente: Open-Meteo Air Quality</div>
+                ${chartHtml}
+                <div style="margin-top:6px;font-size:9px;color:#94a3b8;text-align:right;">Fuente: Open-Meteo Air Quality</div>
             `;
         }
 
@@ -3853,7 +3818,7 @@
             const PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
 
             const url=`${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean&timezone=Europe/Madrid&forecast_days=7`;
-            const aqUrl=`${PROXY_BASE}/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=Europe/Madrid`;
+            const aqUrl=`${PROXY_BASE}/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&hourly=pm10&forecast_days=2&timezone=Europe/Madrid`;
             const marineUrl=`${PROXY_BASE}/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
 
             const safeFetch = async (u) => {
@@ -3902,7 +3867,7 @@
                 updateTodayTable(data.daily, data.hourly);
                 if (aqData?.current) updateAirQualityTable(aqData.current);
                 updateTormentaSection(data.hourly);
-                updateCalimaSection(aqData?.current ?? {}, data.hourly);
+                updateCalimaSection(aqData?.current ?? {}, data.hourly, aqData?.hourly ?? null);
                 updatePollenSection(aqData?.current ?? {});
                 if (marineData) updatePlayasTable(marineData.current, data.daily, marineData.hourly, data.hourly);
                 updateWeatherTable(data.hourly);
