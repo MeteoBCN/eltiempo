@@ -1530,7 +1530,7 @@
         <!-- ═══════════════════════════════════════════
              PUBLICACIONES @Barcelona_meteo en X
         ════════════════════════════════════════════ -->
-        <div id="x-feed-section" style="max-width:600px;margin:60px auto 0;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;">
+        <div id="x-feed-section" style="max-width:600px;margin:60px auto 0;border-top:1px solid #e2e8f0;">
             <!-- Cabecera -->
             <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;border-bottom:1px solid #e2e8f0;">
                 <div style="display:flex;align-items:center;gap:8px;">
@@ -1539,21 +1539,105 @@
                 </div>
                 <a href="https://x.com/Barcelona_meteo" target="_blank" rel="noopener" style="font-size:8px;font-weight:600;color:#2c4a6e;text-decoration:none;letter-spacing:0.5px;">Ver perfil ↗</a>
             </div>
-            <!-- Timeline widget oficial X -->
-            <div style="background:#fff;">
-                <a class="twitter-timeline"
-                   data-lang="es"
-                   data-theme="light"
-                   data-chrome="noheader nofooter noborders transparent"
-                   data-height="600"
-                   href="https://twitter.com/Barcelona_meteo">
-                   Cargando tweets…
-                </a>
+            <!-- Feed de tweets -->
+            <div id="x-feed-posts" style="background:#fff;padding:0;">
+                <div style="padding:20px;text-align:center;color:#94a3b8;font-size:12px;">Cargando publicaciones…</div>
             </div>
         </div>
         <!-- ═══════════════════════════════════════════
              FIN @Barcelona_meteo
         ════════════════════════════════════════════ -->
+        <script>
+        (function loadXFeed() {
+            const RSS_URL = 'https://rss.app/feeds/BxStU4fqHQ7pbndA.xml';
+            const PROXY   = 'https://api.allorigins.win/get?url=' + encodeURIComponent(RSS_URL);
+            const el      = document.getElementById('x-feed-posts');
+            if (!el) return;
+
+            function timeAgo(dateStr) {
+                const d    = new Date(dateStr);
+                const now  = new Date();
+                const diff = Math.floor((now - d) / 1000);
+                if (diff < 60)   return 'ahora';
+                if (diff < 3600) return Math.floor(diff / 60) + ' min';
+                if (diff < 86400) return Math.floor(diff / 3600) + ' h';
+                return Math.floor(diff / 86400) + ' d';
+            }
+
+            function stripHtml(html) {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                return tmp.textContent || tmp.innerText || '';
+            }
+
+            fetch(PROXY)
+                .then(r => r.json())
+                .then(data => {
+                    const parser = new DOMParser();
+                    const xml    = parser.parseFromString(data.contents, 'text/xml');
+                    const items  = Array.from(xml.querySelectorAll('item')).slice(0, 8);
+
+                    if (!items.length) {
+                        el.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:12px;">No se han podido cargar las publicaciones.</div>';
+                        return;
+                    }
+
+                    let html = '';
+                    items.forEach((item, i) => {
+                        const title   = item.querySelector('title')?.textContent || '';
+                        const desc    = item.querySelector('description')?.textContent || '';
+                        const link    = item.querySelector('link')?.textContent || '#';
+                        const pubDate = item.querySelector('pubDate')?.textContent || '';
+                        const ago     = pubDate ? timeAgo(pubDate) : '';
+
+                        // Usar description si tiene más texto, si no usar title
+                        let texto = stripHtml(desc).trim() || stripHtml(title).trim();
+                        // Eliminar duplicados (a veces el título repite el texto)
+                        if (texto.startsWith(stripHtml(title).trim())) texto = texto;
+
+                        // Detectar imagen en description
+                        const imgMatch = desc.match(/<img[^>]+src=["']([^"']+)["']/i);
+                        const imgUrl   = imgMatch ? imgMatch[1] : null;
+
+                        const borderStyle = i < items.length - 1 ? 'border-bottom:1px solid #f1f5f9;' : '';
+
+                        html += `
+                        <div style="padding:14px 16px;${borderStyle}">
+                            <div style="display:flex;align-items:flex-start;gap:10px;">
+                                <!-- Avatar -->
+                                <div style="flex-shrink:0;">
+                                    <div style="width:36px;height:36px;border-radius:50%;background:#2c3e50;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                                        <img src="https://unavatar.io/twitter/Barcelona_meteo" alt="avatar"
+                                             style="width:36px;height:36px;border-radius:50%;object-fit:cover;"
+                                             onerror="this.style.display='none'">
+                                    </div>
+                                </div>
+                                <!-- Contenido -->
+                                <div style="flex:1;min-width:0;">
+                                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                                        <span style="font-size:12px;font-weight:700;color:#1e293b;">BCN Meteo</span>
+                                        <span style="font-size:11px;color:#94a3b8;">@Barcelona_meteo</span>
+                                        <span style="font-size:11px;color:#94a3b8;margin-left:auto;">${ago}</span>
+                                    </div>
+                                    <div style="font-size:13px;color:#334155;line-height:1.55;word-break:break-word;">${texto}</div>
+                                    ${imgUrl ? `<div style="margin-top:10px;border-radius:10px;overflow:hidden;"><img src="${imgUrl}" style="width:100%;max-height:280px;object-fit:cover;display:block;" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : ''}
+                                    <a href="${link}" target="_blank" rel="noopener"
+                                       style="display:inline-flex;align-items:center;gap:4px;margin-top:8px;font-size:10px;color:#94a3b8;text-decoration:none;">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+                                        Ver en X
+                                    </a>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+
+                    el.innerHTML = html;
+                })
+                .catch(() => {
+                    el.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:12px;">No se han podido cargar las publicaciones.</div>';
+                });
+        })();
+        </script>
 
         <!-- hourly-forecast-strip oculto — usado internamente por updateHourlyStrip -->
         <div id="hourly-forecast-strip" style="display:none;"></div>
@@ -5990,8 +6074,6 @@ if (isStandalone && 'Notification' in window) {
 
 
 
-<!-- Script widget X/Twitter -->
-<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
 </body>
 </html>
