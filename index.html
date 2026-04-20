@@ -768,13 +768,6 @@
 
         </div><!-- fin content-section -->
 
-
-
-        <!-- ═══════════════════════════════════════════
-             RESUMEN 7 DIAS
-        ════════════════════════════════════════════ -->
-        <div style="height:60px;background:#ffffff;"></div>
-
         <!-- ═══════════════════════════════════════════
              PREVISIÓN POR HORAS
         ════════════════════════════════════════════ -->
@@ -1041,7 +1034,7 @@
         </div>
 
         <!-- ═══════════════════════════════════════════
-             MAPA POLVO EN SUSPENSIÓN — CAMS Copernicus (Leaflet + WMS)
+             MAPA POLVO EN SUSPENSIÓN — AEMET
         ════════════════════════════════════════════ -->
         <div id="dust-map-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
 
@@ -1053,102 +1046,68 @@
             </div>
 
             <div id="panel-dust-map-panel" style="display:none;overflow:hidden;">
-
-                <!-- Mapa Leaflet con capa WMS de CAMS/ECMWF -->
-                <div id="dust-leaflet-map" style="width:100%;height:400px;background:#cce0f0;"></div>
-
-                <!-- Leyenda de colores PM10 polvo -->
-                <div style="background:#f0f4f8;padding:8px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <span style="font-size:10px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:0.8px;">PM10 polvo (µg/m³):</span>
-                    <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:#444;">
-                        <span style="display:inline-block;width:14px;height:10px;background:#ffffcc;border:1px solid #ccc;border-radius:2px;"></span>&lt;10
-                    </span>
-                    <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:#444;">
-                        <span style="display:inline-block;width:14px;height:10px;background:#fed976;border:1px solid #ccc;border-radius:2px;"></span>10–25
-                    </span>
-                    <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:#444;">
-                        <span style="display:inline-block;width:14px;height:10px;background:#fd8d3c;border:1px solid #ccc;border-radius:2px;"></span>25–50
-                    </span>
-                    <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:#444;">
-                        <span style="display:inline-block;width:14px;height:10px;background:#e31a1c;border:1px solid #ccc;border-radius:2px;"></span>&gt;50
-                    </span>
+                <!-- Pestañas Hoy / Mañana -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;background:#e4eef6;border-bottom:2px solid #c9ddf0;">
+                    <button id="dust-tab-hoy" onclick="switchDustTab('hoy')"
+                        style="padding:9px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#2c4a6e;border-bottom:2px solid #0b4c90;margin-bottom:-2px;transition:all .2s;">
+                        HOY
+                    </button>
+                    <button id="dust-tab-man" onclick="switchDustTab('man')"
+                        style="padding:9px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">
+                        MAÑANA
+                    </button>
                 </div>
 
-                <!-- Pie: fuente + enlace -->
-                <div style="background:#e8f0f7;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
-                    <div>
-                        <div style="font-size:10px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;">Fuente</div>
-                        <div style="font-size:11px;color:#4a6a8a;">Copernicus CAMS / ECMWF · WMS · PM10 polvo en superficie · Previsión D+0</div>
+                <!-- Panel HOY -->
+                <div id="dust-panel-hoy" style="background:#1a1a2e;padding:0;">
+                    <img src="https://polvomineral.aemet.es/images/iberia/D+1_probability_SCONC_DUST_50.png"
+                         alt="Probabilidad polvo mineral hoy – AEMET"
+                         style="width:100%;display:block;object-fit:contain;"
+                         loading="lazy"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+                    <div style="display:none;padding:20px;text-align:center;color:#94a3b8;font-size:13px;">
+                        No se ha podido cargar la imagen.
+                        <a href="https://polvomineral.aemet.es" target="_blank" style="color:#6fcfe0;"> Ver en AEMET</a>
                     </div>
-                    <a href="https://atmosphere.copernicus.eu/european-air-quality-forecast-plots"
-                       target="_blank" rel="noopener"
-                       style="font-size:11px;font-weight:700;color:#2c6fad;text-decoration:none;border:1px solid #8ab0d0;border-radius:6px;padding:5px 10px;background:#fff;white-space:nowrap;">
-                        Ver CAMS →
+                </div>
+
+                <!-- Panel MAÑANA (oculto por defecto) -->
+                <div id="dust-panel-man" style="background:#1a1a2e;padding:0;display:none;">
+                    <img src="https://polvomineral.aemet.es/images/iberia/D+2_probability_SCONC_DUST_50.png"
+                         alt="Probabilidad polvo mineral mañana – AEMET"
+                         style="width:100%;display:block;object-fit:contain;"
+                         loading="lazy"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+                    <div style="display:none;padding:20px;text-align:center;color:#94a3b8;font-size:13px;">
+                        No se ha podido cargar la imagen.
+                        <a href="https://polvomineral.aemet.es" target="_blank" style="color:#6fcfe0;"> Ver en AEMET</a>
+                    </div>
+                </div>
+
+                <!-- Pie: fuente -->
+                <div style="background:#e8f0f7;padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+                    <div style="font-size:11px;color:#4a6a8a;">Fuente: AEMET · Probabilidad concentración polvo mineral (&gt;50 µg/m³)</div>
+                    <a href="https://polvomineral.aemet.es" target="_blank" rel="noopener"
+                       style="font-size:11px;font-weight:700;color:#2c6fad;text-decoration:none;border:1px solid #8ab0d0;border-radius:6px;padding:4px 10px;background:#fff;white-space:nowrap;">
+                        Ver AEMET →
                     </a>
                 </div>
-
             </div><!-- /panel-dust-map-panel -->
         </div><!-- /dust-map-section -->
 
         <script>
-        /* ══════ MAPA POLVO — Leaflet + WMS CAMS/ECMWF ══════ */
-        var _dustMapInit = false;
-
-        function initDustMap() {
-            if (_dustMapInit) return;
-            _dustMapInit = true;
-
-            var dustMap = L.map('dust-leaflet-map', {
-                center: [40.5, -2.0],   // Centro Península Ibérica
-                zoom: 5,
-                zoomControl: true,
-                scrollWheelZoom: false
-            });
-
-            // Base: OpenStreetMap
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap',
-                opacity: 0.6
-            }).addTo(dustMap);
-
-            // Capa WMS de CAMS ECMWF — PM10 polvo en superficie
-            // Endpoint público WMS de CAMS regional (no requiere autenticación para GetMap)
-            L.tileLayer.wms('https://maps.cams.eu/wms', {
-                layers: 'composition_dust_surface_concentration',
-                format: 'image/png',
-                transparent: true,
-                opacity: 0.75,
-                version: '1.3.0',
-                attribution: '© Copernicus CAMS/ECMWF',
-                crossOrigin: true
-            }).addTo(dustMap);
-
-            // Marcador Barcelona
-            L.circleMarker([41.38, 2.17], {
-                radius: 6,
-                fillColor: '#2c4a6e',
-                color: '#fff',
-                weight: 2,
-                fillOpacity: 1
-            }).addTo(dustMap).bindTooltip('Barcelona', {permanent: true, direction: 'right', offset: [8, 0], className: 'dust-label'});
-
-            setTimeout(function() { dustMap.invalidateSize(); }, 200);
+        function switchDustTab(tab) {
+            var isHoy = tab === 'hoy';
+            document.getElementById('dust-panel-hoy').style.display = isHoy ? 'block' : 'none';
+            document.getElementById('dust-panel-man').style.display = isHoy ? 'none'  : 'block';
+            var btnHoy = document.getElementById('dust-tab-hoy');
+            var btnMan = document.getElementById('dust-tab-man');
+            btnHoy.style.borderBottom = isHoy ? '2px solid #0b4c90' : '2px solid transparent';
+            btnHoy.style.color        = isHoy ? '#2c4a6e' : '#64748b';
+            btnMan.style.borderBottom = isHoy ? '2px solid transparent' : '2px solid #0b4c90';
+            btnMan.style.color        = isHoy ? '#64748b' : '#2c4a6e';
         }
         </script>
-
-        <style>
-        .dust-label {
-            background: rgba(44,74,110,0.85);
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 6px;
-            box-shadow: none;
-        }
-        .dust-label::before { display: none; }
-        </style>
 
         <!-- ═══════════════════════════════════════════
              ALERGIAS · ÍNDICE DE POLEN
@@ -1314,12 +1273,6 @@
             var isOpen = panel.style.display !== 'none';
             panel.style.display = isOpen ? 'none' : 'block';
             arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
-
-            // radar-rainviewer: ahora es un iframe de Windy, no necesita init
-            if (!isOpen && id === 'dust-map-panel') {
-                // Inicializar mapa Leaflet de polvo al abrir el panel
-                setTimeout(function() { initDustMap(); }, 80);
-            }
         }
         </script>
 
@@ -3960,6 +3913,8 @@
                         if (loading) loading.style.display = 'none';
                         // Renderizar iconos con datos horarios precisos
                         window.renderF7Icons(rows);
+                        // Abrir automáticamente el día de hoy
+                        requestAnimationFrame(() => { if (typeof openF7Day === 'function') openF7Day(0); });
                         // Redibujar gráfico activo si el panel ya está visible
                         const activeTab = document.querySelector('.f7-tab.active');
                         if (activeTab) requestAnimationFrame(() => requestAnimationFrame(() => drawF7Chart(activeTab.dataset.chart || 'temp')));
