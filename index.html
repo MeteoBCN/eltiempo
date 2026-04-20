@@ -994,6 +994,55 @@
         </div>
 
         <!-- ═══════════════════════════════════════════
+             ÍNDICE UV — PRÓXIMOS 4 DÍAS
+        ════════════════════════════════════════════ -->
+        <div id="uvi-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <!-- Cabecera desplegable -->
+            <div onclick="toggleExtraSection('uvi-panel')"
+                 style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;cursor:pointer;user-select:none;">
+                <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">☀️ ÍNDICE UV — PRÓXIMOS 4 DÍAS</span>
+                <span id="arrow-uvi-panel" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
+            </div>
+            <div id="panel-uvi-panel" style="display:none;overflow:hidden;">
+                <!-- Scroll horizontal con tarjetas por día -->
+                <div id="uvi-scroll-wrap" style="background:#fffbf0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:rgba(180,100,0,0.3) transparent;">
+                    <div id="uvi-cards-inner" style="display:flex;padding:14px 12px;gap:10px;min-width:max-content;">
+                        <div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px;">Calculando…</div>
+                    </div>
+                </div>
+                <!-- Gráfico SVG de UVI por horas -->
+                <div id="uvi-chart-wrap" style="background:#fffbf0;padding:0 0 4px;"></div>
+                <!-- Leyenda -->
+                <div style="background:#fff8e6;border-top:1px solid rgba(245,158,11,0.2);padding:10px 16px;">
+                    <div style="font-size:9px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;">Leyenda — Índice UV</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                        <div style="display:flex;align-items:center;gap:5px;">
+                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#4caf50;flex-shrink:0;"></span>
+                            <span style="font-size:10px;color:#1e3a5f;"><b>0–2</b> Bajo</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:5px;">
+                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ffb300;flex-shrink:0;"></span>
+                            <span style="font-size:10px;color:#1e3a5f;"><b>3–5</b> Moderado</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:5px;">
+                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff7043;flex-shrink:0;"></span>
+                            <span style="font-size:10px;color:#1e3a5f;"><b>6–7</b> Alto</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:5px;">
+                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#e53935;flex-shrink:0;"></span>
+                            <span style="font-size:10px;color:#1e3a5f;"><b>8–10</b> Muy alto</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:5px;">
+                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#9c27b0;flex-shrink:0;"></span>
+                            <span style="font-size:10px;color:#1e3a5f;"><b>11+</b> Extremo</span>
+                        </div>
+                    </div>
+                    <div style="margin-top:7px;font-size:9px;color:#94a3b8;">Aplica protector solar FPS 30+ desde UVI 3. Con UVI ≥ 8, limita la exposición en horas centrales (12–16h). Fuente: Open-Meteo.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
              EPISODIO DE CALIMA
         ════════════════════════════════════════════ -->
         <div id="calima-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
@@ -3867,6 +3916,7 @@
                 updateTodayTable(data.daily, data.hourly);
                 if (aqData?.current) updateAirQualityTable(aqData.current);
                 updateTormentaSection(data.hourly);
+                updateUviSection(data.daily, data.hourly);
                 updateCalimaSection(aqData?.current ?? {}, data.hourly, aqData?.hourly ?? null);
                 updatePollenSection(aqData?.current ?? {});
                 if (marineData) updatePlayasTable(marineData.current, data.daily, marineData.hourly, data.hourly);
@@ -3999,6 +4049,164 @@
             if (n <= 7)  return { lbl: 'Alto',         color: '#ff7043' };
             if (n <= 10) return { lbl: 'Muy alto',     color: '#e53935' };
             return              { lbl: 'Extremo',      color: '#9c27b0' };
+        }
+
+        function updateUviSection(daily, hourly) {
+            const cardsEl = document.getElementById('uvi-cards-inner');
+            const chartEl = document.getElementById('uvi-chart-wrap');
+            if (!cardsEl || !chartEl) return;
+            if (!daily?.uv_index_max || !daily?.time) {
+                cardsEl.innerHTML = '<div style="font-size:12px;color:#94a3b8;padding:20px;">Sin datos UV disponibles</div>';
+                return;
+            }
+
+            const now = new Date();
+            const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+            const DIAS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+            // ── Tarjetas por día (4 días) ──────────────────────────────────
+            let cardsHtml = '';
+            const numDays = Math.min(4, daily.time.length);
+            for (let d = 0; d < numDays; d++) {
+                const uvMax = daily.uv_index_max[d] ?? null;
+                if (uvMax === null) continue;
+                const lvl   = uviLevel(uvMax);
+                const dt    = new Date(daily.time[d] + 'T12:00:00');
+                const isHoy = d === 0;
+                const dayLabel = isHoy ? 'Hoy' : DIAS[dt.getDay()];
+                const dateLabel = dt.getDate() + ' ' + MESES[dt.getMonth()];
+
+                // Barra visual de UVI (máx referencia = 12)
+                const barPct = Math.min(100, Math.round((uvMax / 12) * 100));
+
+                // Emoji sol según nivel
+                const sunEmoji = uvMax <= 2 ? '🌤️' : uvMax <= 5 ? '🌞' : uvMax <= 7 ? '☀️' : uvMax <= 10 ? '🔆' : '⚠️';
+
+                cardsHtml += `
+                <div style="display:flex;flex-direction:column;align-items:center;background:#fff;border-radius:12px;padding:14px 16px;min-width:110px;max-width:110px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1.5px solid ${lvl.color}22;flex-shrink:0;">
+                    <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:0.8px;">${dayLabel}</div>
+                    <div style="font-size:9px;color:#94a3b8;margin-bottom:8px;">${dateLabel}</div>
+                    <div style="font-size:32px;line-height:1;margin-bottom:6px;">${sunEmoji}</div>
+                    <div style="font-size:30px;font-weight:900;color:${lvl.color};line-height:1;margin-bottom:4px;">${Math.round(uvMax)}</div>
+                    <div style="font-size:9px;font-weight:700;color:${lvl.color};text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">${lvl.lbl}</div>
+                    <!-- Barra UV -->
+                    <div style="width:100%;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden;">
+                        <div style="height:100%;width:${barPct}%;background:linear-gradient(90deg,#4caf50,#ffb300,#ff7043,#e53935,#9c27b0);border-radius:3px;transition:width 0.8s;"></div>
+                    </div>
+                </div>`;
+            }
+            cardsEl.innerHTML = cardsHtml;
+
+            // ── Gráfico SVG de UVI horario (próximas 96h) ─────────────────
+            if (!hourly?.uv_index || !hourly?.time) return;
+
+            const from = new Date(now.getTime() - 1 * 3600 * 1000);
+            const to   = new Date(now.getTime() + 96 * 3600 * 1000);
+            const allTimes = hourly.time.map(t => new Date(t));
+            const indices = [];
+            for (let i = 0; i < allTimes.length; i++) {
+                if (allTimes[i] >= from && allTimes[i] <= to) indices.push(i);
+            }
+            const times  = indices.map(i => allTimes[i]);
+            const values = indices.map(i => hourly.uv_index[i] ?? 0);
+
+            if (values.length < 2) return;
+
+            const W = 560, H = 120, padL = 30, padR = 8, padT = 12, padB = 26;
+            const gW = W - padL - padR, gH = H - padT - padB;
+            const maxVal = Math.max(Math.max(...values), 6);
+            const xPos = (i) => padL + (i / (values.length - 1)) * gW;
+            const yPos = (v) => padT + gH - (v / maxVal) * gH;
+
+            // Zonas de color de fondo según nivel UV
+            const uvZones = [
+                { y: 0,  h: 2,  fill: 'rgba(76,175,80,0.12)'   },
+                { y: 2,  h: 3,  fill: 'rgba(255,179,0,0.10)'   },
+                { y: 5,  h: 2,  fill: 'rgba(255,112,67,0.10)'  },
+                { y: 7,  h: 3,  fill: 'rgba(229,57,53,0.10)'   },
+                { y: 10, h: 9999, fill: 'rgba(156,39,176,0.10)' },
+            ];
+            let zoneSvg = uvZones.map(z => {
+                const y1 = yPos(Math.min(z.y + z.h, maxVal));
+                const y2 = yPos(z.y);
+                if (y2 <= padT) return '';
+                return `<rect x="${padL}" y="${Math.max(y1,padT)}" width="${gW}" height="${Math.min(y2,padT+gH)-Math.max(y1,padT)}" fill="${z.fill}"/>`;
+            }).join('');
+
+            // Líneas guía
+            const uvGuides = [3, 6, 8, 11].filter(v => v <= maxVal + 1);
+            let guideSvg = uvGuides.map(v => {
+                const y = yPos(v);
+                if (y < padT || y > padT + gH) return '';
+                return `<line x1="${padL}" y1="${y}" x2="${padL+gW}" y2="${y}" stroke="rgba(100,116,139,0.2)" stroke-width="0.8" stroke-dasharray="3,3"/>
+                        <text x="${padL-3}" y="${y+3.5}" font-size="7" fill="#94a3b8" text-anchor="end">${v}</text>`;
+            }).join('');
+
+            // Gradiente de color de la línea según nivel
+            const areaPath = `M${xPos(0)},${padT+gH} ` +
+                values.map((v,i) => `L${xPos(i)},${yPos(v)}`).join(' ') +
+                ` L${xPos(values.length-1)},${padT+gH} Z`;
+            const linePath = `M` + values.map((v,i) => `${xPos(i)},${yPos(v)}`).join(' L');
+
+            // Color de línea según UVI máx del tramo
+            const uvLineColor = (v) => {
+                if (v <= 2) return '#4caf50';
+                if (v <= 5) return '#ffb300';
+                if (v <= 7) return '#ff7043';
+                if (v <= 10) return '#e53935';
+                return '#9c27b0';
+            };
+
+            // Segmentos de línea con color según nivel
+            let segSvg = '';
+            for (let i = 0; i < values.length - 1; i++) {
+                const avgV = (values[i] + values[i+1]) / 2;
+                segSvg += `<line x1="${xPos(i)}" y1="${yPos(values[i])}" x2="${xPos(i+1)}" y2="${yPos(values[i+1])}" stroke="${uvLineColor(avgV)}" stroke-width="2.2" stroke-linecap="round"/>`;
+            }
+
+            // Punto actual
+            const nowIdx = times.findIndex(t => t >= now);
+            let nowDot = '';
+            if (nowIdx >= 0) {
+                const nc = uvLineColor(values[nowIdx]);
+                nowDot = `<circle cx="${xPos(nowIdx)}" cy="${yPos(values[nowIdx])}" r="4.5" fill="${nc}" stroke="#fff" stroke-width="1.5"/>
+                          <text x="${xPos(nowIdx)}" y="${yPos(values[nowIdx])-8}" font-size="8" fill="${nc}" text-anchor="middle" font-weight="700">${Math.round(values[nowIdx])}</text>`;
+            }
+
+            // Etiquetas eje X cada 6h con separadores de día
+            let xLabels = '';
+            let dayLines = '';
+            for (let i = 0; i < times.length; i++) {
+                const h = times[i].getHours();
+                if (h === 0) {
+                    dayLines += `<line x1="${xPos(i)}" y1="${padT}" x2="${xPos(i)}" y2="${padT+gH}" stroke="rgba(44,74,110,0.15)" stroke-width="1" stroke-dasharray="4,2"/>`;
+                    xLabels += `<text x="${xPos(i)}" y="${H-5}" font-size="7.5" fill="#2c4a6e" text-anchor="middle" font-weight="700">${times[i].getDate()}/${times[i].getMonth()+1}</text>`;
+                } else if (h % 6 === 0) {
+                    xLabels += `<text x="${xPos(i)}" y="${H-5}" font-size="7" fill="#64748b" text-anchor="middle">${String(h).padStart(2,'0')}h</text>`;
+                }
+            }
+
+            chartEl.innerHTML = `
+            <div style="margin:0 12px 8px;background:#fffbf0;border-radius:8px;overflow:hidden;border:1px solid #fde68a;">
+                <div style="padding:8px 12px 4px;font-size:9px;font-weight:700;color:#92400e;letter-spacing:1px;text-transform:uppercase;">UVI horario — próximas 96 h</div>
+                <svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="uviAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#ffb300" stop-opacity="0.25"/>
+                            <stop offset="100%" stop-color="#ffb300" stop-opacity="0.02"/>
+                        </linearGradient>
+                    </defs>
+                    ${zoneSvg}
+                    ${dayLines}
+                    ${guideSvg}
+                    <path d="${areaPath}" fill="url(#uviAreaGrad)"/>
+                    ${segSvg}
+                    ${nowDot}
+                    ${xLabels}
+                    <text x="${padL-3}" y="${padT+4}" font-size="7" fill="#94a3b8" text-anchor="end">${Math.round(maxVal)}</text>
+                    <text x="${padL-3}" y="${padT+gH+3}" font-size="7" fill="#94a3b8" text-anchor="end">0</text>
+                </svg>
+            </div>`;
         }
 
         function getSkyGradient(wmoCode) {
