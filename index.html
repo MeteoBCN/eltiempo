@@ -1294,84 +1294,76 @@
         // ── EMBALSES ACA ───────────────────────────────────────────
         var _embalsesCargados = false;
 
-        // Datos de los principales embalses de las cuencas internas de Catalunya
-        // La ACA publica datos en formato JSON/XML. Usamos el endpoint público.
+        // Capacitats màximes (hm³) dels embassaments de les conques internes
+        var EMB_CAP = {
+            'Sau':59.0, 'Susqueda':233.0, 'El Pasteral':2.2,
+            'La Baells':109.0, 'La Llosa del Cavall':79.2, 'Sant Ponç':24.2,
+            'Siurana':11.0, 'Darnius-Boadella':61.1, 'Foix':4.5,
+            'Riudecanyes':3.9, 'Guiamets':0.65, 'Canaletes':6.9
+        };
+
         async function cargarEmbalses() {
             if (_embalsesCargados) return;
             _embalsesCargados = true;
-
             var loading = document.getElementById('embalses-loading');
             var content = document.getElementById('embalses-content');
-            var error   = document.getElementById('embalses-error');
+            var errEl   = document.getElementById('embalses-error');
+            loading.style.display = 'block';
 
             try {
-                // Endpoint público ACA - estat embassaments cuques internes
-                var url = 'https://aca.gencat.cat/ca/laigua/consulta-de-dades/estat-dels-embassaments/embassaments-de-les-conques-internes/';
-
-                // Datos estáticos actualizados (ACA no tiene CORS abierto en su API pública)
-                // Se muestran los embalses principales con datos típicos de referencia
-                // En producción, se puede usar un proxy o servicio propio
-                var embalses = await fetchEmbalsesDades();
-                mostrarEmbalses(embalses);
+                var dades = await fetchEmbalsesDades();
+                mostrarEmbalses(dades);
                 content.style.display = 'block';
             } catch(e) {
                 console.warn('[Embalses]', e);
-                // Fallback: mostrar iframe con la web de ACA
-                content.innerHTML = '';
-                var iframeWrap = document.createElement('div');
-                iframeWrap.style.cssText = 'padding:0;';
-                var ifr = document.createElement('iframe');
-                ifr.src = 'https://aca.gencat.cat/ca/laigua/consulta-de-dades/estat-dels-embassaments/embassaments-de-les-conques-internes/';
-                ifr.style.cssText = 'width:100%;height:480px;border:none;display:block;';
-                ifr.loading = 'lazy';
-                iframeWrap.appendChild(ifr);
-                content.appendChild(iframeWrap);
-                content.style.display = 'block';
+                errEl.style.display = 'block';
+                errEl.innerHTML = 'No s\'han pogut carregar les dades. <a href="https://aca.gencat.cat/ca/laigua/consulta-de-dades/estat-dels-embassaments/" target="_blank" style="color:#3b82f6;">Consulta ACA ↗</a>';
             } finally {
                 loading.style.display = 'none';
             }
         }
 
         async function fetchEmbalsesDades() {
-            // Intentamos obtener datos del proxy/API abierta de dades.gencat.cat
-            // Dataset: estat-embassaments-conques-internes
-            var apis = [
-                'https://analisi.transparenciacatalunya.cat/resource/gn9e-5zjh.json?$limit=50&$order=dia_hora%20DESC',
-                'https://analisi.transparenciacatalunya.cat/resource/gn9e-5zjh.json?$limit=20'
-            ];
+            // Dataset oficial ACA a dades.cat (Socrata, CORS obert)
+            // gn9e-5zjh = Estat dels embassaments de les conques internes de Catalunya
+            var DATASET = 'https://analisi.transparenciacatalunya.cat/resource/gn9e-5zjh.json';
+            var PROXY   = 'https://corsproxy.io/?' + encodeURIComponent(DATASET + '?$order=dia_hora DESC&$limit=100');
+            var PROXY2  = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(DATASET + '?$order=dia_hora DESC&$limit=100');
 
-            for (var api of apis) {
+            var data = null;
+            for (var url of [DATASET, PROXY, PROXY2]) {
                 try {
-                    var resp = await fetch(api, {headers: {'Accept':'application/json'}});
-                    if (!resp.ok) continue;
-                    var data = await resp.json();
-                    if (data && data.length > 0) return procesarDadesAPI(data);
-                } catch(e) { /* siguiente */ }
+                    var r = await fetch(url, {headers:{Accept:'application/json'}, cache:'no-store'});
+                    if (!r.ok) continue;
+                    var j = await r.json();
+                    if (Array.isArray(j) && j.length > 0) { data = j; break; }
+                } catch(e) { /* prova el següent */ }
             }
-            throw new Error('No API disponible');
-        }
+            if (!data) throw new Error('Totes les fonts han fallat');
 
-        function procesarDadesAPI(data) {
-            // Agrupa por embalse y toma el más reciente
+            // Agrupa per embassament, queda't amb el registre més recent
             var mapa = {};
-            var fechaMax = '';
             data.forEach(function(row) {
-                var nom = row.estaci || row.nom_estacio || row.embassament || '';
-                var pct = parseFloat(row.percentatge_volum_embassat || row.perc || row.percent || 0);
-                var hm3 = parseFloat(row.volum_embassat || row.volume || row.hm3 || 0);
-                var cap = parseFloat(row.capacitat_total || row.capacitat || row.cap || 0);
-                var data_r = row.dia_hora || row.data || '';
-                if (nom && !mapa[nom]) {
-                    mapa[nom] = {nom, pct, hm3, cap, data: data_r};
+                var nom = (row.estaci || row.nom_estacio || row.embassament || '').trim();
+                if (!nom) return;
+                var dia = row.dia_hora || row.data || '';
+                if (!mapa[nom] || dia > mapa[nom].dia) {
+                    mapa[nom] = {
+                        nom: nom,
+                        pct: parseFloat(row.percentatge_volum_embassat || row.perc || 0),
+                        hm3: parseFloat(row.volum_embassat || row.volum || 0),
+                        cap: parseFloat(row.capacitat_total || EMB_CAP[nom] || 0),
+                        dia: dia
+                    };
                 }
-                if (data_r > fechaMax) fechaMax = data_r;
             });
-            var llista = Object.values(mapa).sort(function(a,b){ return b.hm3 - a.hm3; });
-            // Calcula total
-            var totalHm3 = llista.reduce(function(s,e){ return s + (e.hm3||0); }, 0);
-            var totalCap  = llista.reduce(function(s,e){ return s + (e.cap||0); }, 0);
-            var totalPct  = totalCap > 0 ? (totalHm3/totalCap*100) : 0;
-            return { llista, totalHm3, totalPct, fechaMax };
+
+            var llista = Object.values(mapa).sort(function(a,b){ return b.cap - a.cap; });
+            var totalHm3 = llista.reduce(function(s,e){ return s+(e.hm3||0); }, 0);
+            var totalCap  = llista.reduce(function(s,e){ return s+(e.cap||0); }, 0);
+            var totalPct  = totalCap>0 ? totalHm3/totalCap*100 : 0;
+            var fechaMax  = llista.reduce(function(mx,e){ return e.dia>mx?e.dia:mx; }, '');
+            return { llista:llista, totalHm3:totalHm3, totalPct:totalPct, fechaMax:fechaMax };
         }
 
         function colorBarra(pct) {
@@ -1379,38 +1371,34 @@
             if (pct >= 30) return 'linear-gradient(90deg,#f59e0b,#d97706)';
             return 'linear-gradient(90deg,#ef4444,#dc2626)';
         }
+        function colorText(pct) { return pct>=60?'#16a34a':pct>=30?'#d97706':'#dc2626'; }
 
         function mostrarEmbalses(d) {
-            var totalPct = Math.round(d.totalPct);
-            var totalBar = document.getElementById('emb-total-bar');
-            var totalPctEl = document.getElementById('emb-total-pct');
-            var totalHm3El = document.getElementById('emb-total-hm3');
-            var totalFechaEl = document.getElementById('emb-total-fecha');
-
-            totalPctEl.textContent = totalPct + '%';
-            totalPctEl.style.color = totalPct >= 60 ? '#16a34a' : totalPct >= 30 ? '#d97706' : '#dc2626';
-            totalBar.style.width = Math.min(totalPct,100) + '%';
-            totalBar.style.background = colorBarra(totalPct);
-            if (d.totalHm3) totalHm3El.textContent = d.totalHm3.toFixed(1) + ' hm³';
+            var totalPct   = Math.round(d.totalPct);
+            document.getElementById('emb-total-pct').textContent  = totalPct + '%';
+            document.getElementById('emb-total-pct').style.color  = colorText(totalPct);
+            document.getElementById('emb-total-bar').style.width  = Math.min(totalPct,100) + '%';
+            document.getElementById('emb-total-bar').style.background = colorBarra(totalPct);
+            if (d.totalHm3) document.getElementById('emb-total-hm3').textContent = d.totalHm3.toFixed(1) + ' hm³';
             if (d.fechaMax) {
                 var dt = new Date(d.fechaMax);
-                if (!isNaN(dt)) totalFechaEl.textContent = dt.toLocaleDateString('ca-ES', {day:'2-digit',month:'short',year:'numeric'});
-                else totalFechaEl.textContent = d.fechaMax.slice(0,10);
+                document.getElementById('emb-total-fecha').textContent = isNaN(dt)
+                    ? d.fechaMax.slice(0,10)
+                    : dt.toLocaleDateString('ca-ES',{day:'2-digit',month:'short',year:'numeric'});
             }
-
             var lista = document.getElementById('embalses-list');
             lista.innerHTML = '';
             d.llista.forEach(function(emb) {
-                var pct = Math.round(emb.pct);
+                var pct = emb.pct > 0 ? Math.min(Math.round(emb.pct),100) : (emb.cap>0 ? Math.min(Math.round(emb.hm3/emb.cap*100),100) : 0);
                 var div = document.createElement('div');
                 div.style.cssText = 'background:#fff;border-radius:8px;padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,0.07);';
                 div.innerHTML =
                     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">' +
                         '<span style="font-size:12px;font-weight:600;color:#1e293b;">' + emb.nom + '</span>' +
-                        '<span style="font-size:14px;font-weight:800;color:' + (pct>=60?'#16a34a':pct>=30?'#d97706':'#dc2626') + ';">' + pct + '%</span>' +
+                        '<span style="font-size:14px;font-weight:800;color:' + colorText(pct) + ';">' + pct + '%</span>' +
                     '</div>' +
                     '<div style="background:#e2e8f0;border-radius:4px;height:6px;overflow:hidden;">' +
-                        '<div style="height:100%;border-radius:4px;background:' + colorBarra(pct) + ';width:' + Math.min(pct,100) + '%;transition:width 1s ease;"></div>' +
+                        '<div style="height:100%;border-radius:4px;background:' + colorBarra(pct) + ';width:' + pct + '%;transition:width 1s ease;"></div>' +
                     '</div>' +
                     (emb.hm3 ? '<div style="margin-top:4px;font-size:10px;color:#94a3b8;">' + emb.hm3.toFixed(1) + ' hm³' + (emb.cap ? ' / ' + emb.cap.toFixed(0) + ' hm³' : '') + '</div>' : '');
                 lista.appendChild(div);
