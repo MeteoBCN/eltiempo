@@ -1255,6 +1255,29 @@
                 </div>
             </div>
 
+            <!-- Gráfico de presión atmosférica -->
+            <div style="border-bottom:1px solid #e2e8f0;">
+                <div onclick="toggleExtraSection('presion')" style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;cursor:pointer;user-select:none;">
+                    <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">📈 PRESIÓN ATMOSFÉRICA — 48H</span>
+                    <span id="arrow-presion" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
+                </div>
+                <div id="panel-presion" style="display:none;background:#f8fafc;overflow:hidden;">
+                    <div id="presion-loading" style="padding:20px;text-align:center;color:#64748b;font-size:13px;">Cargando...</div>
+                    <div id="presion-content" style="display:none;padding:12px 14px 8px;">
+                        <!-- Tendencia -->
+                        <div id="presion-tendencia" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px 12px;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);"></div>
+                        <!-- SVG chart -->
+                        <div id="presion-chart" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);overflow:hidden;"></div>
+                        <!-- Valores min/max -->
+                        <div id="presion-stats" style="display:flex;justify-content:space-around;margin-top:8px;"></div>
+                    </div>
+                    <div id="presion-error" style="display:none;padding:16px;text-align:center;color:#ef4444;font-size:13px;">No se pudieron cargar los datos.</div>
+                    <div style="background:#e2eaf3;padding:5px 12px;text-align:center;">
+                        <span style="font-size:9px;color:#6b86a0;letter-spacing:1px;text-transform:uppercase;">Fuente: Open-Meteo</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Embalses Cuencas Internas Catalunya -->
             <div style="border-bottom:1px solid #e2e8f0;">
                 <div onclick="toggleExtraSection('embalses')" style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;cursor:pointer;user-select:none;">
@@ -1289,6 +1312,151 @@
             </div>
 
         </div><!-- fin webcams/radiosondeo desplegables -->
+
+        <script>
+        // ── GRÁFICO PRESIÓN ATMOSFÉRICA ────────────────────────────
+        var _presionCargada = false;
+
+        async function cargarPresion() {
+            if (_presionCargada) return;
+            _presionCargada = true;
+            var loading = document.getElementById('presion-loading');
+            var content = document.getElementById('presion-content');
+            var errEl   = document.getElementById('presion-error');
+            try {
+                var url = 'https://api.open-meteo.com/v1/forecast?latitude=41.3888&longitude=2.159&hourly=surface_pressure&past_days=2&forecast_days=1&timezone=Europe%2FMadrid';
+                var r = await fetch(url);
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                var data = await r.json();
+                renderPresion(data);
+                content.style.display = 'block';
+            } catch(e) {
+                console.warn('[Presion]', e);
+                errEl.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function renderPresion(data) {
+            var times    = data.hourly.time;
+            var pressures = data.hourly.surface_pressure;
+            var now      = new Date();
+
+            // Últimas 48h hasta ahora
+            var cutFrom = new Date(now.getTime() - 48 * 3600 * 1000);
+            var pts = [];
+            for (var i = 0; i < times.length; i++) {
+                var t = new Date(times[i]);
+                if (t >= cutFrom && t <= now) {
+                    pts.push({ t: t, p: pressures[i] });
+                }
+            }
+            if (pts.length < 2) return;
+
+            var vals   = pts.map(function(p){ return p.p; });
+            var minP   = Math.min.apply(null, vals);
+            var maxP   = Math.max.apply(null, vals);
+            var lastP  = vals[vals.length - 1];
+            var firstP = vals[0];
+            var diff   = lastP - firstP;
+            var diffH  = diff / 48; // hPa/h tendencia
+
+            // Tendencia
+            var tendIcon, tendTxt, tendColor;
+            if (diffH > 0.5)       { tendIcon = '↑↑'; tendTxt = 'Subiendo rápido';  tendColor = '#16a34a'; }
+            else if (diffH > 0.15) { tendIcon = '↑';  tendTxt = 'Subiendo';          tendColor = '#22c55e'; }
+            else if (diffH < -0.5) { tendIcon = '↓↓'; tendTxt = 'Bajando rápido';   tendColor = '#dc2626'; }
+            else if (diffH < -0.15){ tendIcon = '↓';  tendTxt = 'Bajando';           tendColor = '#f97316'; }
+            else                   { tendIcon = '→';  tendTxt = 'Estable';            tendColor = '#3b82f6'; }
+
+            var signDiff = diff >= 0 ? '+' : '';
+            document.getElementById('presion-tendencia').innerHTML =
+                '<span style="font-size:22px;font-weight:900;color:' + tendColor + ';">' + tendIcon + '</span>' +
+                '<div>' +
+                    '<div style="font-size:18px;font-weight:800;color:#1e293b;">' + lastP.toFixed(1) + ' <span style="font-size:11px;font-weight:500;color:#64748b;">hPa</span></div>' +
+                    '<div style="font-size:11px;color:' + tendColor + ';font-weight:600;">' + tendTxt + ' (' + signDiff + diff.toFixed(1) + ' hPa en 48h)</div>' +
+                '</div>';
+
+            // SVG chart
+            var W = 560, H = 110, padL = 38, padR = 10, padT = 12, padB = 24;
+            var gW = W - padL - padR, gH = H - padT - padB;
+            var range = maxP - minP || 1;
+            // Un poco de margen visual
+            var visMin = minP - range * 0.15;
+            var visMax = maxP + range * 0.15;
+            var visRange = visMax - visMin;
+
+            var xPos = function(i) { return padL + (i / (pts.length - 1)) * gW; };
+            var yPos = function(v) { return padT + gH - ((v - visMin) / visRange) * gH; };
+
+            // Área rellena
+            var areaD = 'M' + xPos(0) + ',' + (padT + gH);
+            pts.forEach(function(pt, i) { areaD += ' L' + xPos(i) + ',' + yPos(pt.p); });
+            areaD += ' L' + xPos(pts.length - 1) + ',' + (padT + gH) + ' Z';
+
+            // Línea
+            var lineD = 'M' + pts.map(function(pt, i){ return xPos(i) + ',' + yPos(pt.p); }).join(' L');
+
+            // Etiquetas eje X cada 6h
+            var xLabels = '', xLines = '';
+            pts.forEach(function(pt, i) {
+                var h = pt.t.getHours();
+                if (h % 6 === 0) {
+                    var x = xPos(i);
+                    xLines += '<line x1="' + x + '" y1="' + padT + '" x2="' + x + '" y2="' + (padT+gH) + '" stroke="rgba(44,74,110,0.08)" stroke-width="1"/>';
+                    var lbl = h === 0
+                        ? pt.t.getDate() + '/' + (pt.t.getMonth()+1)
+                        : String(h).padStart(2,'0') + 'h';
+                    var fw = h === 0 ? 'font-weight="700" fill="#2c4a6e"' : 'fill="#94a3b8"';
+                    xLabels += '<text x="' + x + '" y="' + (H-5) + '" font-size="7.5" text-anchor="middle" ' + fw + '>' + lbl + '</text>';
+                }
+            });
+
+            // Etiquetas eje Y (min, mid, max)
+            var yGuides = [minP, (minP+maxP)/2, maxP];
+            var yGuideSvg = yGuides.map(function(v) {
+                var y = yPos(v);
+                return '<line x1="' + padL + '" y1="' + y + '" x2="' + (padL+gW) + '" y2="' + y + '" stroke="rgba(100,116,139,0.15)" stroke-width="0.8" stroke-dasharray="3,3"/>' +
+                       '<text x="' + (padL-4) + '" y="' + (y+3.5) + '" font-size="7" fill="#94a3b8" text-anchor="end">' + Math.round(v) + '</text>';
+            }).join('');
+
+            // Punto actual
+            var lastI = pts.length - 1;
+            var nowDot = '<circle cx="' + xPos(lastI) + '" cy="' + yPos(pts[lastI].p) + '" r="4" fill="#3b82f6" stroke="#fff" stroke-width="1.5"/>';
+
+            document.getElementById('presion-chart').innerHTML =
+                '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">' +
+                    '<defs>' +
+                        '<linearGradient id="presGrad" x1="0" y1="0" x2="0" y2="1">' +
+                            '<stop offset="0%" stop-color="#3b82f6" stop-opacity="0.2"/>' +
+                            '<stop offset="100%" stop-color="#3b82f6" stop-opacity="0.02"/>' +
+                        '</linearGradient>' +
+                    '</defs>' +
+                    xLines +
+                    yGuideSvg +
+                    '<path d="' + areaD + '" fill="url(#presGrad)"/>' +
+                    '<path d="' + lineD + '" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+                    nowDot +
+                    xLabels +
+                '</svg>';
+
+            // Stats min/max
+            document.getElementById('presion-stats').innerHTML =
+                '<div style="text-align:center;">' +
+                    '<div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;font-weight:700;">Mínima</div>' +
+                    '<div style="font-size:15px;font-weight:800;color:#f97316;">' + minP.toFixed(1) + ' hPa</div>' +
+                '</div>' +
+                '<div style="text-align:center;">' +
+                    '<div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;font-weight:700;">Actual</div>' +
+                    '<div style="font-size:15px;font-weight:800;color:#3b82f6;">' + lastP.toFixed(1) + ' hPa</div>' +
+                '</div>' +
+                '<div style="text-align:center;">' +
+                    '<div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;font-weight:700;">Máxima</div>' +
+                    '<div style="font-size:15px;font-weight:800;color:#16a34a;">' + maxP.toFixed(1) + ' hPa</div>' +
+                '</div>';
+        }
+        </script>
 
         <script>
         // ── EMBALSES ACA ───────────────────────────────────────────
@@ -1424,6 +1592,7 @@
             panel.style.display = isOpen ? 'none' : 'block';
             arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
             if (!isOpen && id === 'embalses') cargarEmbalses();
+            if (!isOpen && id === 'presion') cargarPresion();
         }
         </script>
 
