@@ -1363,10 +1363,10 @@
                 if (!mapa[nom] || dia > mapa[nom].dia) {
                     var hm3 = parseFloat(row.volum || row.volum_embassat || 0);
                     var pct = parseFloat(row.percentatge || row.percentatge_volum_embassat || 0);
-                    var capConeguda = EMB_CAP[nom] || 0;
-                    // Si no tenim percentatge però tenim volum i capacitat, calculem
-                    if (!pct && hm3 && capConeguda) pct = hm3 / capConeguda * 100;
-                    mapa[nom] = { nom: nom, pct: pct, hm3: hm3, cap: capConeguda, dia: dia };
+                    // Capacitat: derivada del volum i percentatge (més fiable que EMB_CAP)
+                    // Si pct > 0 i hm3 > 0: cap = hm3 / (pct/100)
+                    var cap = (pct > 0 && hm3 > 0) ? hm3 / (pct / 100) : (EMB_CAP[nom] || 0);
+                    mapa[nom] = { nom: nom, pct: pct, hm3: hm3, cap: cap, dia: dia };
                 }
             });
 
