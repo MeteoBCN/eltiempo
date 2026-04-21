@@ -5672,7 +5672,11 @@
                 if (!canvas) return;
                 const dpr = window.devicePixelRatio || 1;
                 const ICON_H = 0;
-                const parentW = canvas.parentElement.clientWidth || canvas.closest('#mar3-cards')?.clientWidth || 520;
+                // Subir por el árbol hasta encontrar un ancho real > 0
+                let parentW = 0;
+                let _el = canvas.parentElement;
+                while (_el && parentW === 0) { parentW = _el.clientWidth; _el = _el.parentElement; }
+                if (!parentW) parentW = document.getElementById('mar3-top-section')?.clientWidth || document.body.clientWidth || 520;
                 const W   = Math.round(parentW * 0.90);
                 const H   = 110 + ICON_H;
                 canvas.width  = W * dpr;
@@ -6121,7 +6125,24 @@
                 _mar3TopOpen = !_mar3TopOpen;
                 panel.style.display = _mar3TopOpen ? 'block' : 'none';
                 arrow.style.transform = _mar3TopOpen ? 'translateY(-50%) rotate(180deg)' : 'translateY(-50%) rotate(0deg)';
-                if (_mar3TopOpen && !window._mar3TopBuilt) buildMar3TopTabs();
+                if (_mar3TopOpen) {
+                    if (!window._mar3TopBuilt) {
+                        buildMar3TopTabs();
+                    } else {
+                        // Redibujar gráfico del día activo al reabrir
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                const activeDay = window._mar3TopActiveDay || 0;
+                                const off = activeDay;
+                                const topCanvasId = 'wave-chart-top-day' + off;
+                                const slots = window._mar3Slots && window._mar3Slots['day' + off];
+                                if (slots && window._mar3DrawChart) {
+                                    window._mar3DrawChart(topCanvasId, slots);
+                                }
+                            });
+                        });
+                    }
+                }
             };
 
             // ── Construir pestañas de día ──────────────────────────────────
@@ -6193,13 +6214,16 @@
                 contentEl.innerHTML = html;
 
                 // Dibujar el gráfico una vez el canvas está en el DOM y visible
+                // Doble rAF + timeout garantiza que el layout está calculado
                 requestAnimationFrame(() => {
-                    setTimeout(() => {
-                        const slots = window._mar3Slots && window._mar3Slots['day' + off];
-                        if (slots && window._mar3DrawChart) {
-                            window._mar3DrawChart(topCanvasId, slots);
-                        }
-                    }, 80);
+                    requestAnimationFrame(() => {
+                        setTimeout(() => {
+                            const slots = window._mar3Slots && window._mar3Slots['day' + off];
+                            if (slots && window._mar3DrawChart) {
+                                window._mar3DrawChart(topCanvasId, slots);
+                            }
+                        }, 50);
+                    });
                 });
             };
 
