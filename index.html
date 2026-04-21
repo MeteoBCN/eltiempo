@@ -796,6 +796,35 @@
         <div style="height:60px;background:#ffffff;"></div>
 
         <!-- ═══════════════════════════════════════════
+             PREVISIÓN PLAYAS Y MAR A 3 DÍAS (nueva posición)
+        ════════════════════════════════════════════ -->
+        <div id="mar3-top-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <!-- Fila 1: Título -->
+            <div style="display:flex;align-items:center;justify-content:center;padding:9px 16px;background:#0e6fa8;min-height:40px;position:relative;overflow:hidden;">
+                <svg style="position:absolute;bottom:0;left:0;width:100%;height:100%;opacity:0.22;" viewBox="0 0 600 74" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0,40 C60,55 120,20 180,38 C240,56 300,18 360,36 C420,54 480,22 540,40 C570,48 585,44 600,42 L600,74 L0,74 Z" fill="#ffffff"/>
+                    <path d="M0,52 C50,62 110,35 170,50 C230,65 290,32 350,50 C410,68 470,38 530,52 C560,59 580,55 600,53 L600,74 L0,74 Z" fill="#7ecfff" opacity="0.6"/>
+                </svg>
+                <svg style="position:absolute;top:0;left:0;width:200%;height:40%;opacity:0.13;animation:waveMove 6s linear infinite;" viewBox="0 0 1200 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0,20 C100,5 200,35 300,20 C400,5 500,35 600,20 C700,5 800,35 900,20 C1000,5 1100,35 1200,20 L1200,40 L0,40 Z" fill="#ffffff"/>
+                </svg>
+                <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;position:relative;z-index:1;text-shadow:0 1px 4px rgba(0,0,0,0.3);">PREVISIÓN PLAYAS Y MAR A 3 DÍAS</span>
+            </div>
+            <!-- Fila 2: Botones desplegables por día -->
+            <div id="mar3-top-tabs" style="display:flex;background:#0b5a8a;border-bottom:2px solid #0a4f7a;">
+                <!-- Se generan por JS -->
+            </div>
+            <!-- Panel de contenido del día seleccionado -->
+            <div id="mar3-top-panel" style="display:none;"></div>
+            <div id="mar3-top-loading" style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
+        </div>
+        <!-- ═══════════════════════════════════════════
+             FIN PREVISIÓN PLAYAS Y MAR A 3 DÍAS (nueva posición)
+        ════════════════════════════════════════════ -->
+
+        <div style="height:60px;background:#ffffff;"></div>
+
+        <!-- ═══════════════════════════════════════════
              GRÁFICOS SEMANA (METEOGRAMA)
         ════════════════════════════════════════════ -->
         <div id="forecast7-charts-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
@@ -1012,7 +1041,7 @@
             <!-- Cabecera desplegable -->
             <div onclick="toggleExtraSection('uvi-panel')"
                  style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;cursor:pointer;user-select:none;">
-                <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">ÍNDICE RADIACIÓN UV (72 HORAS)</span>
+                <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">ÍNDICE UV PREVISTO</span>
                 <span id="arrow-uvi-panel" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
             </div>
             <div id="panel-uvi-panel" style="display:none;overflow:hidden;">
@@ -1843,8 +1872,8 @@
         <!-- ═══════════════════════════════════════════
              PREVISIÓN MAR · 3 DÍAS
         ════════════════════════════════════════════ -->
-        <div style="height:60px;background:#ffffff;"></div>
-        <div id="mar3-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+        <div style="height:0;background:#ffffff;"></div>
+        <div id="mar3-section" style="display:none;max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
             <!-- Cabecera -->
             <div style="display:flex;align-items:center;justify-content:flex-start;padding:9px 16px;background:#0e6fa8;min-height:54px;position:relative;overflow:hidden;">
                 <!-- Olas SVG de fondo -->
@@ -6070,7 +6099,95 @@
                 }
             }
 
-            loadMar3();
+            loadMar3().then(() => {
+                buildMar3TopSection();
+            });
+
+            // ── Sección superior Playas con pestañas ────────────────────────
+            function buildMar3TopSection() {
+                const tabsEl   = document.getElementById('mar3-top-tabs');
+                const panelEl  = document.getElementById('mar3-top-panel');
+                const loadEl   = document.getElementById('mar3-top-loading');
+                if (!tabsEl || !panelEl) return;
+
+                // Recuperar los cards generados en #mar3-cards para clonarlos
+                const srcCards = document.getElementById('mar3-cards');
+                if (!srcCards || !srcCards.children.length) {
+                    if (loadEl) loadEl.textContent = 'No se han podido cargar los datos del mar.';
+                    return;
+                }
+                if (loadEl) loadEl.style.display = 'none';
+
+                const DIAS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+                const now = new Date();
+                let activeDay = -1;
+
+                // Construir botones
+                tabsEl.innerHTML = '';
+                for (let off = 0; off < 3; off++) {
+                    const d = new Date(now);
+                    d.setDate(d.getDate() + off);
+                    const dayName = off === 0 ? 'HOY' : (off === 1 ? 'MAÑANA' : DIAS_FULL[d.getDay()].toUpperCase());
+                    const dayDate = d.getDate() + '/' + (d.getMonth()+1);
+                    const btn = document.createElement('button');
+                    btn.id = 'mar3-top-btn-' + off;
+                    btn.style.cssText = 'flex:1;padding:10px 4px;border:none;cursor:pointer;background:transparent;transition:all .2s;border-bottom:3px solid transparent;margin-bottom:-2px;';
+                    btn.innerHTML = `<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">${dayName}</div><div style="font-size:9px;color:rgba(255,255,255,0.5);margin-top:2px;">${dayDate}</div>`;
+                    btn.onclick = () => mar3TopShowDay(off);
+                    tabsEl.appendChild(btn);
+                }
+
+                // Mostrar primer día por defecto
+                mar3TopShowDay(0);
+            }
+
+            window.mar3TopShowDay = function(off) {
+                const panelEl = document.getElementById('mar3-top-panel');
+                if (!panelEl) return;
+
+                // Resaltar botón activo
+                for (let i = 0; i < 3; i++) {
+                    const b = document.getElementById('mar3-top-btn-' + i);
+                    if (!b) continue;
+                    if (i === off) {
+                        b.style.background = 'rgba(255,255,255,0.12)';
+                        b.style.borderBottom = '3px solid #7ecfff';
+                        b.querySelector('div').style.color = '#fff';
+                    } else {
+                        b.style.background = 'transparent';
+                        b.style.borderBottom = '3px solid transparent';
+                        b.querySelector('div').style.color = 'rgba(255,255,255,0.65)';
+                    }
+                }
+
+                // Clonar el body del card correspondiente desde #mar3-cards
+                const srcCard = document.querySelector('#mar3-cards > div:nth-child(' + (off+1) + ')');
+                if (!srcCard) { panelEl.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Sin datos</div>'; panelEl.style.display = 'block'; return; }
+
+                // El body interno (div que contiene el contenido desplegado) — es el segundo hijo
+                const srcBody = srcCard.querySelector('[id^="body-day"]');
+                if (!srcBody) { panelEl.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Sin datos</div>'; panelEl.style.display = 'block'; return; }
+
+                // Clonar y mostrar siempre visible
+                const clone = srcBody.cloneNode(true);
+                clone.style.display = 'block';
+                clone.id = 'mar3-top-body-day' + off;
+                panelEl.innerHTML = '';
+                panelEl.appendChild(clone);
+                panelEl.style.display = 'block';
+
+                // Redibujar gráfico de olas si existe canvas
+                setTimeout(() => {
+                    const slots = window._mar3Slots && window._mar3Slots['day' + off];
+                    const canvas = panelEl.querySelector('[id^="wave-chart-"]');
+                    if (canvas && slots) {
+                        const newId = 'mar3-top-wave-' + off;
+                        canvas.id = newId;
+                        if (window._mar3DrawChart) window._mar3DrawChart(newId, slots);
+                    }
+                }, 40);
+            };
+
         })();
         /* ══════ FIN PREVISIÓN MAR 3 DÍAS ══════ */
 
