@@ -6054,7 +6054,8 @@
                         });
                     }
 
-                    window._mar3Slots = {};
+                    window._mar3Slots    = {};
+                    window._mar3BodyHtml = {};
                     const now   = new Date();
                     const cards = document.getElementById('mar3-cards');
                     if (!cards) return;
@@ -6075,7 +6076,18 @@
                             return hh >= 8 && hh <= 20;
                         });
 
-                        allHtml += buildDayCard(diaName, slots, uviMax, off === 0, cardId);
+                        const cardHtml = buildDayCard(diaName, slots, uviMax, off === 0, cardId);
+                        allHtml += cardHtml;
+                        // Guardar bodyHtml para la sección superior (sin el wrapper del card)
+                        const bodyStart = cardHtml.indexOf('id="body-' + cardId + '"');
+                        if (bodyStart !== -1) {
+                            const innerStart = cardHtml.indexOf('>', bodyStart) + 1;
+                            // El bodyHtml termina antes de los dos </div> finales del card
+                            const innerEnd = cardHtml.lastIndexOf('</div></div>');
+                            window._mar3BodyHtml[off] = innerEnd > innerStart ? cardHtml.slice(innerStart, innerEnd) : '';
+                        } else {
+                            window._mar3BodyHtml[off] = '';
+                        }
                     }
                     cards.innerHTML = allHtml;
 
@@ -6167,35 +6179,28 @@
                 const contentEl = document.getElementById('mar3-top-day-content');
                 if (!contentEl) return;
 
-                // Recuperar body del card original
-                const srcBody = document.getElementById('body-day' + off);
-                if (!srcBody) {
+                // Usar el HTML del body guardado, sustituyendo el ID del canvas por uno único
+                let html = (window._mar3BodyHtml && window._mar3BodyHtml[off]) || '';
+                if (!html) {
                     contentEl.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Sin datos</div>';
                     return;
                 }
 
-                // Clonar contenido completo
-                const clone = srcBody.cloneNode(true);
-                clone.style.display = 'block';
-                clone.id = 'mar3-top-clone-day' + off;
-                contentEl.innerHTML = '';
-                contentEl.appendChild(clone);
+                // Sustituir id del canvas para que no colisione con el original
+                const topCanvasId = 'wave-chart-top-day' + off;
+                html = html.replace(/id="wave-chart-day\d+"/, 'id="' + topCanvasId + '"');
 
-                // Redibujar el gráfico de olas (canvas necesita estar visible en el DOM)
-                setTimeout(() => {
-                    const slots = window._mar3Slots && window._mar3Slots['day' + off];
-                    if (!slots) return;
-                    // Buscar el canvas dentro del clon y asignarle un id único
-                    const canvas = contentEl.querySelector('canvas[id^="wave-chart-"]');
-                    if (canvas && window._mar3DrawChart) {
-                        const newId = 'mar3-top-canvas-' + off + '-' + Date.now();
-                        canvas.id = newId;
-                        // Forzar dimensiones calculadas
-                        canvas.style.width = '';
-                        canvas.style.height = '';
-                        window._mar3DrawChart(newId, slots);
-                    }
-                }, 60);
+                contentEl.innerHTML = html;
+
+                // Dibujar el gráfico una vez el canvas está en el DOM y visible
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        const slots = window._mar3Slots && window._mar3Slots['day' + off];
+                        if (slots && window._mar3DrawChart) {
+                            window._mar3DrawChart(topCanvasId, slots);
+                        }
+                    }, 80);
+                });
             };
 
         })();
