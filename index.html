@@ -1324,46 +1324,58 @@
         }
 
         async function fetchEmbalsesDades() {
-            // Dataset oficial ACA a dades.cat (Socrata, CORS obert)
-            // gn9e-5zjh = Estat dels embassaments de les conques internes de Catalunya
-            var DATASET = 'https://analisi.transparenciacatalunya.cat/resource/gn9e-5zjh.json';
-            var PROXY   = 'https://corsproxy.io/?' + encodeURIComponent(DATASET + '?$order=dia_hora DESC&$limit=100');
-            var PROXY2  = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(DATASET + '?$order=dia_hora DESC&$limit=100');
+            // Dataset oficial ACA – Socrata (gn9e-3qhr)
+            // Intentem múltiples proxies CORS perquè el domini bloqueja peticions directes del navegador
+            var BASE = 'https://analisi.transparenciacatalunya.cat/resource/gn9e-3qhr.json?$order=dia%20DESC&$limit=200';
+            var urls = [
+                BASE,
+                'https://api.allorigins.win/raw?url=' + encodeURIComponent(BASE),
+                'https://corsproxy.io/?' + encodeURIComponent(BASE),
+                'https://proxy.cors.sh/' + BASE,
+                'https://thingproxy.freeboard.io/fetch/' + BASE,
+            ];
 
-            var data = null;
-            for (var url of [DATASET, PROXY, PROXY2]) {
+            for (var i = 0; i < urls.length; i++) {
                 try {
-                    var r = await fetch(url, {headers:{Accept:'application/json'}, cache:'no-store'});
+                    var r = await fetch(urls[i], {
+                        headers: { Accept: 'application/json' },
+                        signal: AbortSignal.timeout(8000)
+                    });
                     if (!r.ok) continue;
-                    var j = await r.json();
-                    if (Array.isArray(j) && j.length > 0) { data = j; break; }
+                    var text = await r.text();
+                    // allorigins de vegades retorna {"contents":"[...]","status":{...}}
+                    var j;
+                    try { j = JSON.parse(text); } catch(e) { continue; }
+                    if (j && j.contents) { try { j = JSON.parse(j.contents); } catch(e) { continue; } }
+                    if (Array.isArray(j) && j.length > 0) return processarJSON(j);
                 } catch(e) { /* prova el següent */ }
             }
-            if (!data) throw new Error('Totes les fonts han fallat');
+            throw new Error('Totes les fonts han fallat');
+        }
 
-            // Agrupa per embassament, queda't amb el registre més recent
+        function processarJSON(data) {
+            // Camps del dataset gn9e-3qhr: estaci, dia, volum, percentatge, nivell
             var mapa = {};
             data.forEach(function(row) {
-                var nom = (row.estaci || row.nom_estacio || row.embassament || '').trim();
+                var nom = (row.estaci || row.nom || '').trim();
                 if (!nom) return;
-                var dia = row.dia_hora || row.data || '';
+                var dia = row.dia || '';
                 if (!mapa[nom] || dia > mapa[nom].dia) {
-                    mapa[nom] = {
-                        nom: nom,
-                        pct: parseFloat(row.percentatge_volum_embassat || row.perc || 0),
-                        hm3: parseFloat(row.volum_embassat || row.volum || 0),
-                        cap: parseFloat(row.capacitat_total || EMB_CAP[nom] || 0),
-                        dia: dia
-                    };
+                    var hm3 = parseFloat(row.volum || row.volum_embassat || 0);
+                    var pct = parseFloat(row.percentatge || row.percentatge_volum_embassat || 0);
+                    var capConeguda = EMB_CAP[nom] || 0;
+                    // Si no tenim percentatge però tenim volum i capacitat, calculem
+                    if (!pct && hm3 && capConeguda) pct = hm3 / capConeguda * 100;
+                    mapa[nom] = { nom: nom, pct: pct, hm3: hm3, cap: capConeguda, dia: dia };
                 }
             });
 
             var llista = Object.values(mapa).sort(function(a,b){ return b.cap - a.cap; });
             var totalHm3 = llista.reduce(function(s,e){ return s+(e.hm3||0); }, 0);
             var totalCap  = llista.reduce(function(s,e){ return s+(e.cap||0); }, 0);
-            var totalPct  = totalCap>0 ? totalHm3/totalCap*100 : 0;
-            var fechaMax  = llista.reduce(function(mx,e){ return e.dia>mx?e.dia:mx; }, '');
-            return { llista:llista, totalHm3:totalHm3, totalPct:totalPct, fechaMax:fechaMax };
+            var totalPct  = totalCap > 0 ? totalHm3 / totalCap * 100 : 0;
+            var fechaMax  = llista.reduce(function(mx,e){ return e.dia > mx ? e.dia : mx; }, '');
+            return { llista: llista, totalHm3: totalHm3, totalPct: totalPct, fechaMax: fechaMax };
         }
 
         function colorBarra(pct) {
