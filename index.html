@@ -1336,7 +1336,8 @@
             var content = document.getElementById('presion-content');
             var errEl   = document.getElementById('presion-error');
             try {
-                var url = 'https://api.open-meteo.com/v1/forecast?latitude=41.3888&longitude=2.159&hourly=surface_pressure&past_days=2&forecast_days=1&timezone=Europe%2FMadrid';
+                var PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
+                var url = PROXY_BASE + '/forecast?latitude=41.3888&longitude=2.159&hourly=surface_pressure&past_days=2&forecast_days=1&timezone=Europe%2FMadrid';
                 var r = await fetch(url);
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 var data = await r.json();
@@ -4952,6 +4953,8 @@
                 '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;">' + factHTML + '</div>' +
                 bestHTML;
         }
+
+        function updateRainTable(hourly, daily) {
             const container = document.getElementById('rain-7days-container');
             if (!container || !daily?.time) return;
             const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
