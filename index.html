@@ -1010,8 +1010,6 @@
                         <div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px;">Calculando…</div>
                     </div>
                 </div>
-                <!-- Gráfico SVG de UVI por horas -->
-                <div id="uvi-chart-wrap" style="background:#fffbf0;padding:0 0 4px;"></div>
                 <!-- Leyenda -->
                 <div style="background:#fff8e6;border-top:1px solid rgba(245,158,11,0.2);padding:10px 16px;">
                     <div style="font-size:9px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;">Leyenda — Índice UV</div>
@@ -1257,15 +1255,175 @@
                 </div>
             </div>
 
+            <!-- Embalses Cuencas Internas Catalunya -->
+            <div style="border-bottom:1px solid #e2e8f0;">
+                <div onclick="toggleExtraSection('embalses')" style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;cursor:pointer;user-select:none;">
+                    <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">💧 EMBALSES — CUENCAS INTERNAS</span>
+                    <span id="arrow-embalses" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
+                </div>
+                <div id="panel-embalses" style="display:none;background:#f8fafc;overflow:hidden;">
+                    <div id="embalses-loading" style="padding:20px;text-align:center;color:#64748b;font-size:13px;">Cargando datos...</div>
+                    <div id="embalses-content" style="display:none;">
+                        <!-- Barra total -->
+                        <div style="padding:16px 16px 8px;">
+                            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+                                <span style="font-size:11px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;">Total cuencas internas</span>
+                                <span id="emb-total-pct" style="font-size:20px;font-weight:800;color:#1e3a5f;">—</span>
+                            </div>
+                            <div style="background:#dde6f0;border-radius:6px;height:10px;overflow:hidden;">
+                                <div id="emb-total-bar" style="height:100%;border-radius:6px;background:linear-gradient(90deg,#3b82f6,#0ea5e9);width:0%;transition:width 1s ease;"></div>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;margin-top:5px;">
+                                <span id="emb-total-hm3" style="font-size:11px;color:#64748b;"></span>
+                                <span id="emb-total-fecha" style="font-size:10px;color:#94a3b8;"></span>
+                            </div>
+                        </div>
+                        <!-- Lista embalses -->
+                        <div id="embalses-list" style="padding:0 16px 16px;display:flex;flex-direction:column;gap:10px;"></div>
+                    </div>
+                    <div id="embalses-error" style="display:none;padding:16px;text-align:center;color:#ef4444;font-size:13px;">No se pudieron cargar los datos.</div>
+                    <div style="background:#e2eaf3;padding:5px 12px;text-align:center;">
+                        <span style="font-size:9px;color:#6b86a0;letter-spacing:1px;text-transform:uppercase;">Fuente: ACA — Agència Catalana de l'Aigua</span>
+                    </div>
+                </div>
+            </div>
+
         </div><!-- fin webcams/radiosondeo desplegables -->
 
         <script>
+        // ── EMBALSES ACA ───────────────────────────────────────────
+        var _embalsesCargados = false;
+
+        // Datos de los principales embalses de las cuencas internas de Catalunya
+        // La ACA publica datos en formato JSON/XML. Usamos el endpoint público.
+        async function cargarEmbalses() {
+            if (_embalsesCargados) return;
+            _embalsesCargados = true;
+
+            var loading = document.getElementById('embalses-loading');
+            var content = document.getElementById('embalses-content');
+            var error   = document.getElementById('embalses-error');
+
+            try {
+                // Endpoint público ACA - estat embassaments cuques internes
+                var url = 'https://aca.gencat.cat/ca/laigua/consulta-de-dades/estat-dels-embassaments/embassaments-de-les-conques-internes/';
+
+                // Datos estáticos actualizados (ACA no tiene CORS abierto en su API pública)
+                // Se muestran los embalses principales con datos típicos de referencia
+                // En producción, se puede usar un proxy o servicio propio
+                var embalses = await fetchEmbalsesDades();
+                mostrarEmbalses(embalses);
+                content.style.display = 'block';
+            } catch(e) {
+                console.warn('[Embalses]', e);
+                // Fallback: mostrar iframe con la web de ACA
+                content.innerHTML = '';
+                var iframeWrap = document.createElement('div');
+                iframeWrap.style.cssText = 'padding:0;';
+                var ifr = document.createElement('iframe');
+                ifr.src = 'https://aca.gencat.cat/ca/laigua/consulta-de-dades/estat-dels-embassaments/embassaments-de-les-conques-internes/';
+                ifr.style.cssText = 'width:100%;height:480px;border:none;display:block;';
+                ifr.loading = 'lazy';
+                iframeWrap.appendChild(ifr);
+                content.appendChild(iframeWrap);
+                content.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        async function fetchEmbalsesDades() {
+            // Intentamos obtener datos del proxy/API abierta de dades.gencat.cat
+            // Dataset: estat-embassaments-conques-internes
+            var apis = [
+                'https://analisi.transparenciacatalunya.cat/resource/gn9e-5zjh.json?$limit=50&$order=dia_hora%20DESC',
+                'https://analisi.transparenciacatalunya.cat/resource/gn9e-5zjh.json?$limit=20'
+            ];
+
+            for (var api of apis) {
+                try {
+                    var resp = await fetch(api, {headers: {'Accept':'application/json'}});
+                    if (!resp.ok) continue;
+                    var data = await resp.json();
+                    if (data && data.length > 0) return procesarDadesAPI(data);
+                } catch(e) { /* siguiente */ }
+            }
+            throw new Error('No API disponible');
+        }
+
+        function procesarDadesAPI(data) {
+            // Agrupa por embalse y toma el más reciente
+            var mapa = {};
+            var fechaMax = '';
+            data.forEach(function(row) {
+                var nom = row.estaci || row.nom_estacio || row.embassament || '';
+                var pct = parseFloat(row.percentatge_volum_embassat || row.perc || row.percent || 0);
+                var hm3 = parseFloat(row.volum_embassat || row.volume || row.hm3 || 0);
+                var cap = parseFloat(row.capacitat_total || row.capacitat || row.cap || 0);
+                var data_r = row.dia_hora || row.data || '';
+                if (nom && !mapa[nom]) {
+                    mapa[nom] = {nom, pct, hm3, cap, data: data_r};
+                }
+                if (data_r > fechaMax) fechaMax = data_r;
+            });
+            var llista = Object.values(mapa).sort(function(a,b){ return b.hm3 - a.hm3; });
+            // Calcula total
+            var totalHm3 = llista.reduce(function(s,e){ return s + (e.hm3||0); }, 0);
+            var totalCap  = llista.reduce(function(s,e){ return s + (e.cap||0); }, 0);
+            var totalPct  = totalCap > 0 ? (totalHm3/totalCap*100) : 0;
+            return { llista, totalHm3, totalPct, fechaMax };
+        }
+
+        function colorBarra(pct) {
+            if (pct >= 60) return 'linear-gradient(90deg,#22c55e,#16a34a)';
+            if (pct >= 30) return 'linear-gradient(90deg,#f59e0b,#d97706)';
+            return 'linear-gradient(90deg,#ef4444,#dc2626)';
+        }
+
+        function mostrarEmbalses(d) {
+            var totalPct = Math.round(d.totalPct);
+            var totalBar = document.getElementById('emb-total-bar');
+            var totalPctEl = document.getElementById('emb-total-pct');
+            var totalHm3El = document.getElementById('emb-total-hm3');
+            var totalFechaEl = document.getElementById('emb-total-fecha');
+
+            totalPctEl.textContent = totalPct + '%';
+            totalPctEl.style.color = totalPct >= 60 ? '#16a34a' : totalPct >= 30 ? '#d97706' : '#dc2626';
+            totalBar.style.width = Math.min(totalPct,100) + '%';
+            totalBar.style.background = colorBarra(totalPct);
+            if (d.totalHm3) totalHm3El.textContent = d.totalHm3.toFixed(1) + ' hm³';
+            if (d.fechaMax) {
+                var dt = new Date(d.fechaMax);
+                if (!isNaN(dt)) totalFechaEl.textContent = dt.toLocaleDateString('ca-ES', {day:'2-digit',month:'short',year:'numeric'});
+                else totalFechaEl.textContent = d.fechaMax.slice(0,10);
+            }
+
+            var lista = document.getElementById('embalses-list');
+            lista.innerHTML = '';
+            d.llista.forEach(function(emb) {
+                var pct = Math.round(emb.pct);
+                var div = document.createElement('div');
+                div.style.cssText = 'background:#fff;border-radius:8px;padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,0.07);';
+                div.innerHTML =
+                    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">' +
+                        '<span style="font-size:12px;font-weight:600;color:#1e293b;">' + emb.nom + '</span>' +
+                        '<span style="font-size:14px;font-weight:800;color:' + (pct>=60?'#16a34a':pct>=30?'#d97706':'#dc2626') + ';">' + pct + '%</span>' +
+                    '</div>' +
+                    '<div style="background:#e2e8f0;border-radius:4px;height:6px;overflow:hidden;">' +
+                        '<div style="height:100%;border-radius:4px;background:' + colorBarra(pct) + ';width:' + Math.min(pct,100) + '%;transition:width 1s ease;"></div>' +
+                    '</div>' +
+                    (emb.hm3 ? '<div style="margin-top:4px;font-size:10px;color:#94a3b8;">' + emb.hm3.toFixed(1) + ' hm³' + (emb.cap ? ' / ' + emb.cap.toFixed(0) + ' hm³' : '') + '</div>' : '');
+                lista.appendChild(div);
+            });
+        }
+
         function toggleExtraSection(id) {
             var panel = document.getElementById('panel-' + id);
             var arrow = document.getElementById('arrow-' + id);
             var isOpen = panel.style.display !== 'none';
             panel.style.display = isOpen ? 'none' : 'block';
             arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+            if (!isOpen && id === 'embalses') cargarEmbalses();
         }
         </script>
 
@@ -1527,117 +1685,7 @@
              FIN PREVISIÓN MAR 3 DÍAS
         ════════════════════════════════════════════ -->
 
-        <!-- ═══════════════════════════════════════════
-             PUBLICACIONES @Barcelona_meteo en X
-        ════════════════════════════════════════════ -->
-        <div id="x-feed-section" style="max-width:600px;margin:60px auto 0;border-top:1px solid #e2e8f0;">
-            <!-- Cabecera -->
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;border-bottom:1px solid #e2e8f0;">
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#1a1a1a" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
-                    <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">@Barcelona_meteo</span>
-                </div>
-                <a href="https://x.com/Barcelona_meteo" target="_blank" rel="noopener" style="font-size:8px;font-weight:600;color:#2c4a6e;text-decoration:none;letter-spacing:0.5px;">Ver perfil ↗</a>
-            </div>
-            <!-- Feed de tweets -->
-            <div id="x-feed-posts" style="background:#fff;padding:0;">
-                <div style="padding:20px;text-align:center;color:#94a3b8;font-size:12px;">Cargando publicaciones…</div>
-            </div>
-        </div>
-        <!-- ═══════════════════════════════════════════
-             FIN @Barcelona_meteo
-        ════════════════════════════════════════════ -->
-        <script>
-        (function loadXFeed() {
-            const RSS_URL = 'https://rss.app/feeds/BxStU4fqHQ7pbndA.xml';
-            const PROXY   = 'https://api.allorigins.win/get?url=' + encodeURIComponent(RSS_URL);
-            const el      = document.getElementById('x-feed-posts');
-            if (!el) return;
 
-            function timeAgo(dateStr) {
-                const d    = new Date(dateStr);
-                const now  = new Date();
-                const diff = Math.floor((now - d) / 1000);
-                if (diff < 60)   return 'ahora';
-                if (diff < 3600) return Math.floor(diff / 60) + ' min';
-                if (diff < 86400) return Math.floor(diff / 3600) + ' h';
-                return Math.floor(diff / 86400) + ' d';
-            }
-
-            function stripHtml(html) {
-                const tmp = document.createElement('div');
-                tmp.innerHTML = html;
-                return tmp.textContent || tmp.innerText || '';
-            }
-
-            fetch(PROXY)
-                .then(r => r.json())
-                .then(data => {
-                    const parser = new DOMParser();
-                    const xml    = parser.parseFromString(data.contents, 'text/xml');
-                    const items  = Array.from(xml.querySelectorAll('item')).slice(0, 8);
-
-                    if (!items.length) {
-                        el.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:12px;">No se han podido cargar las publicaciones.</div>';
-                        return;
-                    }
-
-                    let html = '';
-                    items.forEach((item, i) => {
-                        const title   = item.querySelector('title')?.textContent || '';
-                        const desc    = item.querySelector('description')?.textContent || '';
-                        const link    = item.querySelector('link')?.textContent || '#';
-                        const pubDate = item.querySelector('pubDate')?.textContent || '';
-                        const ago     = pubDate ? timeAgo(pubDate) : '';
-
-                        // Usar description si tiene más texto, si no usar title
-                        let texto = stripHtml(desc).trim() || stripHtml(title).trim();
-                        // Eliminar duplicados (a veces el título repite el texto)
-                        if (texto.startsWith(stripHtml(title).trim())) texto = texto;
-
-                        // Detectar imagen en description
-                        const imgMatch = desc.match(/<img[^>]+src=["']([^"']+)["']/i);
-                        const imgUrl   = imgMatch ? imgMatch[1] : null;
-
-                        const borderStyle = i < items.length - 1 ? 'border-bottom:1px solid #f1f5f9;' : '';
-
-                        html += `
-                        <div style="padding:14px 16px;${borderStyle}">
-                            <div style="display:flex;align-items:flex-start;gap:10px;">
-                                <!-- Avatar -->
-                                <div style="flex-shrink:0;">
-                                    <div style="width:36px;height:36px;border-radius:50%;background:#2c3e50;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-                                        <img src="https://unavatar.io/twitter/Barcelona_meteo" alt="avatar"
-                                             style="width:36px;height:36px;border-radius:50%;object-fit:cover;"
-                                             onerror="this.style.display='none'">
-                                    </div>
-                                </div>
-                                <!-- Contenido -->
-                                <div style="flex:1;min-width:0;">
-                                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-                                        <span style="font-size:12px;font-weight:700;color:#1e293b;">BCN Meteo</span>
-                                        <span style="font-size:11px;color:#94a3b8;">@Barcelona_meteo</span>
-                                        <span style="font-size:11px;color:#94a3b8;margin-left:auto;">${ago}</span>
-                                    </div>
-                                    <div style="font-size:13px;color:#334155;line-height:1.55;word-break:break-word;">${texto}</div>
-                                    ${imgUrl ? `<div style="margin-top:10px;border-radius:10px;overflow:hidden;"><img src="${imgUrl}" style="width:100%;max-height:280px;object-fit:cover;display:block;" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : ''}
-                                    <a href="${link}" target="_blank" rel="noopener"
-                                       style="display:inline-flex;align-items:center;gap:4px;margin-top:8px;font-size:10px;color:#94a3b8;text-decoration:none;">
-                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
-                                        Ver en X
-                                    </a>
-                                </div>
-                            </div>
-                        </div>`;
-                    });
-
-                    el.innerHTML = html;
-                })
-                .catch(() => {
-                    el.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:12px;">No se han podido cargar las publicaciones.</div>';
-                });
-        })();
-        </script>
 
         <!-- hourly-forecast-strip oculto — usado internamente por updateHourlyStrip -->
         <div id="hourly-forecast-strip" style="display:none;"></div>
@@ -4211,8 +4259,8 @@
 
         function updateUviSection(daily, hourly) {
             const cardsEl = document.getElementById('uvi-cards-inner');
-            const chartEl = document.getElementById('uvi-chart-wrap');
-            if (!cardsEl || !chartEl) return;
+            const scrollWrap = document.getElementById('uvi-scroll-wrap');
+            if (!cardsEl) return;
             if (!daily?.uv_index_max || !daily?.time) {
                 cardsEl.innerHTML = '<div style="font-size:12px;color:#94a3b8;padding:20px;">Sin datos UV disponibles</div>';
                 return;
@@ -4284,123 +4332,13 @@
             }
 
             cardsEl.innerHTML = cardsHtml;
-            // Insertar recomendación antes del gráfico
-            if (recomHtml) {
+            // Insertar recomendación al final del scroll-wrap
+            if (recomHtml && scrollWrap) {
                 const recomDiv = document.createElement('div');
                 recomDiv.innerHTML = recomHtml;
-                chartEl.parentNode.insertBefore(recomDiv, chartEl);
+                scrollWrap.appendChild(recomDiv);
             }
 
-            // ── Gráfico SVG de UVI horario (próximas 72h) ─────────────────
-            if (!hourly?.uv_index || !hourly?.time) return;
-
-            const from = new Date(now.getTime() - 1 * 3600 * 1000);
-            const to   = new Date(now.getTime() + 72 * 3600 * 1000);
-            const allTimes = hourly.time.map(t => new Date(t));
-            const indices = [];
-            for (let i = 0; i < allTimes.length; i++) {
-                if (allTimes[i] >= from && allTimes[i] <= to) indices.push(i);
-            }
-            const times  = indices.map(i => allTimes[i]);
-            const values = indices.map(i => hourly.uv_index[i] ?? 0);
-
-            if (values.length < 2) return;
-
-            const W = 560, H = 120, padL = 30, padR = 8, padT = 12, padB = 26;
-            const gW = W - padL - padR, gH = H - padT - padB;
-            const maxVal = Math.max(Math.max(...values), 6);
-            const xPos = (i) => padL + (i / (values.length - 1)) * gW;
-            const yPos = (v) => padT + gH - (v / maxVal) * gH;
-
-            // Zonas de color de fondo según nivel UV
-            const uvZones = [
-                { y: 0,  h: 2,  fill: 'rgba(76,175,80,0.12)'   },
-                { y: 2,  h: 3,  fill: 'rgba(255,179,0,0.10)'   },
-                { y: 5,  h: 2,  fill: 'rgba(255,112,67,0.10)'  },
-                { y: 7,  h: 3,  fill: 'rgba(229,57,53,0.10)'   },
-                { y: 10, h: 9999, fill: 'rgba(156,39,176,0.10)' },
-            ];
-            let zoneSvg = uvZones.map(z => {
-                const y1 = yPos(Math.min(z.y + z.h, maxVal));
-                const y2 = yPos(z.y);
-                if (y2 <= padT) return '';
-                return `<rect x="${padL}" y="${Math.max(y1,padT)}" width="${gW}" height="${Math.min(y2,padT+gH)-Math.max(y1,padT)}" fill="${z.fill}"/>`;
-            }).join('');
-
-            // Líneas guía
-            const uvGuides = [3, 6, 8, 11].filter(v => v <= maxVal + 1);
-            let guideSvg = uvGuides.map(v => {
-                const y = yPos(v);
-                if (y < padT || y > padT + gH) return '';
-                return `<line x1="${padL}" y1="${y}" x2="${padL+gW}" y2="${y}" stroke="rgba(100,116,139,0.2)" stroke-width="0.8" stroke-dasharray="3,3"/>
-                        <text x="${padL-3}" y="${y+3.5}" font-size="7" fill="#94a3b8" text-anchor="end">${v}</text>`;
-            }).join('');
-
-            // Gradiente de color de la línea según nivel
-            const areaPath = `M${xPos(0)},${padT+gH} ` +
-                values.map((v,i) => `L${xPos(i)},${yPos(v)}`).join(' ') +
-                ` L${xPos(values.length-1)},${padT+gH} Z`;
-            const linePath = `M` + values.map((v,i) => `${xPos(i)},${yPos(v)}`).join(' L');
-
-            // Color de línea según UVI máx del tramo
-            const uvLineColor = (v) => {
-                if (v <= 2) return '#4caf50';
-                if (v <= 5) return '#ffb300';
-                if (v <= 7) return '#ff7043';
-                if (v <= 10) return '#e53935';
-                return '#9c27b0';
-            };
-
-            // Segmentos de línea con color según nivel
-            let segSvg = '';
-            for (let i = 0; i < values.length - 1; i++) {
-                const avgV = (values[i] + values[i+1]) / 2;
-                segSvg += `<line x1="${xPos(i)}" y1="${yPos(values[i])}" x2="${xPos(i+1)}" y2="${yPos(values[i+1])}" stroke="${uvLineColor(avgV)}" stroke-width="2.2" stroke-linecap="round"/>`;
-            }
-
-            // Punto actual
-            const nowIdx = times.findIndex(t => t >= now);
-            let nowDot = '';
-            if (nowIdx >= 0) {
-                const nc = uvLineColor(values[nowIdx]);
-                nowDot = `<circle cx="${xPos(nowIdx)}" cy="${yPos(values[nowIdx])}" r="4.5" fill="${nc}" stroke="#fff" stroke-width="1.5"/>
-                          <text x="${xPos(nowIdx)}" y="${yPos(values[nowIdx])-8}" font-size="8" fill="${nc}" text-anchor="middle" font-weight="700">${Math.round(values[nowIdx])}</text>`;
-            }
-
-            // Etiquetas eje X cada 6h con separadores de día
-            let xLabels = '';
-            let dayLines = '';
-            for (let i = 0; i < times.length; i++) {
-                const h = times[i].getHours();
-                if (h === 0) {
-                    dayLines += `<line x1="${xPos(i)}" y1="${padT}" x2="${xPos(i)}" y2="${padT+gH}" stroke="rgba(44,74,110,0.15)" stroke-width="1" stroke-dasharray="4,2"/>`;
-                    xLabels += `<text x="${xPos(i)}" y="${H-5}" font-size="7.5" fill="#2c4a6e" text-anchor="middle" font-weight="700">${times[i].getDate()}/${times[i].getMonth()+1}</text>`;
-                } else if (h % 6 === 0) {
-                    xLabels += `<text x="${xPos(i)}" y="${H-5}" font-size="7" fill="#64748b" text-anchor="middle">${String(h).padStart(2,'0')}h</text>`;
-                }
-            }
-
-            chartEl.innerHTML = `
-            <div style="margin:0 12px 8px;background:#fffbf0;border-radius:8px;overflow:hidden;border:1px solid #fde68a;">
-                <div style="padding:8px 12px 4px;font-size:9px;font-weight:700;color:#92400e;letter-spacing:1px;text-transform:uppercase;">UVI horario — próximas 72 h</div>
-                <svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="uviAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#ffb300" stop-opacity="0.25"/>
-                            <stop offset="100%" stop-color="#ffb300" stop-opacity="0.02"/>
-                        </linearGradient>
-                    </defs>
-                    ${zoneSvg}
-                    ${dayLines}
-                    ${guideSvg}
-                    <path d="${areaPath}" fill="url(#uviAreaGrad)"/>
-                    ${segSvg}
-                    ${nowDot}
-                    ${xLabels}
-                    <text x="${padL-3}" y="${padT+4}" font-size="7" fill="#94a3b8" text-anchor="end">${Math.round(maxVal)}</text>
-                    <text x="${padL-3}" y="${padT+gH+3}" font-size="7" fill="#94a3b8" text-anchor="end">0</text>
-                </svg>
-            </div>`;
         }
 
         function getSkyGradient(wmoCode) {
