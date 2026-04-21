@@ -799,24 +799,22 @@
              PREVISIÓN PLAYAS Y MAR A 3 DÍAS (nueva posición)
         ════════════════════════════════════════════ -->
         <div id="mar3-top-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <!-- Fila 1: Título -->
-            <div style="display:flex;align-items:center;justify-content:center;padding:9px 16px;background:#0e6fa8;min-height:40px;position:relative;overflow:hidden;">
-                <svg style="position:absolute;bottom:0;left:0;width:100%;height:100%;opacity:0.22;" viewBox="0 0 600 74" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M0,40 C60,55 120,20 180,38 C240,56 300,18 360,36 C420,54 480,22 540,40 C570,48 585,44 600,42 L600,74 L0,74 Z" fill="#ffffff"/>
-                    <path d="M0,52 C50,62 110,35 170,50 C230,65 290,32 350,50 C410,68 470,38 530,52 C560,59 580,55 600,53 L600,74 L0,74 Z" fill="#7ecfff" opacity="0.6"/>
-                </svg>
-                <svg style="position:absolute;top:0;left:0;width:200%;height:40%;opacity:0.13;animation:waveMove 6s linear infinite;" viewBox="0 0 1200 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M0,20 C100,5 200,35 300,20 C400,5 500,35 600,20 C700,5 800,35 900,20 C1000,5 1100,35 1200,20 L1200,40 L0,40 Z" fill="#ffffff"/>
-                </svg>
-                <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;position:relative;z-index:1;text-shadow:0 1px 4px rgba(0,0,0,0.3);">PREVISIÓN PLAYAS Y MAR A 3 DÍAS</span>
+            <!-- Cabecera clicable — mismo estilo que el resto -->
+            <div onclick="mar3TopToggle()" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;gap:3px;cursor:pointer;user-select:none;position:relative;">
+                <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">PREVISIÓN PLAYAS Y MAR A 3 DÍAS</span>
+                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">PULSAR PARA VER LA PREVISIÓN</span>
+                <span id="mar3-top-arrow" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:12px;color:rgba(255,255,255,0.7);transition:transform 0.3s;">▼</span>
             </div>
-            <!-- Fila 2: Botones desplegables por día -->
-            <div id="mar3-top-tabs" style="display:flex;background:#0b5a8a;border-bottom:2px solid #0a4f7a;">
-                <!-- Se generan por JS -->
+            <!-- Panel colapsable con los 3 días -->
+            <div id="mar3-top-panel" style="display:none;background:#f0f6fa;">
+                <!-- Fila de botones de día -->
+                <div id="mar3-top-tabs" style="display:grid;grid-template-columns:repeat(3,1fr);background:#e4eef6;border-bottom:2px solid #c9ddf0;">
+                    <!-- Se generan por JS -->
+                </div>
+                <!-- Contenido del día activo -->
+                <div id="mar3-top-day-content" style=""></div>
+                <div id="mar3-top-loading" style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
             </div>
-            <!-- Panel de contenido del día seleccionado -->
-            <div id="mar3-top-panel" style="display:none;"></div>
-            <div id="mar3-top-loading" style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
         </div>
         <!-- ═══════════════════════════════════════════
              FIN PREVISIÓN PLAYAS Y MAR A 3 DÍAS (nueva posición)
@@ -6100,30 +6098,36 @@
             }
 
             loadMar3().then(() => {
-                buildMar3TopSection();
+                buildMar3TopTabs();
             });
 
-            // ── Sección superior Playas con pestañas ────────────────────────
-            function buildMar3TopSection() {
-                const tabsEl   = document.getElementById('mar3-top-tabs');
-                const panelEl  = document.getElementById('mar3-top-panel');
-                const loadEl   = document.getElementById('mar3-top-loading');
-                if (!tabsEl || !panelEl) return;
+            // ── Toggle principal (abrir/cerrar la sección) ──────────────────
+            let _mar3TopOpen = false;
+            window.mar3TopToggle = function() {
+                const panel = document.getElementById('mar3-top-panel');
+                const arrow = document.getElementById('mar3-top-arrow');
+                _mar3TopOpen = !_mar3TopOpen;
+                panel.style.display = _mar3TopOpen ? 'block' : 'none';
+                arrow.style.transform = _mar3TopOpen ? 'translateY(-50%) rotate(180deg)' : 'translateY(-50%) rotate(0deg)';
+                if (_mar3TopOpen && !window._mar3TopBuilt) buildMar3TopTabs();
+            };
 
-                // Recuperar los cards generados en #mar3-cards para clonarlos
+            // ── Construir pestañas de día ──────────────────────────────────
+            window._mar3TopBuilt = false;
+            window._mar3TopActiveDay = 0;
+
+            function buildMar3TopTabs() {
+                const tabsEl   = document.getElementById('mar3-top-tabs');
+                const loadEl   = document.getElementById('mar3-top-loading');
+                if (!tabsEl) return;
                 const srcCards = document.getElementById('mar3-cards');
-                if (!srcCards || !srcCards.children.length) {
-                    if (loadEl) loadEl.textContent = 'No se han podido cargar los datos del mar.';
-                    return;
-                }
+                if (!srcCards || !srcCards.children.length) return;
                 if (loadEl) loadEl.style.display = 'none';
 
                 const DIAS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
                 const now = new Date();
-                let activeDay = -1;
-
-                // Construir botones
                 tabsEl.innerHTML = '';
+
                 for (let off = 0; off < 3; off++) {
                     const d = new Date(now);
                     d.setDate(d.getDate() + off);
@@ -6131,61 +6135,67 @@
                     const dayDate = d.getDate() + '/' + (d.getMonth()+1);
                     const btn = document.createElement('button');
                     btn.id = 'mar3-top-btn-' + off;
-                    btn.style.cssText = 'flex:1;padding:10px 4px;border:none;cursor:pointer;background:transparent;transition:all .2s;border-bottom:3px solid transparent;margin-bottom:-2px;';
-                    btn.innerHTML = `<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">${dayName}</div><div style="font-size:9px;color:rgba(255,255,255,0.5);margin-top:2px;">${dayDate}</div>`;
+                    btn.style.cssText = 'flex:1;padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#2c4a6e;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;';
+                    btn.innerHTML = dayName + '<br><span style="font-size:8px;font-weight:500;color:#64748b;">' + dayDate + '</span>';
                     btn.onclick = () => mar3TopShowDay(off);
                     tabsEl.appendChild(btn);
                 }
 
-                // Mostrar primer día por defecto
+                window._mar3TopBuilt = true;
                 mar3TopShowDay(0);
             }
 
+            // ── Mostrar contenido de un día ────────────────────────────────
             window.mar3TopShowDay = function(off) {
-                const panelEl = document.getElementById('mar3-top-panel');
-                if (!panelEl) return;
+                window._mar3TopActiveDay = off;
 
-                // Resaltar botón activo
+                // Actualizar estilo de botones
                 for (let i = 0; i < 3; i++) {
                     const b = document.getElementById('mar3-top-btn-' + i);
                     if (!b) continue;
                     if (i === off) {
-                        b.style.background = 'rgba(255,255,255,0.12)';
-                        b.style.borderBottom = '3px solid #7ecfff';
-                        b.querySelector('div').style.color = '#fff';
+                        b.style.color = '#2c4a6e';
+                        b.style.borderBottom = '2px solid #0b4c90';
+                        b.style.background = 'rgba(11,76,144,0.06)';
                     } else {
+                        b.style.color = '#64748b';
+                        b.style.borderBottom = '2px solid transparent';
                         b.style.background = 'transparent';
-                        b.style.borderBottom = '3px solid transparent';
-                        b.querySelector('div').style.color = 'rgba(255,255,255,0.65)';
                     }
                 }
 
-                // Clonar el body del card correspondiente desde #mar3-cards
-                const srcCard = document.querySelector('#mar3-cards > div:nth-child(' + (off+1) + ')');
-                if (!srcCard) { panelEl.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Sin datos</div>'; panelEl.style.display = 'block'; return; }
+                const contentEl = document.getElementById('mar3-top-day-content');
+                if (!contentEl) return;
 
-                // El body interno (div que contiene el contenido desplegado) — es el segundo hijo
-                const srcBody = srcCard.querySelector('[id^="body-day"]');
-                if (!srcBody) { panelEl.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Sin datos</div>'; panelEl.style.display = 'block'; return; }
+                // Recuperar body del card original
+                const srcBody = document.getElementById('body-day' + off);
+                if (!srcBody) {
+                    contentEl.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Sin datos</div>';
+                    return;
+                }
 
-                // Clonar y mostrar siempre visible
+                // Clonar contenido completo
                 const clone = srcBody.cloneNode(true);
                 clone.style.display = 'block';
-                clone.id = 'mar3-top-body-day' + off;
-                panelEl.innerHTML = '';
-                panelEl.appendChild(clone);
-                panelEl.style.display = 'block';
+                clone.id = 'mar3-top-clone-day' + off;
+                contentEl.innerHTML = '';
+                contentEl.appendChild(clone);
 
-                // Redibujar gráfico de olas si existe canvas
+                // Redibujar el gráfico de olas (canvas necesita estar visible en el DOM)
                 setTimeout(() => {
                     const slots = window._mar3Slots && window._mar3Slots['day' + off];
-                    const canvas = panelEl.querySelector('[id^="wave-chart-"]');
-                    if (canvas && slots) {
-                        const newId = 'mar3-top-wave-' + off;
+                    if (!slots) return;
+                    // Buscar el canvas dentro del clon y asignarle un id único
+                    const canvas = contentEl.querySelector('canvas[id^="wave-chart-"]');
+                    if (canvas && window._mar3DrawChart) {
+                        const newId = 'mar3-top-canvas-' + off + '-' + Date.now();
                         canvas.id = newId;
-                        if (window._mar3DrawChart) window._mar3DrawChart(newId, slots);
+                        // Forzar dimensiones calculadas
+                        canvas.style.width = '';
+                        canvas.style.height = '';
+                        window._mar3DrawChart(newId, slots);
                     }
-                }, 40);
+                }, 60);
             };
 
         })();
