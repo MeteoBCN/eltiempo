@@ -2960,141 +2960,7 @@
                 <div style="font-size:9px;color:#4a6a8a;">Se valoran: altura e intensidad del oleaje · velocidad del viento · temperatura del agua · índice UV</div>`;
             gridEl.appendChild(leyenda);
 
-            // ── Gráfico oleaje ancho completo, fuera del grid ──────────
-            const waveSection = document.createElement('div');
-            waveSection.style.cssText = 'background:#dce8f0;border-top:1px solid rgba(44,74,110,0.15);padding:14px 16px 18px;';
-            waveSection.innerHTML = `
-                <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;text-align:center;">Evolución del oleaje</div>
-                <canvas id="wave-chart" style="display:block;width:100%;"></canvas>`;
-            const panelPlayas = document.getElementById('panel-playas');
-            panelPlayas.appendChild(waveSection);
 
-            // Guardar datos para el gráfico y exponer función global
-            const _waveMarineHourly = marineHourly;
-            const _waveNow = now;
-            window.drawWaveChart = function() {
-                const canvas = document.getElementById('wave-chart');
-                if (!canvas || !_waveMarineHourly?.time) return;
-
-                const pts = [];
-                const tLim = new Date(_waveNow); tLim.setDate(tLim.getDate() + 2); tLim.setHours(0,0,0,0);
-                for (let i = 0; i < _waveMarineHourly.time.length; i++) {
-                    const ht = new Date(_waveMarineHourly.time[i]);
-                    if (ht < _waveNow) continue;
-                    if (ht >= tLim) break;
-                    const h = ht.getHours();
-                    if (h < 6 || h > 22) continue;
-                    const dd = ht.getDate() === _waveNow.getDate() ? 'Hoy' : 'Mañ';
-                    pts.push({ label: String(h).padStart(2,'0') + 'h', val: _waveMarineHourly.wave_height?.[i] ?? null });
-                }
-                if (pts.length < 2) return;
-
-                const dpr   = window.devicePixelRatio || 1;
-                const W     = canvas.parentElement.offsetWidth - 32;
-                const H     = 190;
-                canvas.width  = W * dpr;
-                canvas.height = H * dpr;
-                canvas.style.width  = W + 'px';
-                canvas.style.height = H + 'px';
-                canvas.style.display = 'block';
-                const ctx = canvas.getContext('2d');
-                ctx.scale(dpr, dpr);
-
-                const pad = { t: 20, r: 16, b: 42, l: 46 };
-                const cw  = W - pad.l - pad.r;
-                const ch  = H - pad.t - pad.b;
-                const vals = pts.map(p => p.val).filter(v => v !== null);
-                const maxV = Math.ceil(Math.max(...vals, 0.5) * 4) / 4;
-
-                const xPos = i  => pad.l + (i / (pts.length - 1)) * cw;
-                const yPos = v  => pad.t + ch - (v / maxV) * ch;
-
-                // Líneas guía Y
-                ctx.textAlign  = 'right';
-                ctx.font       = '10px sans-serif';
-                ctx.fillStyle  = '#4a6a8a';
-                for (let s = 0; s <= 4; s++) {
-                    const v = (maxV / 4) * s;
-                    const y = yPos(v);
-                    ctx.strokeStyle = 'rgba(44,74,110,0.15)';
-                    ctx.lineWidth   = 0.5;
-                    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
-                    ctx.fillText(v.toFixed(1) + 'm', pad.l - 6, y + 4);
-                }
-
-                // Separador Hoy / Mañana
-                const todayCount = pts.filter(p => p.label.startsWith('Hoy')).length;
-                if (todayCount > 0 && todayCount < pts.length) {
-                    const sepX = (xPos(todayCount - 1) + xPos(todayCount)) / 2;
-                    ctx.strokeStyle = 'rgba(44,74,110,0.35)';
-                    ctx.lineWidth   = 1;
-                    ctx.setLineDash([4, 3]);
-                    ctx.beginPath(); ctx.moveTo(sepX, pad.t); ctx.lineTo(sepX, pad.t + ch); ctx.stroke();
-                    ctx.setLineDash([]);
-                    ctx.fillStyle  = '#2c4a6e';
-                    ctx.font       = '9px sans-serif';
-                    ctx.textAlign  = 'center';
-                    ctx.fillText('HOY',    pad.l + (sepX - pad.l) / 2,      pad.t - 6);
-                    ctx.fillText('MAÑANA', sepX  + (pad.l + cw - sepX) / 2, pad.t - 6);
-                }
-
-                // Relleno
-                ctx.beginPath();
-                ctx.moveTo(xPos(0), yPos(pts[0].val ?? 0));
-                for (let i = 1; i < pts.length; i++) {
-                    const v  = pts[i].val ?? pts[i-1].val ?? 0;
-                    const x0 = xPos(i-1), y0 = yPos(pts[i-1].val ?? 0);
-                    const x1 = xPos(i),   y1 = yPos(v);
-                    ctx.bezierCurveTo((x0+x1)/2, y0, (x0+x1)/2, y1, x1, y1);
-                }
-                ctx.lineTo(xPos(pts.length - 1), pad.t + ch);
-                ctx.lineTo(xPos(0), pad.t + ch);
-                ctx.closePath();
-                const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
-                grad.addColorStop(0, 'rgba(11,76,144,0.35)');
-                grad.addColorStop(1, 'rgba(11,76,144,0.03)');
-                ctx.fillStyle = grad;
-                ctx.fill();
-
-                // Línea
-                ctx.beginPath();
-                ctx.moveTo(xPos(0), yPos(pts[0].val ?? 0));
-                for (let i = 1; i < pts.length; i++) {
-                    const v  = pts[i].val ?? pts[i-1].val ?? 0;
-                    const x0 = xPos(i-1), y0 = yPos(pts[i-1].val ?? 0);
-                    const x1 = xPos(i),   y1 = yPos(v);
-                    ctx.bezierCurveTo((x0+x1)/2, y0, (x0+x1)/2, y1, x1, y1);
-                }
-                ctx.strokeStyle = '#0b4c90';
-                ctx.lineWidth   = 2.5;
-                ctx.lineJoin    = 'round';
-                ctx.stroke();
-
-                // Puntos
-                pts.forEach((p, i) => {
-                    if (p.val === null) return;
-                    ctx.beginPath();
-                    ctx.arc(xPos(i), yPos(p.val), 3.5, 0, Math.PI * 2);
-                    ctx.fillStyle   = '#0b4c90';
-                    ctx.fill();
-                    ctx.strokeStyle = '#dce8f0';
-                    ctx.lineWidth   = 1.5;
-                    ctx.stroke();
-                });
-
-                // Etiquetas X cada 2
-                ctx.textAlign = 'center';
-                ctx.fillStyle = '#4a6a8a';
-                ctx.font      = '9px sans-serif';
-                pts.forEach((p, i) => {
-                    if (i % 2 !== 0) return;
-                    ctx.save();
-                    ctx.translate(xPos(i), H - 6);
-                    ctx.rotate(-Math.PI / 5);
-                    ctx.fillText(p.label, 0, 0);
-                    ctx.restore();
-                });
-            }; // fin drawWaveChart
 
         }
 
@@ -5846,6 +5712,7 @@
                         <div style="display:flex;justify-content:center;align-items:center;">${skyIconHtml}</div>
                         <div style="font-size:13px;font-weight:900;color:#374151;margin-top:3px;">${avgTemp !== null ? avgTemp+'\u00b0C' : '\u2014'}</div>
                     </div>
+                    ${pill('Altura Olas', avgWH !== null ? avgWH.toFixed(1)+' m' : '\u2014', '#0ea5e9', '#fff')}
                     ${pill('Mar',    wl.txt,   wl.color,   '#fff')}
                     ${pill('Viento', wdl.txt,  wdl.color,  '#fff')}
                     ${pill('Lluvia', maxPrec !== null ? maxPrec+'%' : '\u2014', precColor, '#fff')}
@@ -5916,15 +5783,12 @@
                 const wlMax  = waveLabel(maxWH ?? 0);
                 const wdlMax = windLabel(maxWS ?? 0);
 
-                // ── Grafico + 3 columnas como bloque unico ──
+                // ── 3 columnas como bloque unico ──
                 const bdr = 'border-right:1px solid rgba(44,74,110,0.15);';
                 const chartHtml = `
                     <div style="background:#f0f7fc;padding:8px 0 0;">
                         <div style="text-align:center;padding:0 10px 4px;font-size:10px;font-weight:700;color:#0ea5e9;letter-spacing:1px;text-transform:uppercase;">
                             ${avgSST !== null ? 'TEMPERATURA DEL AGUA  '+avgSST+'°C' : ''}
-                        </div>
-                        <div style="display:flex;justify-content:center;">
-                            <canvas id="wave-chart-${cardId}" style="display:block;"></canvas>
                         </div>
                         <div style="display:flex;">
                             ${buildCell(f1, bdr)}
@@ -5966,8 +5830,7 @@
                     + '</div>';
                 const bodyHtml = `
                     ${chartHtml}
-                    ${uviHtml}
-                    ${legendaHtml}`;
+                    ${uviHtml}`;
                 if (isToday) {
                     return `<div style="border-bottom:2px solid #c9ddf0;background:#fff;" id="card-${cardId}">
                         <div onclick="mar3ToggleCard('${cardId}')" style="background:${headerBg};padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
@@ -6000,11 +5863,6 @@
                 } else {
                     body.style.display = 'block';
                     if (arrow) arrow.style.transform = 'rotate(180deg)';
-                    // Wait for display:block to render before drawing (canvas needs width)
-                    setTimeout(() => {
-                        const slots = window._mar3Slots && window._mar3Slots[cardId];
-                        if (slots) mar3DrawChart('wave-chart-' + cardId, slots);
-                    }, 30);
                 }
             };
 
