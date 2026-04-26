@@ -4748,10 +4748,12 @@
             else if (uvActual >= 8)  score -= 18;
             else if (uvActual >= 6)  score -= 8;
 
-            // Calidad del aire
-            if      (aqi > 150) score -= 35;
-            else if (aqi > 100) score -= 20;
-            else if (aqi > 50)  score -= 8;
+            // Calidad del aire (EAQI: 0-20 Buena, 21-40 Razonab., 41-60 Regular, 61-80 Mala, 81-100 Muy mala, 101+ Extrem.)
+            if      (aqi > 100) score -= 40;
+            else if (aqi > 80)  score -= 30;
+            else if (aqi > 60)  score -= 20;
+            else if (aqi > 40)  score -= 10;
+            else if (aqi > 20)  score -= 4;
 
             // Lluvia / tormenta (WMO codes)
             var isRain    = (wmo >= 51 && wmo <= 67) || (wmo >= 80 && wmo <= 82);
@@ -4820,8 +4822,10 @@
             if (wind > 25) factores.push({ txt: 'Viento fuerte (' + Math.round(wind) + ' km/h)', pos: false });
             else if (wind < 15) factores.push({ txt: 'Viento suave', pos: true });
             if (uvActual >= 6) factores.push({ txt: 'UV alto (' + Math.round(uvActual) + ')', pos: false });
-            if (aqi > 100) factores.push({ txt: 'Calidad del aire mala', pos: false });
-            else if (aqi <= 50 && aqi > 0) factores.push({ txt: 'Aire limpio', pos: true });
+            if      (aqi > 80)  factores.push({ txt: 'Aire muy malo (EAQI ' + Math.round(aqi) + ')', pos: false });
+            else if (aqi > 60)  factores.push({ txt: 'Aire malo (EAQI ' + Math.round(aqi) + ')', pos: false });
+            else if (aqi > 40)  factores.push({ txt: 'Aire regular (EAQI ' + Math.round(aqi) + ')', pos: false });
+            else if (aqi > 0)   factores.push({ txt: 'Aire limpio (EAQI ' + Math.round(aqi) + ')', pos: true });
             if (isThunder) factores.push({ txt: 'Tormenta activa', pos: false });
             else if (isRain) factores.push({ txt: 'Lluvia', pos: false });
             if (hum <= 60 && hum >= 40) factores.push({ txt: 'Humedad confortable', pos: true });
