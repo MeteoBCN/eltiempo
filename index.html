@@ -5439,14 +5439,18 @@
                 const items = [
                     {key:'pm2_5',label:'PM2.5',max:150},{key:'pm10',label:'PM10',max:200},
                     {key:'nitrogen_dioxide',label:'NO₂',max:200},{key:'ozone',label:'O₃',max:200},
+                    {key:'carbon_monoxide',label:'CO',max:15400},{key:'sulphur_dioxide',label:'SO₂',max:350},
                 ];
                 container.innerHTML = items.map(item => {
                     const val = current[item.key]!=null ? Math.round(current[item.key]) : null;
                     if (val===null) return '';
-                    const col = val<50?'#22c55e':val<100?'#eab308':'#ef4444';
+                    const pct = val / item.max;
+                    const col = pct<0.33?'#22c55e':pct<0.66?'#eab308':'#ef4444';
+                    // Mostrar CO en mg/m³ para legibilidad (viene en µg/m³)
+                    const display = item.key==='carbon_monoxide' ? (val/1000).toFixed(1)+' mg' : val;
                     return `<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.7);border-radius:6px;padding:3px 7px;border:1px solid rgba(255,255,255,0.85);backdrop-filter:blur(4px);">
                         <span style="font-size:9px;color:#2c4a6e;font-weight:700;font-family:monospace;">${item.label}</span>
-                        <span style="font-size:11px;font-weight:700;color:${col};">${val}</span>
+                        <span style="font-size:11px;font-weight:700;color:${col};">${display}</span>
                     </div>`;
                 }).join('');
             }
