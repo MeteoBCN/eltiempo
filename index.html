@@ -809,11 +809,10 @@
             <!-- Cabecera clicable — mismo estilo que el resto -->
             <div onclick="mar3TopToggle()" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;gap:3px;cursor:pointer;user-select:none;position:relative;">
                 <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">PREVISIÓN PLAYAS Y MAR A 3 DÍAS</span>
-                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">PULSAR PARA VER LA PREVISIÓN</span>
-                <span id="mar3-top-arrow" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:12px;color:rgba(255,255,255,0.7);transition:transform 0.3s;">▼</span>
+                <span id="mar3-top-arrow" style="position:absolute;right:16px;top:50%;transform:translateY(-50%) rotate(180deg);font-size:12px;color:rgba(255,255,255,0.7);transition:transform 0.3s;">▼</span>
             </div>
             <!-- Panel colapsable con los 3 días -->
-            <div id="mar3-top-panel" style="display:none;background:#f0f6fa;">
+            <div id="mar3-top-panel" style="display:block;background:#f0f6fa;">
                 <!-- Fila de botones de día -->
                 <div id="mar3-top-tabs" style="display:grid;grid-template-columns:repeat(3,1fr);background:#e4eef6;border-bottom:2px solid #c9ddf0;">
                     <!-- Se generan por JS -->
@@ -1040,53 +1039,6 @@
             </div>
             <div id="running-content" style="background:#f0f6fa;padding:14px 16px;">
                 <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando...</div>
-            </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════
-             ÍNDICE UV — PRÓXIMOS 4 DÍAS
-        ════════════════════════════════════════════ -->
-        <div id="uvi-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <!-- Cabecera desplegable -->
-            <div onclick="toggleExtraSection('uvi-panel')"
-                 style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;cursor:pointer;user-select:none;">
-                <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">ÍNDICE UV PREVISTO</span>
-                <span id="arrow-uvi-panel" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
-            </div>
-            <div id="panel-uvi-panel" style="display:none;overflow:hidden;">
-                <!-- Scroll horizontal con tarjetas por día -->
-                <div id="uvi-scroll-wrap" style="background:#fffbf0;">
-                    <div id="uvi-cards-inner" style="display:flex;justify-content:center;padding:14px 12px;gap:10px;flex-wrap:wrap;">
-                        <div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px;">Calculando…</div>
-                    </div>
-                </div>
-                <!-- Leyenda -->
-                <div style="background:#fff8e6;border-top:1px solid rgba(245,158,11,0.2);padding:10px 16px;">
-                    <div style="font-size:9px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;">Leyenda — Índice UV</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:5px;">
-                        <div style="display:flex;align-items:center;gap:5px;">
-                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#4caf50;flex-shrink:0;"></span>
-                            <span style="font-size:10px;color:#1e3a5f;"><b>0–2</b> Bajo</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:5px;">
-                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ffb300;flex-shrink:0;"></span>
-                            <span style="font-size:10px;color:#1e3a5f;"><b>3–5</b> Moderado</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:5px;">
-                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff7043;flex-shrink:0;"></span>
-                            <span style="font-size:10px;color:#1e3a5f;"><b>6–7</b> Alto</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:5px;">
-                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#e53935;flex-shrink:0;"></span>
-                            <span style="font-size:10px;color:#1e3a5f;"><b>8–10</b> Muy alto</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:5px;">
-                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#9c27b0;flex-shrink:0;"></span>
-                            <span style="font-size:10px;color:#1e3a5f;"><b>11+</b> Extremo</span>
-                        </div>
-                    </div>
-                    <div style="margin-top:7px;font-size:9px;color:#94a3b8;">Aplica protector solar FPS 30+ desde UVI 3. Con UVI ≥ 8, limita la exposición en horas centrales (12–16h). Fuente: Open-Meteo.</div>
-                </div>
             </div>
         </div>
 
@@ -5835,15 +5787,14 @@
 
                 // ── 3 columnas como bloque unico ──
                 const bdr = 'border-right:1px solid rgba(44,74,110,0.15);';
-                const radMax = uviMax !== null ? Math.round(uviMax * 25) : null;
-                const radTxt = radMax !== null ? radMax + ' W/m²' : '—';
+                const uviRedondeado = uviMax !== null ? Math.round(uviMax) : null;
 
                 const chartHtml = `
                     <div style="background:#f0f7fc;padding:8px 0 0;">
                         <div style="text-align:center;padding:0 10px 4px;font-size:10px;font-weight:700;color:#0ea5e9;letter-spacing:1px;text-transform:uppercase;">
                             ${avgSST !== null ? 'TEMPERATURA DEL AGUA  '+avgSST+'°C' : ''}
                         </div>
-                        ${radMax !== null ? `<div style="text-align:center;padding:0 10px 6px;font-size:10px;font-weight:700;color:#d97706;letter-spacing:1px;text-transform:uppercase;">RADIACIÓN MÁX. PREVISTA &nbsp;${radMax}</div>` : ''}
+                        ${uviRedondeado !== null ? `<div style="text-align:center;padding:0 10px 6px;font-size:10px;font-weight:700;color:#d97706;letter-spacing:1px;text-transform:uppercase;">RADIACIÓN MÁX. PREVISTA &nbsp;${uviRedondeado}</div>` : ''}
                         <div style="display:flex;">
                             ${buildCell(f1, bdr)}
                             ${buildCell(f2, bdr)}
@@ -6077,7 +6028,7 @@
             });
 
             // ── Toggle principal (abrir/cerrar la sección) ──────────────────
-            let _mar3TopOpen = false;
+            let _mar3TopOpen = true;
             window.mar3TopToggle = function() {
                 const panel = document.getElementById('mar3-top-panel');
                 const arrow = document.getElementById('mar3-top-arrow');
