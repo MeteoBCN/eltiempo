@@ -1044,53 +1044,6 @@
         </div>
 
         <!-- ═══════════════════════════════════════════
-             ÍNDICE UV — PRÓXIMOS 4 DÍAS
-        ════════════════════════════════════════════ -->
-        <div id="uvi-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <!-- Cabecera desplegable -->
-            <div onclick="toggleExtraSection('uvi-panel')"
-                 style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;cursor:pointer;user-select:none;">
-                <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">ÍNDICE UV PREVISTO</span>
-                <span id="arrow-uvi-panel" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
-            </div>
-            <div id="panel-uvi-panel" style="display:none;overflow:hidden;">
-                <!-- Scroll horizontal con tarjetas por día -->
-                <div id="uvi-scroll-wrap" style="background:#fffbf0;">
-                    <div id="uvi-cards-inner" style="display:flex;justify-content:center;padding:14px 12px;gap:10px;flex-wrap:wrap;">
-                        <div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px;">Calculando…</div>
-                    </div>
-                </div>
-                <!-- Leyenda -->
-                <div style="background:#fff8e6;border-top:1px solid rgba(245,158,11,0.2);padding:10px 16px;">
-                    <div style="font-size:9px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;">Leyenda — Índice UV</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:5px;">
-                        <div style="display:flex;align-items:center;gap:5px;">
-                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#4caf50;flex-shrink:0;"></span>
-                            <span style="font-size:10px;color:#1e3a5f;"><b>0–2</b> Bajo</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:5px;">
-                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ffb300;flex-shrink:0;"></span>
-                            <span style="font-size:10px;color:#1e3a5f;"><b>3–5</b> Moderado</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:5px;">
-                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff7043;flex-shrink:0;"></span>
-                            <span style="font-size:10px;color:#1e3a5f;"><b>6–7</b> Alto</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:5px;">
-                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#e53935;flex-shrink:0;"></span>
-                            <span style="font-size:10px;color:#1e3a5f;"><b>8–10</b> Muy alto</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:5px;">
-                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#9c27b0;flex-shrink:0;"></span>
-                            <span style="font-size:10px;color:#1e3a5f;"><b>11+</b> Extremo</span>
-                        </div>
-                    </div>
-                    <div style="margin-top:7px;font-size:9px;color:#94a3b8;">Aplica protector solar FPS 30+ desde UVI 3. Con UVI ≥ 8, limita la exposición en horas centrales (12–16h). Fuente: Open-Meteo.</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════
              EPISODIO DE CALIMA
         ════════════════════════════════════════════ -->
         <div id="calima-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
@@ -2888,6 +2841,8 @@
                 const vientoTxt = avgWS  !== null ? `${avgWS} km/h ${dirTxt}${maxExtra} · ${beaufort}` : '—';
                 const aguaTxt   = avgSST !== null ? avgSST + ' °C' : '—';
                 const uviTxt    = uviVal  !== null ? Math.round(uviVal) : '—';
+                const radMax    = uviVal  !== null ? Math.round(uviVal * 25) : null;
+                const radTxt    = radMax  !== null ? radMax + ' W/m²' : '—';
                 const seaGrads = {
                     'Calma':'linear-gradient(135deg,#e8f4fd 0%,#f0f8ff 60%,#ffffff 100%)',
                     'Rizada':'linear-gradient(135deg,#daeef9 0%,#edf6fc 60%,#f8fcff 100%)',
@@ -2912,7 +2867,8 @@
                     </div>
                     <div style="font-size:10px;color:#1a3a5c;line-height:1.8;">
                         <span style="font-weight:600;">${avgWS !== null ? avgWS + ' km/h · ' + beaufort : '—'}</span><br>
-                        Agua <span style="font-weight:700;color:#0b4c90;">${aguaTxt}</span>
+                        Agua <span style="font-weight:700;color:#0b4c90;">${aguaTxt}</span><br>
+                        Rad. máx. <span style="font-weight:700;color:#d97706;">${radTxt}</span>
                     </div>
                     ${uvAdvice ? `
                     <div style="margin-top:8px;background:rgba(255,255,255,0.6);border-radius:6px;padding:7px 8px;border-left:3px solid ${uvAdvice.color};">
@@ -2970,6 +2926,45 @@
                 </div>
                 <div style="font-size:9px;color:#4a6a8a;">Se valoran: altura e intensidad del oleaje · velocidad del viento · temperatura del agua · índice UV</div>`;
             gridEl.appendChild(leyenda);
+
+            // ── Leyenda UV desplegable (abierta por defecto) ───────────────
+            const uvLeyendaWrap = document.createElement('div');
+            uvLeyendaWrap.style.cssText = 'border-top:1px solid rgba(44,74,110,0.15);background:#fff8e6;';
+            uvLeyendaWrap.innerHTML = `
+                <div id="uv-leyenda-toggle" onclick="(function(el){var p=document.getElementById('uv-leyenda-body');var arr=document.getElementById('uv-leyenda-arrow');if(p.style.display==='none'){p.style.display='block';arr.style.transform='rotate(180deg)';}else{p.style.display='none';arr.style.transform='rotate(0deg)';}}).call(this)"
+                     style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;cursor:pointer;user-select:none;">
+                    <span style="font-size:9px;font-weight:700;color:#92400e;letter-spacing:1.5px;text-transform:uppercase;">☀️ Leyenda — Radiación UV y recomendaciones</span>
+                    <span id="uv-leyenda-arrow" style="font-size:12px;color:#92400e;transition:transform 0.3s;transform:rotate(180deg);">▼</span>
+                </div>
+                <div id="uv-leyenda-body" style="display:block;padding:10px 16px 14px;">
+                    <div style="display:grid;grid-template-columns:1fr;gap:7px;">
+                        <div style="display:flex;align-items:flex-start;gap:9px;background:rgba(76,175,80,0.1);border-left:3px solid #4caf50;border-radius:4px;padding:7px 10px;">
+                            <span style="display:inline-block;min-width:38px;text-align:center;font-size:10px;font-weight:800;color:#fff;background:#4caf50;border-radius:4px;padding:2px 5px;flex-shrink:0;">0–2</span>
+                            <div style="font-size:10px;color:#1e3a5f;line-height:1.5;"><b>Bajo</b> · Sin protección especial necesaria. Puedes disfrutar del sol con tranquilidad.</div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:9px;background:rgba(255,179,0,0.1);border-left:3px solid #ffb300;border-radius:4px;padding:7px 10px;">
+                            <span style="display:inline-block;min-width:38px;text-align:center;font-size:10px;font-weight:800;color:#fff;background:#ffb300;border-radius:4px;padding:2px 5px;flex-shrink:0;">3–5</span>
+                            <div style="font-size:10px;color:#1e3a5f;line-height:1.5;"><b>Moderado</b> · Protector solar FPS 30+. Sombrero y gafas recomendados. ≤30 min sin crema.</div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:9px;background:rgba(255,112,67,0.1);border-left:3px solid #ff7043;border-radius:4px;padding:7px 10px;">
+                            <span style="display:inline-block;min-width:38px;text-align:center;font-size:10px;font-weight:800;color:#fff;background:#ff7043;border-radius:4px;padding:2px 5px;flex-shrink:0;">6–7</span>
+                            <div style="font-size:10px;color:#1e3a5f;line-height:1.5;"><b>Alto</b> · FPS 50+. Busca sombra entre las 12h y 16h. ≤20 min sin crema. Camisa y gorra.</div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:9px;background:rgba(229,57,53,0.1);border-left:3px solid #e53935;border-radius:4px;padding:7px 10px;">
+                            <span style="display:inline-block;min-width:38px;text-align:center;font-size:10px;font-weight:800;color:#fff;background:#e53935;border-radius:4px;padding:2px 5px;flex-shrink:0;">8–10</span>
+                            <div style="font-size:10px;color:#1e3a5f;line-height:1.5;"><b>Muy alto</b> · FPS 50+ obligatorio. Sombra al mediodía. ≤10 min sin protección. Ropa de cobertura.</div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:9px;background:rgba(156,39,176,0.1);border-left:3px solid #9c27b0;border-radius:4px;padding:7px 10px;">
+                            <span style="display:inline-block;min-width:38px;text-align:center;font-size:10px;font-weight:800;color:#fff;background:#9c27b0;border-radius:4px;padding:2px 5px;flex-shrink:0;">11+</span>
+                            <div style="font-size:10px;color:#1e3a5f;line-height:1.5;"><b>Extremo</b> · Exposición mínima. FPS 50+ y ropa protectora total. Evita la playa en horas centrales. ≤5 min sin crema.</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px;font-size:9px;color:#92400e;background:rgba(255,200,80,0.18);border-radius:4px;padding:6px 10px;line-height:1.5;">
+                        💡 La <b>radiación máxima</b> mostrada (W/m²) es una estimación a partir del índice UV previsto (UVI × 25). Fuente: Open-Meteo.
+                    </div>
+                </div>`;
+            const sectionEl = gridEl.closest('[id^="mar3"]') || gridEl.parentElement;
+            gridEl.after(uvLeyendaWrap);
 
 
 
