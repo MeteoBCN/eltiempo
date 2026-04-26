@@ -1371,7 +1371,7 @@
             var errEl   = document.getElementById('presion-error');
             try {
                 var PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
-                var url = PROXY_BASE + '/forecast?latitude=41.3888&longitude=2.159&hourly=surface_pressure&past_days=2&forecast_days=1&timezone=Europe%2FMadrid';
+                var url = PROXY_BASE + '/forecast?latitude=41.3888&longitude=2.159&hourly=pressure_msl&past_days=2&forecast_days=1&timezone=Europe%2FMadrid';
                 var r = await fetch(url);
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 var data = await r.json();
@@ -1387,7 +1387,7 @@
 
         function renderPresion(data) {
             var times    = data.hourly.time;
-            var pressures = data.hourly.surface_pressure;
+            var pressures = data.hourly.pressure_msl;
             var now      = new Date();
 
             // Últimas 48h hasta ahora
@@ -5439,18 +5439,14 @@
                 const items = [
                     {key:'pm2_5',label:'PM2.5',max:150},{key:'pm10',label:'PM10',max:200},
                     {key:'nitrogen_dioxide',label:'NO₂',max:200},{key:'ozone',label:'O₃',max:200},
-                    {key:'carbon_monoxide',label:'CO',max:15400},{key:'sulphur_dioxide',label:'SO₂',max:350},
                 ];
                 container.innerHTML = items.map(item => {
                     const val = current[item.key]!=null ? Math.round(current[item.key]) : null;
                     if (val===null) return '';
-                    const pct = val / item.max;
-                    const col = pct<0.33?'#22c55e':pct<0.66?'#eab308':'#ef4444';
-                    // Mostrar CO en mg/m³ para legibilidad (viene en µg/m³)
-                    const display = item.key==='carbon_monoxide' ? (val/1000).toFixed(1)+' mg' : val;
+                    const col = val<50?'#22c55e':val<100?'#eab308':'#ef4444';
                     return `<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.7);border-radius:6px;padding:3px 7px;border:1px solid rgba(255,255,255,0.85);backdrop-filter:blur(4px);">
                         <span style="font-size:9px;color:#2c4a6e;font-weight:700;font-family:monospace;">${item.label}</span>
-                        <span style="font-size:11px;font-weight:700;color:${col};">${display}</span>
+                        <span style="font-size:11px;font-weight:700;color:${col};">${val}</span>
                     </div>`;
                 }).join('');
             }
