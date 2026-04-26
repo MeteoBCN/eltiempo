@@ -972,8 +972,11 @@
                     <!-- Fila principal: semáforo + AQI + badge + consejo -->
                     <div style="display:flex;align-items:center;gap:14px;">
                         <div id="aqi-traffic-light" style="display:flex;flex-direction:column;align-items:center;background:#1a1a1a;border-radius:14px;padding:7px 8px;gap:5px;box-shadow:0 3px 10px rgba(0,0,0,0.35);border:2px solid #333;flex-shrink:0;">
-                            <div id="aqi-light-red"    style="width:20px;height:20px;border-radius:50%;background:#7f1d1d;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
-                            <div id="aqi-light-yellow" style="width:20px;height:20px;border-radius:50%;background:#713f12;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
+                            <div id="aqi-light-purple" style="width:20px;height:20px;border-radius:50%;background:#3b1045;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
+                            <div id="aqi-light-darkred" style="width:20px;height:20px;border-radius:50%;background:#3a0010;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
+                            <div id="aqi-light-red"    style="width:20px;height:20px;border-radius:50%;background:#5a1a1a;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
+                            <div id="aqi-light-yellow" style="width:20px;height:20px;border-radius:50%;background:#4a4400;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
+                            <div id="aqi-light-blue"   style="width:20px;height:20px;border-radius:50%;background:#002a40;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
                             <div id="aqi-light-green"  style="width:20px;height:20px;border-radius:50%;background:#14532d;transition:all 0.5s ease;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);"></div>
                         </div>
                         <div style="flex-shrink:0;">
@@ -1004,11 +1007,12 @@
                     <div style="margin-bottom:12px;">
                         <div style="font-size:9px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Escala de calidad del aire</div>
                         <div style="display:flex;flex-wrap:wrap;gap:5px;">
-                            <span style="font-size:10px;font-weight:700;background:#22c55e;color:#fff;padding:3px 8px;border-radius:5px;">0–50 Buena</span>
-                            <span style="font-size:10px;font-weight:700;background:#f59e0b;color:#fff;padding:3px 8px;border-radius:5px;">51–100 Moderada</span>
-                            <span style="font-size:10px;font-weight:700;background:#f97316;color:#fff;padding:3px 8px;border-radius:5px;">101–150 Mala</span>
-                            <span style="font-size:10px;font-weight:700;background:#ef4444;color:#fff;padding:3px 8px;border-radius:5px;">151–200 Muy mala</span>
-                            <span style="font-size:10px;font-weight:700;background:#7c3aed;color:#fff;padding:3px 8px;border-radius:5px;">201+ Peligrosa</span>
+                            <span style="font-size:10px;font-weight:700;background:#16a34a;color:#fff;padding:3px 8px;border-radius:5px;">0–20 Buena</span>
+                            <span style="font-size:10px;font-weight:700;background:#0284c7;color:#fff;padding:3px 8px;border-radius:5px;">21–40 Razonab. buena</span>
+                            <span style="font-size:10px;font-weight:700;background:#c8b800;color:#fff;padding:3px 8px;border-radius:5px;">41–60 Regular</span>
+                            <span style="font-size:10px;font-weight:700;background:#FF5050;color:#fff;padding:3px 8px;border-radius:5px;">61–80 Mala</span>
+                            <span style="font-size:10px;font-weight:700;background:#960032;color:#fff;padding:3px 8px;border-radius:5px;">81–100 Muy mala</span>
+                            <span style="font-size:10px;font-weight:700;background:#7D2181;color:#fff;padding:3px 8px;border-radius:5px;">101+ Extrem. mala</span>
                         </div>
                     </div>
                     <!-- Leyenda contaminantes -->
@@ -5399,12 +5403,12 @@
         /* ══════ SEMÁFORO CALIDAD DEL AIRE ══════ */
         (function() {
             const AQI_LEVELS = [
-                { min:0,   max:20,  color:'#16a34a', glow:'#15803d', label:'Buena',                sublabel:'Calidad del aire óptima para todos.',                          light:'green',  advice:'Calidad del aire óptima. Disfruta de las actividades al aire libre sin restricciones.', bg:'#f0fdf4' },
-                { min:21,  max:40,  color:'#0284c7', glow:'#0369a1', label:'Razonablemente buena',  sublabel:'Riesgo muy bajo para la salud.',                                light:'green',  advice:'Riesgo muy bajo. Adecuado para todo el mundo sin limitaciones.', bg:'#e0f2fe' },
-                { min:41,  max:60,  color:'#F0E641', glow:'#f9a825', label:'Regular',               sublabel:'Aceptable, personas sensibles pueden verse afectadas.',          light:'yellow', advice:'Calidad aceptable. Personas con asma o enfermedades respiratorias deben moderar la actividad intensa.', bg:'#fefce8' },
-                { min:61,  max:80,  color:'#FF5050', glow:'#e53935', label:'Mala',                  sublabel:'Posibles efectos adversos para la salud general.',               light:'red',    advice:'Calidad mala. Se recomienda reducir actividades prolongadas en exterior, especialmente a grupos sensibles.', bg:'#fff0f0' },
-                { min:81,  max:100, color:'#960032', glow:'#b71c1c', label:'Muy mala',              sublabel:'Riesgo significativo; limitar el tiempo al aire libre.',          light:'red',    advice:'Calidad muy mala. Limita el tiempo en el exterior. Grupos sensibles deben evitar salir.', bg:'#ffe5e5' },
-                { min:101, max:999, color:'#7D2181', glow:'#6a1b9a', label:'Extremadamente mala',   sublabel:'Emergencia sanitaria.',                                          light:'red',    advice:'Emergencia sanitaria. Evita salir al exterior. Mantén ventanas cerradas y usa purificadores de aire.', bg:'#f3e5f5' },
+                { min:0,   max:20,  color:'#16a34a', glow:'#15803d', label:'Buena',                sublabel:'Calidad del aire óptima para todos.',                          light:'green',   advice:'Calidad del aire óptima. Disfruta de las actividades al aire libre sin restricciones.', bg:'#f0fdf4' },
+                { min:21,  max:40,  color:'#0284c7', glow:'#0369a1', label:'Razonablemente buena',  sublabel:'Riesgo muy bajo para la salud.',                                light:'blue',    advice:'Riesgo muy bajo. Adecuado para todo el mundo sin limitaciones.', bg:'#e0f2fe' },
+                { min:41,  max:60,  color:'#c8b800', glow:'#a89600', label:'Regular',               sublabel:'Aceptable, personas sensibles pueden verse afectadas.',          light:'yellow',  advice:'Calidad aceptable. Personas con asma o enfermedades respiratorias deben moderar la actividad intensa.', bg:'#fefce8' },
+                { min:61,  max:80,  color:'#FF5050', glow:'#e53935', label:'Mala',                  sublabel:'Posibles efectos adversos para la salud general.',               light:'red',     advice:'Calidad mala. Se recomienda reducir actividades prolongadas en exterior, especialmente a grupos sensibles.', bg:'#fff0f0' },
+                { min:81,  max:100, color:'#960032', glow:'#7a0028', label:'Muy mala',              sublabel:'Riesgo significativo; limitar el tiempo al aire libre.',          light:'darkred', advice:'Calidad muy mala. Limita el tiempo en el exterior. Grupos sensibles deben evitar salir.', bg:'#ffe5e5' },
+                { min:101, max:999, color:'#7D2181', glow:'#5e1861', label:'Extremadamente mala',   sublabel:'Emergencia sanitaria.',                                          light:'purple',  advice:'Emergencia sanitaria. Evita salir al exterior. Mantén ventanas cerradas y usa purificadores de aire.', bg:'#f3e5f5' },
             ];
             function getLevel(aqi) { return AQI_LEVELS.find(l => aqi >= l.min && aqi <= l.max) || AQI_LEVELS[AQI_LEVELS.length-1]; }
 
@@ -5422,12 +5426,20 @@
                 const badgeEl = document.getElementById('aqi-badge'); if (badgeEl) { badgeEl.style.background = level.bg; badgeEl.style.borderColor = level.color+'60'; }
                 const subEl = document.getElementById('aqi-sublabel'); if (subEl) subEl.textContent = level.sublabel;
                 const advEl = document.getElementById('aqi-advice'); if (advEl) { advEl.textContent = level.advice; advEl.style.borderLeftColor = level.color; }
-                setLight('aqi-light-red',    '#7f1d1d', null);
-                setLight('aqi-light-yellow', '#713f12', null);
-                setLight('aqi-light-green',  '#14532d', null);
-                if (level.light==='green')  setLight('aqi-light-green',  level.color, level.glow);
-                if (level.light==='yellow') setLight('aqi-light-yellow', level.color, level.glow);
-                if (level.light==='red')    setLight('aqi-light-red',    level.color, level.glow);
+                // Apagar todas las luces
+                setLight('aqi-light-purple',  '#3b1045', null);
+                setLight('aqi-light-darkred', '#3a0010', null);
+                setLight('aqi-light-red',     '#5a1a1a', null);
+                setLight('aqi-light-yellow',  '#4a4400', null);
+                setLight('aqi-light-blue',    '#002a40', null);
+                setLight('aqi-light-green',   '#14532d', null);
+                // Encender la luz correspondiente al nivel
+                if (level.light==='green')   setLight('aqi-light-green',   level.color, level.glow);
+                if (level.light==='blue')    setLight('aqi-light-blue',    level.color, level.glow);
+                if (level.light==='yellow')  setLight('aqi-light-yellow',  level.color, level.glow);
+                if (level.light==='red')     setLight('aqi-light-red',     level.color, level.glow);
+                if (level.light==='darkred') setLight('aqi-light-darkred', level.color, level.glow);
+                if (level.light==='purple')  setLight('aqi-light-purple',  level.color, level.glow);
                 document.querySelectorAll('.aqi-scale-item').forEach(el => {
                     const mn=parseInt(el.dataset.min), mx=parseInt(el.dataset.max);
                     el.style.background   = (aqi>=mn&&aqi<=mx) ? level.bg : 'transparent';
