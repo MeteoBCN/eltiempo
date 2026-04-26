@@ -5399,11 +5399,12 @@
         /* ══════ SEMÁFORO CALIDAD DEL AIRE ══════ */
         (function() {
             const AQI_LEVELS = [
-                { min:0,   max:50,  color:'#22c55e', glow:'#16a34a', label:'Buena',     sublabel:'Aire limpio y saludable',      light:'green',  advice:'Condiciones ideales para actividades al aire libre.', bg:'#f0fdf4' },
-                { min:51,  max:100, color:'#f59e0b', glow:'#d97706', label:'Moderada',  sublabel:'Calidad aceptable',            light:'yellow', advice:'Aceptable para la mayoría. Personas muy sensibles podrían notar leve malestar.', bg:'#fffbeb' },
-                { min:101, max:150, color:'#f97316', glow:'#ea580c', label:'Mala',      sublabel:'Dañino para grupos sensibles', light:'yellow', advice:'Personas con asma, niños y mayores deben reducir la actividad al aire libre.', bg:'#fff7ed' },
-                { min:151, max:200, color:'#ef4444', glow:'#dc2626', label:'Muy mala',  sublabel:'No saludable',                 light:'red',    advice:'Todo el mundo puede sufrir efectos. Grupos sensibles deben evitar el exterior.', bg:'#fef2f2' },
-                { min:201, max:999, color:'#7c3aed', glow:'#6d28d9', label:'Peligrosa', sublabel:'Peligro',                      light:'red',    advice:'Emergencia de salud pública. Quedarse en interior con ventanas cerradas.', bg:'#faf5ff' },
+                { min:0,   max:20,  color:'#50C8FF', glow:'#29b6f6', label:'Buena',                sublabel:'Calidad del aire óptima para todos.',                          light:'green',  advice:'Calidad del aire óptima. Disfruta de las actividades al aire libre sin restricciones.', bg:'#e0f7ff' },
+                { min:21,  max:40,  color:'#50F0E6', glow:'#26c6da', label:'Razonablemente buena',  sublabel:'Riesgo muy bajo para la salud.',                                light:'green',  advice:'Riesgo muy bajo. Adecuado para todo el mundo sin limitaciones.', bg:'#e0faf7' },
+                { min:41,  max:60,  color:'#F0E641', glow:'#f9a825', label:'Regular',               sublabel:'Aceptable, personas sensibles pueden verse afectadas.',          light:'yellow', advice:'Calidad aceptable. Personas con asma o enfermedades respiratorias deben moderar la actividad intensa.', bg:'#fefce8' },
+                { min:61,  max:80,  color:'#FF5050', glow:'#e53935', label:'Mala',                  sublabel:'Posibles efectos adversos para la salud general.',               light:'red',    advice:'Calidad mala. Se recomienda reducir actividades prolongadas en exterior, especialmente a grupos sensibles.', bg:'#fff0f0' },
+                { min:81,  max:100, color:'#960032', glow:'#b71c1c', label:'Muy mala',              sublabel:'Riesgo significativo; limitar el tiempo al aire libre.',          light:'red',    advice:'Calidad muy mala. Limita el tiempo en el exterior. Grupos sensibles deben evitar salir.', bg:'#ffe5e5' },
+                { min:101, max:999, color:'#7D2181', glow:'#6a1b9a', label:'Extremadamente mala',   sublabel:'Emergencia sanitaria.',                                          light:'red',    advice:'Emergencia sanitaria. Evita salir al exterior. Mantén ventanas cerradas y usa purificadores de aire.', bg:'#f3e5f5' },
             ];
             function getLevel(aqi) { return AQI_LEVELS.find(l => aqi >= l.min && aqi <= l.max) || AQI_LEVELS[AQI_LEVELS.length-1]; }
 
@@ -5437,49 +5438,23 @@
             function renderPollutants(current) {
                 const container = document.getElementById('aqi-pollutants'); if (!container||!current) return;
                 // Umbrales europeos reales (µg/m³) con 5 niveles
+                // Umbrales oficiales EAQI (European Air Quality Index) — Open-Meteo / EEA
+                const EAQI_T = [
+                    {label:'Buena',               color:'#50C8FF', bg:'#e0f7ff'},
+                    {label:'Razonab. buena',       color:'#50F0E6', bg:'#e0faf7'},
+                    {label:'Regular',              color:'#c8b800', bg:'#fefce8'},
+                    {label:'Mala',                 color:'#FF5050', bg:'#fff0f0'},
+                    {label:'Muy mala',             color:'#960032', bg:'#ffe5e5'},
+                    {label:'Extrem. mala',         color:'#7D2181', bg:'#f3e5f5'},
+                ];
+                // Límites por contaminante: [Buena, RazBuena, Regular, Mala, MuyMala, ExtrMala]
                 const items = [
-                    { key:'pm2_5',           label:'PM2.5', unit:'µg/m³', thresholds:[
-                        {max:10,  color:'#22c55e', bg:'#f0fdf4', label:'Buena'},
-                        {max:20,  color:'#84cc16', bg:'#f7fee7', label:'Buena'},
-                        {max:25,  color:'#eab308', bg:'#fefce8', label:'Moderada'},
-                        {max:50,  color:'#f97316', bg:'#fff7ed', label:'Mala'},
-                        {max:9999,color:'#ef4444', bg:'#fef2f2', label:'Muy mala'},
-                    ]},
-                    { key:'pm10',            label:'PM10',  unit:'µg/m³', thresholds:[
-                        {max:20,  color:'#22c55e', bg:'#f0fdf4', label:'Buena'},
-                        {max:40,  color:'#84cc16', bg:'#f7fee7', label:'Buena'},
-                        {max:50,  color:'#eab308', bg:'#fefce8', label:'Moderada'},
-                        {max:100, color:'#f97316', bg:'#fff7ed', label:'Mala'},
-                        {max:9999,color:'#ef4444', bg:'#fef2f2', label:'Muy mala'},
-                    ]},
-                    { key:'nitrogen_dioxide',label:'NO₂',   unit:'µg/m³', thresholds:[
-                        {max:40,  color:'#22c55e', bg:'#f0fdf4', label:'Buena'},
-                        {max:100, color:'#84cc16', bg:'#f7fee7', label:'Buena'},
-                        {max:200, color:'#eab308', bg:'#fefce8', label:'Moderada'},
-                        {max:400, color:'#f97316', bg:'#fff7ed', label:'Mala'},
-                        {max:9999,color:'#ef4444', bg:'#fef2f2', label:'Muy mala'},
-                    ]},
-                    { key:'ozone',           label:'O₃',    unit:'µg/m³', thresholds:[
-                        {max:60,  color:'#22c55e', bg:'#f0fdf4', label:'Buena'},
-                        {max:100, color:'#84cc16', bg:'#f7fee7', label:'Buena'},
-                        {max:140, color:'#eab308', bg:'#fefce8', label:'Moderada'},
-                        {max:180, color:'#f97316', bg:'#fff7ed', label:'Mala'},
-                        {max:9999,color:'#ef4444', bg:'#fef2f2', label:'Muy mala'},
-                    ]},
-                    { key:'carbon_monoxide', label:'CO',    unit:'mg/m³', thresholds:[
-                        {max:2,   color:'#22c55e', bg:'#f0fdf4', label:'Buena'},
-                        {max:4,   color:'#84cc16', bg:'#f7fee7', label:'Buena'},
-                        {max:8,   color:'#eab308', bg:'#fefce8', label:'Moderada'},
-                        {max:15,  color:'#f97316', bg:'#fff7ed', label:'Mala'},
-                        {max:9999,color:'#ef4444', bg:'#fef2f2', label:'Muy mala'},
-                    ], divisor:1000, decimals:1},
-                    { key:'sulphur_dioxide', label:'SO₂',   unit:'µg/m³', thresholds:[
-                        {max:100, color:'#22c55e', bg:'#f0fdf4', label:'Buena'},
-                        {max:200, color:'#84cc16', bg:'#f7fee7', label:'Buena'},
-                        {max:350, color:'#eab308', bg:'#fefce8', label:'Moderada'},
-                        {max:500, color:'#f97316', bg:'#fff7ed', label:'Mala'},
-                        {max:9999,color:'#ef4444', bg:'#fef2f2', label:'Muy mala'},
-                    ]},
+                    { key:'pm2_5',            label:'PM2.5', unit:'µg/m³', limits:[10, 20, 25, 50, 75, 9999] },
+                    { key:'pm10',             label:'PM10',  unit:'µg/m³', limits:[20, 40, 50, 100, 150, 9999] },
+                    { key:'nitrogen_dioxide', label:'NO₂',   unit:'µg/m³', limits:[40, 90, 120, 230, 340, 9999] },
+                    { key:'ozone',            label:'O₃',    unit:'µg/m³', limits:[50, 100, 130, 240, 380, 9999] },
+                    { key:'carbon_monoxide',  label:'CO',    unit:'mg/m³', limits:[2, 4, 8, 12, 15, 9999], divisor:1000, decimals:1 },
+                    { key:'sulphur_dioxide',  label:'SO₂',   unit:'µg/m³', limits:[100, 200, 350, 500, 750, 9999] },
                 ];
                 container.innerHTML = '<div style="width:100%;display:grid;grid-template-columns:1fr 1fr;gap:6px;">' +
                 items.map(item => {
@@ -5488,11 +5463,14 @@
                     if (item.divisor) raw = raw / item.divisor;
                     const val = item.decimals ? raw.toFixed(item.decimals) : Math.round(raw);
                     const cmp = parseFloat(val);
-                    const tier = item.thresholds.find(t => cmp <= t.max) || item.thresholds[item.thresholds.length-1];
-                    return `<div style="display:flex;flex-direction:column;gap:2px;background:${tier.bg};border-radius:8px;padding:6px 8px;border:1px solid ${tier.color}40;">
+                    const lvlIdx = item.limits.findIndex(l => cmp <= l);
+                    const tier = EAQI_T[lvlIdx === -1 ? EAQI_T.length-1 : lvlIdx];
+                    // Para texto blanco en fondos oscuros (MuyMala, ExtrMala)
+                    const labelTextColor = (lvlIdx >= 4) ? '#fff' : '#1e293b';
+                    return `<div style="display:flex;flex-direction:column;gap:2px;background:${tier.bg};border-radius:8px;padding:6px 8px;border:1px solid ${tier.color}60;">
                         <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
                             <span style="font-size:10px;color:#2c4a6e;font-weight:700;font-family:monospace;">${item.label}</span>
-                            <span style="font-size:9px;font-weight:700;color:#fff;background:${tier.color};border-radius:4px;padding:1px 5px;letter-spacing:0.3px;">${tier.label}</span>
+                            <span style="font-size:8px;font-weight:700;color:${labelTextColor};background:${tier.color};border-radius:4px;padding:1px 5px;letter-spacing:0.3px;white-space:nowrap;">${tier.label}</span>
                         </div>
                         <div style="display:flex;align-items:baseline;gap:3px;">
                             <span style="font-size:15px;font-weight:800;color:${tier.color};font-family:monospace;line-height:1;">${val}</span>
@@ -5502,41 +5480,13 @@
                 }).join('') + '</div>';
             }
 
-            // Calcula un score 0-100+ coherente con la escala europea usada en las tarjetas.
-            // El IQA general = el peor contaminante individual, normalizado a los rangos de AQI_LEVELS.
-            function calcEuropeanScore(current) {
-                const pollutants = [
-                    { key:'pm2_5',            limits:[10,20,25,50,800]    },
-                    { key:'pm10',             limits:[20,40,50,100,1200]  },
-                    { key:'nitrogen_dioxide', limits:[40,100,200,400,1000]},
-                    { key:'ozone',            limits:[60,100,140,180,600] },
-                    { key:'carbon_monoxide',  limits:[2000,4000,8000,15000,30000]},
-                    { key:'sulphur_dioxide',  limits:[100,200,350,500,1250]},
-                ];
-                // scoreStarts: 0-25 Buena, 25-50 Buena+, 50-75 Moderada, 75-100 Mala, 100+ MuyMala
-                const scoreStarts = [0, 25, 50, 75, 100];
-                let worstScore = 0;
-                pollutants.forEach(function(p) {
-                    var val = current[p.key];
-                    if (val == null) return;
-                    var level = p.limits.findIndex(function(l){ return val <= l; });
-                    if (level === -1) level = 4;
-                    var lo = level === 0 ? 0 : p.limits[level-1];
-                    var hi = p.limits[Math.min(level, p.limits.length-1)];
-                    var frac = hi > lo ? (val - lo) / (hi - lo) : 1;
-                    frac = Math.max(0, Math.min(1, frac));
-                    var score = scoreStarts[Math.min(level, 4)] + Math.round(frac * 25);
-                    if (score > worstScore) worstScore = score;
-                });
-                return worstScore;
-            }
-
             async function loadAQI() {
                 try {
                     const aqData = await window._aqDataPromise;
                     if (aqData?.current) {
-                        const score = calcEuropeanScore(aqData.current);
-                        updateSemaforo(score);
+                        // Usar european_aqi oficial de Open-Meteo (escala EAQI 0-100+)
+                        const eaqi = aqData.current.european_aqi ?? aqData.current.us_aqi ?? 0;
+                        updateSemaforo(eaqi);
                         renderPollutants(aqData.current);
                     }
                 } catch(e) { console.warn('AQI load error:', e); }
