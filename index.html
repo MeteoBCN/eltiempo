@@ -5502,12 +5502,41 @@
                 }).join('') + '</div>';
             }
 
+            // Calcula un score 0-100+ coherente con la escala europea usada en las tarjetas.
+            // El IQA general = el peor contaminante individual, normalizado a los rangos de AQI_LEVELS.
+            function calcEuropeanScore(current) {
+                const pollutants = [
+                    { key:'pm2_5',            limits:[10,20,25,50,800]    },
+                    { key:'pm10',             limits:[20,40,50,100,1200]  },
+                    { key:'nitrogen_dioxide', limits:[40,100,200,400,1000]},
+                    { key:'ozone',            limits:[60,100,140,180,600] },
+                    { key:'carbon_monoxide',  limits:[2000,4000,8000,15000,30000]},
+                    { key:'sulphur_dioxide',  limits:[100,200,350,500,1250]},
+                ];
+                // scoreStarts: 0-25 Buena, 25-50 Buena+, 50-75 Moderada, 75-100 Mala, 100+ MuyMala
+                const scoreStarts = [0, 25, 50, 75, 100];
+                let worstScore = 0;
+                pollutants.forEach(function(p) {
+                    var val = current[p.key];
+                    if (val == null) return;
+                    var level = p.limits.findIndex(function(l){ return val <= l; });
+                    if (level === -1) level = 4;
+                    var lo = level === 0 ? 0 : p.limits[level-1];
+                    var hi = p.limits[Math.min(level, p.limits.length-1)];
+                    var frac = hi > lo ? (val - lo) / (hi - lo) : 1;
+                    frac = Math.max(0, Math.min(1, frac));
+                    var score = scoreStarts[Math.min(level, 4)] + Math.round(frac * 25);
+                    if (score > worstScore) worstScore = score;
+                });
+                return worstScore;
+            }
+
             async function loadAQI() {
                 try {
-                    // Reutilizar datos AQI ya cargados por loadWeatherData (evita fetch duplicado)
                     const aqData = await window._aqDataPromise;
-                    if (aqData?.current?.us_aqi != null) {
-                        updateSemaforo(aqData.current.us_aqi);
+                    if (aqData?.current) {
+                        const score = calcEuropeanScore(aqData.current);
+                        updateSemaforo(score);
                         renderPollutants(aqData.current);
                     }
                 } catch(e) { console.warn('AQI load error:', e); }
