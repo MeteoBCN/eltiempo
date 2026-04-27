@@ -5791,6 +5791,14 @@
                 const uviRedondeado = uviMax !== null ? Math.round(uviMax) : null;
 
                 const _uvi3 = uviInfo(uviMax);
+                const _maxRainProb = (() => {
+                    const probs = diaSlots.map(s => s.prec).filter(v => v !== null);
+                    return probs.length ? Math.max(...probs) : null;
+                })();
+                const _rainColor = _maxRainProb === null ? '#94a3b8'
+                    : _maxRainProb >= 60 ? '#3b82f6'
+                    : _maxRainProb >= 40 ? '#eab308'
+                    : '#86efac';
                 const chartHtml = `
                     <div style="background:#f0f7fc;padding:10px 0 0;">
                         <div style="display:flex;justify-content:space-around;align-items:flex-start;padding:0 16px 12px;">
@@ -5809,11 +5817,12 @@
                                 </div>
                                 <span style="font-size:9px;font-weight:700;color:#1e3a5f;text-transform:uppercase;letter-spacing:0.8px;">UV MÁX.</span>
                             </div>
-                            <!-- Círculo vacío (reservado) -->
+                            <!-- Círculo LLUVIA -->
                             <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-                                <div style="width:64px;height:64px;border-radius:50%;background:rgba(44,74,110,0.08);border:2px dashed rgba(44,74,110,0.2);display:flex;align-items:center;justify-content:center;">
+                                <div style="width:64px;height:64px;border-radius:50%;background:${_rainColor};box-shadow:0 3px 10px ${_rainColor}88;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                    <span style="font-size:20px;font-weight:900;color:#fff;line-height:1;">${_maxRainProb !== null ? _maxRainProb+'%' : '—'}</span>
                                 </div>
-                                <span style="font-size:9px;font-weight:700;color:transparent;letter-spacing:0.8px;">—</span>
+                                <span style="font-size:9px;font-weight:700;color:#1e3a5f;text-transform:uppercase;letter-spacing:0.8px;">LLUVIA</span>
                             </div>
                         </div>
                         <div style="display:flex;border-bottom:1px solid rgba(44,74,110,0.15);">
