@@ -5790,11 +5790,31 @@
                 const bdr = 'border-right:1px solid rgba(44,74,110,0.15);';
                 const uviRedondeado = uviMax !== null ? Math.round(uviMax) : null;
 
+                const _uvi3 = uviInfo(uviMax);
                 const chartHtml = `
-                    <div style="background:#f0f7fc;padding:8px 0 0;">
-                        <div style="display:flex;justify-content:center;align-items:center;gap:8px;padding:0 10px 8px;flex-wrap:wrap;">
-                            ${avgSST !== null ? `<span style="display:inline-block;background:#0e6fa8;color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:20px;">TEMPERATURA DEL AGUA &nbsp;${avgSST}°C</span>` : ''}
-                            ${uviRedondeado !== null ? `<span style="display:inline-block;background:#0e6fa8;color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:20px;">UV MÁXIMO PREVISTO &nbsp;${uviRedondeado} · ${uviInfo(uviMax).nivel}</span>` : ''}
+                    <div style="background:#f0f7fc;padding:10px 0 0;">
+                        <div style="display:flex;justify-content:space-around;align-items:flex-start;padding:0 16px 12px;">
+                            <!-- Círculo AGUA -->
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#0e6fa8,#38bdf8);box-shadow:0 3px 10px rgba(14,111,168,0.35);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                    <span style="font-size:16px;font-weight:900;color:#fff;line-height:1;">${avgSST !== null ? avgSST+'°C' : '—'}</span>
+                                </div>
+                                <span style="font-size:9px;font-weight:700;color:#1e3a5f;text-transform:uppercase;letter-spacing:0.8px;">AGUA</span>
+                            </div>
+                            <!-- Círculo UV MÁXIMO -->
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                                <div style="width:64px;height:64px;border-radius:50%;background:${uviRedondeado !== null ? _uvi3.color : '#94a3b8'};box-shadow:0 3px 10px ${uviRedondeado !== null ? _uvi3.color : '#94a3b8'}55;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                    <span style="font-size:20px;font-weight:900;color:#fff;line-height:1;">${uviRedondeado !== null ? uviRedondeado : '—'}</span>
+                                    <span style="font-size:7px;font-weight:700;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.3px;">${uviRedondeado !== null ? _uvi3.nivel : ''}</span>
+                                </div>
+                                <span style="font-size:9px;font-weight:700;color:#1e3a5f;text-transform:uppercase;letter-spacing:0.8px;">UV MÁX.</span>
+                            </div>
+                            <!-- Círculo vacío (reservado) -->
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                                <div style="width:64px;height:64px;border-radius:50%;background:rgba(44,74,110,0.08);border:2px dashed rgba(44,74,110,0.2);display:flex;align-items:center;justify-content:center;">
+                                </div>
+                                <span style="font-size:9px;font-weight:700;color:transparent;letter-spacing:0.8px;">—</span>
+                            </div>
                         </div>
                         <div style="display:flex;border-bottom:1px solid rgba(44,74,110,0.15);">
                             <div style="flex:1;text-align:center;padding:4px 2px;background:#dbeafe;border-right:1px solid rgba(44,74,110,0.15);font-size:9px;font-weight:800;color:#1e3a5f;letter-spacing:0.5px;">08 a 12H</div>
