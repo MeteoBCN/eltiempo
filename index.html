@@ -846,20 +846,22 @@
                     <button class="f7-tab"        data-chart="wind"  onclick="switchF7Tab('wind')"  style="padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;">VIENTO</button>
                 </div>
                 <!-- Paneles gráficos -->
-                <div id="f7-panel-temp"  style="padding:14px 16px 18px;display:block;">
+                <div style="position:relative;height:237px;">
+                <div id="f7-panel-temp"  style="padding:14px 16px 18px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-temp"  style="display:block;width:100%;"></canvas>
                 </div>
-                <div id="f7-panel-rain"  style="padding:14px 16px 18px;display:none;">
+                <div id="f7-panel-rain"  style="padding:14px 16px 18px;position:absolute;inset:0;display:none;">
                     <canvas id="f7-chart-rain"  style="display:block;width:100%;"></canvas>
                 </div>
-                <div id="f7-panel-hum"   style="padding:14px 16px 18px;display:none;">
+                <div id="f7-panel-hum"   style="padding:14px 16px 18px;position:absolute;inset:0;display:none;">
                     <canvas id="f7-chart-hum"   style="display:block;width:100%;"></canvas>
                 </div>
-                <div id="f7-panel-pres"  style="padding:14px 16px 18px;display:none;">
+                <div id="f7-panel-pres"  style="padding:14px 16px 18px;position:absolute;inset:0;display:none;">
                     <canvas id="f7-chart-pres"  style="display:block;width:100%;"></canvas>
                 </div>
-                <div id="f7-panel-wind"  style="padding:14px 16px 18px;display:none;">
+                <div id="f7-panel-wind"  style="padding:14px 16px 18px;position:absolute;inset:0;display:none;">
                     <canvas id="f7-chart-wind"  style="display:block;width:100%;"></canvas>
+                </div>
                 </div>
             </div>
         </div>
@@ -1208,6 +1210,28 @@
                 <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">ÚLTIMOS DATOS</span>
             </div>
 
+            <!-- Gráfico de presión atmosférica -->
+            <div style="border-bottom:1px solid #e2e8f0;">
+                <div style="display:flex;align-items:center;padding:9px 16px;background:#f0f6fa;">
+                    <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">PRESIÓN ATMOSFÉRICA (ÚLTIMAS 24 HORAS)</span>
+                </div>
+                <div id="panel-presion" style="display:block;background:#f8fafc;overflow:hidden;">
+                    <div id="presion-loading" style="padding:20px;text-align:center;color:#64748b;font-size:13px;">Cargando...</div>
+                    <div id="presion-content" style="display:none;padding:12px 14px 8px;">
+                        <!-- Tendencia -->
+                        <div id="presion-tendencia" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px 12px;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);"></div>
+                        <!-- SVG chart -->
+                        <div id="presion-chart" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);overflow:hidden;"></div>
+                        <!-- Valores min/max -->
+                        <div id="presion-stats" style="display:flex;justify-content:space-around;margin-top:8px;"></div>
+                    </div>
+                    <div id="presion-error" style="display:none;padding:16px;text-align:center;color:#ef4444;font-size:13px;">No se pudieron cargar los datos.</div>
+                    <div style="background:#e2eaf3;padding:5px 12px;text-align:center;">
+                        <span style="font-size:9px;color:#6b86a0;letter-spacing:1px;text-transform:uppercase;">Fuente: Open-Meteo</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- METAR / TAF Barcelona (CheckWX) -->
             <div style="border-bottom:1px solid #e2e8f0;">
                 <div onclick="toggleMetarTaf()" style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;cursor:pointer;user-select:none;">
@@ -1252,29 +1276,6 @@
                          loading="lazy"/>
                     <div style="background:#1e293b;padding:6px 12px;text-align:center;">
                         <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Meteocat</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Gráfico de presión atmosférica -->
-            <div style="border-bottom:1px solid #e2e8f0;">
-                <div onclick="toggleExtraSection('presion')" style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;cursor:pointer;user-select:none;">
-                    <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">PRESIÓN ATMOSFÉRICA (ULTIMAS 48 HORAS)</span>
-                    <span id="arrow-presion" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
-                </div>
-                <div id="panel-presion" style="display:none;background:#f8fafc;overflow:hidden;">
-                    <div id="presion-loading" style="padding:20px;text-align:center;color:#64748b;font-size:13px;">Cargando...</div>
-                    <div id="presion-content" style="display:none;padding:12px 14px 8px;">
-                        <!-- Tendencia -->
-                        <div id="presion-tendencia" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px 12px;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);"></div>
-                        <!-- SVG chart -->
-                        <div id="presion-chart" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);overflow:hidden;"></div>
-                        <!-- Valores min/max -->
-                        <div id="presion-stats" style="display:flex;justify-content:space-around;margin-top:8px;"></div>
-                    </div>
-                    <div id="presion-error" style="display:none;padding:16px;text-align:center;color:#ef4444;font-size:13px;">No se pudieron cargar los datos.</div>
-                    <div style="background:#e2eaf3;padding:5px 12px;text-align:center;">
-                        <span style="font-size:9px;color:#6b86a0;letter-spacing:1px;text-transform:uppercase;">Fuente: Open-Meteo</span>
                     </div>
                 </div>
             </div>
@@ -1326,7 +1327,7 @@
             var errEl   = document.getElementById('presion-error');
             try {
                 var PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
-                var url = PROXY_BASE + '/forecast?latitude=41.3888&longitude=2.159&hourly=pressure_msl&past_days=2&forecast_days=1&timezone=Europe%2FMadrid';
+                var url = PROXY_BASE + '/forecast?latitude=41.3888&longitude=2.159&hourly=pressure_msl&past_days=1&forecast_days=1&timezone=Europe%2FMadrid';
                 var r = await fetch(url);
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 var data = await r.json();
@@ -1345,8 +1346,8 @@
             var pressures = data.hourly.pressure_msl;
             var now      = new Date();
 
-            // Últimas 48h hasta ahora
-            var cutFrom = new Date(now.getTime() - 48 * 3600 * 1000);
+            // Últimas 24h hasta ahora
+            var cutFrom = new Date(now.getTime() - 24 * 3600 * 1000);
             var pts = [];
             for (var i = 0; i < times.length; i++) {
                 var t = new Date(times[i]);
@@ -1362,7 +1363,7 @@
             var lastP  = vals[vals.length - 1];
             var firstP = vals[0];
             var diff   = lastP - firstP;
-            var diffH  = diff / 48; // hPa/h tendencia
+            var diffH  = diff / 24; // hPa/h tendencia
 
             // Tendencia
             var tendIcon, tendTxt, tendColor;
@@ -1377,7 +1378,7 @@
                 '<span style="font-size:22px;font-weight:900;color:' + tendColor + ';">' + tendIcon + '</span>' +
                 '<div>' +
                     '<div style="font-size:18px;font-weight:800;color:#1e293b;">' + lastP.toFixed(1) + ' <span style="font-size:11px;font-weight:500;color:#64748b;">hPa</span></div>' +
-                    '<div style="font-size:11px;color:' + tendColor + ';font-weight:600;">' + tendTxt + ' (' + signDiff + diff.toFixed(1) + ' hPa en 48h)</div>' +
+                    '<div style="font-size:11px;color:' + tendColor + ';font-weight:600;">' + tendTxt + ' (' + signDiff + diff.toFixed(1) + ' hPa en 24h)</div>' +
                 '</div>';
 
             // SVG chart
@@ -1458,6 +1459,8 @@
                     '<div style="font-size:15px;font-weight:800;color:#16a34a;">' + maxP.toFixed(1) + ' hPa</div>' +
                 '</div>';
         }
+        // Cargar presión automáticamente al iniciar
+        cargarPresion();
         </script>
 
         <script>
@@ -1594,7 +1597,6 @@
             panel.style.display = isOpen ? 'none' : 'block';
             arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
             if (!isOpen && id === 'embalses') cargarEmbalses();
-            if (!isOpen && id === 'presion') cargarPresion();
         }
         </script>
 
@@ -3873,7 +3875,7 @@
 
             const dpr = window.devicePixelRatio || 1;
             const W   = canvas.parentElement.offsetWidth - 32;
-            const H   = cfg.bar ? 210 : 195;
+            const H   = 205;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
