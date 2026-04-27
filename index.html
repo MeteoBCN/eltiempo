@@ -1135,34 +1135,123 @@
                 <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">RADAR LLUVIA & WEBCAMS</span>
             </div>
 
-            <!-- ── RADAR AEMET BARCELONA — desplegable ── -->
+            <!-- ── RADAR RAINVIEWER — desplegable ── -->
             <div style="border-bottom:1px solid #e2e8f0;">
                 <div onclick="toggleExtraSection('radar-rainviewer')" style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#6fcfe0;cursor:pointer;user-select:none;">
                     <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">RADAR DE LLUVIA</span>
                     <span id="arrow-radar-rainviewer" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
                 </div>
             <div id="panel-radar-rainviewer" style="display:none;overflow:hidden;">
-                <!-- Radar Windy embed -->
                 <div style="position:relative;width:100%;background:#0d1b2a;">
-                    <iframe
-                        src="https://embed.windy.com/embed2.html?lat=41.385&lon=2.173&detailLat=41.385&detailLon=2.173&width=650&height=320&zoom=7&level=surface&overlay=radar&product=radar&menu=&message=&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1"
-                        width="100%"
-                        height="320"
-                        frameborder="0"
-                        style="display:block;"
-                        loading="lazy"
-                        allowfullscreen>
-                    </iframe>
-                    <div style="background:#1a2a3a;padding:7px 12px;text-align:right;">
-                        <span style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase;">Fuente: Windy</span>
+                    <!-- Controles -->
+                    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#1a2a3a;flex-wrap:wrap;">
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;">Color</span>
+                            <select id="rv-color" onchange="rvSetColor(this.value)" style="font-size:10px;background:#2c3e50;color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:2px 4px;cursor:pointer;">
+                                <option value="2">Original</option>
+                                <option value="1">Universal Blue</option>
+                                <option value="3">TITAN</option>
+                                <option value="4">TWC</option>
+                                <option value="5">Meteored</option>
+                                <option value="6">NEXRAD Level III</option>
+                                <option value="7">Rainbow</option>
+                                <option value="8">DarkSky</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;">Opacidad</span>
+                            <input id="rv-opacity" type="range" min="0.1" max="1" step="0.1" value="0.8" oninput="rvSetOpacity(this.value)" style="width:70px;accent-color:#6fcfe0;">
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <label style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;cursor:pointer;">
+                                <input id="rv-snow" type="checkbox" onchange="rvSetSnow(this.checked)" style="accent-color:#6fcfe0;"> Nieve
+                            </label>
+                        </div>
+                        <button onclick="rvTogglePlay()" id="rv-playbtn" style="font-size:9px;font-weight:700;background:#6fcfe0;color:#1a2a3a;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;margin-left:auto;">▶ PLAY</button>
+                    </div>
+                    <!-- Mapa -->
+                    <div id="rv-map" style="width:100%;height:320px;"></div>
+                    <div style="background:#1a2a3a;padding:6px 12px;display:flex;align-items:center;justify-content:space-between;">
+                        <span id="rv-timestamp" style="font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1px;"></span>
+                        <span style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase;">Fuente: RainViewer</span>
                     </div>
                 </div>
             </div>
             </div>
 
-        </div>
+        <script>
+        // ── RAINVIEWER ────────────────────────────────────────────────
+        (function() {
+            let rvMap = null, rvFrames = [], rvIdx = 0, rvTimer = null;
+            let rvColor = 2, rvOpacity = 0.8, rvSnow = false;
+            let rvLayer = null, rvInited = false;
 
-        <!-- RainViewer eliminado: ahora se usa el iframe de Windy -->
+            function rvInit() {
+                if (rvInited) return;
+                rvInited = true;
+                rvMap = L.map('rv-map', { zoomControl: true, attributionControl: false })
+                    .setView([41.385, 2.173], 7);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 18
+                }).addTo(rvMap);
+                // Marcador Barcelona
+                L.circleMarker([41.385, 2.173], { radius: 5, color: '#6fcfe0', fillColor: '#6fcfe0', fillOpacity: 1, weight: 2 })
+                    .addTo(rvMap);
+                fetch('https://api.rainviewer.com/public/weather-maps.json')
+                    .then(r => r.json())
+                    .then(data => {
+                        rvFrames = (data.radar?.past || []).concat(data.radar?.nowcast || []);
+                        if (rvFrames.length) { rvIdx = rvFrames.length - 1; rvShowFrame(rvIdx); }
+                    })
+                    .catch(e => console.warn('RainViewer error:', e));
+            }
+
+            function rvShowFrame(i) {
+                if (!rvFrames.length) return;
+                const f = rvFrames[i];
+                if (rvLayer) rvMap.removeLayer(rvLayer);
+                const colorQ = rvSnow ? `&snow=1&smooth=1` : `&smooth=1`;
+                rvLayer = L.tileLayer(
+                    `https://tilecache.rainviewer.com/v2/radar/${f.path}/256/{z}/{x}/{y}/${rvColor}/1_1.png`,
+                    { opacity: rvOpacity, zIndex: 10 }
+                ).addTo(rvMap);
+                const d = new Date(f.time * 1000);
+                const ts = document.getElementById('rv-timestamp');
+                if (ts) ts.textContent = d.toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short'}) + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+            }
+
+            window.rvSetColor   = v => { rvColor   = parseInt(v); rvShowFrame(rvIdx); };
+            window.rvSetOpacity = v => { rvOpacity = parseFloat(v); if (rvLayer) rvLayer.setOpacity(rvOpacity); };
+            window.rvSetSnow    = v => { rvSnow    = v; rvShowFrame(rvIdx); };
+            window.rvTogglePlay = function() {
+                const btn = document.getElementById('rv-playbtn');
+                if (rvTimer) {
+                    clearInterval(rvTimer); rvTimer = null;
+                    if (btn) btn.textContent = '▶ PLAY';
+                } else {
+                    rvTimer = setInterval(() => {
+                        rvIdx = (rvIdx + 1) % rvFrames.length;
+                        rvShowFrame(rvIdx);
+                    }, 600);
+                    if (btn) btn.textContent = '⏹ STOP';
+                }
+            };
+
+            // Iniciar al abrir el panel
+            const origToggle = window.toggleExtraSection;
+            window.toggleExtraSection = function(id) {
+                origToggle(id);
+                if (id === 'radar-rainviewer') {
+                    const panel = document.getElementById('panel-radar-rainviewer');
+                    if (panel && panel.style.display !== 'none') {
+                        setTimeout(() => { rvInit(); if (rvMap) rvMap.invalidateSize(); }, 100);
+                    }
+                }
+            };
+        })();
+        </script>
+
+        </div>
 
         <!-- ═══════════════════════════════════════════
              WEBCAMS Y RADIOSONDEO DESPLEGABLES
