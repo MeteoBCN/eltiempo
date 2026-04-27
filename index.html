@@ -1173,25 +1173,26 @@
             let rvColor = 8, rvOpacity = 0.8, rvSnow = false;
             let rvLayer = null, rvInited = false;
 
+            let rvApiHost = 'https://tilecache.rainviewer.com';
+
             function rvInit() {
                 if (rvInited) return;
                 rvInited = true;
                 rvMap = L.map('rv-map', { zoomControl: true, attributionControl: false })
-                    .setView([41.385, 2.173], 7);
+                    .setView([41.385, 2.173], 5);
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                     maxZoom: 18
                 }).addTo(rvMap);
-                // Marcador Barcelona
                 L.circleMarker([41.385, 2.173], { radius: 5, color: '#6fcfe0', fillColor: '#6fcfe0', fillOpacity: 1, weight: 2 })
                     .addTo(rvMap);
                 fetch('https://api.rainviewer.com/public/weather-maps.json')
                     .then(r => r.json())
                     .then(data => {
+                        rvApiHost = data.host || rvApiHost;
                         rvFrames = (data.radar?.past || []).concat(data.radar?.nowcast || []);
                         if (rvFrames.length) {
                             rvIdx = rvFrames.length - 1;
                             rvShowFrame(rvIdx);
-                            // Arrancar animación automáticamente
                             rvTimer = setInterval(() => {
                                 rvIdx = (rvIdx + 1) % rvFrames.length;
                                 rvShowFrame(rvIdx);
@@ -1207,9 +1208,8 @@
                 if (!rvFrames.length) return;
                 const f = rvFrames[i];
                 if (rvLayer) rvMap.removeLayer(rvLayer);
-                const colorQ = rvSnow ? `&snow=1&smooth=1` : `&smooth=1`;
                 rvLayer = L.tileLayer(
-                    `https://tilecache.rainviewer.com/v2/radar/${f.path}/256/{z}/{x}/{y}/${rvColor}/1_1.png`,
+                    rvApiHost + f.path + '/256/{z}/{x}/{y}/' + rvColor + '/1_1.png',
                     { opacity: rvOpacity, zIndex: 10 }
                 ).addTo(rvMap);
                 const d = new Date(f.time * 1000);
