@@ -5883,12 +5883,31 @@
                         + '<span style="font-size:8px;color:#94a3b8;">' + r[3] + '</span>'
                         + '</div>';
                 });
-                const legendaHtml = '<div style="padding:10px 12px 12px;background:#f8fbfe;border-top:2px solid #e2f0fb;">'
-                    + '<div style="font-size:7.5px;font-weight:800;color:#2c4a6e;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:7px;">Leyenda — Estado del mar</div>'
-                    + '<div style="display:flex;flex-direction:column;gap:4px;">' + legendRowsHtml + '</div>'
-                    + '</div>';
+                const legendaHtml = `
+                    <div style="border-top:2px solid #e2f0fb;">
+                        <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.wave-leg-arrow').style.transform=this.nextElementSibling.style.display==='block'?'rotate(180deg)':'rotate(0deg)';"
+                             style="padding:8px 16px;background:#e0f2fe;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <span style="font-size:14px;">🌊</span>
+                                <span style="font-size:8px;font-weight:800;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px;">Leyenda — Estado del mar</span>
+                            </div>
+                            <span class="wave-leg-arrow" style="font-size:11px;color:#1e3a5f;transition:transform 0.3s;">▼</span>
+                        </div>
+                        <div style="display:none;padding:10px 14px 14px;background:#f8fbfe;">
+                            <div style="display:flex;flex-direction:column;gap:5px;">
+                                ${legendRows.map(r =>
+                                    `<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:#fff;border-left:4px solid ${r[0]};">
+                                        <span style="font-size:9px;font-weight:800;color:#1e293b;min-width:72px;">${r[1]}</span>
+                                        <span style="font-size:8px;color:#64748b;min-width:58px;">${r[2]}</span>
+                                        <span style="font-size:8px;color:#94a3b8;flex:1;">${r[3]}</span>
+                                    </div>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    </div>`;
                 const bodyHtml = `
                     ${chartHtml}
+                    ${legendaHtml}
                     ${uviHtml}`;
                 if (isToday) {
                     return `<div style="border-bottom:2px solid #c9ddf0;background:#fff;" id="card-${cardId}">
