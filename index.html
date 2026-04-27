@@ -1171,8 +1171,7 @@
         (function() {
             let rvMap = null, rvFrames = [], rvIdx = 0, rvTimer = null;
             let rvColor = 8, rvOpacity = 0.8, rvSnow = false;
-            let rvLayer = null, rvInited = false;
-
+            let rvLayers = [], rvInited = false;
             let rvApiHost = 'https://tilecache.rainviewer.com';
 
             function rvInit() {
@@ -1190,46 +1189,63 @@
                     .then(data => {
                         rvApiHost = data.host || rvApiHost;
                         rvFrames = (data.radar?.past || []).concat(data.radar?.nowcast || []);
-                        if (rvFrames.length) {
-                            rvIdx = rvFrames.length - 1;
-                            rvShowFrame(rvIdx);
-                            rvTimer = setInterval(() => {
-                                rvIdx = (rvIdx + 1) % rvFrames.length;
-                                rvShowFrame(rvIdx);
-                            }, 600);
-                            const btn = document.getElementById('rv-playbtn');
-                            if (btn) btn.textContent = '⏹ STOP';
-                        }
+                        if (!rvFrames.length) return;
+                        // Precargar todos los layers, ocultos
+                        rvFrames.forEach((f, i) => {
+                            const layer = L.tileLayer(
+                                rvApiHost + f.path + '/256/{z}/{x}/{y}/' + rvColor + '/1_1.png',
+                                { opacity: 0, zIndex: 10 }
+                            ).addTo(rvMap);
+                            rvLayers.push(layer);
+                        });
+                        // Mostrar el último (más reciente)
+                        rvIdx = rvFrames.length - 1;
+                        rvLayers[rvIdx].setOpacity(rvOpacity);
+                        rvUpdateTimestamp(rvIdx);
+                        // Arrancar animación
+                        rvStartPlay();
                     })
                     .catch(e => console.warn('RainViewer error:', e));
             }
 
             function rvShowFrame(i) {
-                if (!rvFrames.length) return;
-                const f = rvFrames[i];
-                if (rvLayer) rvMap.removeLayer(rvLayer);
-                rvLayer = L.tileLayer(
-                    rvApiHost + f.path + '/256/{z}/{x}/{y}/' + rvColor + '/1_1.png',
-                    { opacity: rvOpacity, zIndex: 10 }
-                ).addTo(rvMap);
-                const d = new Date(f.time * 1000);
-                const ts = document.getElementById('rv-timestamp');
-                if (ts) ts.textContent = d.toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short'}) + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+                if (!rvLayers.length) return;
+                // Ocultar frame anterior, mostrar el nuevo
+                rvLayers.forEach((l, idx) => l.setOpacity(idx === i ? rvOpacity : 0));
+                rvUpdateTimestamp(i);
             }
 
-            window.rvSetOpacity = v => { rvOpacity = parseFloat(v); if (rvLayer) rvLayer.setOpacity(rvOpacity); };
-            window.rvSetSnow    = v => { rvSnow    = v; rvShowFrame(rvIdx); };
+            function rvUpdateTimestamp(i) {
+                const f = rvFrames[i];
+                if (!f) return;
+                const d = new Date(f.time * 1000);
+                const ts = document.getElementById('rv-timestamp');
+                if (ts) ts.textContent = d.toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'short' })
+                    + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+            }
+
+            function rvStartPlay() {
+                if (rvTimer) clearInterval(rvTimer);
+                rvTimer = setInterval(() => {
+                    rvIdx = (rvIdx + 1) % rvFrames.length;
+                    rvShowFrame(rvIdx);
+                }, 700);
+                const btn = document.getElementById('rv-playbtn');
+                if (btn) btn.textContent = '⏹ STOP';
+            }
+
+            window.rvSetOpacity = v => {
+                rvOpacity = parseFloat(v);
+                if (rvLayers[rvIdx]) rvLayers[rvIdx].setOpacity(rvOpacity);
+            };
+            window.rvSetSnow = v => { rvSnow = v; };
             window.rvTogglePlay = function() {
                 const btn = document.getElementById('rv-playbtn');
                 if (rvTimer) {
                     clearInterval(rvTimer); rvTimer = null;
                     if (btn) btn.textContent = '▶ PLAY';
                 } else {
-                    rvTimer = setInterval(() => {
-                        rvIdx = (rvIdx + 1) % rvFrames.length;
-                        rvShowFrame(rvIdx);
-                    }, 600);
-                    if (btn) btn.textContent = '⏹ STOP';
+                    rvStartPlay();
                 }
             };
 
