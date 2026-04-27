@@ -1237,17 +1237,7 @@
                 }
             };
 
-            // Iniciar al abrir el panel
-            const origToggle = window.toggleExtraSection;
-            window.toggleExtraSection = function(id) {
-                origToggle(id);
-                if (id === 'radar-rainviewer') {
-                    const panel = document.getElementById('panel-radar-rainviewer');
-                    if (panel && panel.style.display !== 'none') {
-                        setTimeout(() => { rvInit(); if (rvMap) rvMap.invalidateSize(); }, 100);
-                    }
-                }
-            };
+            window.rvInit = rvInit;
         })();
         </script>
 
@@ -1686,6 +1676,9 @@
             panel.style.display = isOpen ? 'none' : 'block';
             arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
             if (!isOpen && id === 'embalses') cargarEmbalses();
+            if (!isOpen && id === 'radar-rainviewer') {
+                setTimeout(function() { rvInit(); }, 150);
+            }
         }
         </script>
 
