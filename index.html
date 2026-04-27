@@ -1146,26 +1146,13 @@
                     <!-- Controles -->
                     <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#1a2a3a;flex-wrap:wrap;">
                         <div style="display:flex;align-items:center;gap:6px;">
-                            <span style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;">Color</span>
-                            <select id="rv-color" onchange="rvSetColor(this.value)" style="font-size:10px;background:#2c3e50;color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:2px 4px;cursor:pointer;">
-                                <option value="2">Original</option>
-                                <option value="1">Universal Blue</option>
-                                <option value="3">TITAN</option>
-                                <option value="4">TWC</option>
-                                <option value="5">Meteored</option>
-                                <option value="6">NEXRAD Level III</option>
-                                <option value="7">Rainbow</option>
-                                <option value="8">DarkSky</option>
-                            </select>
+                            <label style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;cursor:pointer;">
+                                <input id="rv-snow" type="checkbox" onchange="rvSetSnow(this.checked)" style="accent-color:#6fcfe0;"> Nieve
+                            </label>
                         </div>
                         <div style="display:flex;align-items:center;gap:6px;">
                             <span style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;">Opacidad</span>
                             <input id="rv-opacity" type="range" min="0.1" max="1" step="0.1" value="0.8" oninput="rvSetOpacity(this.value)" style="width:70px;accent-color:#6fcfe0;">
-                        </div>
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <label style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;cursor:pointer;">
-                                <input id="rv-snow" type="checkbox" onchange="rvSetSnow(this.checked)" style="accent-color:#6fcfe0;"> Nieve
-                            </label>
                         </div>
                         <button onclick="rvTogglePlay()" id="rv-playbtn" style="font-size:9px;font-weight:700;background:#6fcfe0;color:#1a2a3a;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;margin-left:auto;">▶ PLAY</button>
                     </div>
@@ -1183,7 +1170,7 @@
         // ── RAINVIEWER ────────────────────────────────────────────────
         (function() {
             let rvMap = null, rvFrames = [], rvIdx = 0, rvTimer = null;
-            let rvColor = 2, rvOpacity = 0.8, rvSnow = false;
+            let rvColor = 8, rvOpacity = 0.8, rvSnow = false;
             let rvLayer = null, rvInited = false;
 
             function rvInit() {
@@ -1201,7 +1188,17 @@
                     .then(r => r.json())
                     .then(data => {
                         rvFrames = (data.radar?.past || []).concat(data.radar?.nowcast || []);
-                        if (rvFrames.length) { rvIdx = rvFrames.length - 1; rvShowFrame(rvIdx); }
+                        if (rvFrames.length) {
+                            rvIdx = rvFrames.length - 1;
+                            rvShowFrame(rvIdx);
+                            // Arrancar animación automáticamente
+                            rvTimer = setInterval(() => {
+                                rvIdx = (rvIdx + 1) % rvFrames.length;
+                                rvShowFrame(rvIdx);
+                            }, 600);
+                            const btn = document.getElementById('rv-playbtn');
+                            if (btn) btn.textContent = '⏹ STOP';
+                        }
                     })
                     .catch(e => console.warn('RainViewer error:', e));
             }
@@ -1220,7 +1217,6 @@
                 if (ts) ts.textContent = d.toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short'}) + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
             }
 
-            window.rvSetColor   = v => { rvColor   = parseInt(v); rvShowFrame(rvIdx); };
             window.rvSetOpacity = v => { rvOpacity = parseFloat(v); if (rvLayer) rvLayer.setOpacity(rvOpacity); };
             window.rvSetSnow    = v => { rvSnow    = v; rvShowFrame(rvIdx); };
             window.rvTogglePlay = function() {
@@ -1678,8 +1674,7 @@
             if (!isOpen && id === 'embalses') cargarEmbalses();
             if (!isOpen && id === 'radar-rainviewer') {
                 setTimeout(function() { rvInit(); }, 150);
-            }
-        }
+            }        }
         </script>
 
         <script>
