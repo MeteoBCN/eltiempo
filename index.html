@@ -773,8 +773,11 @@
                 <div style="display:flex;align-items:center;justify-content:center;padding:8px 16px 6px;background:#2c4a6e;">
                     <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">TEMPERATURA PRÓXIMAS 24H</span>
                 </div>
-                <div style="padding:12px 12px 6px;position:relative;">
-                    <canvas id="temp24h-canvas" style="display:block;width:100%;height:110px;"></canvas>
+                <!-- Fila iconos cielo + % lluvia -->
+                <div id="temp24h-icons" style="display:flex;padding:4px 12px 0;background:#f8fafc;border-bottom:1px solid #e8f0f7;min-height:38px;"></div>
+                <!-- Canvas línea de temperatura -->
+                <div style="padding:8px 12px 6px;position:relative;background:#f8fafc;">
+                    <canvas id="temp24h-canvas" style="display:block;width:100%;height:90px;"></canvas>
                 </div>
             </div>
             <!-- ═══════════════════════════════════════════
@@ -5075,7 +5078,12 @@
         // ══════════════════════════════════════════════
         function updateTemp24hChart(hourly) {
             const canvas = document.getElementById('temp24h-canvas');
+            const iconsRow = document.getElementById('temp24h-icons');
             if (!canvas || !hourly?.time || !hourly?.temperature_2m) return;
+
+            // WMO → emoji (día / noche)
+            const WMO_DAY   = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
+            const WMO_NIGHT = {0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
 
             // Recoge las próximas 24 horas desde ahora
             const now = new Date();
@@ -5086,18 +5094,46 @@
                 if (pts.length >= 25) break;
                 const temp = hourly.temperature_2m[i];
                 if (temp == null) continue;
+                const wmo = hourly.weather_code?.[i] ?? 0;
+                const ht  = new Date(hourly.time[i]);
+                const night = isNightTime(ht);
                 pts.push({
-                    time: hourly.time[i],
-                    temp: Math.round(temp),
-                    precip: hourly.precipitation_probability?.[i] ?? 0
+                    time:   hourly.time[i],
+                    temp:   Math.round(temp),
+                    precip: hourly.precipitation_probability?.[i] ?? 0,
+                    emoji:  (night ? WMO_NIGHT : WMO_DAY)[wmo] ?? '☀️',
+                    night
                 });
             }
             if (pts.length < 2) return;
 
-            // Dimensiones
+            // ~6 índices etiquetados distribuidos uniformemente
+            const step = Math.max(1, Math.floor(pts.length / 6));
+            const labelIdxs = [];
+            for (let i = 0; i < pts.length; i += step) labelIdxs.push(i);
+            if (!labelIdxs.includes(pts.length - 1)) labelIdxs.push(pts.length - 1);
+
+            // ── Fila de iconos del cielo (HTML sobre el canvas) ──────────
+            if (iconsRow) {
+                iconsRow.innerHTML = '';
+                labelIdxs.forEach((idx, pos) => {
+                    const p = pts[idx];
+                    const isNow = idx === 0;
+                    const pp = p.precip;
+                    const rainColor = pp >= 60 ? '#3b82f6' : pp >= 30 ? '#60a5fa' : '#cbd5e1';
+                    const cell = document.createElement('div');
+                    cell.style.cssText = `flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 0 2px;${isNow ? 'background:rgba(37,99,235,0.07);border-radius:6px;' : ''}`;
+                    cell.innerHTML = `
+                        <span style="font-size:15px;line-height:1;">${p.emoji}</span>
+                        <span style="font-size:9px;font-weight:700;color:${pp > 0 ? rainColor : '#cbd5e1'};line-height:1;">${pp > 0 ? pp + '%' : '—'}</span>`;
+                    iconsRow.appendChild(cell);
+                });
+            }
+
+            // ── Canvas: línea de temperatura ────────────────────────────
             const dpr = window.devicePixelRatio || 1;
             const W = canvas.offsetWidth || canvas.parentElement.offsetWidth || 340;
-            const H = 110;
+            const H = 90;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -5105,7 +5141,7 @@
             const ctx = canvas.getContext('2d');
             ctx.scale(dpr, dpr);
 
-            const PAD = { t: 22, b: 22, l: 28, r: 12 };
+            const PAD = { t: 18, b: 20, l: 28, r: 12 };
             const cw = W - PAD.l - PAD.r;
             const ch = H - PAD.t - PAD.b;
 
@@ -5116,11 +5152,10 @@
             function xPos(i) { return PAD.l + (i / (pts.length - 1)) * cw; }
             function yPos(t) { return PAD.t + (1 - (t - minT) / (maxT - minT)) * ch; }
 
-            // Degradado de fondo bajo la línea
+            // Degradado relleno
             const grad = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ch);
             grad.addColorStop(0, 'rgba(59,130,246,0.18)');
             grad.addColorStop(1, 'rgba(59,130,246,0.02)');
-
             ctx.beginPath();
             ctx.moveTo(xPos(0), yPos(temps[0]));
             for (let i = 1; i < pts.length; i++) {
@@ -5145,19 +5180,12 @@
             ctx.lineJoin    = 'round';
             ctx.stroke();
 
-            // Etiquetas de hora y temperatura
-            // Mostrar ~6 etiquetas distribuidas
-            const step = Math.max(1, Math.floor(pts.length / 6));
-            const labelIdxs = [];
-            for (let i = 0; i < pts.length; i += step) labelIdxs.push(i);
-            if (!labelIdxs.includes(pts.length - 1)) labelIdxs.push(pts.length - 1);
-
+            // Puntos + etiquetas temperatura + hora
             labelIdxs.forEach(i => {
                 const x = xPos(i);
                 const y = yPos(temps[i]);
                 const isNow = i === 0;
 
-                // Punto en la línea
                 ctx.beginPath();
                 ctx.arc(x, y, isNow ? 4 : 3, 0, Math.PI * 2);
                 ctx.fillStyle = isNow ? '#1d4ed8' : '#3b82f6';
@@ -5170,20 +5198,20 @@
                 ctx.font = `bold ${isNow ? 11 : 10}px Inter,sans-serif`;
                 ctx.fillStyle = isNow ? '#1d4ed8' : '#334155';
                 ctx.textAlign = 'center';
-                ctx.fillText(temps[i] + '°', x, y - 7);
+                ctx.fillText(temps[i] + '°', x, y - 6);
 
                 // Hora debajo
                 const hh = pts[i].time.slice(11, 16);
                 ctx.font = `${isNow ? 'bold ' : ''}9px Inter,sans-serif`;
                 ctx.fillStyle = isNow ? '#1d4ed8' : '#64748b';
-                ctx.fillText(isNow ? 'ahora' : hh, x, H - 5);
+                ctx.fillText(isNow ? 'ahora' : hh, x, H - 4);
             });
 
-            // Línea base inferior
+            // Línea base
             ctx.beginPath();
             ctx.moveTo(PAD.l, PAD.t + ch + 1);
             ctx.lineTo(PAD.l + cw, PAD.t + ch + 1);
-            ctx.strokeStyle = 'rgba(148,163,184,0.3)';
+            ctx.strokeStyle = 'rgba(148,163,184,0.25)';
             ctx.lineWidth = 1;
             ctx.stroke();
         }
