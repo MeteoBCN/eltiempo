@@ -2289,7 +2289,16 @@
                 const iconDt = new Date(f.fecha + 'T' + (esNoche ? '23' : String(Math.floor((f.h0+f.h1)/2)).padStart(2,'0')) + ':00:00');
                 const cd = { cloud_cover: hourly.cloud_cover?.[mi], cloud_cover_low: hourly.cloud_cover_low?.[mi], cloud_cover_mid: hourly.cloud_cover_mid?.[mi] };
                 const esNocheIcon = (f.tipo==='noche'||f.tipo==='madrugada');
-                const icon = getSvgIcon(hourly.weather_code?.[mi] ?? 0, 40, esNocheIcon);
+                const wmoRawFranja = hourly.weather_code?.[mi] ?? 0;
+                const precipProbFranja = hourly.precipitation_probability?.[mi] ?? 0;
+                const isRainCodeFranja = (wmoRawFranja>=51&&wmoRawFranja<=82)||(wmoRawFranja>=85&&wmoRawFranja<=86)||(wmoRawFranja>=95&&wmoRawFranja<=99);
+                const isFogFranja = (wmoRawFranja===45||wmoRawFranja===48);
+                let effectiveWmoFranja = wmoRawFranja;
+                if(!isFogFranja){
+                    if(!isRainCodeFranja && precipProbFranja>=50) effectiveWmoFranja=80;
+                    else if(isRainCodeFranja && precipProbFranja<50) effectiveWmoFranja=3;
+                }
+                const icon = getSvgIcon(effectiveWmoFranja, 40, esNocheIcon);
 
                 // Lluvia total
                 const precip = ids.reduce((s,i) => s + (hourly.precipitation?.[i]||0), 0).toFixed(1);
