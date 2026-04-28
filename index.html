@@ -2428,11 +2428,11 @@
 
             // Si hay riesgo, calcular los momentos con mayor probabilidad por día
             let picoHTML = '';
-            if (maxGlobal >= 15) {
+            if (maxGlobal >= 50) {
                 // Agrupar picos por día
                 const picosPorDia = {};
                 horas48.forEach(x => {
-                    if (x.probTorm < 15) return;
+                    if (x.probTorm < 50) return;
                     if (!picosPorDia[x.dia] || x.probTorm > picosPorDia[x.dia].probTorm)
                         picosPorDia[x.dia] = x;
                 });
@@ -4845,22 +4845,22 @@
             // ── ETIQUETA Y COLOR ────────────────────────────────────
             var nivel, color, bg, emoji, consejo;
             if (score >= 90) {
-                nivel = 'Excelentes condiciones'; color = '#16a34a'; bg = '#f0fdf4'; emoji = '🟢';
+                nivel = 'Excelentes condiciones'; color = '#16a34a'; bg = '#f0fdf4'; emoji = '';
                 consejo = 'Condiciones perfectas. Escenario ideal.';
             } else if (score >= 80) {
-                nivel = 'Buenas condiciones'; color = '#22c55e'; bg = '#f0fdf4'; emoji = '🟢';
+                nivel = 'Buenas condiciones'; color = '#22c55e'; bg = '#f0fdf4'; emoji = '';
                 consejo = 'No hay restricciones y puedes realizar entrenamientos de alta intensidad o larga duración con total seguridad.';
             } else if (score >= 70) {
-                nivel = 'Condiciones aceptables'; color = '#84cc16'; bg = '#f7fee7'; emoji = '🟡';
+                nivel = 'Condiciones aceptables'; color = '#84cc16'; bg = '#f7fee7'; emoji = '';
                 consejo = 'Recomendable para la mayoría. Personas con asma o alergias deben estar atentas a posibles síntomas.';
             } else if (score >= 50) {
-                nivel = 'Poco aconsejable'; color = '#f59e0b'; bg = '#fffbeb'; emoji = '🟡';
+                nivel = 'Poco aconsejable'; color = '#f59e0b'; bg = '#fffbeb'; emoji = '';
                 consejo = 'Solo se aconseja para personas sanas si reducen la intensidad y duración.';
             } else if (score >= 30) {
-                nivel = 'Malas condiciones'; color = '#f97316'; bg = '#fff7ed'; emoji = '🔴';
+                nivel = 'Malas condiciones'; color = '#f97316'; bg = '#fff7ed'; emoji = '';
                 consejo = 'No recomendable. Mejor posponer o entrenar en interior.';
             } else {
-                nivel = 'Condiciones nada recomendables'; color = '#ef4444'; bg = '#fef2f2'; emoji = '🔴';
+                nivel = 'Condiciones nada recomendables'; color = '#ef4444'; bg = '#fef2f2'; emoji = '';
                 consejo = 'Evita salir. Condiciones adversas para cualquier deporte exterior.';
             }
 
@@ -4928,7 +4928,7 @@
                         '</div>' +
                     '</div>' +
                     '<div style="flex:1;min-width:0;">' +
-                        '<div style="font-size:16px;font-weight:800;color:' + color + ';margin-bottom:2px;">' + emoji + ' ' + nivel + '</div>' +
+                        '<div style="font-size:16px;font-weight:800;color:' + color + ';margin-bottom:2px;">' + nivel + '</div>' +
                         '<div style="font-size:11px;color:#374151;line-height:1.45;">' + consejo + '</div>' +
                     '</div>' +
                 '</div>' +
