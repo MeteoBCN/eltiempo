@@ -766,6 +766,21 @@
                 </div><!-- fin current-weather -->
             </div><!-- fin hero-zone -->
 
+            <!-- ═══════════════════════════════════════════
+                 GRÁFICO TEMPERATURA 24H
+            ════════════════════════════════════════════ -->
+            <div id="temp24h-section" style="background:#ffffff;padding:0 0 4px;">
+                <div style="display:flex;align-items:center;justify-content:center;padding:8px 16px 6px;background:#2c4a6e;">
+                    <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">TEMPERATURA PRÓXIMAS 24H</span>
+                </div>
+                <div style="padding:12px 12px 6px;position:relative;">
+                    <canvas id="temp24h-canvas" style="display:block;width:100%;height:110px;"></canvas>
+                </div>
+            </div>
+            <!-- ═══════════════════════════════════════════
+                 FIN GRÁFICO TEMPERATURA 24H
+            ════════════════════════════════════════════ -->
+
         </div><!-- fin content-section -->
 
         <!-- ═══════════════════════════════════════════
@@ -4250,6 +4265,7 @@
                     }
                 }
                 updateCurrentWeather(data.current, data.current.weather_code, precipToday, data.hourly);
+                updateTemp24hChart(data.hourly);
                 updateHourlyStrip(data.hourly, data.daily);
                 updateFranjasTable(data.hourly, data.daily);
                 updateTodayTable(data.daily, data.hourly);
@@ -5053,6 +5069,127 @@
             const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
             document.getElementById('update-time').textContent='Actualizado: '+now.getDate()+' de '+meses[now.getMonth()]+' de '+now.getFullYear();
         }
+
+        // ══════════════════════════════════════════════
+        //  GRÁFICO TEMPERATURA 24H
+        // ══════════════════════════════════════════════
+        function updateTemp24hChart(hourly) {
+            const canvas = document.getElementById('temp24h-canvas');
+            if (!canvas || !hourly?.time || !hourly?.temperature_2m) return;
+
+            // Recoge las próximas 24 horas desde ahora
+            const now = new Date();
+            const nowStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + 'T' + String(now.getHours()).padStart(2,'0');
+            const pts = [];
+            for (let i = 0; i < hourly.time.length; i++) {
+                if (hourly.time[i] < nowStr) continue;
+                if (pts.length >= 25) break;
+                const temp = hourly.temperature_2m[i];
+                if (temp == null) continue;
+                pts.push({
+                    time: hourly.time[i],
+                    temp: Math.round(temp),
+                    precip: hourly.precipitation_probability?.[i] ?? 0
+                });
+            }
+            if (pts.length < 2) return;
+
+            // Dimensiones
+            const dpr = window.devicePixelRatio || 1;
+            const W = canvas.offsetWidth || canvas.parentElement.offsetWidth || 340;
+            const H = 110;
+            canvas.width  = W * dpr;
+            canvas.height = H * dpr;
+            canvas.style.width  = W + 'px';
+            canvas.style.height = H + 'px';
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+
+            const PAD = { t: 22, b: 22, l: 28, r: 12 };
+            const cw = W - PAD.l - PAD.r;
+            const ch = H - PAD.t - PAD.b;
+
+            const temps = pts.map(p => p.temp);
+            const minT  = Math.min(...temps) - 1;
+            const maxT  = Math.max(...temps) + 1;
+
+            function xPos(i) { return PAD.l + (i / (pts.length - 1)) * cw; }
+            function yPos(t) { return PAD.t + (1 - (t - minT) / (maxT - minT)) * ch; }
+
+            // Degradado de fondo bajo la línea
+            const grad = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ch);
+            grad.addColorStop(0, 'rgba(59,130,246,0.18)');
+            grad.addColorStop(1, 'rgba(59,130,246,0.02)');
+
+            ctx.beginPath();
+            ctx.moveTo(xPos(0), yPos(temps[0]));
+            for (let i = 1; i < pts.length; i++) {
+                const xc = (xPos(i-1) + xPos(i)) / 2;
+                ctx.bezierCurveTo(xc, yPos(temps[i-1]), xc, yPos(temps[i]), xPos(i), yPos(temps[i]));
+            }
+            ctx.lineTo(xPos(pts.length-1), PAD.t + ch);
+            ctx.lineTo(xPos(0), PAD.t + ch);
+            ctx.closePath();
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Línea principal
+            ctx.beginPath();
+            ctx.moveTo(xPos(0), yPos(temps[0]));
+            for (let i = 1; i < pts.length; i++) {
+                const xc = (xPos(i-1) + xPos(i)) / 2;
+                ctx.bezierCurveTo(xc, yPos(temps[i-1]), xc, yPos(temps[i]), xPos(i), yPos(temps[i]));
+            }
+            ctx.strokeStyle = '#2563EB';
+            ctx.lineWidth   = 2;
+            ctx.lineJoin    = 'round';
+            ctx.stroke();
+
+            // Etiquetas de hora y temperatura
+            // Mostrar ~6 etiquetas distribuidas
+            const step = Math.max(1, Math.floor(pts.length / 6));
+            const labelIdxs = [];
+            for (let i = 0; i < pts.length; i += step) labelIdxs.push(i);
+            if (!labelIdxs.includes(pts.length - 1)) labelIdxs.push(pts.length - 1);
+
+            labelIdxs.forEach(i => {
+                const x = xPos(i);
+                const y = yPos(temps[i]);
+                const isNow = i === 0;
+
+                // Punto en la línea
+                ctx.beginPath();
+                ctx.arc(x, y, isNow ? 4 : 3, 0, Math.PI * 2);
+                ctx.fillStyle = isNow ? '#1d4ed8' : '#3b82f6';
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Temperatura encima del punto
+                ctx.font = `bold ${isNow ? 11 : 10}px Inter,sans-serif`;
+                ctx.fillStyle = isNow ? '#1d4ed8' : '#334155';
+                ctx.textAlign = 'center';
+                ctx.fillText(temps[i] + '°', x, y - 7);
+
+                // Hora debajo
+                const hh = pts[i].time.slice(11, 16);
+                ctx.font = `${isNow ? 'bold ' : ''}9px Inter,sans-serif`;
+                ctx.fillStyle = isNow ? '#1d4ed8' : '#64748b';
+                ctx.fillText(isNow ? 'ahora' : hh, x, H - 5);
+            });
+
+            // Línea base inferior
+            ctx.beginPath();
+            ctx.moveTo(PAD.l, PAD.t + ch + 1);
+            ctx.lineTo(PAD.l + cw, PAD.t + ch + 1);
+            ctx.strokeStyle = 'rgba(148,163,184,0.3)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+        // ══════════════════════════════════════════════
+        //  FIN GRÁFICO TEMPERATURA 24H
+        // ══════════════════════════════════════════════
 
         loadWeatherData();
         setInterval(loadWeatherData, 600000);
