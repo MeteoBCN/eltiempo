@@ -774,13 +774,13 @@
                     <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">TEMPERATURA PRÓXIMAS 24H</span>
                 </div>
                 <!-- Fila iconos cielo -->
-                <div id="temp24h-icons" style="display:flex;padding:4px 12px 0;background:#f8fafc;min-height:38px;"></div>
-                <!-- Mensaje lluvia 24h -->
-                <div id="temp24h-rain-msg" style="display:none;padding:5px 16px 6px;background:#f8fafc;border-bottom:1px solid #e8f0f7;text-align:center;"></div>
+                <div id="temp24h-icons" style="display:flex;padding:4px 12px 0;background:#f8fafc;border-bottom:1px solid #e8f0f7;min-height:38px;"></div>
                 <!-- Canvas línea de temperatura -->
                 <div style="padding:8px 12px 6px;position:relative;background:#f8fafc;">
                     <canvas id="temp24h-canvas" style="display:block;width:100%;height:90px;"></canvas>
                 </div>
+                <!-- Mensaje lluvia 24h — debajo del gráfico -->
+                <div id="temp24h-rain-msg" style="display:none;padding:5px 16px 8px;background:#f8fafc;border-top:1px solid #e8f0f7;text-align:center;"></div>
             </div>
             <!-- ═══════════════════════════════════════════
                  FIN GRÁFICO TEMPERATURA 24H
@@ -791,6 +791,7 @@
         <!-- ═══════════════════════════════════════════
              PREVISIÓN POR HORAS
         ════════════════════════════════════════════ -->
+        <div style="height:60px;background:#ffffff;"></div>
         <div id="forecast7-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
             <!-- Cabecera -->
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;gap:3px;">
@@ -5118,13 +5119,13 @@
             // ── Fila de iconos del cielo (HTML sobre el canvas) ──────────
             if (iconsRow) {
                 iconsRow.innerHTML = '';
-                labelIdxs.forEach((idx) => {
-                    const p = pts[idx];
-                    const isNow = idx === 0;
-                    const wmo = hourly.weather_code?.[idx] ?? 0;
-                    const ht  = new Date(hourly.time[idx]);
-                    const night = isNightTime(ht);
-                    const svgIcon = getSvgIcon(wmo, 28, night);
+                labelIdxs.forEach((ptsIdx) => {
+                    const p = pts[ptsIdx];
+                    const isNow = ptsIdx === 0;
+                    // Buscar el índice real en hourly para obtener el wmo correcto
+                    const hIdx = hourly.time.findIndex(t => t === p.time);
+                    const wmo = hIdx !== -1 ? (hourly.weather_code?.[hIdx] ?? 0) : 0;
+                    const svgIcon = getSvgIcon(wmo, 28, p.night);
                     const cell = document.createElement('div');
                     cell.style.cssText = `flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:4px 0 2px;${isNow ? 'background:rgba(37,99,235,0.07);border-radius:6px;' : ''}`;
                     cell.innerHTML = `<span style="line-height:1;display:flex;align-items:center;justify-content:center;">${svgIcon}</span>`;
@@ -5151,23 +5152,21 @@
                     }
                 }
 
-                let msgText = '', msgColor = '', msgIcon = '';
+                let msgText = '';
                 if (maxRainProb < 40) {
-                    msgText  = 'No se espera lluvia';
-                    msgColor = '#16a34a';
-                    msgIcon  = '✅';
+                    msgText = 'No se espera lluvia';
                 } else if (maxRainProb <= 60) {
-                    msgText  = `No se descarta lluvia${firstRainHour ? ' a partir de las ' + firstRainHour + 'h' : ''}`;
-                    msgColor = '#d97706';
-                    msgIcon  = '🌦️';
+                    msgText = firstRainHour
+                        ? `No se descarta lluvia a partir de las ${firstRainHour}h`
+                        : 'No se descarta lluvia';
                 } else {
-                    msgText  = `Se espera lluvia${firstRainHour ? ' a partir de las ' + firstRainHour + 'h' : ''}`;
-                    msgColor = '#2563eb';
-                    msgIcon  = '🌧️';
+                    msgText = firstRainHour
+                        ? `Se espera lluvia a partir de las ${firstRainHour}h`
+                        : 'Se espera lluvia';
                 }
 
                 rainMsgEl.style.display = 'block';
-                rainMsgEl.innerHTML = `<span style="font-size:11px;font-weight:700;color:${msgColor};letter-spacing:0.3px;">${msgIcon} ${msgText}</span>`;
+                rainMsgEl.innerHTML = `<span style="font-size:11px;font-weight:700;color:#1e3a5f;letter-spacing:0.3px;">${msgText}</span>`;
             }
 
             // ── Canvas: línea de temperatura ────────────────────────────
