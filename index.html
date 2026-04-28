@@ -4271,7 +4271,7 @@
                     }
                 }
                 updateCurrentWeather(data.current, data.current.weather_code, precipToday, data.hourly);
-                updateTemp24hChart(data.hourly);
+                updateTemp24hChart(data.hourly, data.daily);
                 updateHourlyStrip(data.hourly, data.daily);
                 updateFranjasTable(data.hourly, data.daily);
                 updateTodayTable(data.daily, data.hourly);
@@ -5079,7 +5079,7 @@
         // ══════════════════════════════════════════════
         //  GRÁFICO TEMPERATURA 24H
         // ══════════════════════════════════════════════
-        function updateTemp24hChart(hourly) {
+        function updateTemp24hChart(hourly, daily) {
             const canvas = document.getElementById('temp24h-canvas');
             const iconsRow = document.getElementById('temp24h-icons');
             if (!canvas || !hourly?.time || !hourly?.temperature_2m) return;
@@ -5165,8 +5165,49 @@
                         : 'Se espera lluvia';
                 }
 
+                // ── Amanecer / puesta de sol próximos ────────────────────
+                const now2 = new Date();
+                let nextSunrise = null, nextSunset = null;
+                if (daily?.sunrise && daily?.sunset) {
+                    for (let d = 0; d < daily.sunrise.length; d++) {
+                        const sr = new Date(daily.sunrise[d]);
+                        if (sr > now2 && !nextSunrise) nextSunrise = sr;
+                    }
+                    for (let d = 0; d < daily.sunset.length; d++) {
+                        const ss = new Date(daily.sunset[d]);
+                        if (ss > now2 && !nextSunset) nextSunset = ss;
+                    }
+                }
+                const fmtTime = dt => dt ? dt.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) : '--:--';
+                const srStr = fmtTime(nextSunrise);
+                const ssStr = fmtTime(nextSunset);
+
+                // ── Intensidad del viento en las próximas 24h ─────────────
+                let maxWind24 = 0;
+                for (let i = 0; i < pts.length; i++) {
+                    const hIdx = hourly.time.findIndex(t => t === pts[i].time);
+                    if (hIdx !== -1) {
+                        const ws = hourly.wind_speed_10m?.[hIdx] ?? 0;
+                        if (ws > maxWind24) maxWind24 = ws;
+                    }
+                }
+                let windLabel, windColor;
+                if (maxWind24 < 12)       { windLabel = 'Calma / flojo';   windColor = '#10B981'; }
+                else if (maxWind24 < 30)  { windLabel = 'Moderado';        windColor = '#3B82F6'; }
+                else if (maxWind24 < 50)  { windLabel = 'Fuerte';          windColor = '#F59E0B'; }
+                else if (maxWind24 < 75)  { windLabel = 'Muy fuerte';      windColor = '#F97316'; }
+                else                      { windLabel = 'Huracanado';      windColor = '#EF4444'; }
+
                 rainMsgEl.style.display = 'block';
-                rainMsgEl.innerHTML = `<span style="font-size:11px;font-weight:700;color:#1e3a5f;letter-spacing:0.3px;">${msgText}</span>`;
+                rainMsgEl.innerHTML = `
+                    <div style="display:flex;flex-direction:column;gap:5px;align-items:center;">
+                        <span style="font-size:11px;font-weight:700;color:#1e3a5f;letter-spacing:0.3px;">${msgText}</span>
+                        <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+                            <span style="font-size:11px;color:#1e3a5f;"><span style="font-size:13px;">🌅</span> Amanecer <strong>${srStr}</strong></span>
+                            <span style="font-size:11px;color:#1e3a5f;"><span style="font-size:13px;">🌇</span> Puesta de sol <strong>${ssStr}</strong></span>
+                        </div>
+                        <span style="font-size:11px;color:#1e3a5f;"><span style="font-size:13px;">💨</span> Viento: <strong style="color:${windColor};">${windLabel}</strong> (máx. ${Math.round(maxWind24)} km/h)</span>
+                    </div>`;
             }
 
             // ── Canvas: línea de temperatura ────────────────────────────
