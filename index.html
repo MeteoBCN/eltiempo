@@ -5230,8 +5230,9 @@
                 if (!arcContainer || !arcCanvas) return;
 
                 const now3 = new Date();
+                const fmtT = dt => dt.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
 
-                // Determinar qué evento solar es el próximo y el anterior
+                // Recoger todos los eventos y ordenarlos
                 let events = [];
                 if (daily?.sunrise && daily?.sunset) {
                     for (let d = 0; d < daily.sunrise.length; d++) {
@@ -5249,11 +5250,21 @@
                 }
                 if (!prev || !next) return;
 
+                // Próximo amanecer y próxima puesta de sol (desde ahora)
+                let nextRise = null, nextSet = null;
+                for (const ev of events) {
+                    if (ev.t > now3) {
+                        if (!nextRise && ev.type === 'rise') nextRise = ev.t;
+                        if (!nextSet  && ev.type === 'set')  nextSet  = ev.t;
+                    }
+                }
+
                 arcContainer.style.display = 'block';
 
+                // Ajustar altura del canvas para incluir panel inferior de datos
                 const dpr2 = window.devicePixelRatio || 1;
                 const W2   = arcCanvas.offsetWidth || arcCanvas.parentElement.offsetWidth || 340;
-                const H2   = 72;
+                const H2   = 110; // más alto para el panel de datos
                 arcCanvas.width  = W2 * dpr2;
                 arcCanvas.height = H2 * dpr2;
                 arcCanvas.style.width  = W2 + 'px';
@@ -5266,56 +5277,88 @@
                 const elapsed = now3  - prev.t;
                 const prog    = Math.max(0, Math.min(1, elapsed / total));
 
-                const isDaytime = (prev.type === 'rise'); // de amanecer a atardecer = día
+                const isDaytime = (prev.type === 'rise');
 
-                // Paleta según si es de día o de noche
+                // Paleta: siempre negro→naranja para el arco
                 const skyColor  = isDaytime ? '#fef9ee' : '#0f172a';
-                const arcColor  = isDaytime
-                    ? { from: '#fb923c', via: '#fbbf24', to: '#f97316' }
-                    : { from: '#6366f1', via: '#818cf8', to: '#4f46e5' };
-                const sunColor  = isDaytime ? '#fbbf24' : '#c7d2fe';
-                const textColor = isDaytime ? '#92400e' : '#c7d2fe';
-                const lineColor = isDaytime ? 'rgba(180,120,0,0.2)' : 'rgba(99,102,241,0.2)';
+                const textColor = isDaytime ? '#7c3500' : '#c7d2fe';
+                const horizColor= isDaytime ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)';
+                const sunColor  = isDaytime ? '#ff8c00' : '#c7d2fe';
 
-                // Geometría del arco
-                const cx    = W2 / 2;
-                const cy    = H2 - 10;       // centro en la base
-                const rx    = W2 * 0.44;
-                const ry    = H2 * 0.85;
-                const startA = Math.PI;       // izquierda (salida)
-                const endA   = 0;             // derecha   (puesta)
-                const sunA   = Math.PI - prog * Math.PI; // ángulo actual del sol
+                // Área del arco (parte superior)
+                const arcH = 72;
+                const cx   = W2 / 2;
+                const cy   = arcH - 10;
+                const rx   = W2 * 0.44;
+                const ry   = arcH * 0.85;
+                const sunA = Math.PI - prog * Math.PI;
 
-                // Fondo
+                // Fondo cielo
                 ctx2.fillStyle = skyColor;
-                ctx2.fillRect(0, 0, W2, H2);
+                ctx2.fillRect(0, 0, W2, arcH);
+
+                // Fondo panel datos
+                ctx2.fillStyle = isDaytime ? '#fff8f0' : '#0a0f1e';
+                ctx2.fillRect(0, arcH, W2, H2 - arcH);
+
+                // Separador horizontal
+                ctx2.beginPath();
+                ctx2.moveTo(0, arcH);
+                ctx2.lineTo(W2, arcH);
+                ctx2.strokeStyle = isDaytime ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)';
+                ctx2.lineWidth = 1;
+                ctx2.stroke();
 
                 // Línea horizonte
                 ctx2.beginPath();
                 ctx2.moveTo(0, cy);
                 ctx2.lineTo(W2, cy);
-                ctx2.strokeStyle = lineColor;
+                ctx2.strokeStyle = horizColor;
                 ctx2.lineWidth = 1;
                 ctx2.stroke();
 
-                // Arco recorrido (trayectoria completa, tenue)
+                // Trayectoria completa (punteada, tenue)
                 ctx2.beginPath();
                 ctx2.ellipse(cx, cy, rx, ry, 0, Math.PI, 0, false);
-                ctx2.strokeStyle = isDaytime ? 'rgba(251,191,36,0.15)' : 'rgba(129,140,248,0.2)';
-                ctx2.lineWidth = 2;
-                ctx2.setLineDash([4, 5]);
+                ctx2.strokeStyle = isDaytime ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)';
+                ctx2.lineWidth = 1.5;
+                ctx2.setLineDash([3, 5]);
                 ctx2.stroke();
                 ctx2.setLineDash([]);
 
-                // Arco recorrido (tramo ya pasado)
-                const grad2 = ctx2.createLinearGradient(cx - rx, cy, cx + rx, cy);
-                grad2.addColorStop(0, arcColor.from);
-                grad2.addColorStop(0.5, arcColor.via);
-                grad2.addColorStop(1, arcColor.to);
+                // ── Arco con degradado negro→naranja según posición angular ──
+                // Dibujamos el tramo recorrido segmento a segmento interpolando color
+                const steps = 80;
+                const angleStart = Math.PI;
+                const angleEnd   = sunA;
+                for (let s = 0; s < steps; s++) {
+                    const t0 = s / steps;
+                    const t1 = (s + 1) / steps;
+                    const a0 = angleStart - t0 * (angleStart - angleEnd);
+                    const a1 = angleStart - t1 * (angleStart - angleEnd);
+
+                    // Degradado: negro al inicio (madrugada/amanecer), naranja intenso al mediodía
+                    // Usar posición angular para el color: negro en extremos, naranja en cima
+                    const sinVal = Math.sin(a0); // 0 en extremos, 1 en cima
+                    const r = Math.round(sinVal * 255);
+                    const g = Math.round(sinVal * 120);
+                    const b = 0;
+                    const alpha = 0.3 + sinVal * 0.7;
+
+                    ctx2.beginPath();
+                    ctx2.ellipse(cx, cy, rx, ry, 0, a0, a1, false);
+                    ctx2.strokeStyle = isDaytime
+                        ? `rgba(${r},${g},${b},${alpha})`
+                        : `rgba(${Math.round(60+sinVal*80)},${Math.round(60+sinVal*80)},${Math.round(200+sinVal*55)},${alpha})`;
+                    ctx2.lineWidth = 3.5;
+                    ctx2.stroke();
+                }
+
+                // ── Tramo no recorrido (fino, negro translúcido) ──
                 ctx2.beginPath();
-                ctx2.ellipse(cx, cy, rx, ry, 0, Math.PI, sunA, false);
-                ctx2.strokeStyle = grad2;
-                ctx2.lineWidth = 3;
+                ctx2.ellipse(cx, cy, rx, ry, 0, sunA, 0, false);
+                ctx2.strokeStyle = isDaytime ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)';
+                ctx2.lineWidth = 1.5;
                 ctx2.stroke();
 
                 // Sol actual
@@ -5323,59 +5366,114 @@
                 const sunY = cy - ry * Math.sin(sunA);
 
                 // Halo
-                const halo = ctx2.createRadialGradient(sunX, sunY, 2, sunX, sunY, 10);
-                halo.addColorStop(0, isDaytime ? 'rgba(251,191,36,0.6)' : 'rgba(199,210,254,0.5)');
+                const halo = ctx2.createRadialGradient(sunX, sunY, 1, sunX, sunY, 11);
+                halo.addColorStop(0, isDaytime ? 'rgba(255,140,0,0.55)' : 'rgba(199,210,254,0.45)');
                 halo.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx2.beginPath();
-                ctx2.arc(sunX, sunY, 10, 0, Math.PI * 2);
+                ctx2.arc(sunX, sunY, 11, 0, Math.PI * 2);
                 ctx2.fillStyle = halo;
                 ctx2.fill();
 
-                // Disco solar/lunar
+                // Disco solar
                 ctx2.beginPath();
                 ctx2.arc(sunX, sunY, 5, 0, Math.PI * 2);
                 ctx2.fillStyle = sunColor;
                 ctx2.fill();
-                ctx2.strokeStyle = isDaytime ? '#f59e0b' : '#a5b4fc';
+                ctx2.strokeStyle = isDaytime ? '#cc6600' : '#a5b4fc';
                 ctx2.lineWidth = 1.5;
                 ctx2.stroke();
 
-                // Etiquetas izquierda y derecha
-                const fmtT = dt => dt.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+                // Etiquetas izquierda/derecha del arco (anterior y siguiente)
                 const lblLeft  = prev.type === 'rise'
-                    ? { icon: '🌅', label: 'Amanecer', time: fmtT(prev.t) }
-                    : { icon: '🌇', label: 'Atardecer', time: fmtT(prev.t) };
+                    ? { label: 'Amanecer', time: fmtT(prev.t) }
+                    : { label: 'Atardecer', time: fmtT(prev.t) };
                 const lblRight = next.type === 'set'
-                    ? { icon: '🌇', label: 'Atardecer', time: fmtT(next.t) }
-                    : { icon: '🌅', label: 'Amanecer',  time: fmtT(next.t) };
+                    ? { label: 'Atardecer', time: fmtT(next.t) }
+                    : { label: 'Amanecer',  time: fmtT(next.t) };
 
-                function drawLabel(lbl, x, align) {
+                function drawArcLabel(lbl, x, align) {
                     ctx2.textAlign = align;
-                    ctx2.font = '9px Inter,sans-serif';
+                    ctx2.font = '8px Inter,sans-serif';
+                    ctx2.fillStyle = isDaytime ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)';
+                    ctx2.fillText(lbl.label, x, cy + 11);
+                    ctx2.font = 'bold 9px Inter,sans-serif';
                     ctx2.fillStyle = textColor;
-                    ctx2.fillText(lbl.label, x, cy + 12);
-                    ctx2.font = 'bold 10px Inter,sans-serif';
-                    ctx2.fillStyle = isDaytime ? '#78350f' : '#818cf8';
-                    ctx2.fillText(lbl.time, x, cy + 23);
+                    ctx2.fillText(lbl.time, x, cy + 21);
+                }
+                drawArcLabel(lblLeft,  12, 'left');
+                drawArcLabel(lblRight, W2 - 12, 'right');
+
+                // ── Panel inferior: próximo amanecer | cuenta atrás | próximo atardecer ──
+                const panelY = arcH + 4;
+                const colW   = W2 / 3;
+
+                function minsToStr(ms) {
+                    const m = Math.round(ms / 60000);
+                    const h = Math.floor(m / 60);
+                    const mm = m % 60;
+                    return h > 0 ? `${h}h ${mm}m` : `${m}m`;
                 }
 
-                drawLabel(lblLeft,  14, 'left');
-                drawLabel(lblRight, W2 - 14, 'right');
+                // Determinar cuál es el más cercano
+                const msToRise = nextRise ? nextRise - now3 : Infinity;
+                const msToSet  = nextSet  ? nextSet  - now3 : Infinity;
+                const nearest  = msToRise < msToSet ? 'rise' : 'set';
+                const msToNearest = Math.min(msToRise, msToSet);
 
-                // Etiqueta central: tiempo restante
-                const minsLeft = Math.round((next.t - now3) / 60000);
-                const hoursLeft = Math.floor(minsLeft / 60);
-                const minsRem  = minsLeft % 60;
-                const timeStr  = hoursLeft > 0 ? `${hoursLeft}h ${minsRem}m` : `${minsLeft}m`;
-                const nextLabel = next.type === 'set' ? 'Atardecer en' : 'Amanecer en';
+                // Colores del panel
+                const labelCol = isDaytime ? 'rgba(0,0,0,0.38)' : 'rgba(255,255,255,0.38)';
+                const valueCol = isDaytime ? '#7c3500' : '#e0e7ff';
+                const highlightCol = '#ff8c00';
 
+                // — Columna 1: Próximo amanecer —
                 ctx2.textAlign = 'center';
-                ctx2.font = '8px Inter,sans-serif';
-                ctx2.fillStyle = textColor;
-                ctx2.fillText(nextLabel, cx, cy + 12);
+                ctx2.font = '7.5px Inter,sans-serif';
+                ctx2.fillStyle = labelCol;
+                ctx2.fillText('🌅 Amanecer', colW * 0.5, panelY + 11);
                 ctx2.font = 'bold 11px Inter,sans-serif';
-                ctx2.fillStyle = isDaytime ? '#92400e' : '#818cf8';
-                ctx2.fillText(timeStr, cx, cy + 24);
+                ctx2.fillStyle = nearest === 'rise' ? highlightCol : valueCol;
+                ctx2.fillText(nextRise ? fmtT(nextRise) : '--:--', colW * 0.5, panelY + 24);
+                if (nearest === 'rise' && nextRise) {
+                    ctx2.font = '7px Inter,sans-serif';
+                    ctx2.fillStyle = highlightCol;
+                    ctx2.fillText('en ' + minsToStr(msToNearest), colW * 0.5, panelY + 35);
+                }
+
+                // — Columna 2: cuenta atrás al más próximo —
+                const nearestLabel = nearest === 'rise' ? 'Próximo' : 'Próximo';
+                const nearestName  = nearest === 'rise' ? 'Amanecer' : 'Atardecer';
+                ctx2.font = '7.5px Inter,sans-serif';
+                ctx2.fillStyle = labelCol;
+                ctx2.fillText('⏱ ' + nearestName, colW * 1.5, panelY + 11);
+                ctx2.font = 'bold 12px Inter,sans-serif';
+                ctx2.fillStyle = highlightCol;
+                ctx2.fillText(minsToStr(msToNearest), colW * 1.5, panelY + 24);
+                ctx2.font = '7px Inter,sans-serif';
+                ctx2.fillStyle = labelCol;
+                ctx2.fillText('tiempo restante', colW * 1.5, panelY + 35);
+
+                // — Columna 3: Próxima puesta —
+                ctx2.font = '7.5px Inter,sans-serif';
+                ctx2.fillStyle = labelCol;
+                ctx2.fillText('🌇 Puesta', colW * 2.5, panelY + 11);
+                ctx2.font = 'bold 11px Inter,sans-serif';
+                ctx2.fillStyle = nearest === 'set' ? highlightCol : valueCol;
+                ctx2.fillText(nextSet ? fmtT(nextSet) : '--:--', colW * 2.5, panelY + 24);
+                if (nearest === 'set' && nextSet) {
+                    ctx2.font = '7px Inter,sans-serif';
+                    ctx2.fillStyle = highlightCol;
+                    ctx2.fillText('en ' + minsToStr(msToNearest), colW * 2.5, panelY + 35);
+                }
+
+                // Divisores verticales entre columnas
+                for (const dx of [colW, colW * 2]) {
+                    ctx2.beginPath();
+                    ctx2.moveTo(dx, panelY + 2);
+                    ctx2.lineTo(dx, H2 - 4);
+                    ctx2.strokeStyle = isDaytime ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)';
+                    ctx2.lineWidth = 1;
+                    ctx2.stroke();
+                }
             })();
 
             // ── Canvas: línea de temperatura ────────────────────────────
