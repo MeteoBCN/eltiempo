@@ -5263,7 +5263,7 @@
 
                 const dpr2 = window.devicePixelRatio || 1;
                 const W2   = arcCanvas.offsetWidth || arcCanvas.parentElement.offsetWidth || 340;
-                const H2   = 100;
+                const H2   = 72;
                 arcCanvas.width  = W2 * dpr2;
                 arcCanvas.height = H2 * dpr2;
                 arcCanvas.style.width  = W2 + 'px';
@@ -5286,12 +5286,8 @@
                 ctx2.fillStyle = skyColor;
                 ctx2.fillRect(0, 0, W2, H2);
 
-                // Separador panel inferior
-                const lineH = 52; // Y donde está la línea recta
-                ctx2.fillStyle = isDaytime ? '#fff8f0' : '#0a0f1e';
-                ctx2.fillRect(0, lineH + 12, W2, H2 - lineH - 12);
-
                 // ── Línea base (fondo completo, tenue) ──
+                const lineH = 62; // Y donde está la línea recta
                 const PAD = 18;
                 ctx2.beginPath();
                 ctx2.moveTo(PAD, lineH);
@@ -5347,89 +5343,40 @@
                     ctx2.textAlign = align;
                     ctx2.font = '8px Inter,sans-serif';
                     ctx2.fillStyle = isDaytime ? 'rgba(0,0,0,0.40)' : 'rgba(255,255,255,0.40)';
-                    ctx2.fillText(lbl.label, x, lineH - 16);
+                    ctx2.fillText(lbl.label, x, lineH - 28);
                     ctx2.font = 'bold 9px Inter,sans-serif';
                     ctx2.fillStyle = textColor;
-                    ctx2.fillText(lbl.time, x, lineH - 5);
+                    ctx2.fillText(lbl.time, x, lineH - 17);
                 }
                 drawLineLabel(lblLeft,  PAD, 'left');
                 drawLineLabel(lblRight, W2 - PAD, 'right');
 
-                // ── Panel inferior: Amanecer | Cuenta atrás | Puesta ──
+                // ── Cuenta atrás centrada arriba entre las etiquetas ──
                 function minsToStr(ms) {
                     const m = Math.round(ms / 60000);
                     const h = Math.floor(m / 60);
                     const mm = m % 60;
                     return h > 0 ? `${h}h ${mm}m` : `${m}m`;
                 }
-
-                const msToRise = nextRise ? nextRise - now3 : Infinity;
-                const msToSet  = nextSet  ? nextSet  - now3 : Infinity;
-                const nearest  = msToRise < msToSet ? 'rise' : 'set';
+                const msToRise    = nextRise ? nextRise - now3 : Infinity;
+                const msToSet     = nextSet  ? nextSet  - now3 : Infinity;
+                const nearest     = msToRise < msToSet ? 'rise' : 'set';
                 const msToNearest = Math.min(msToRise, msToSet);
+                const nearestName = nearest === 'rise' ? 'Amanecer en' : 'Atardecer en';
 
-                const labelCol     = isDaytime ? 'rgba(0,0,0,0.38)' : 'rgba(255,255,255,0.38)';
-                const valueCol     = isDaytime ? '#7c3500' : '#e0e7ff';
-                const highlightCol = '#ff8c00';
-                const panelY = lineH + 16;
-                const colW   = W2 / 3;
-
-                // Separador visual
-                ctx2.beginPath();
-                ctx2.moveTo(0, lineH + 10);
-                ctx2.lineTo(W2, lineH + 10);
-                ctx2.strokeStyle = isDaytime ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
-                ctx2.lineWidth = 1;
-                ctx2.stroke();
-
-                // Columna 1: Próximo amanecer
                 ctx2.textAlign = 'center';
                 ctx2.font = '7.5px Inter,sans-serif';
-                ctx2.fillStyle = labelCol;
-                ctx2.fillText('🌅 Amanecer', colW * 0.5, panelY + 2);
-                ctx2.font = `bold 11px Inter,sans-serif`;
-                ctx2.fillStyle = nearest === 'rise' ? highlightCol : valueCol;
-                ctx2.fillText(nextRise ? fmtT(nextRise) : '--:--', colW * 0.5, panelY + 14);
-                if (nearest === 'rise' && nextRise) {
-                    ctx2.font = '7px Inter,sans-serif';
-                    ctx2.fillStyle = highlightCol;
-                    ctx2.fillText('en ' + minsToStr(msToNearest), colW * 0.5, panelY + 24);
-                }
-
-                // Columna 2: Cuenta atrás
-                const nearestName = nearest === 'rise' ? 'Amanecer' : 'Atardecer';
-                ctx2.font = '7.5px Inter,sans-serif';
-                ctx2.fillStyle = labelCol;
-                ctx2.fillText('⏱ ' + nearestName, colW * 1.5, panelY + 2);
-                ctx2.font = 'bold 12px Inter,sans-serif';
-                ctx2.fillStyle = highlightCol;
-                ctx2.fillText(minsToStr(msToNearest), colW * 1.5, panelY + 14);
-                ctx2.font = '7px Inter,sans-serif';
-                ctx2.fillStyle = labelCol;
-                ctx2.fillText('tiempo restante', colW * 1.5, panelY + 24);
-
-                // Columna 3: Próxima puesta
-                ctx2.font = '7.5px Inter,sans-serif';
-                ctx2.fillStyle = labelCol;
-                ctx2.fillText('🌇 Puesta', colW * 2.5, panelY + 2);
+                ctx2.fillStyle = isDaytime ? 'rgba(0,0,0,0.38)' : 'rgba(255,255,255,0.38)';
+                ctx2.fillText(nearestName, W2 / 2, lineH - 28);
                 ctx2.font = 'bold 11px Inter,sans-serif';
-                ctx2.fillStyle = nearest === 'set' ? highlightCol : valueCol;
-                ctx2.fillText(nextSet ? fmtT(nextSet) : '--:--', colW * 2.5, panelY + 14);
-                if (nearest === 'set' && nextSet) {
-                    ctx2.font = '7px Inter,sans-serif';
-                    ctx2.fillStyle = highlightCol;
-                    ctx2.fillText('en ' + minsToStr(msToNearest), colW * 2.5, panelY + 24);
-                }
+                ctx2.fillStyle = '#ff8c00';
+                ctx2.fillText(minsToStr(msToNearest), W2 / 2, lineH - 15);
 
-                // Divisores verticales
-                for (const dx of [colW, colW * 2]) {
-                    ctx2.beginPath();
-                    ctx2.moveTo(dx, lineH + 12);
-                    ctx2.lineTo(dx, H2 - 4);
-                    ctx2.strokeStyle = isDaytime ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)';
-                    ctx2.lineWidth = 1;
-                    ctx2.stroke();
-                }
+                // ── Etiqueta justo debajo de la línea ──
+                ctx2.textAlign = 'center';
+                ctx2.font = '7px Inter,sans-serif';
+                ctx2.fillStyle = isDaytime ? 'rgba(0,0,0,0.28)' : 'rgba(255,255,255,0.28)';
+                ctx2.fillText('ahora', xNow, lineH + 14);
             })();
 
             // ── Canvas: línea de temperatura ────────────────────────────
