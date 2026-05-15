@@ -1033,7 +1033,15 @@
                     function sliceNext24(data) {
                         if (!data || !data.hourly) return null;
                         const times = data.hourly.time;
-                        const idx = times.findIndex(t => new Date(t) >= now);
+                        // FIX: Open-Meteo devuelve "2024-01-01T12:00" sin zona horaria.
+                        // new Date("...T12:00") se interpreta como UTC en Safari/iOS
+                        // y como hora local en Chrome, causando que findIndex retorne -1.
+                        // Solución: reemplazar la T por espacio para forzar parse local
+                        // en todos los navegadores (comportamiento consistente).
+                        const nowMs = now.getTime();
+                        const idx = times.findIndex(t => {
+                            return new Date(t.replace('T', ' ')).getTime() >= nowMs;
+                        });
                         if (idx < 0) return null;
                         return {
                             prob: data.hourly.precipitation_probability.slice(idx, idx+24),
@@ -1115,6 +1123,10 @@
                             </div>
                         </div>`;
                     });
+                    // Fallback si ningún modelo devolvió datos válidos
+                    if (modelStats.filter(m => m.ok).length === 0) {
+                        html += `<div style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">No se pudieron obtener datos de los modelos. Pulsa actualizar.</div>`;
+                    }
                     html += `</div>`;
 
                     // Footer
