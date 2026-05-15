@@ -939,6 +939,213 @@
 
 
         <!-- ═══════════════════════════════════════════
+             CONSENSO MULTISISTEMA LLUVIA
+        ════════════════════════════════════════════ -->
+        <div id="multisistema-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <!-- Cabecera -->
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;gap:3px;">
+                <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">CONSENSO MULTISISTEMA · LLUVIA</span>
+                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">ECMWF · GFS · MÉTÉO-FRANCE</span>
+            </div>
+            <div style="background:#f0f6fa;" id="multisistema-body">
+                <div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Cargando modelos…</div>
+            </div>
+        </div>
+
+        <style>
+        .ms-consensus-bar { height:5px; border-radius:3px; background:#e2e8f0; margin-top:5px; }
+        .ms-consensus-fill { height:5px; border-radius:3px; transition:width 0.7s ease; }
+        .ms-model-row { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:8px; padding:10px 16px; border-bottom:1px solid rgba(148,163,184,0.15); }
+        .ms-model-row:last-child { border-bottom:none; }
+        .ms-model-name { font-size:11px; font-weight:700; color:#2c4a6e; text-transform:uppercase; letter-spacing:0.5px; }
+        .ms-model-sub { font-size:10px; color:#94a3b8; font-weight:400; }
+        .ms-model-mm { font-size:15px; font-weight:700; color:#1a3a5c; min-width:40px; text-align:right; }
+        .ms-prob-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px; white-space:nowrap; }
+        .ms-verdict { display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid rgba(148,163,184,0.15); }
+        .ms-verdict-icon { font-size:22px; flex-shrink:0; }
+        .ms-verdict-text { flex:1; }
+        .ms-verdict-label { font-size:9px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-bottom:2px; }
+        .ms-verdict-value { font-size:13px; font-weight:700; color:#1a3a5c; }
+        .ms-mini-stats { display:grid; grid-template-columns:repeat(3,1fr); background:#eaf2f8; border-bottom:1px solid rgba(148,163,184,0.15); }
+        .ms-mini-stat { padding:10px 6px; text-align:center; border-right:1px solid rgba(148,163,184,0.2); }
+        .ms-mini-stat:last-child { border-right:none; }
+        .ms-mini-label { font-size:9px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px; }
+        .ms-mini-value { font-size:17px; font-weight:800; color:#1a3a5c; line-height:1; }
+        .ms-mini-unit { font-size:9px; color:#94a3b8; font-weight:500; }
+        .ms-footer { padding:7px 16px; font-size:10px; color:#94a3b8; text-align:center; letter-spacing:0.3px; }
+        .ms-update-btn { background:none; border:none; cursor:pointer; font-size:10px; color:#2c4a6e; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; padding:0; }
+        </style>
+
+        <script>
+        (function() {
+            const LAT = 41.3874, LON = 2.1686;
+            const MODELS = [
+                { id:'ecmwf_ifs025',        name:'ECMWF IFS',      sub:'Centro Europeo (ECMWF)' },
+                { id:'gfs_seamless',         name:'NOAA GFS',       sub:'Nacional EE.UU. (NCEP)' },
+                { id:'meteofrance_seamless', name:'Météo-France',   sub:'Servicio Met. Francés' },
+            ];
+
+            function probColor(p) {
+                if (p >= 70) return { bg:'#dbeafe', text:'#1d4ed8' };
+                if (p >= 40) return { bg:'#fef3c7', text:'#92400e' };
+                return { bg:'#dcfce7', text:'#166534' };
+            }
+
+            function verdictIcon(avgProb) {
+                if (avgProb >= 70) return '🌧️';
+                if (avgProb >= 45) return '🌦️';
+                if (avgProb >= 20) return '🌤️';
+                return '☀️';
+            }
+
+            function verdictText(avgProb, totalMm) {
+                if (avgProb >= 70) return 'Lluvia muy probable en las próximas horas';
+                if (avgProb >= 45) return 'Posibilidad moderada de lluvia';
+                if (avgProb >= 20) return 'Lluvia poco probable, cielo variable';
+                return 'Sin lluvia prevista · Tiempo estable';
+            }
+
+            function barColor(p) {
+                if (p >= 70) return '#3B82F6';
+                if (p >= 40) return '#F59E0B';
+                return '#10B981';
+            }
+
+            async function loadMultisistema() {
+                const body = document.getElementById('multisistema-body');
+                body.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Consultando ECMWF, GFS, Météo-France…</div>';
+
+                const params = 'latitude='+LAT+'&longitude='+LON+'&hourly=precipitation_probability,precipitation&forecast_days=2&timezone=Europe%2FMadrid';
+                const now = new Date();
+
+                try {
+                    const results = await Promise.all(
+                        MODELS.map(m =>
+                            fetch('https://api.open-meteo.com/v1/forecast?'+params+'&models='+m.id)
+                                .then(r => r.json()).catch(() => null)
+                        )
+                    );
+
+                    // También obtenemos el consenso automático (best_match) para las métricas globales
+                    const best = await fetch('https://api.open-meteo.com/v1/forecast?'+params+'&models=best_match')
+                        .then(r => r.json()).catch(() => null);
+
+                    function sliceNext24(data) {
+                        if (!data || !data.hourly) return null;
+                        const times = data.hourly.time;
+                        const idx = times.findIndex(t => new Date(t) >= now);
+                        if (idx < 0) return null;
+                        return {
+                            prob: data.hourly.precipitation_probability.slice(idx, idx+24),
+                            mm:   data.hourly.precipitation.slice(idx, idx+24)
+                        };
+                    }
+
+                    const bestSlice = sliceNext24(best);
+                    const maxProb   = bestSlice ? Math.round(Math.max(...bestSlice.prob)) : 0;
+                    const totalMm   = bestSlice ? parseFloat(bestSlice.mm.reduce((a,b)=>a+b,0).toFixed(1)) : 0;
+                    const avgProb   = bestSlice ? Math.round(bestSlice.prob.reduce((a,b)=>a+b,0)/bestSlice.prob.length) : 0;
+
+                    const modelStats = MODELS.map((m, i) => {
+                        const s = sliceNext24(results[i]);
+                        if (!s) return { ...m, mm:'—', maxP:0, ok:false };
+                        return {
+                            ...m,
+                            mm: parseFloat(s.mm.reduce((a,b)=>a+b,0).toFixed(1)),
+                            maxP: Math.round(Math.max(...s.prob)),
+                            ok: true
+                        };
+                    });
+
+                    const okModels = modelStats.filter(m => m.ok);
+                    const modelAgree = okModels.length > 0
+                        ? Math.round(okModels.filter(m => m.maxP >= 40).length / okModels.length * 100)
+                        : 0;
+
+                    const pc = probColor(maxProb);
+                    const bc = barColor(maxProb);
+
+                    let html = '';
+
+                    // Mini stats
+                    html += `<div class="ms-mini-stats">
+                        <div class="ms-mini-stat">
+                            <div class="ms-mini-label">Prob. máx. 24h</div>
+                            <div class="ms-mini-value" style="color:${bc}">${maxProb}<span class="ms-mini-unit">%</span></div>
+                        </div>
+                        <div class="ms-mini-stat">
+                            <div class="ms-mini-label">Precip. total</div>
+                            <div class="ms-mini-value">${totalMm}<span class="ms-mini-unit"> mm</span></div>
+                        </div>
+                        <div class="ms-mini-stat">
+                            <div class="ms-mini-label">Modelos lluvia</div>
+                            <div class="ms-mini-value" style="color:${bc}">${okModels.filter(m=>m.maxP>=40).length}<span class="ms-mini-unit">/${okModels.length}</span></div>
+                        </div>
+                    </div>`;
+
+                    // Veredicto
+                    html += `<div class="ms-verdict">
+                        <div class="ms-verdict-icon">${verdictIcon(avgProb)}</div>
+                        <div class="ms-verdict-text">
+                            <div class="ms-verdict-label">Diagnóstico consenso</div>
+                            <div class="ms-verdict-value">${verdictText(avgProb, totalMm)}</div>
+                        </div>
+                        <div>
+                            <div style="text-align:center;font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Acuerdo</div>
+                            <div style="font-size:18px;font-weight:800;color:${bc};text-align:center;">${modelAgree}<span style="font-size:10px;font-weight:600;">%</span></div>
+                        </div>
+                    </div>`;
+
+                    // Tabla modelos
+                    html += `<div style="background:#fff;border-top:1px solid rgba(148,163,184,0.2);">`;
+                    html += `<div style="padding:8px 16px 4px;"><span style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Detalle por modelo · próx. 24h</span></div>`;
+                    modelStats.forEach(m => {
+                        if (!m.ok) return;
+                        const mpc = probColor(m.maxP);
+                        const mbc = barColor(m.maxP);
+                        html += `<div class="ms-model-row">
+                            <div>
+                                <div class="ms-model-name">${m.name}</div>
+                                <div class="ms-model-sub">${m.sub}</div>
+                                <div class="ms-consensus-bar"><div class="ms-consensus-fill" style="width:${m.maxP}%;background:${mbc};"></div></div>
+                            </div>
+                            <div class="ms-model-mm">${m.mm} <span style="font-size:10px;font-weight:500;color:#94a3b8;">mm</span></div>
+                            <div>
+                                <span class="ms-prob-badge" style="background:${mpc.bg};color:${mpc.text};">${m.maxP}%</span>
+                            </div>
+                        </div>`;
+                    });
+                    html += `</div>`;
+
+                    // Footer
+                    const hhmm = now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+                    html += `<div class="ms-footer">
+                        Actualizado ${hhmm} · Fuente: Open-Meteo &nbsp;·&nbsp;
+                        <button class="ms-update-btn" onclick="window._msReload()">↺ Actualizar</button>
+                    </div>`;
+
+                    body.innerHTML = html;
+
+                } catch(e) {
+                    body.innerHTML = '<div style="padding:16px;text-align:center;color:#EF4444;font-size:13px;">Error al cargar los modelos. Comprueba tu conexión.</div>';
+                }
+            }
+
+            window._msReload = loadMultisistema;
+
+            // Cargar al inicio junto con el resto de la web
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadMultisistema);
+            } else {
+                loadMultisistema();
+            }
+        })();
+        </script>
+        <!-- ═══════════════════════════════════════════
+             FIN CONSENSO MULTISISTEMA LLUVIA
+        ════════════════════════════════════════════ -->
+
+        <!-- ═══════════════════════════════════════════
              MAPA DE RISC D'INCENDIS (Gencat)
         ════════════════════════════════════════════ -->
         <div style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
