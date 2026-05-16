@@ -1013,66 +1013,74 @@
 
             async function loadMultisistema() {
                 const body = document.getElementById('multisistema-body');
+                if (!body) return;
                 body.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Consultando ECMWF, GFS, Météo-France…</div>';
 
                 const params = 'latitude='+LAT+'&longitude='+LON+'&hourly=precipitation_probability,precipitation&forecast_days=2&timezone=Europe%2FMadrid';
                 const now = new Date();
 
-                try {
-                    const results = await Promise.all(
-                        MODELS.map(m =>
-                            fetch('https://api.open-meteo.com/v1/forecast?'+params+'&models='+m.id)
-                                .then(r => r.json()).catch(() => null)
-                        )
-                    );
+                // Función auxiliar: cortar las próximas 24h a partir de ahora
+                // FIX: Open-Meteo devuelve "2024-01-01T12:00" sin zona horaria.
+                // new Date("...T12:00") se interpreta como UTC en Safari/iOS y como
+                // hora local en Chrome. Usamos +00:00 y comparamos con offset local
+                // para que funcione en todos los navegadores.
+                function sliceNext24(data) {
+                    if (!data || !data.hourly || !Array.isArray(data.hourly.time)) return null;
+                    const times = data.hourly.time;
+                    const prob  = data.hourly.precipitation_probability;
+                    const mm    = data.hourly.precipitation;
+                    if (!prob || !mm) return null;
+                    const nowMs = now.getTime();
+                    // Parse seguro para todos los navegadores: añadir segundos y tratar como local
+                    let idx = -1;
+                    for (let i = 0; i < times.length; i++) {
+                        const t = times[i]; // formato: "2025-05-15T14:00"
+                        const parts = t.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+                        if (!parts) continue;
+                        const d = new Date(+parts[1], +parts[2]-1, +parts[3], +parts[4], +parts[5]);
+                        if (d.getTime() >= nowMs) { idx = i; break; }
+                    }
+                    if (idx < 0) return null;
+                    return {
+                        prob: prob.slice(idx, idx+24),
+                        mm:   mm.slice(idx, idx+24)
+                    };
+                }
 
-                    // También obtenemos el consenso automático (best_match) para las métricas globales
-                    const best = await fetch('https://api.open-meteo.com/v1/forecast?'+params+'&models=best_match')
+                try {
+                    // Fetch todos los modelos en paralelo, cada uno con su propio catch
+                    const fetches = MODELS.map(m =>
+                        fetch('https://api.open-meteo.com/v1/forecast?'+params+'&models='+m.id)
+                            .then(r => { if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+                            .catch(e => { console.warn('[MS] fetch '+m.id+' failed:', e); return null; })
+                    );
+                    const bestFetch = fetch('https://api.open-meteo.com/v1/forecast?'+params+'&models=best_match')
                         .then(r => r.json()).catch(() => null);
 
-                    function sliceNext24(data) {
-                        if (!data || !data.hourly) return null;
-                        const times = data.hourly.time;
-                        // FIX: Open-Meteo devuelve "2024-01-01T12:00" sin zona horaria.
-                        // new Date("...T12:00") se interpreta como UTC en Safari/iOS
-                        // y como hora local en Chrome, causando que findIndex retorne -1.
-                        // Solución: reemplazar la T por espacio para forzar parse local
-                        // en todos los navegadores (comportamiento consistente).
-                        const nowMs = now.getTime();
-                        const idx = times.findIndex(t => {
-                            return new Date(t.replace('T', ' ')).getTime() >= nowMs;
-                        });
-                        if (idx < 0) return null;
-                        return {
-                            prob: data.hourly.precipitation_probability.slice(idx, idx+24),
-                            mm:   data.hourly.precipitation.slice(idx, idx+24)
-                        };
-                    }
+                    const [results, best] = await Promise.all([Promise.all(fetches), bestFetch]);
 
                     const bestSlice = sliceNext24(best);
-                    const maxProb   = bestSlice ? Math.round(Math.max(...bestSlice.prob)) : 0;
-                    const totalMm   = bestSlice ? parseFloat(bestSlice.mm.reduce((a,b)=>a+b,0).toFixed(1)) : 0;
-                    const avgProb   = bestSlice ? Math.round(bestSlice.prob.reduce((a,b)=>a+b,0)/bestSlice.prob.length) : 0;
+                    const maxProb   = bestSlice && bestSlice.prob.length ? Math.round(Math.max(...bestSlice.prob)) : 0;
+                    const totalMm   = bestSlice && bestSlice.mm.length   ? parseFloat(bestSlice.mm.reduce((a,b)=>a+b,0).toFixed(1)) : 0;
+                    const avgProb   = bestSlice && bestSlice.prob.length ? Math.round(bestSlice.prob.reduce((a,b)=>a+b,0)/bestSlice.prob.length) : 0;
 
                     const modelStats = MODELS.map((m, i) => {
                         const s = sliceNext24(results[i]);
-                        if (!s) return { ...m, mm:'—', maxP:0, ok:false };
+                        if (!s || !s.prob.length) return { ...m, mm:'—', maxP:0, ok:false };
                         return {
                             ...m,
-                            mm: parseFloat(s.mm.reduce((a,b)=>a+b,0).toFixed(1)),
+                            mm:   parseFloat(s.mm.reduce((a,b)=>a+b,0).toFixed(1)),
                             maxP: Math.round(Math.max(...s.prob)),
-                            ok: true
+                            ok:   true
                         };
                     });
 
-                    const okModels = modelStats.filter(m => m.ok);
+                    const okModels   = modelStats.filter(m => m.ok);
                     const modelAgree = okModels.length > 0
                         ? Math.round(okModels.filter(m => m.maxP >= 40).length / okModels.length * 100)
                         : 0;
 
-                    const pc = probColor(maxProb);
                     const bc = barColor(maxProb);
-
                     let html = '';
 
                     // Mini stats
@@ -1108,25 +1116,22 @@
                     html += `<div style="background:#fff;border-top:1px solid rgba(148,163,184,0.2);">`;
                     html += `<div style="padding:8px 16px 4px;"><span style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Detalle por modelo · próx. 24h</span></div>`;
                     modelStats.forEach(m => {
-                        if (!m.ok) return;
                         const mpc = probColor(m.maxP);
                         const mbc = barColor(m.maxP);
+                        const mmStr  = m.ok ? m.mm : '—';
+                        const maxStr = m.ok ? m.maxP + '%' : 'Sin datos';
                         html += `<div class="ms-model-row">
                             <div>
                                 <div class="ms-model-name">${m.name}</div>
                                 <div class="ms-model-sub">${m.sub}</div>
                                 <div class="ms-consensus-bar"><div class="ms-consensus-fill" style="width:${m.maxP}%;background:${mbc};"></div></div>
                             </div>
-                            <div class="ms-model-mm">${m.mm} <span style="font-size:10px;font-weight:500;color:#94a3b8;">mm</span></div>
+                            <div class="ms-model-mm">${mmStr} <span style="font-size:10px;font-weight:500;color:#94a3b8;">mm</span></div>
                             <div>
-                                <span class="ms-prob-badge" style="background:${mpc.bg};color:${mpc.text};">${m.maxP}%</span>
+                                <span class="ms-prob-badge" style="background:${mpc.bg};color:${mpc.text};">${maxStr}</span>
                             </div>
                         </div>`;
                     });
-                    // Fallback si ningún modelo devolvió datos válidos
-                    if (modelStats.filter(m => m.ok).length === 0) {
-                        html += `<div style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">No se pudieron obtener datos de los modelos. Pulsa actualizar.</div>`;
-                    }
                     html += `</div>`;
 
                     // Footer
@@ -1139,7 +1144,10 @@
                     body.innerHTML = html;
 
                 } catch(e) {
-                    body.innerHTML = '<div style="padding:16px;text-align:center;color:#EF4444;font-size:13px;">Error al cargar los modelos. Comprueba tu conexión.</div>';
+                    console.error('[Multisistema] Error inesperado:', e);
+                    body.innerHTML = '<div style="padding:16px;text-align:center;color:#EF4444;font-size:13px;">'
+                        + 'Error: ' + e.message
+                        + '<br><button onclick="window._msReload()" style="margin-top:8px;font-size:12px;font-weight:700;color:#2c4a6e;background:none;border:none;cursor:pointer;">↺ Reintentar</button></div>';
                 }
             }
 
