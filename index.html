@@ -4463,30 +4463,30 @@
 
             const diffMs = found - now;
             const diffH  = diffMs / 3600000;
-            const diffD  = Math.floor(diffH / 24);
-            const remH   = Math.floor(diffH % 24);
 
-            let cuando;
-            if (diffH < 1)        cuando = 'menos de 1 hora';
-            else if (diffH < 24)  cuando = `${Math.floor(diffH)} horas`;
-            else if (diffD === 1) cuando = remH > 0 ? '1 día y ' + remH + 'h' : '1 día';
-            else                  cuando = remH > 0 ? diffD + ' días y ' + remH + 'h' : diffD + ' días';
-
-            let badgeColor = '#3B82F6';
-            let badgeText  = 'LLUVIA EN ' + cuando.toUpperCase();
-            let consejo    = 'Se prevé lluvia en aproximadamente ' + cuando + '. Lleva paraguas si sales.';
-            if (diffH < 3) {
-                badgeColor = '#2563EB';
-                consejo = 'Lluvia inminente en menos de ' + cuando + '. Ten paraguas a mano.';
+            // Solo mostrar aviso si la lluvia es en las próximas 24h
+            if (diffH >= 24) {
+                el.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;gap:12px;text-align:center;">
+                        <div style="flex:1;">
+                            <div style="display:inline-block;background:#94a3b8;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">SIN LLUVIA PREVISTA</div>
+                            <div style="font-size:12px;color:#1e3a5f;line-height:1.4;">No se espera lluvia en las próximas 24 horas.</div>
+                        </div>
+                    </div>`;
+                return;
             }
 
             el.innerHTML = `
                 <div style="display:flex;align-items:center;justify-content:center;gap:12px;text-align:center;">
                     <div style="flex:1;">
-                        <div style="display:inline-block;background:${badgeColor};color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">${badgeText}</div>
-                        <div style="font-size:12px;color:#1e3a5f;line-height:1.4;">${consejo}</div>
+                        <div style="display:inline-block;background:#3B82F6;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.5px;margin-bottom:5px;">LLUVIA PREVISTA</div>
+                        <div style="font-size:12px;color:#1e3a5f;line-height:1.4;">Se espera lluvia en las próximas 24 horas. Lleva paraguas.</div>
                     </div>
                 </div>`;
+            }
+
+            el.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:center;gap:12px;text-align:center;">
         }
 
         async function loadWeatherData() {
