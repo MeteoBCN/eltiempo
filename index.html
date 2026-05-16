@@ -1016,7 +1016,7 @@
                 if (!body) return;
                 body.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Consultando ECMWF, GFS, Météo-France…</div>';
 
-                const params = 'latitude='+LAT+'&longitude='+LON+'&hourly=precipitation_probability,precipitation&forecast_days=2&timezone=Europe%2FMadrid';
+                const params = 'latitude='+LAT+'&longitude='+LON+'&hourly=precipitation_probability,precipitation&forecast_days=3&timezone=Europe%2FMadrid';
                 const now = new Date();
 
                 // Función auxiliar: cortar las próximas 24h a partir de ahora
@@ -1058,6 +1058,30 @@
                         .then(r => r.json()).catch(() => null);
 
                     const [results, best] = await Promise.all([Promise.all(fetches), bestFetch]);
+
+                    // DEBUG TEMPORAL: mostrar qué devuelve la API
+                    const dbg = [];
+                    dbg.push('now local: ' + now.toLocaleString('es-ES') + ' | nowMs: ' + now.getTime());
+                    if (best && best.hourly) {
+                        dbg.push('best times[0]: ' + best.hourly.time[0] + ' | times[-1]: ' + best.hourly.time.slice(-1)[0]);
+                        const t0 = best.hourly.time[0];
+                        const parts0 = t0.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+                        if (parts0) {
+                            const d0 = new Date(+parts0[1], +parts0[2]-1, +parts0[3], +parts0[4], +parts0[5]);
+                            dbg.push('parsed t0: ' + d0.toLocaleString('es-ES') + ' | ms: ' + d0.getTime());
+                            dbg.push('t0 >= now? ' + (d0.getTime() >= now.getTime()));
+                        }
+                    } else {
+                        dbg.push('best: ' + (best ? JSON.stringify(Object.keys(best)) : 'null'));
+                    }
+                    results.forEach((r, i) => {
+                        if (!r) dbg.push(MODELS[i].name + ': null');
+                        else if (!r.hourly) dbg.push(MODELS[i].name + ': sin hourly, keys=' + Object.keys(r).join(','));
+                        else dbg.push(MODELS[i].name + ': ' + r.hourly.time.length + ' horas, first=' + r.hourly.time[0]);
+                    });
+                    body.innerHTML = '<div style="padding:12px 16px;font-size:11px;font-family:monospace;color:#334155;background:#f0f6fa;border-bottom:1px solid #e2e8f0;white-space:pre-wrap;">'
+                        + '🔍 DEBUG\n' + dbg.join('\n') + '</div>';
+                    await new Promise(r => setTimeout(r, 100)); // render flush
 
                     const bestSlice = sliceNext24(best);
                     const maxProb   = bestSlice && bestSlice.prob.length ? Math.round(Math.max(...bestSlice.prob)) : 0;
