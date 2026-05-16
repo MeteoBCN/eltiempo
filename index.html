@@ -980,9 +980,9 @@
         (function() {
             const LAT = 41.3874, LON = 2.1686;
             const MODELS = [
-                { id:'ecmwf_ifs025',        name:'ECMWF IFS',      sub:'Centro Europeo (ECMWF)' },
-                { id:'gfs_seamless',         name:'NOAA GFS',       sub:'Nacional EE.UU. (NCEP)' },
-                { id:'meteofrance_seamless', name:'Météo-France',   sub:'Servicio Met. Francés' },
+                { id:'ecmwf_ifs025',        name:'ECMWF IFS',      sub:'Centro Europeo (ECMWF)', hasProb: false },
+                { id:'gfs_seamless',         name:'NOAA GFS',       sub:'Nacional EE.UU. (NCEP)', hasProb: true  },
+                { id:'meteofrance_seamless', name:'Météo-France',   sub:'Servicio Met. Francés',  hasProb: true  },
             ];
 
             function probColor(p) {
@@ -1049,13 +1049,18 @@
                 }
 
                 try {
-                    // Fetch modelos individuales: solo precipitation (prob no disponible en todos)
-                    const paramsModel = 'latitude='+LAT+'&longitude='+LON+'&hourly=precipitation&forecast_days=3&timezone=Europe%2FMadrid';
-                    const fetches = MODELS.map(m =>
-                        fetch('https://api.open-meteo.com/v1/forecast?'+paramsModel+'&models='+m.id)
+                    // ECMWF no tiene precipitation_probability → solo mm
+                    // GFS y Météo-France sí la tienen → pedimos ambos campos
+                    const fetches = MODELS.map(m => {
+                        const fields = m.hasProb
+                            ? 'precipitation,precipitation_probability'
+                            : 'precipitation';
+                        const url = 'https://api.open-meteo.com/v1/forecast?latitude='+LAT+'&longitude='+LON
+                            +'&hourly='+fields+'&forecast_days=3&timezone=Europe%2FMadrid&models='+m.id;
+                        return fetch(url)
                             .then(r => { if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-                            .catch(e => { console.warn('[MS] fetch '+m.id+' failed:', e); return null; })
-                    );
+                            .catch(e => { console.warn('[MS] fetch '+m.id+' failed:', e); return null; });
+                    });
                     // best_match sí tiene precipitation_probability (modelo ensemble)
                     const bestFetch = fetch('https://api.open-meteo.com/v1/forecast?'+paramsBest)
                         .then(r => r.json()).catch(() => null);
@@ -1121,17 +1126,22 @@
                     modelStats.forEach(m => {
                         const mpc = probColor(m.maxP);
                         const mbc = barColor(m.maxP);
-                        const mmStr  = m.ok ? m.mm : '—';
-                        const maxStr = m.ok ? m.maxP + '%' : 'Sin datos';
+                        const mmStr = m.ok ? m.mm : '—';
+                        // ECMWF no tiene prob → mostrar —%  con estilo neutro
+                        const badgeLabel = !m.ok ? 'Sin datos' : !m.hasProb ? '—%' : m.maxP + '%';
+                        const badgeBg    = (!m.ok || !m.hasProb) ? '#f1f5f9' : mpc.bg;
+                        const badgeColor = (!m.ok || !m.hasProb) ? '#94a3b8' : mpc.text;
+                        // Barra: para ECMWF usamos mm como referencia (max 10mm = 100%)
+                        const barW = m.hasProb ? m.maxP : Math.min(100, (m.ok ? m.mm * 10 : 0));
                         html += `<div class="ms-model-row">
                             <div>
                                 <div class="ms-model-name">${m.name}</div>
                                 <div class="ms-model-sub">${m.sub}</div>
-                                <div class="ms-consensus-bar"><div class="ms-consensus-fill" style="width:${m.maxP}%;background:${mbc};"></div></div>
+                                <div class="ms-consensus-bar"><div class="ms-consensus-fill" style="width:${barW}%;background:${mbc};"></div></div>
                             </div>
                             <div class="ms-model-mm">${mmStr} <span style="font-size:10px;font-weight:500;color:#94a3b8;">mm</span></div>
                             <div>
-                                <span class="ms-prob-badge" style="background:${mpc.bg};color:${mpc.text};">${maxStr}</span>
+                                <span class="ms-prob-badge" style="background:${badgeBg};color:${badgeColor};">${badgeLabel}</span>
                             </div>
                         </div>`;
                     });
