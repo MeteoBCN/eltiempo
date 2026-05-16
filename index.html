@@ -1069,15 +1069,20 @@
 
                     const bestSlice = sliceNext24(best);
                     const maxProb   = bestSlice && bestSlice.prob.length ? Math.round(Math.max(...bestSlice.prob)) : 0;
-                    const totalMm   = bestSlice && bestSlice.mm.length   ? parseFloat(bestSlice.mm.reduce((a,b)=>a+b,0).toFixed(1)) : 0;
+                    // Solo acumular mm en horas donde prob >= 50%
+                    const totalMm   = bestSlice && bestSlice.prob.length
+                        ? parseFloat(bestSlice.mm.reduce((a,b,i) => a + (bestSlice.prob[i] >= 50 ? b : 0), 0).toFixed(1))
+                        : 0;
                     const avgProb   = bestSlice && bestSlice.prob.length ? Math.round(bestSlice.prob.reduce((a,b)=>a+b,0)/bestSlice.prob.length) : 0;
 
                     const modelStats = MODELS.map((m, i) => {
                         const s = sliceNext24(results[i]);
-                        if (!s || !s.prob.length) return { ...m, mm:'—', maxP:0, ok:false };
+                        if (!s || !s.mm.length) return { ...m, mm:'—', maxP:0, ok:false };
+                        // mm solo cuando prob >= 50% (o si el modelo no tiene prob, cuando mm > 0)
+                        const mmFilt = s.mm.reduce((a,b,j) => a + (s.prob[j] >= 50 ? b : 0), 0);
                         return {
                             ...m,
-                            mm:   parseFloat(s.mm.reduce((a,b)=>a+b,0).toFixed(1)),
+                            mm:   parseFloat(mmFilt.toFixed(1)),
                             maxP: Math.round(Math.max(...s.prob)),
                             ok:   true
                         };
