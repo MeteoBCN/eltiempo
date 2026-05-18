@@ -791,61 +791,12 @@
 
             <!-- PRÓXIMA LLUVIA -->
             <div id="proxima-lluvia-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-                <!-- ══ ARTÍCULO MANUAL ══ -->
-                <!-- =======================================================
-                     ✏️  PARA EDITAR ESTE BLOQUE:
-                     1. TITULAR  → cambia el texto dentro del primer <div>
-                     2. SUBTÍTULO → cambia la línea "Previsión · Barcelona"
-                     3. CUERPO   → escribe tus párrafos en el último <div>
-                                   Puedes usar saltos de línea normales.
-                     ======================================================= -->
-                <div style="background:#f0f6fa;border-bottom:1px solid rgba(0,0,0,0.07);padding:16px 18px;">
-
-                    <!-- FECHA -->
-                    <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">
-                        LUNES 18 DE MAYO.
-                    </div>
-                    
-                    <!-- TITULAR -->
-                    <div style="font-size:14px;font-weight:700;color:#1a3a5c;margin-bottom:10px;line-height:1.4;letter-spacing:0.2px;">
-                        NO OLVIDEIS EL PARAGUAS
-                    </div>
-
-                    <!-- IMAGEN TITULAR -->
-                    <div style="margin:0 0 10px 0;border-radius:6px;overflow:hidden;">
-                        <img src="titular.jpg" alt="" style="width:100%;display:block;object-fit:cover;">
-                    </div>
-
-                    <!-- SUBTÍTULO -->
-                    <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">
-                        Riesgo de lluvia y tormenta entre las 11 y 15 horas del lunes.
-                    </div>
-
-                    <!-- CUERPO DEL ARTÍCULO-->
-                    <div style="font-size:13px;color:#334155;line-height:1.75;white-space:pre-wrap;">La jornada arrancará con cielos despejados en toda la costa y temperaturas suaves por encima de los 18°C al amanecer.
-                    
-                    </div>
-
-                     <!-- TITULAR -->
-                    <div style="font-size:14px;font-weight:700;color:#1a3a5c;margin-bottom:10px;line-height:1.4;letter-spacing:0.2px;">
-                        TENDENCIA
-                    </div>
-
-                    <!-- IMAGEN TITULAR -->
-                    <div style="margin:0 0 10px 0;border-radius:6px;overflow:hidden;">
-                        <img src="titular.jpg" alt="" style="width:100%;display:block;object-fit:cover;">
-                    </div>
-
-                    <!-- SUBTÍTULO -->
-                    <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">
-                        MEJORIA Y TEMPERATURAS EN CLARO ASCENSO.
-                    </div>
-
+                <!-- ══ ARTÍCULO DINÁMICO — se carga desde Firestore ══ -->
+                <div id="articulo-dinamico" style="background:#f0f6fa;border-bottom:1px solid rgba(0,0,0,0.07);padding:16px 18px;">
+                    <!-- El contenido se inyecta por JavaScript desde Firestore -->
+                    <div style="font-size:13px;color:#94a3b8;text-align:center;padding:12px 0;">Cargando artículo…</div>
                 </div>
-                    
-                </div>
-                <!-- ══ FIN ARTÍCULO MANUAL ══ -->
-
+                <!-- ══ FIN ARTÍCULO DINÁMICO ══ -->
             </div>
 
             <!-- ═══════════════════════════════════════════
@@ -6870,6 +6821,61 @@ if (isStandalone && 'Notification' in window) {
 }
 
 // (previsión manual eliminada — el artículo se edita directamente en el HTML)
+
+// ── Cargar artículo desde Firestore ────────────────────────────
+(async function cargarArticuloDinamico() {
+  try {
+    const snap = await getDoc(doc(db, 'articulo', 'principal'));
+    const contenedor = document.getElementById('articulo-dinamico');
+    if (!contenedor) return;
+
+    if (!snap.exists()) {
+      contenedor.innerHTML = '<div style="font-size:13px;color:#94a3b8;text-align:center;padding:12px 0;">Sin artículo publicado.</div>';
+      return;
+    }
+
+    const d = snap.data();
+
+    function renderBloque(b, esExtra) {
+      let html = '';
+      if (!esExtra && b.fecha) {
+        html += `<div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">${escHtml(b.fecha)}</div>`;
+      }
+      if (b.titular) {
+        html += `<div style="font-size:14px;font-weight:700;color:#1a3a5c;margin-bottom:10px;line-height:1.4;letter-spacing:0.2px;">${escHtml(b.titular)}</div>`;
+      }
+      if (b.imagen) {
+        html += `<div style="margin:0 0 10px 0;border-radius:6px;overflow:hidden;"><img src="${escHtml(b.imagen)}" alt="" style="width:100%;display:block;object-fit:cover;" onerror="this.parentElement.style.display='none'"></div>`;
+      }
+      if (b.subtitulo) {
+        html += `<div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">${escHtml(b.subtitulo)}</div>`;
+      }
+      if (b.cuerpo) {
+        html += `<div style="font-size:13px;color:#334155;line-height:1.75;white-space:pre-wrap;">${escHtml(b.cuerpo)}</div>`;
+      }
+      return html;
+    }
+
+    function escHtml(s) {
+      return String(s || '')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    let html = renderBloque(d, false);
+
+    if (d.bloques && Array.isArray(d.bloques)) {
+      d.bloques.forEach(b => {
+        html += '<hr style="border:none;border-top:1px solid #e2e8f0;margin:16px 0;">';
+        html += renderBloque(b, true);
+      });
+    }
+
+    contenedor.innerHTML = html;
+  } catch(err) {
+    console.warn('[Artículo] Error al cargar desde Firestore:', err);
+  }
+})();
 
 </script>
 
