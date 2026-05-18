@@ -202,13 +202,13 @@
 
 </div>
 
-<script type="module">
-  import { initializeApp }  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getFirestore, doc, setDoc, getDoc }
-    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+<!-- ── Firebase compat (NO usa ES modules, funciona abriendo el archivo directamente) ── -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
+<script>
   // ── Configuración Firebase ──
-  const firebaseApp = initializeApp({
+  firebase.initializeApp({
     apiKey: "AIzaSyCACCy2SA-1JDH3DO1WyjDRPcqG7or5ZmY",
     authDomain: "tiempo-barcelona.firebaseapp.com",
     projectId: "tiempo-barcelona",
@@ -216,17 +216,17 @@
     messagingSenderId: "1001480227705",
     appId: "1:1001480227705:web:d2158e16f4993f522efda8"
   });
-  const db = getFirestore(firebaseApp);
+  const db = firebase.firestore();
 
-  // ── Contraseña (cámbiala aquí) ──
+  // ── Contraseña ──
   const PASSWORD = "bcn2025";
 
   // ── Estado ──
   let bloqueCount = 0;
 
   // ── Helpers ──
-  function getVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
-  function setVal(id, v) { const el = document.getElementById(id); if(el) el.value = v; }
+  function getVal(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+  function setVal(id, v) { var el = document.getElementById(id); if(el) el.value = v; }
   function esc(s) {
     return String(s)
       .replace(/&/g,'&amp;').replace(/</g,'&lt;')
@@ -235,8 +235,9 @@
 
   // ── LOGIN ──
   function doLogin() {
-    const val = document.getElementById('pwd-input').value;
+    var val = document.getElementById('pwd-input').value;
     if (val === PASSWORD) {
+      document.getElementById('login-error').style.display = 'none';
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('editor-screen').style.display = 'block';
       cargarArticulo();
@@ -253,51 +254,50 @@
   }
 
   // ── CARGAR artículo guardado ──
-  async function cargarArticulo() {
-    try {
-      const snap = await getDoc(doc(db, 'articulo', 'principal'));
-      if (!snap.exists()) return;
-      const d = snap.data();
-      setVal('b0-fecha', d.fecha || '');
-      setVal('b0-titular', d.titular || '');
-      setVal('b0-imagen', d.imagen || '');
+  function cargarArticulo() {
+    db.collection('articulo').doc('principal').get().then(function(snap) {
+      if (!snap.exists) return;
+      var d = snap.data();
+      setVal('b0-fecha',     d.fecha     || '');
+      setVal('b0-titular',   d.titular   || '');
+      setVal('b0-imagen',    d.imagen    || '');
       setVal('b0-subtitulo', d.subtitulo || '');
-      setVal('b0-cuerpo', d.cuerpo || '');
+      setVal('b0-cuerpo',    d.cuerpo    || '');
       if (d.bloques && Array.isArray(d.bloques)) {
-        d.bloques.forEach(b => addBloque(b));
+        d.bloques.forEach(function(b) { addBloque(b); });
       }
       actualizarPreview();
-    } catch(e) {
+    }).catch(function(e) {
       console.warn('No se pudo cargar el artículo:', e);
-    }
+    });
   }
 
   // ── GUARDAR ──
-  async function guardar() {
-    const btn = document.getElementById('btn-save');
-    const msg = document.getElementById('status-msg');
+  function guardar() {
+    var btn = document.getElementById('btn-save');
+    var msg = document.getElementById('status-msg');
     btn.disabled = true;
     msg.className = 'status-msg status-loading';
     msg.textContent = 'Publicando…';
-    try {
-      const data = recogerDatos();
-      await setDoc(doc(db, 'articulo', 'principal'), {
-        ...data,
-        updatedAt: new Date().toISOString()
-      });
+
+    var data = recogerDatos();
+    data.updatedAt = new Date().toISOString();
+
+    db.collection('articulo').doc('principal').set(data).then(function() {
       msg.className = 'status-msg status-ok';
       msg.textContent = '✓ Publicado correctamente · ' + new Date().toLocaleTimeString('es-ES');
-    } catch(e) {
+      btn.disabled = false;
+    }).catch(function(e) {
       msg.className = 'status-msg status-err';
       msg.textContent = '✗ Error al publicar: ' + e.message;
-    }
-    btn.disabled = false;
+      btn.disabled = false;
+    });
   }
 
   function recogerDatos() {
-    const bloques = [];
-    document.querySelectorAll('.bloque-extra').forEach(el => {
-      const id = el.dataset.id;
+    var bloques = [];
+    document.querySelectorAll('.bloque-extra').forEach(function(el) {
+      var id = el.dataset.id;
       bloques.push({
         titular:   getVal('bx-titular-'   + id),
         imagen:    getVal('bx-imagen-'    + id),
@@ -311,69 +311,72 @@
       imagen:    getVal('b0-imagen'),
       subtitulo: getVal('b0-subtitulo'),
       cuerpo:    getVal('b0-cuerpo'),
-      bloques
+      bloques:   bloques
     };
   }
 
   // ── BLOQUES EXTRA ──
-  function addBloque(datos = {}) {
+  function addBloque(datos) {
+    datos = datos || {};
     bloqueCount++;
-    const id = bloqueCount;
-    const wrapper = document.getElementById('bloques-extra');
-    const div = document.createElement('div');
+    var id = bloqueCount;
+    var wrapper = document.getElementById('bloques-extra');
+    var div = document.createElement('div');
     div.className = 'card bloque-extra';
     div.dataset.id = id;
-    div.innerHTML = `
-      <button class="btn-remove btn-remove-bloque" title="Eliminar bloque">✕</button>
-      <label>📰 Titular (bloque ${id})</label>
-      <input type="text" id="bx-titular-${id}" placeholder="Titular del bloque…" value="${esc(datos.titular||'')}">
-      <label style="margin-top:12px;">🖼️ URL de imagen (opcional)</label>
-      <input type="text" id="bx-imagen-${id}" placeholder="Ej: tendencia.jpg" value="${esc(datos.imagen||'')}">
-      <label style="margin-top:12px;">📝 Subtítulo</label>
-      <input type="text" id="bx-subtitulo-${id}" placeholder="Subtítulo del bloque…" value="${esc(datos.subtitulo||'')}">
-      <label style="margin-top:12px;">📄 Cuerpo</label>
-      <textarea id="bx-cuerpo-${id}" placeholder="Texto del bloque…">${esc(datos.cuerpo||'')}</textarea>
-    `;
+    div.innerHTML =
+      '<button class="btn-remove btn-remove-bloque" title="Eliminar bloque">✕</button>' +
+      '<label>📰 Titular (bloque ' + id + ')</label>' +
+      '<input type="text" id="bx-titular-' + id + '" placeholder="Titular del bloque…" value="' + esc(datos.titular||'') + '">' +
+      '<label style="margin-top:12px;">🖼️ URL de imagen (opcional)</label>' +
+      '<input type="text" id="bx-imagen-' + id + '" placeholder="Ej: tendencia.jpg" value="' + esc(datos.imagen||'') + '">' +
+      '<label style="margin-top:12px;">📝 Subtítulo</label>' +
+      '<input type="text" id="bx-subtitulo-' + id + '" placeholder="Subtítulo del bloque…" value="' + esc(datos.subtitulo||'') + '">' +
+      '<label style="margin-top:12px;">📄 Cuerpo</label>' +
+      '<textarea id="bx-cuerpo-' + id + '" placeholder="Texto del bloque…">' + esc(datos.cuerpo||'') + '</textarea>';
+
     wrapper.appendChild(div);
-    // Botón eliminar bloque
-    div.querySelector('.btn-remove-bloque').addEventListener('click', () => {
+
+    div.querySelector('.btn-remove-bloque').addEventListener('click', function() {
       div.remove();
       actualizarPreview();
     });
-    div.querySelectorAll('input, textarea').forEach(el => el.addEventListener('input', actualizarPreview));
+    div.querySelectorAll('input, textarea').forEach(function(el) {
+      el.addEventListener('input', actualizarPreview);
+    });
     actualizarPreview();
   }
 
   // ── PREVIEW ──
   function setupPreview() {
-    ['b0-fecha','b0-titular','b0-imagen','b0-subtitulo','b0-cuerpo'].forEach(id => {
+    ['b0-fecha','b0-titular','b0-imagen','b0-subtitulo','b0-cuerpo'].forEach(function(id) {
       document.getElementById(id).addEventListener('input', actualizarPreview);
     });
   }
 
   function actualizarPreview() {
-    const d = recogerDatos();
-    let html = renderBloque(d);
-    d.bloques.forEach(b => { html += '<hr class="p-separador">' + renderBloque(b, true); });
+    var d = recogerDatos();
+    var html = renderBloque(d, false);
+    d.bloques.forEach(function(b) { html += '<hr class="p-separador">' + renderBloque(b, true); });
     document.getElementById('preview-content').innerHTML = html;
   }
 
-  function renderBloque(b, extra = false) {
-    let h = '';
-    if (!extra && b.fecha) h += `<div class="p-fecha">${esc(b.fecha)}</div>`;
-    if (b.titular)   h += `<div class="p-titular">${esc(b.titular)}</div>`;
-    if (b.imagen)    h += `<img class="p-imagen" src="${esc(b.imagen)}" onerror="this.style.display='none'">`;
-    if (b.subtitulo) h += `<div class="p-subtitulo">${esc(b.subtitulo)}</div>`;
-    if (b.cuerpo)    h += `<div class="p-cuerpo">${esc(b.cuerpo)}</div>`;
+  function renderBloque(b, extra) {
+    var h = '';
+    if (!extra && b.fecha)   h += '<div class="p-fecha">' + esc(b.fecha) + '</div>';
+    if (b.titular)           h += '<div class="p-titular">' + esc(b.titular) + '</div>';
+    if (b.imagen)            h += '<img class="p-imagen" src="' + esc(b.imagen) + '" onerror="this.style.display=\'none\'">';
+    if (b.subtitulo)         h += '<div class="p-subtitulo">' + esc(b.subtitulo) + '</div>';
+    if (b.cuerpo)            h += '<div class="p-cuerpo">' + esc(b.cuerpo) + '</div>';
     return h;
   }
 
-  // ── Vincular eventos al cargar el DOM ──
+  // ── Vincular eventos ──
   document.getElementById('btn-login').addEventListener('click', doLogin);
-  document.getElementById('pwd-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('pwd-input').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
   document.getElementById('btn-logout').addEventListener('click', logout);
   document.getElementById('btn-save').addEventListener('click', guardar);
-  document.getElementById('btn-add-bloque').addEventListener('click', () => addBloque());
+  document.getElementById('btn-add-bloque').addEventListener('click', function() { addBloque(); });
 </script>
 </body>
 </html>
