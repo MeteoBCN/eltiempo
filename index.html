@@ -5500,83 +5500,7 @@
         loadWeatherData();
         setInterval(loadWeatherData, 600000);
 
-        // ══════════════════════════════════════════════
-        //  PREVISIÓN MANUAL (Firestore)
-        // ══════════════════════════════════════════════
-        const PM_DOC = 'config/prevision_manual';
 
-        // ── Modo admin: solo si ?admin=20091177 en la URL ──
-        const PM_ES_ADMIN = new URLSearchParams(window.location.search).get('admin') === '20091177';
-
-        async function previsionManualCargar() {
-            const vistaTitular = document.getElementById('prevision-manual-titular');
-            const vistaTexto   = document.getElementById('prevision-manual-texto');
-            try {
-                const snap = await getDoc(doc(db, 'config', 'prevision_manual'));
-                if (snap.exists()) {
-                    const d = snap.data();
-                    vistaTitular.textContent = d.titular || '—';
-                    vistaTexto.textContent   = d.texto   || '';
-                } else {
-                    vistaTitular.textContent = 'Sin previsión publicada';
-                    vistaTexto.textContent   = '';
-                }
-            } catch(e) {
-                vistaTitular.textContent = 'Sin previsión';
-                vistaTexto.textContent   = '';
-                console.warn('[PrevManual] Error al cargar:', e);
-            }
-            // Mostrar botón editar solo en modo admin
-            const btnEdit = document.getElementById('prevision-edit-btn');
-            if (btnEdit) btnEdit.style.display = PM_ES_ADMIN ? 'block' : 'none';
-        }
-
-        window.previsionManualEditar = function() {
-            if (!PM_ES_ADMIN) return;
-            const titular = document.getElementById('prevision-manual-titular').textContent;
-            const texto   = document.getElementById('prevision-manual-texto').textContent;
-            document.getElementById('prevision-input-titular').value = (titular === 'Sin previsión publicada') ? '' : titular;
-            document.getElementById('prevision-input-texto').value   = texto;
-            document.getElementById('prevision-manual-vista').style.display = 'none';
-            document.getElementById('prevision-manual-form').style.display  = 'block';
-            document.getElementById('prevision-input-titular').focus();
-        };
-
-        window.previsionManualCancelar = function() {
-            document.getElementById('prevision-manual-form').style.display  = 'none';
-            document.getElementById('prevision-manual-vista').style.display = 'block';
-        };
-
-        window.previsionManualGuardar = async function() {
-            if (!PM_ES_ADMIN) return;
-            const btnGuardar = document.querySelector('#prevision-manual-form button');
-            const titular = document.getElementById('prevision-input-titular').value.trim();
-            const texto   = document.getElementById('prevision-input-texto').value.trim();
-            btnGuardar.textContent = 'Guardando…';
-            btnGuardar.disabled = true;
-            try {
-                await setDoc(doc(db, 'config', 'prevision_manual'), {
-                    titular: titular || '—',
-                    texto:   texto,
-                    updated: new Date()
-                });
-                document.getElementById('prevision-manual-titular').textContent = titular || '—';
-                document.getElementById('prevision-manual-texto').textContent   = texto;
-                window.previsionManualCancelar();
-            } catch(e) {
-                console.error('[PrevManual] Error al guardar:', e);
-                alert('Error al guardar. Comprueba la conexión.');
-            } finally {
-                btnGuardar.textContent = 'Guardar';
-                btnGuardar.disabled = false;
-            }
-        };
-
-        // Cargar al inicio
-        previsionManualCargar();
-        // ══════════════════════════════════════════════
-        //  FIN PREVISIÓN MANUAL
-        // ══════════════════════════════════════════════
 
                 // ── Carga automática sección AHORA ──
 
@@ -6940,7 +6864,80 @@ if (isStandalone && 'Notification' in window) {
     setTimeout(showNotifModal, 2000);
   });
 }
- 
+
+// ══════════════════════════════════════════════
+//  PREVISIÓN MANUAL (Firestore)
+// ══════════════════════════════════════════════
+const PM_ES_ADMIN = new URLSearchParams(window.location.search).get('admin') === '20091177';
+
+async function previsionManualCargar() {
+    const vistaTitular = document.getElementById('prevision-manual-titular');
+    const vistaTexto   = document.getElementById('prevision-manual-texto');
+    try {
+        const snap = await getDoc(doc(db, 'config', 'prevision_manual'));
+        if (snap.exists()) {
+            const d = snap.data();
+            vistaTitular.textContent = d.titular || '—';
+            vistaTexto.textContent   = d.texto   || '';
+        } else {
+            vistaTitular.textContent = 'Sin previsión publicada';
+            vistaTexto.textContent   = '';
+        }
+    } catch(e) {
+        vistaTitular.textContent = 'Sin previsión';
+        vistaTexto.textContent   = '';
+        console.warn('[PrevManual] Error al cargar:', e);
+    }
+    const btnEdit = document.getElementById('prevision-edit-btn');
+    if (btnEdit) btnEdit.style.display = PM_ES_ADMIN ? 'block' : 'none';
+}
+
+window.previsionManualEditar = function() {
+    if (!PM_ES_ADMIN) return;
+    const titular = document.getElementById('prevision-manual-titular').textContent;
+    const texto   = document.getElementById('prevision-manual-texto').textContent;
+    document.getElementById('prevision-input-titular').value = (titular === 'Sin previsión publicada') ? '' : titular;
+    document.getElementById('prevision-input-texto').value   = texto;
+    document.getElementById('prevision-manual-vista').style.display = 'none';
+    document.getElementById('prevision-manual-form').style.display  = 'block';
+    document.getElementById('prevision-input-titular').focus();
+};
+
+window.previsionManualCancelar = function() {
+    document.getElementById('prevision-manual-form').style.display  = 'none';
+    document.getElementById('prevision-manual-vista').style.display = 'block';
+};
+
+window.previsionManualGuardar = async function() {
+    if (!PM_ES_ADMIN) return;
+    const btnGuardar = document.querySelector('#prevision-manual-form button');
+    const titular = document.getElementById('prevision-input-titular').value.trim();
+    const texto   = document.getElementById('prevision-input-texto').value.trim();
+    btnGuardar.textContent = 'Guardando…';
+    btnGuardar.disabled = true;
+    try {
+        await setDoc(doc(db, 'config', 'prevision_manual'), {
+            titular: titular || '—',
+            texto:   texto,
+            updated: new Date()
+        });
+        document.getElementById('prevision-manual-titular').textContent = titular || '—';
+        document.getElementById('prevision-manual-texto').textContent   = texto;
+        window.previsionManualCancelar();
+    } catch(e) {
+        console.error('[PrevManual] Error al guardar:', e);
+        alert('Error al guardar. Comprueba la conexión.');
+    } finally {
+        btnGuardar.textContent = 'Guardar';
+        btnGuardar.disabled = false;
+    }
+};
+
+previsionManualCargar();
+// ══════════════════════════════════════════════
+//  FIN PREVISIÓN MANUAL
+// ══════════════════════════════════════════════
+
 </script>
 
 
