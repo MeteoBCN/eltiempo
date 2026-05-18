@@ -6874,7 +6874,13 @@ async function previsionManualCargar() {
     const vistaTitular = document.getElementById('prevision-manual-titular');
     const vistaTexto   = document.getElementById('prevision-manual-texto');
     try {
-        const snap = await getDoc(doc(db, 'config', 'prevision_manual'));
+        const timeout = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('timeout')), 8000)
+        );
+        const snap = await Promise.race([
+            getDoc(doc(db, 'config', 'prevision_manual')),
+            timeout
+        ]);
         if (snap.exists()) {
             const d = snap.data();
             vistaTitular.textContent = d.titular || '—';
@@ -6884,7 +6890,7 @@ async function previsionManualCargar() {
             vistaTexto.textContent   = '';
         }
     } catch(e) {
-        vistaTitular.textContent = 'Sin previsión';
+        vistaTitular.textContent = 'Sin previsión disponible';
         vistaTexto.textContent   = '';
         console.warn('[PrevManual] Error al cargar:', e);
     }
