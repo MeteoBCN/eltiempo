@@ -791,11 +791,37 @@
 
             <!-- PRÓXIMA LLUVIA -->
             <div id="proxima-lluvia-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-                <!-- Cabecera fija (no clicable) -->
-                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;gap:3px;">
-                    <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">PANEL DE CONTROL</span>
-                    <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">AVISOS & RIESGOs</span>
+                <!-- ══ PREVISIÓN MANUAL ══ -->
+                <div id="prevision-manual-bloque" style="background:#f0f6fa;border-bottom:1px solid rgba(0,0,0,0.07);">
+                    <!-- Vista (modo lectura) -->
+                    <div id="prevision-manual-vista" style="padding:14px 16px;cursor:pointer;" onclick="previsionManualEditar()" title="Pulsa para editar">
+                        <div id="prevision-manual-titular" style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:4px;letter-spacing:0.2px;">Cargando previsión…</div>
+                        <div id="prevision-manual-texto" style="font-size:12px;color:#475569;line-height:1.6;white-space:pre-wrap;"></div>
+                        <div style="margin-top:6px;font-size:10px;color:#94a3b8;letter-spacing:0.3px;">✏️ Pulsa para editar</div>
+                    </div>
+                    <!-- Formulario (modo edición, oculto por defecto) -->
+                    <div id="prevision-manual-form" style="display:none;padding:14px 16px;border-top:2px solid #e2e8f0;">
+                        <div style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">✏️ Editar previsión</div>
+                        <input id="prevision-input-titular" type="text"
+                            placeholder="Titular (ej: Tarde lluviosa con viento del SW)"
+                            style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-family:inherit;color:#1a3a5c;background:#fff;margin-bottom:8px;outline:none;">
+                        <textarea id="prevision-input-texto"
+                            placeholder="Previsión detallada…&#10;Puedes usar varias líneas."
+                            rows="5"
+                            style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:12px;font-family:inherit;color:#1a3a5c;background:#fff;resize:vertical;outline:none;line-height:1.6;"></textarea>
+                        <div style="display:flex;gap:8px;margin-top:8px;">
+                            <button onclick="previsionManualGuardar()"
+                                style="flex:1;padding:9px;background:#2c4a6e;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">
+                                Guardar
+                            </button>
+                            <button onclick="previsionManualCancelar()"
+                                style="padding:9px 16px;background:#e2e8f0;color:#64748b;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
                 </div>
+                <!-- ══ FIN PREVISIÓN MANUAL ══ -->
 
                 <div id="proxima-lluvia-content" style="background:#f0f6fa;padding:14px 16px;border-bottom:1px solid rgba(0,0,0,0.07);">
                     <div style="display:flex;align-items:center;gap:12px;">
@@ -5472,7 +5498,77 @@
         loadWeatherData();
         setInterval(loadWeatherData, 600000);
 
-        // ── Carga automática sección AHORA ──
+        // ══════════════════════════════════════════════
+        //  PREVISIÓN MANUAL (Firestore)
+        // ══════════════════════════════════════════════
+        const PM_DOC = 'config/prevision_manual';
+
+        async function previsionManualCargar() {
+            const vistaTitular = document.getElementById('prevision-manual-titular');
+            const vistaTexto   = document.getElementById('prevision-manual-texto');
+            try {
+                const snap = await getDoc(doc(db, 'config', 'prevision_manual'));
+                if (snap.exists()) {
+                    const d = snap.data();
+                    vistaTitular.textContent = d.titular || '—';
+                    vistaTexto.textContent   = d.texto   || '';
+                } else {
+                    vistaTitular.textContent = 'Sin previsión';
+                    vistaTexto.textContent   = 'Pulsa para añadir tu previsión detallada.';
+                }
+            } catch(e) {
+                vistaTitular.textContent = 'Sin previsión';
+                vistaTexto.textContent   = '';
+                console.warn('[PrevManual] Error al cargar:', e);
+            }
+        }
+
+        window.previsionManualEditar = function() {
+            const titular = document.getElementById('prevision-manual-titular').textContent;
+            const texto   = document.getElementById('prevision-manual-texto').textContent;
+            document.getElementById('prevision-input-titular').value = (titular === 'Sin previsión' || titular === 'Cargando previsión…') ? '' : titular;
+            document.getElementById('prevision-input-texto').value   = (texto === 'Pulsa para añadir tu previsión detallada.') ? '' : texto;
+            document.getElementById('prevision-manual-vista').style.display = 'none';
+            document.getElementById('prevision-manual-form').style.display  = 'block';
+            document.getElementById('prevision-input-titular').focus();
+        };
+
+        window.previsionManualCancelar = function() {
+            document.getElementById('prevision-manual-form').style.display  = 'none';
+            document.getElementById('prevision-manual-vista').style.display = 'block';
+        };
+
+        window.previsionManualGuardar = async function() {
+            const btnGuardar = document.querySelector('#prevision-manual-form button');
+            const titular = document.getElementById('prevision-input-titular').value.trim();
+            const texto   = document.getElementById('prevision-input-texto').value.trim();
+            btnGuardar.textContent = 'Guardando…';
+            btnGuardar.disabled = true;
+            try {
+                await setDoc(doc(db, 'config', 'prevision_manual'), {
+                    titular: titular || '—',
+                    texto:   texto,
+                    updated: new Date()
+                });
+                document.getElementById('prevision-manual-titular').textContent = titular || '—';
+                document.getElementById('prevision-manual-texto').textContent   = texto;
+                window.previsionManualCancelar();
+            } catch(e) {
+                console.error('[PrevManual] Error al guardar:', e);
+                alert('Error al guardar. Comprueba la conexión.');
+            } finally {
+                btnGuardar.textContent = 'Guardar';
+                btnGuardar.disabled = false;
+            }
+        };
+
+        // Cargar al inicio
+        previsionManualCargar();
+        // ══════════════════════════════════════════════
+        //  FIN PREVISIÓN MANUAL
+        // ══════════════════════════════════════════════
+
+                // ── Carga automática sección AHORA ──
 
         /* ── Radar (sección AHORA) — siempre visible, init automático ── */
         let ahoraRadarInited = false;
@@ -6674,7 +6770,7 @@
 import { initializeApp }      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getMessaging, getToken, onMessage }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
-import { getFirestore, doc, setDoc }
+import { getFirestore, doc, setDoc, getDoc }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const firebaseApp = initializeApp({
