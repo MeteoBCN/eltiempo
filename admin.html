@@ -151,7 +151,7 @@
     <h1>🔐 Panel Admin</h1>
     <p>Acceso restringido · Tiempo Barcelona</p>
     <input type="password" id="pwd-input" placeholder="Contraseña" autocomplete="current-password">
-    <button class="btn-primary" onclick="doLogin()">Entrar</button>
+    <button class="btn-primary" id="btn-login">Entrar</button>
     <div class="login-error" id="login-error">Contraseña incorrecta</div>
   </div>
 </div>
@@ -185,7 +185,7 @@
   <!-- Bloques extra (se añaden dinámicamente) -->
   <div id="bloques-extra"></div>
 
-  <button class="btn-add-bloque" onclick="addBloque()">＋ Añadir bloque adicional</button>
+  <button class="btn-add-bloque" id="btn-add-bloque">＋ Añadir bloque adicional</button>
 
   <!-- Preview -->
   <div class="card preview-card" style="margin-top: 24px;">
@@ -195,8 +195,8 @@
 
   <!-- Acciones -->
   <div class="actions" style="margin-top: 24px;">
-    <button class="btn-save" id="btn-save" onclick="guardar()">💾 Publicar ahora</button>
-    <button class="btn-logout" onclick="logout()">Salir</button>
+    <button class="btn-save" id="btn-save">💾 Publicar ahora</button>
+    <button class="btn-logout" id="btn-logout">Salir</button>
   </div>
   <div class="status-msg" id="status-msg"></div>
 
@@ -207,7 +207,7 @@
   import { getFirestore, doc, setDoc, getDoc }
     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-  // ── Configuración Firebase (igual que index.html) ──
+  // ── Configuración Firebase ──
   const firebaseApp = initializeApp({
     apiKey: "AIzaSyCACCy2SA-1JDH3DO1WyjDRPcqG7or5ZmY",
     authDomain: "tiempo-barcelona.firebaseapp.com",
@@ -219,14 +219,22 @@
   const db = getFirestore(firebaseApp);
 
   // ── Contraseña (cámbiala aquí) ──
-  const PASSWORD = "bcn2025";  // ← CAMBIA ESTO
+  const PASSWORD = "bcn2025";
 
   // ── Estado ──
-  let bloqueCount = 0; // bloques extra añadidos
-  const bloquesData = []; // array de datos de bloques extra
+  let bloqueCount = 0;
+
+  // ── Helpers ──
+  function getVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+  function setVal(id, v) { const el = document.getElementById(id); if(el) el.value = v; }
+  function esc(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 
   // ── LOGIN ──
-  window.doLogin = function() {
+  function doLogin() {
     const val = document.getElementById('pwd-input').value;
     if (val === PASSWORD) {
       document.getElementById('login-screen').style.display = 'none';
@@ -236,16 +244,13 @@
     } else {
       document.getElementById('login-error').style.display = 'block';
     }
-  };
-  document.getElementById('pwd-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') window.doLogin();
-  });
+  }
 
-  window.logout = function() {
+  function logout() {
     document.getElementById('editor-screen').style.display = 'none';
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('pwd-input').value = '';
-  };
+  }
 
   // ── CARGAR artículo guardado ──
   async function cargarArticulo() {
@@ -253,15 +258,11 @@
       const snap = await getDoc(doc(db, 'articulo', 'principal'));
       if (!snap.exists()) return;
       const d = snap.data();
-
-      // Bloque 0
       setVal('b0-fecha', d.fecha || '');
       setVal('b0-titular', d.titular || '');
       setVal('b0-imagen', d.imagen || '');
       setVal('b0-subtitulo', d.subtitulo || '');
       setVal('b0-cuerpo', d.cuerpo || '');
-
-      // Bloques extra
       if (d.bloques && Array.isArray(d.bloques)) {
         d.bloques.forEach(b => addBloque(b));
       }
@@ -272,13 +273,12 @@
   }
 
   // ── GUARDAR ──
-  window.guardar = async function() {
+  async function guardar() {
     const btn = document.getElementById('btn-save');
     const msg = document.getElementById('status-msg');
     btn.disabled = true;
     msg.className = 'status-msg status-loading';
     msg.textContent = 'Publicando…';
-
     try {
       const data = recogerDatos();
       await setDoc(doc(db, 'articulo', 'principal'), {
@@ -292,31 +292,31 @@
       msg.textContent = '✗ Error al publicar: ' + e.message;
     }
     btn.disabled = false;
-  };
+  }
 
   function recogerDatos() {
     const bloques = [];
     document.querySelectorAll('.bloque-extra').forEach(el => {
       const id = el.dataset.id;
       bloques.push({
-        titular: getVal('bx-titular-' + id),
-        imagen: getVal('bx-imagen-' + id),
+        titular:   getVal('bx-titular-'   + id),
+        imagen:    getVal('bx-imagen-'    + id),
         subtitulo: getVal('bx-subtitulo-' + id),
-        cuerpo: getVal('bx-cuerpo-' + id),
+        cuerpo:    getVal('bx-cuerpo-'    + id),
       });
     });
     return {
-      fecha: getVal('b0-fecha'),
-      titular: getVal('b0-titular'),
-      imagen: getVal('b0-imagen'),
+      fecha:     getVal('b0-fecha'),
+      titular:   getVal('b0-titular'),
+      imagen:    getVal('b0-imagen'),
       subtitulo: getVal('b0-subtitulo'),
-      cuerpo: getVal('b0-cuerpo'),
+      cuerpo:    getVal('b0-cuerpo'),
       bloques
     };
   }
 
   // ── BLOQUES EXTRA ──
-  window.addBloque = function(datos = {}) {
+  function addBloque(datos = {}) {
     bloqueCount++;
     const id = bloqueCount;
     const wrapper = document.getElementById('bloques-extra');
@@ -324,7 +324,7 @@
     div.className = 'card bloque-extra';
     div.dataset.id = id;
     div.innerHTML = `
-      <button class="btn-remove" onclick="this.parentElement.remove();actualizarPreview()" title="Eliminar bloque">✕</button>
+      <button class="btn-remove btn-remove-bloque" title="Eliminar bloque">✕</button>
       <label>📰 Titular (bloque ${id})</label>
       <input type="text" id="bx-titular-${id}" placeholder="Titular del bloque…" value="${esc(datos.titular||'')}">
       <label style="margin-top:12px;">🖼️ URL de imagen (opcional)</label>
@@ -335,9 +335,14 @@
       <textarea id="bx-cuerpo-${id}" placeholder="Texto del bloque…">${esc(datos.cuerpo||'')}</textarea>
     `;
     wrapper.appendChild(div);
+    // Botón eliminar bloque
+    div.querySelector('.btn-remove-bloque').addEventListener('click', () => {
+      div.remove();
+      actualizarPreview();
+    });
     div.querySelectorAll('input, textarea').forEach(el => el.addEventListener('input', actualizarPreview));
     actualizarPreview();
-  };
+  }
 
   // ── PREVIEW ──
   function setupPreview() {
@@ -346,31 +351,29 @@
     });
   }
 
-  window.actualizarPreview = function() {
+  function actualizarPreview() {
     const d = recogerDatos();
     let html = renderBloque(d);
     d.bloques.forEach(b => { html += '<hr class="p-separador">' + renderBloque(b, true); });
     document.getElementById('preview-content').innerHTML = html;
-  };
+  }
 
   function renderBloque(b, extra = false) {
     let h = '';
     if (!extra && b.fecha) h += `<div class="p-fecha">${esc(b.fecha)}</div>`;
-    if (b.titular) h += `<div class="p-titular">${esc(b.titular)}</div>`;
-    if (b.imagen)  h += `<img class="p-imagen" src="${esc(b.imagen)}" onerror="this.style.display='none'">`;
+    if (b.titular)   h += `<div class="p-titular">${esc(b.titular)}</div>`;
+    if (b.imagen)    h += `<img class="p-imagen" src="${esc(b.imagen)}" onerror="this.style.display='none'">`;
     if (b.subtitulo) h += `<div class="p-subtitulo">${esc(b.subtitulo)}</div>`;
-    if (b.cuerpo)  h += `<div class="p-cuerpo">${esc(b.cuerpo)}</div>`;
+    if (b.cuerpo)    h += `<div class="p-cuerpo">${esc(b.cuerpo)}</div>`;
     return h;
   }
 
-  // ── Helpers ──
-  function getVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
-  function setVal(id, v) { const el = document.getElementById(id); if(el) el.value = v; }
-  function esc(s) {
-    return String(s)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+  // ── Vincular eventos al cargar el DOM ──
+  document.getElementById('btn-login').addEventListener('click', doLogin);
+  document.getElementById('pwd-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('btn-logout').addEventListener('click', logout);
+  document.getElementById('btn-save').addEventListener('click', guardar);
+  document.getElementById('btn-add-bloque').addEventListener('click', () => addBloque());
 </script>
 </body>
 </html>
