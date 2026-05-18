@@ -794,10 +794,12 @@
                 <!-- ══ PREVISIÓN MANUAL ══ -->
                 <div id="prevision-manual-bloque" style="background:#f0f6fa;border-bottom:1px solid rgba(0,0,0,0.07);">
                     <!-- Vista (modo lectura) -->
-                    <div id="prevision-manual-vista" style="padding:14px 16px;cursor:pointer;" onclick="previsionManualEditar()" title="Pulsa para editar">
+                    <div id="prevision-manual-vista" style="padding:14px 16px;">
                         <div id="prevision-manual-titular" style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:4px;letter-spacing:0.2px;">Cargando previsión…</div>
                         <div id="prevision-manual-texto" style="font-size:12px;color:#475569;line-height:1.6;white-space:pre-wrap;"></div>
-                        <div style="margin-top:6px;font-size:10px;color:#94a3b8;letter-spacing:0.3px;">✏️ Pulsa para editar</div>
+                        <div id="prevision-edit-btn" style="display:none;margin-top:8px;">
+                            <button onclick="previsionManualEditar()" style="padding:6px 14px;background:#2c4a6e;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">✏️ Editar previsión</button>
+                        </div>
                     </div>
                     <!-- Formulario (modo edición, oculto por defecto) -->
                     <div id="prevision-manual-form" style="display:none;padding:14px 16px;border-top:2px solid #e2e8f0;">
@@ -5503,6 +5505,9 @@
         // ══════════════════════════════════════════════
         const PM_DOC = 'config/prevision_manual';
 
+        // ── Modo admin: solo si ?admin=20091177 en la URL ──
+        const PM_ES_ADMIN = new URLSearchParams(window.location.search).get('admin') === '20091177';
+
         async function previsionManualCargar() {
             const vistaTitular = document.getElementById('prevision-manual-titular');
             const vistaTexto   = document.getElementById('prevision-manual-texto');
@@ -5513,21 +5518,25 @@
                     vistaTitular.textContent = d.titular || '—';
                     vistaTexto.textContent   = d.texto   || '';
                 } else {
-                    vistaTitular.textContent = 'Sin previsión';
-                    vistaTexto.textContent   = 'Pulsa para añadir tu previsión detallada.';
+                    vistaTitular.textContent = 'Sin previsión publicada';
+                    vistaTexto.textContent   = '';
                 }
             } catch(e) {
                 vistaTitular.textContent = 'Sin previsión';
                 vistaTexto.textContent   = '';
                 console.warn('[PrevManual] Error al cargar:', e);
             }
+            // Mostrar botón editar solo en modo admin
+            const btnEdit = document.getElementById('prevision-edit-btn');
+            if (btnEdit) btnEdit.style.display = PM_ES_ADMIN ? 'block' : 'none';
         }
 
         window.previsionManualEditar = function() {
+            if (!PM_ES_ADMIN) return;
             const titular = document.getElementById('prevision-manual-titular').textContent;
             const texto   = document.getElementById('prevision-manual-texto').textContent;
-            document.getElementById('prevision-input-titular').value = (titular === 'Sin previsión' || titular === 'Cargando previsión…') ? '' : titular;
-            document.getElementById('prevision-input-texto').value   = (texto === 'Pulsa para añadir tu previsión detallada.') ? '' : texto;
+            document.getElementById('prevision-input-titular').value = (titular === 'Sin previsión publicada') ? '' : titular;
+            document.getElementById('prevision-input-texto').value   = texto;
             document.getElementById('prevision-manual-vista').style.display = 'none';
             document.getElementById('prevision-manual-form').style.display  = 'block';
             document.getElementById('prevision-input-titular').focus();
@@ -5539,6 +5548,7 @@
         };
 
         window.previsionManualGuardar = async function() {
+            if (!PM_ES_ADMIN) return;
             const btnGuardar = document.querySelector('#prevision-manual-form button');
             const titular = document.getElementById('prevision-input-titular').value.trim();
             const texto   = document.getElementById('prevision-input-texto').value.trim();
