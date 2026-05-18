@@ -767,44 +767,6 @@
             </div><!-- fin hero-zone -->
 
             <!-- ═══════════════════════════════════════════
-                 PREVISIÓN MANUAL DEL METEORÓLOGO
-            ════════════════════════════════════════════ -->
-            <div id="prevision-manual-bloque" style="display:none; padding:16px 24px; background:#f8fafc; border-left:4px solid #3B82F6; margin:0;">
-              <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#64748B; font-weight:700; margin-bottom:8px;">📝 Previsión del meteorólogo</div>
-              <div id="prevision-manual-texto" style="font-size:15px; color:#1E293B; line-height:1.7; white-space:pre-wrap;"></div>
-              <div id="prevision-manual-fecha" style="font-size:11px; color:#94A3B8; margin-top:10px;"></div>
-            </div>
-
-            <!-- Botón admin (solo visible con ?admin=true) -->
-            <div id="admin-panel" style="display:none; position:fixed; bottom:24px; right:24px; z-index:9999;">
-              <button onclick="abrirAdminModal()" style="background:#2C3E50; color:white; border:none; border-radius:50%; width:52px; height:52px; font-size:22px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.3);">✏️</button>
-            </div>
-
-            <!-- Modal de edición -->
-            <div id="admin-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:10000; align-items:center; justify-content:center;">
-              <div style="background:white; border-radius:16px; padding:24px; width:90%; max-width:480px; box-shadow:0 20px 40px rgba(0,0,0,0.3);">
-                <h3 style="margin-bottom:16px; color:#1E293B; font-size:17px;">✏️ Editar previsión</h3>
-                <div id="admin-login">
-                  <input id="admin-password" type="password" placeholder="Contraseña"
-                    style="width:100%; padding:12px; border:1px solid #E2E8F0; border-radius:10px; font-size:15px; margin-bottom:12px; box-sizing:border-box; font-family:inherit;">
-                  <button onclick="verificarPassword()"
-                    style="width:100%; padding:12px; background:#2C3E50; color:white; border:none; border-radius:10px; font-size:15px; cursor:pointer; font-family:inherit;">Entrar</button>
-                  <div id="admin-error" style="color:#EF4444; font-size:13px; margin-top:8px; display:none;">Contraseña incorrecta</div>
-                </div>
-                <div id="admin-editor" style="display:none;">
-                  <textarea id="admin-texto" rows="6" placeholder="Escribe la previsión..."
-                    style="width:100%; padding:12px; border:1px solid #E2E8F0; border-radius:10px; font-size:15px; resize:vertical; box-sizing:border-box; font-family:inherit;"></textarea>
-                  <div style="display:flex; gap:10px; margin-top:12px;">
-                    <button onclick="guardarPrevision()"
-                      style="flex:1; padding:12px; background:#3B82F6; color:white; border:none; border-radius:10px; font-size:15px; cursor:pointer; font-family:inherit;">💾 Guardar</button>
-                    <button onclick="cerrarAdminModal()"
-                      style="padding:12px 16px; background:#F1F5F9; color:#64748B; border:none; border-radius:10px; font-size:15px; cursor:pointer; font-family:inherit;">Cancelar</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- ═══════════════════════════════════════════
                  GRÁFICO TEMPERATURA 24H
             ════════════════════════════════════════════ -->
             <div id="temp24h-section" style="background:#ffffff;padding:0 0 4px;">
@@ -6978,63 +6940,7 @@ if (isStandalone && 'Notification' in window) {
     setTimeout(showNotifModal, 2000);
   });
 }
-  // ── PREVISIÓN MANUAL ───────────────────────────────────────────
-const ADMIN_PASSWORD = 'pon-tu-contraseña-aqui'; // 👈 cámbialo
-
-if (new URLSearchParams(window.location.search).get('admin') === 'true') {
-  document.getElementById('admin-panel').style.display = 'block';
-}
-
-async function cargarPrevision() {
-  try {
-    const snap = await getDoc(doc(db, 'config', 'prevision_manual'));
-    if (snap.exists()) {
-      const data = snap.data();
-      if (data.texto && data.texto.trim()) {
-        document.getElementById('prevision-manual-texto').textContent = data.texto;
-        const fecha = data.actualizado?.toDate();
-        if (fecha) {
-          document.getElementById('prevision-manual-fecha').textContent =
-            'Actualizado: ' + fecha.toLocaleDateString('es-ES', { day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' });
-        }
-        document.getElementById('prevision-manual-bloque').style.display = 'block';
-      }
-    }
-  } catch(e) { console.warn('[Previsión]', e); }
-}
-cargarPrevision();
-
-function abrirAdminModal() {
-  document.getElementById('admin-modal').style.display = 'flex';
-  document.getElementById('admin-login').style.display = 'block';
-  document.getElementById('admin-editor').style.display = 'none';
-  document.getElementById('admin-password').value = '';
-  document.getElementById('admin-error').style.display = 'none';
-}
-function cerrarAdminModal() {
-  document.getElementById('admin-modal').style.display = 'none';
-}
-function verificarPassword() {
-  if (document.getElementById('admin-password').value === ADMIN_PASSWORD) {
-    document.getElementById('admin-login').style.display = 'none';
-    document.getElementById('admin-editor').style.display = 'block';
-    document.getElementById('admin-texto').value =
-      document.getElementById('prevision-manual-texto').textContent;
-  } else {
-    document.getElementById('admin-error').style.display = 'block';
-  }
-}
-async function guardarPrevision() {
-  const texto = document.getElementById('admin-texto').value.trim();
-  try {
-    await setDoc(doc(db, 'config', 'prevision_manual'), { texto, actualizado: new Date() });
-    cerrarAdminModal();
-    await cargarPrevision();
-  } catch(e) { alert('Error al guardar: ' + e.message); }
-}
-document.getElementById('admin-modal').addEventListener('click', function(e) {
-  if (e.target === this) cerrarAdminModal();
-});  
+ 
 </script>
 
 
