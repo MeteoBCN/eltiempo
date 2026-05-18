@@ -791,39 +791,35 @@
 
             <!-- PRÓXIMA LLUVIA -->
             <div id="proxima-lluvia-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-                <!-- ══ PREVISIÓN MANUAL ══ -->
-                <div id="prevision-manual-bloque" style="background:#f0f6fa;border-bottom:1px solid rgba(0,0,0,0.07);">
-                    <!-- Vista (modo lectura) -->
-                    <div id="prevision-manual-vista" style="padding:14px 16px;">
-                        <div id="prevision-manual-titular" style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:4px;letter-spacing:0.2px;">Cargando previsión…</div>
-                        <div id="prevision-manual-texto" style="font-size:12px;color:#475569;line-height:1.6;white-space:pre-wrap;"></div>
-                        <div id="prevision-edit-btn" style="display:none;margin-top:8px;">
-                            <button onclick="previsionManualEditar()" style="padding:6px 14px;background:#2c4a6e;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">✏️ Editar previsión</button>
-                        </div>
+                <!-- ══ ARTÍCULO MANUAL ══ -->
+                <!-- =======================================================
+                     ✏️  PARA EDITAR ESTE BLOQUE:
+                     1. TITULAR  → cambia el texto dentro del primer <div>
+                     2. SUBTÍTULO → cambia la línea "Previsión · Barcelona"
+                     3. CUERPO   → escribe tus párrafos en el último <div>
+                                   Puedes usar saltos de línea normales.
+                     ======================================================= -->
+                <div style="background:#f0f6fa;border-bottom:1px solid rgba(0,0,0,0.07);padding:16px 18px;">
+
+                    <!-- TITULAR -->
+                    <div style="font-size:14px;font-weight:700;color:#1a3a5c;margin-bottom:6px;line-height:1.4;letter-spacing:0.2px;">
+                        Martes con cielos despejados y viento moderado del NE
                     </div>
-                    <!-- Formulario (modo edición, oculto por defecto) -->
-                    <div id="prevision-manual-form" style="display:none;padding:14px 16px;border-top:2px solid #e2e8f0;">
-                        <div style="font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">✏️ Editar previsión</div>
-                        <input id="prevision-input-titular" type="text"
-                            placeholder="Titular (ej: Tarde lluviosa con viento del SW)"
-                            style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-family:inherit;color:#1a3a5c;background:#fff;margin-bottom:8px;outline:none;">
-                        <textarea id="prevision-input-texto"
-                            placeholder="Previsión detallada…&#10;Puedes usar varias líneas."
-                            rows="5"
-                            style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:12px;font-family:inherit;color:#1a3a5c;background:#fff;resize:vertical;outline:none;line-height:1.6;"></textarea>
-                        <div style="display:flex;gap:8px;margin-top:8px;">
-                            <button onclick="previsionManualGuardar()"
-                                style="flex:1;padding:9px;background:#2c4a6e;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">
-                                Guardar
-                            </button>
-                            <button onclick="previsionManualCancelar()"
-                                style="padding:9px 16px;background:#e2e8f0;color:#64748b;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
-                                Cancelar
-                            </button>
-                        </div>
+
+                    <!-- SUBTÍTULO (puedes borrarlo si no lo necesitas) -->
+                    <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">
+                        Previsión · Barcelona
                     </div>
+
+                    <!-- CUERPO DEL ARTÍCULO: escribe aquí tus párrafos -->
+                    <div style="font-size:13px;color:#334155;line-height:1.75;white-space:pre-wrap;">La jornada arrancará con cielos despejados en toda la costa y temperaturas suaves por encima de los 18°C al amanecer. El viento del noreste soplará entre 15 y 25 km/h durante la mañana, refrescando el ambiente sin llegar a ser molesto.
+
+Por la tarde se esperan máximas de 24°C con ambiente soleado y agradable. No se prevén precipitaciones. Los modelos mantienen estabilidad atmosférica hasta el jueves.
+
+Actualización: próximos días con ligera entrada de nubosidad alta sin consecuencias en forma de lluvia.</div>
+
                 </div>
-                <!-- ══ FIN PREVISIÓN MANUAL ══ -->
+                <!-- ══ FIN ARTÍCULO MANUAL ══ -->
 
                 <div id="proxima-lluvia-content" style="background:#f0f6fa;padding:14px 16px;border-bottom:1px solid rgba(0,0,0,0.07);">
                     <div style="display:flex;align-items:center;gap:12px;">
@@ -6865,84 +6861,7 @@ if (isStandalone && 'Notification' in window) {
   });
 }
 
-// ══════════════════════════════════════════════
-//  PREVISIÓN MANUAL (Firestore)
-// ══════════════════════════════════════════════
-const PM_ES_ADMIN = new URLSearchParams(window.location.search).get('admin') === '20091177';
-
-async function previsionManualCargar() {
-    const vistaTitular = document.getElementById('prevision-manual-titular');
-    const vistaTexto   = document.getElementById('prevision-manual-texto');
-    try {
-        const timeout = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('timeout')), 8000)
-        );
-        const snap = await Promise.race([
-            getDoc(doc(db, 'config', 'prevision_manual')),
-            timeout
-        ]);
-        if (snap.exists()) {
-            const d = snap.data();
-            vistaTitular.textContent = d.titular || '—';
-            vistaTexto.textContent   = d.texto   || '';
-        } else {
-            vistaTitular.textContent = 'Sin previsión publicada';
-            vistaTexto.textContent   = '';
-        }
-    } catch(e) {
-        vistaTitular.textContent = 'Sin previsión disponible';
-        vistaTexto.textContent   = '';
-        console.warn('[PrevManual] Error al cargar:', e);
-    }
-    const btnEdit = document.getElementById('prevision-edit-btn');
-    if (btnEdit) btnEdit.style.display = PM_ES_ADMIN ? 'block' : 'none';
-}
-
-window.previsionManualEditar = function() {
-    if (!PM_ES_ADMIN) return;
-    const titular = document.getElementById('prevision-manual-titular').textContent;
-    const texto   = document.getElementById('prevision-manual-texto').textContent;
-    document.getElementById('prevision-input-titular').value = (titular === 'Sin previsión publicada') ? '' : titular;
-    document.getElementById('prevision-input-texto').value   = texto;
-    document.getElementById('prevision-manual-vista').style.display = 'none';
-    document.getElementById('prevision-manual-form').style.display  = 'block';
-    document.getElementById('prevision-input-titular').focus();
-};
-
-window.previsionManualCancelar = function() {
-    document.getElementById('prevision-manual-form').style.display  = 'none';
-    document.getElementById('prevision-manual-vista').style.display = 'block';
-};
-
-window.previsionManualGuardar = async function() {
-    if (!PM_ES_ADMIN) return;
-    const btnGuardar = document.querySelector('#prevision-manual-form button');
-    const titular = document.getElementById('prevision-input-titular').value.trim();
-    const texto   = document.getElementById('prevision-input-texto').value.trim();
-    btnGuardar.textContent = 'Guardando…';
-    btnGuardar.disabled = true;
-    try {
-        await setDoc(doc(db, 'config', 'prevision_manual'), {
-            titular: titular || '—',
-            texto:   texto,
-            updated: new Date()
-        });
-        document.getElementById('prevision-manual-titular').textContent = titular || '—';
-        document.getElementById('prevision-manual-texto').textContent   = texto;
-        window.previsionManualCancelar();
-    } catch(e) {
-        console.error('[PrevManual] Error al guardar:', e);
-        alert('Error al guardar. Comprueba la conexión.');
-    } finally {
-        btnGuardar.textContent = 'Guardar';
-        btnGuardar.disabled = false;
-    }
-};
-
-previsionManualCargar();
-// ══════════════════════════════════════════════
-//  FIN PREVISIÓN MANUAL
-// ══════════════════════════════════════════════
+// (previsión manual eliminada — el artículo se edita directamente en el HTML)
 
 </script>
 
