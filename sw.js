@@ -2,7 +2,7 @@
    SERVICE WORKER — Tiempo Barcelona PWA
    ═══════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'tiempo-bcn-v5';
+const CACHE_NAME = 'tiempo-bcn-v6';
 
 // Archivos que se guardan en caché para funcionamiento offline
 const PRECACHE_ASSETS = [
@@ -83,6 +83,31 @@ self.addEventListener('fetch', event => {
           headers: { 'Content-Type': 'application/json' }
         })
       )
+    );
+    return;
+  }
+
+  // El HTML (navegación o petición directa a index.html) se pide SIEMPRE
+  // en red fresca, ignorando cualquier caché HTTP, para que las
+  // actualizaciones de la página se vean sin tener que desinstalar la PWA
+  const isHtmlRequest =
+    event.request.mode === 'navigate' ||
+    url.includes('index.html') ||
+    event.request.headers.get('accept')?.includes('text/html');
+
+  if (isHtmlRequest) {
+    event.respondWith(
+      fetch(event.request, { cache: 'no-store' })
+        .then(response => {
+          if (response && response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => caches.match('./index.html'))
     );
     return;
   }
