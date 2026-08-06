@@ -802,12 +802,9 @@
                     <span style="font-size:13px;font-weight:800;color:#000000;letter-spacing:1.2px;text-transform:uppercase;">Probabilidad de lluvia · 24h</span>
                     <span id="rain-semaphore-pct" style="font-size:15px;font-weight:800;color:#1e3a5f;">--%</span>
                 </div>
-                <div id="rain-semaphore-bar" style="display:flex;width:100%;height:14px;border-radius:8px;overflow:hidden;gap:2px;">
-                    <div class="rs-seg" data-min="0"  data-max="10"  style="flex:1;background:#10B981;opacity:0.35;border-radius:6px;transition:opacity 0.3s, transform 0.3s;"></div>
-                    <div class="rs-seg" data-min="11" data-max="35"  style="flex:1;background:#6EE7B7;opacity:0.35;border-radius:6px;transition:opacity 0.3s, transform 0.3s;"></div>
-                    <div class="rs-seg" data-min="36" data-max="49"  style="flex:1;background:#F59E0B;opacity:0.35;border-radius:6px;transition:opacity 0.3s, transform 0.3s;"></div>
-                    <div class="rs-seg" data-min="50" data-max="74"  style="flex:1;background:#F97316;opacity:0.35;border-radius:6px;transition:opacity 0.3s, transform 0.3s;"></div>
-                    <div class="rs-seg" data-min="75" data-max="100" style="flex:1;background:#EF4444;opacity:0.35;border-radius:6px;transition:opacity 0.3s, transform 0.3s;"></div>
+                <div style="position:relative;padding-top:16px;">
+                    <div id="rain-semaphore-arrow" style="position:absolute;top:0;left:0%;transform:translateX(-50%);transition:left 0.5s ease, color 0.3s ease;font-size:16px;line-height:1;">▼</div>
+                    <div id="rain-semaphore-bar" style="width:100%;height:18px;border-radius:10px;background:linear-gradient(to right, #10B981 0%, #6EE7B7 25%, #F59E0B 50%, #F97316 75%, #EF4444 100%);box-shadow:inset 0 1px 3px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.06);"></div>
                 </div>
                 <div style="display:flex;width:100%;margin-top:5px;gap:2px;">
                     <div style="flex:1;text-align:center;font-size:8px;font-weight:600;color:#64748b;">MUY BAJA</div>
@@ -5420,9 +5417,10 @@
         //  SEMÁFORO PROBABILIDAD DE LLUVIA (24H)
         // ══════════════════════════════════════════════
         function updateRainSemaphore(hourly) {
-            const bar   = document.getElementById('rain-semaphore-bar');
-            const pctEl = document.getElementById('rain-semaphore-pct');
-            const lblEl = document.getElementById('rain-semaphore-label');
+            const bar     = document.getElementById('rain-semaphore-bar');
+            const pctEl   = document.getElementById('rain-semaphore-pct');
+            const lblEl   = document.getElementById('rain-semaphore-label');
+            const arrowEl = document.getElementById('rain-semaphore-arrow');
             if (!bar || !hourly?.time || !hourly?.precipitation_probability) return;
 
             // Máxima probabilidad de lluvia en las próximas 24h desde ahora
@@ -5448,20 +5446,12 @@
             let activeIdx = levels.findIndex(l => maxProb >= l.min && maxProb <= l.max);
             if (activeIdx === -1) activeIdx = maxProb > 100 ? 4 : 0;
 
-            const segs = bar.querySelectorAll('.rs-seg');
-            segs.forEach((seg, i) => {
-                if (i === activeIdx) {
-                    seg.style.opacity = '1';
-                    seg.style.transform = 'scaleY(1.55)';
-                    seg.style.boxShadow = '0 0 8px 1px rgba(0,0,0,0.35), 0 0 0 2px rgba(255,255,255,0.9), 0 0 0 3px rgba(30,58,95,0.35)';
-                    seg.style.zIndex = '2';
-                } else {
-                    seg.style.opacity = '0.18';
-                    seg.style.transform = 'scaleY(1)';
-                    seg.style.boxShadow = 'none';
-                    seg.style.zIndex = '1';
-                }
-            });
+            const pctClamped = Math.max(0, Math.min(100, maxProb));
+            if (arrowEl) {
+                arrowEl.style.left = pctClamped + '%';
+                arrowEl.style.color = levels[activeIdx].color;
+                arrowEl.style.filter = 'drop-shadow(0 1px 1px rgba(0,0,0,0.35))';
+            }
 
             if (pctEl) { pctEl.textContent = Math.round(maxProb) + '%'; pctEl.style.color = levels[activeIdx].color; }
             if (lblEl) { lblEl.textContent = levels[activeIdx].label; lblEl.style.color = levels[activeIdx].color; }
