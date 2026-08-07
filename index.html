@@ -770,8 +770,8 @@
                 ════════════════════════════════════════════ -->
                 <div id="compare24h-section" style="max-width:600px;margin:12px auto 0;background:#f8fafc;padding:8px 18px 10px;border-radius:var(--border-radius-sm);">
                     <div style="text-align:center;font-size:10px;font-weight:800;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;">Tendencia próximas horas</div>
-                    <div id="compare24h-content" style="display:flex;justify-content:space-around;gap:4px;padding:9px 6px;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
-                        <div style="font-size:11px;color:#94a3b8;text-align:center;width:100%;">Cargando...</div>
+                    <div id="compare24h-content" style="padding:12px 16px;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);font-size:13px;line-height:1.65;color:#334155;text-align:center;">
+                        Cargando...
                     </div>
                 </div>
                 <!-- ═══════════════════════════════════════════
@@ -1555,7 +1555,7 @@
             if (!el) return;
             try {
                 var PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
-                var url = PROXY_BASE + '/forecast?latitude=41.3888&longitude=2.159&hourly=temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m&forecast_days=2&timezone=Europe%2FMadrid';
+                var url = PROXY_BASE + '/forecast?latitude=41.3888&longitude=2.159&hourly=temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,precipitation_probability&forecast_days=2&timezone=Europe%2FMadrid';
                 var r = await fetch(url);
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 var data = await r.json();
@@ -1569,32 +1569,34 @@
         function renderComparacion24h(data) {
             var el = document.getElementById('compare24h-content');
             if (!el) return;
-            var times = data.hourly.time;
-            var temps = data.hourly.temperature_2m;
-            var hums  = data.hourly.relative_humidity_2m;
-            var press = data.hourly.pressure_msl;
-            var winds = data.hourly.wind_speed_10m;
+            var times  = data.hourly.time;
+            var temps  = data.hourly.temperature_2m;
+            var hums   = data.hourly.relative_humidity_2m;
+            var press  = data.hourly.pressure_msl;
+            var winds  = data.hourly.wind_speed_10m;
+            var pprobs = data.hourly.precipitation_probability;
             var now     = new Date();
-            var nextTo  = new Date(now.getTime() + 24 * 3600 * 1000);
+            var nextTo6 = new Date(now.getTime() + 6 * 3600 * 1000);
 
-            var nextTemps = [], nextHum = [], nextPres = [], nextWind = [];
+            var nextTemps = [], nextHum = [], nextPres = [], nextWind = [], rainProb6h = [];
             for (var i = 0; i < times.length; i++) {
                 var t = new Date(times[i]);
-                if (t >= now && t <= nextTo) {
+                if (t >= now && t <= nextTo6) {
                     if (temps[i] != null) nextTemps.push(temps[i]);
                     if (hums[i]  != null) nextHum.push(hums[i]);
                     if (press[i] != null) nextPres.push(press[i]);
                     if (winds[i] != null) nextWind.push(winds[i]);
+                    if (pprobs && pprobs[i] != null) rainProb6h.push(pprobs[i]);
                 }
             }
             if (nextTemps.length < 2) { el.innerHTML = ''; return; }
 
             var avg = function(arr) { return arr.reduce(function(a,b){ return a+b; }, 0) / arr.length; };
 
-            function arrow(diff, thresh) {
-                if (diff >= thresh)  return { icon: '↑', color: '#dc2626' };
-                if (diff <= -thresh) return { icon: '↓', color: '#2563eb' };
-                return { icon: '=', color: '#64748b' };
+            function trend(diff, thresh, up, down, same) {
+                if (diff >= thresh)  return up;
+                if (diff <= -thresh) return down;
+                return same;
             }
 
             // Valor actual = primer punto horario (el más cercano a "ahora")
@@ -1605,31 +1607,44 @@
             var curWind  = nextWind[0],  restWind  = nextWind.slice(1);
 
             // Temperatura
-            var trendTemp = arrow(avg(restTemps) - curTemp, 1);
+            var tempWord = trend(avg(restTemps) - curTemp, 1, 'subirá', 'descenderá', 'se mantendrá estable');
 
             // Humedad
-            var trendHum = arrow(avg(restHum) - curHum, 5);
+            var humPhrase = trend(avg(restHum) - curHum, 5,
+                'un aumento de la humedad', 'un descenso de la humedad', 'que la humedad se mantenga estable');
 
             // Presión
-            var trendPres = arrow(avg(restPres) - curPres, 1);
+            var presPhrase = trend(avg(restPres) - curPres, 1,
+                'la presión subirá', 'la presión bajará', 'la presión permanecerá sin grandes cambios');
 
             // Viento
-            var avgRestWind = avg(restWind);
-            var diffWindPct = curWind > 0 ? ((avgRestWind - curWind) / curWind * 100) : 0;
-            var trendWind = arrow(diffWindPct, 20);
+            var avgRestWind  = avg(restWind);
+            var diffWindPct  = curWind > 0 ? ((avgRestWind - curWind) / curWind * 100) : 0;
+            var windPhrase   = trend(diffWindPct, 20,
+                'El viento soplará con más intensidad', 'El viento amainará',
+                (avgRestWind <= 10 ? 'El viento se mantendrá en calma' : 'El viento se mantendrá estable'));
 
-            function item(label, trend, labelColor) {
-                return '<div style="text-align:center;flex:1;min-width:0;">' +
-                    '<div style="font-size:8.5px;color:' + labelColor + ';text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-bottom:3px;white-space:nowrap;">' + label + '</div>' +
-                    '<div style="font-size:16px;font-weight:800;color:' + trend.color + ';">' + trend.icon + '</div>' +
-                '</div>';
+            // Lluvia próximas 6 horas
+            var rainPhrase;
+            if (rainProb6h.length) {
+                var maxRain = Math.max.apply(null, rainProb6h);
+                if (maxRain >= 50) {
+                    rainPhrase = 'Hay probabilidad alta de lluvia en las próximas 6 horas (' + Math.round(maxRain) + '%).';
+                } else if (maxRain >= 20) {
+                    rainPhrase = 'Existe posibilidad de lluvia en las próximas 6 horas (' + Math.round(maxRain) + '%).';
+                } else {
+                    rainPhrase = 'No se esperan precipitaciones en las próximas 6 horas.';
+                }
+            } else {
+                rainPhrase = '';
             }
 
-            el.innerHTML =
-                item('Temperatura', trendTemp, '#dc2626') +
-                item('Humedad',     trendHum,  '#64748b') +
-                item('Presión',     trendPres, '#1e3a5f') +
-                item('Viento',      trendWind, '#92400e');
+            var texto =
+                'En las próximas horas la temperatura ' + tempWord + ' y se espera ' + humPhrase + '. ' +
+                windPhrase + ' y ' + presPhrase + '.' +
+                (rainPhrase ? ' ' + rainPhrase : '');
+
+            el.innerHTML = texto;
         }
         // Cargar comparación automáticamente al iniciar
         cargarComparacion24h();
