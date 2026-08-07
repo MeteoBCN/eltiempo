@@ -772,7 +772,7 @@
             <div id="proximas24h-wrapper" style="max-width:600px;margin:0 auto;border:2px solid #2c4a6e;border-radius:var(--border-radius);overflow:hidden;">
             <div id="temp24h-section" style="background:#ffffff;padding:0 0 4px;">
                 <div style="display:flex;align-items:center;justify-content:center;padding:8px 16px 6px;background:#2c4a6e;">
-                    <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">PRÓXIMAS</span>
+                    <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">PRÓXIMAS 24 HORAS</span>
                 </div>
                 <!-- Fila iconos cielo -->
                 <div id="temp24h-icons" style="display:flex;padding:4px 12px 0;background:#f8fafc;border-bottom:1px solid #e8f0f7;min-height:38px;"></div>
@@ -800,7 +800,7 @@
             ════════════════════════════════════════════ -->
             <div id="rain-semaphore-section" style="max-width:600px;margin:0 auto;background:#f8fafc;padding:14px 18px 16px;">
                 <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:10px;gap:3px;">
-                    <span style="font-size:13px;font-weight:800;color:#000000;letter-spacing:1.2px;text-transform:uppercase;">Probabilidad de lluvia</span>
+                    <span style="font-size:11px;font-weight:800;color:#000000;letter-spacing:1.2px;text-transform:uppercase;">Probabilidad de lluvia</span>
                 </div>
                 <div style="position:relative;padding-top:16px;">
                     <div id="rain-semaphore-arrow" style="position:absolute;top:0;left:0%;transform:translateX(-50%);transition:left 0.5s ease, color 0.3s ease;font-size:16px;line-height:1;">▼</div>
@@ -2417,130 +2417,7 @@
             `;
         }
 
-        // ── PIA Aerobiología Barcelona ─────────────────────────────
-        function renderPiaPollenData() {
-            const grid = document.getElementById('pia-pollen-grid');
-            const dateBadge = document.getElementById('pia-date-badge');
-            if (!grid) return;
-
-            // Datos incrustados de la API PIA (Barcelona, semana 2026-04-20 / 2026-04-26)
-            const piaData = {
-                dateStart: '2026-04-20',
-                dateEnd:   '2026-04-26',
-                pollens: [
-                    { code:'URTI', ca:'Parietaria',        emoji:'🌿', current:4, forecast:'=' },
-                    { code:'GRAM', ca:'Gramíneas',          emoji:'🌾', current:2, forecast:'A' },
-                    { code:'OLEA', ca:'Olivo',              emoji:'🫒', current:1, forecast:'A' },
-                    { code:'PLAT', ca:'Plátano de sombra',  emoji:'🍃', current:4, forecast:'D' },
-                    { code:'QTOT', ca:'Roble/Encina',       emoji:'🌳', current:4, forecast:'=' },
-                    { code:'PIST', ca:'Lentisco',           emoji:'🌱', current:2, forecast:'=' },
-                    { code:'PALM', ca:'Palmeras',           emoji:'🌴', current:2, forecast:'=' },
-                    { code:'PINU', ca:'Pino',               emoji:'🌲', current:2, forecast:'=' },
-                    { code:'BETU', ca:'Abedul',             emoji:'🌳', current:1, forecast:'=' },
-                    { code:'ACER', ca:'Arce',               emoji:'🍁', current:1, forecast:'D' },
-                    { code:'FRAX', ca:'Fresno',             emoji:'🌿', current:1, forecast:'=' },
-                    { code:'PLAN', ca:'Llantén',            emoji:'🌱', current:1, forecast:'A' },
-                    { code:'MORA', ca:'Moreras',            emoji:'🌿', current:1, forecast:'=' },
-                    { code:'MERC', ca:'Mercurial',          emoji:'🌱', current:1, forecast:'=' },
-                    { code:'QUAM', ca:'Cenizo/Bleo',        emoji:'🌿', current:1, forecast:'=' },
-                    { code:'CRUC', ca:'Crucíferas',         emoji:'🌸', current:1, forecast:'=' },
-                    { code:'SALI', ca:'Sauce',              emoji:'🌿', current:1, forecast:'=' },
-                    { code:'POPU', ca:'Álamo/Chopo',        emoji:'🌳', current:1, forecast:'D' },
-                    { code:'CUPR', ca:'Cipreses',           emoji:'🌲', current:1, forecast:'=' },
-                ],
-                spores: [
-                    { code:'ALTE', ca:'Alternaria',   emoji:'🍄', current:1, forecast:'=' },
-                    { code:'CLAD', ca:'Cladosporium', emoji:'🍄', current:1, forecast:'=' },
-                ]
-            };
-
-            // Nivel PIA: 0=Nulo, 1=Bajo, 2=Medio, 3=Alto, 4=Máximo
-            function piaNivel(v) {
-                const map = [
-                    { lbl:'Nulo',   color:'#94a3b8', bg:'#f1f5f9' },
-                    { lbl:'Bajo',   color:'#22c55e', bg:'#dcfce7' },
-                    { lbl:'Medio',  color:'#f59e0b', bg:'#fef9c3' },
-                    { lbl:'Alto',   color:'#f97316', bg:'#ffedd5' },
-                    { lbl:'Máximo', color:'#ef4444', bg:'#fee2e2' },
-                ];
-                return map[Math.min(v, 4)] ?? map[0];
-            }
-
-            function forecastLabel(f) {
-                if (f === 'A') return { icon:'▲', color:'#ef4444', title:'Augment' };
-                if (f === 'D') return { icon:'▼', color:'#22c55e', title:'Descens' };
-                if (f === '=') return { icon:'=', color:'#94a3b8', title:'Estable'  };
-                if (f === '!') return { icon:'!', color:'#7c3aed', title:'Situació excepcional' };
-                return { icon:'—', color:'#94a3b8', title:'' };
-            }
-
-            // Fecha del badge
-            if (dateBadge) {
-                const d = new Date(piaData.dateStart);
-                dateBadge.textContent = d.toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
-            }
-
-            // Ordenar por nivel desc, mostrar solo pólenes con nivel ≥ 1
-            const activos = piaData.pollens.filter(p => p.current >= 1)
-                .sort((a,b) => b.current - a.current);
-
-            let html = '';
-            activos.forEach(p => {
-                const n  = piaNivel(p.current);
-                const fc = forecastLabel(p.forecast);
-                const barW = (p.current / 4) * 100;
-                html += `
-                    <div style="background:${n.bg};border-radius:10px;padding:9px 11px;border:1px solid rgba(0,0,0,0.06);">
-                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
-                            <span style="font-size:16px;line-height:1;">${p.emoji}</span>
-                            <div style="flex:1;min-width:0;">
-                                <div style="font-size:10px;font-weight:700;color:#1a3a1a;letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.ca}</div>
-                                <div style="font-size:9px;font-weight:700;color:${n.color};text-transform:uppercase;letter-spacing:0.5px;">${n.lbl}</div>
-                            </div>
-                            <div style="display:flex;flex-direction:column;align-items:center;gap:1px;">
-                                <span style="font-size:15px;font-weight:800;color:${n.color};line-height:1;">${p.current}</span>
-                                <span style="font-size:11px;font-weight:700;color:${fc.color};line-height:1;" title="${fc.title}">${fc.icon}</span>
-                            </div>
-                        </div>
-                        <div style="height:4px;background:rgba(0,0,0,0.08);border-radius:2px;overflow:hidden;">
-                            <div style="height:100%;width:${barW}%;background:${n.color};border-radius:2px;transition:width 0.6s;"></div>
-                        </div>
-                    </div>`;
-            });
-
-            // Espores si nivel > 0
-            const esporasActivas = piaData.spores.filter(s => s.current >= 1);
-            if (esporasActivas.length > 0) {
-                html += `<div style="grid-column:1/-1;font-size:9px;font-weight:700;color:#4a8a64;text-transform:uppercase;letter-spacing:1px;margin-top:4px;padding-top:6px;border-top:1px dashed rgba(44,120,80,0.25);">Esporas</div>`;
-                esporasActivas.forEach(s => {
-                    const n  = piaNivel(s.current);
-                    const fc = forecastLabel(s.forecast);
-                    html += `
-                        <div style="background:${n.bg};border-radius:10px;padding:9px 11px;border:1px solid rgba(0,0,0,0.06);">
-                            <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
-                                <span style="font-size:16px;line-height:1;">${s.emoji}</span>
-                                <div style="flex:1;min-width:0;">
-                                    <div style="font-size:10px;font-weight:700;color:#1a3a1a;">${s.ca}</div>
-                                    <div style="font-size:9px;font-weight:700;color:${n.color};text-transform:uppercase;">${n.lbl}</div>
-                                </div>
-                                <div style="display:flex;flex-direction:column;align-items:center;gap:1px;">
-                                    <span style="font-size:15px;font-weight:800;color:${n.color};line-height:1;">${s.current}</span>
-                                    <span style="font-size:11px;font-weight:700;color:${fc.color};line-height:1;" title="${fc.title}">${fc.icon}</span>
-                                </div>
-                            </div>
-                            <div style="height:4px;background:rgba(0,0,0,0.08);border-radius:2px;overflow:hidden;">
-                                <div style="height:100%;width:${(s.current/4)*100}%;background:${n.color};border-radius:2px;"></div>
-                            </div>
-                        </div>`;
-                });
-            }
-
-            grid.innerHTML = html;
-        }
-        // Llamar al renderizar la página
-        window.addEventListener('DOMContentLoaded', renderPiaPollenData);
-        // ── FIN PIA ──────────────────────────────────────────────
-
+       
         function updateCalimaSection(aqCurrent, hourly, aqHourly) {
             const el = document.getElementById('calima-content');
             if (!el) return;
