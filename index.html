@@ -764,6 +764,20 @@
 
 
                 </div><!-- fin current-weather -->
+
+                <!-- ═══════════════════════════════════════════
+                     COMPARATIVA vs TIEMPO ACTUAL (TENDENCIA)
+                ════════════════════════════════════════════ -->
+                <div id="compare24h-section" style="max-width:600px;margin:12px auto 0;background:#f8fafc;padding:8px 18px 10px;border-radius:var(--border-radius-sm);">
+                    <div style="text-align:center;font-size:10px;font-weight:800;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;">Tendencia próximas horas</div>
+                    <div id="compare24h-content" style="display:flex;justify-content:space-around;gap:4px;padding:9px 6px;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
+                        <div style="font-size:11px;color:#94a3b8;text-align:center;width:100%;">Cargando...</div>
+                    </div>
+                </div>
+                <!-- ═══════════════════════════════════════════
+                     FIN COMPARATIVA vs TIEMPO ACTUAL
+                ════════════════════════════════════════════ -->
+
             </div><!-- fin hero-zone -->
 
             <!-- ═══════════════════════════════════════════
@@ -784,19 +798,6 @@
             </div>
             <!-- ═══════════════════════════════════════════
                  FIN GRÁFICO TEMPERATURA 24H
-            ════════════════════════════════════════════ -->
-
-            <!-- ═══════════════════════════════════════════
-                 COMPARATIVA vs 24H ANTERIORES (TENDENCIA)
-            ════════════════════════════════════════════ -->
-            <div id="compare24h-section" style="max-width:600px;margin:0 auto;background:#f8fafc;padding:8px 18px 10px;">
-                <div style="text-align:center;font-size:10px;font-weight:800;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;">Tendencia respecto ayer</div>
-                <div id="compare24h-content" style="display:flex;justify-content:space-around;gap:4px;padding:9px 6px;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
-                    <div style="font-size:11px;color:#94a3b8;text-align:center;width:100%;">Cargando...</div>
-                </div>
-            </div>
-            <!-- ═══════════════════════════════════════════
-                 FIN COMPARATIVA vs 24H ANTERIORES
             ════════════════════════════════════════════ -->
 
             <!-- ══════════════════════════════════════════════
@@ -1554,7 +1555,7 @@
             if (!el) return;
             try {
                 var PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
-                var url = PROXY_BASE + '/forecast?latitude=41.3888&longitude=2.159&hourly=temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m&past_days=1&forecast_days=1&timezone=Europe%2FMadrid';
+                var url = PROXY_BASE + '/forecast?latitude=41.3888&longitude=2.159&hourly=temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m&forecast_days=2&timezone=Europe%2FMadrid';
                 var r = await fetch(url);
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 var data = await r.json();
@@ -1574,25 +1575,19 @@
             var press = data.hourly.pressure_msl;
             var winds = data.hourly.wind_speed_10m;
             var now     = new Date();
-            var prevFrom = new Date(now.getTime() - 24 * 3600 * 1000);
-            var nextTo   = new Date(now.getTime() + 24 * 3600 * 1000);
+            var nextTo  = new Date(now.getTime() + 24 * 3600 * 1000);
 
-            var prevTemps = [], nextTemps = [], prevHum = [], nextHum = [], prevPres = [], nextPres = [], prevWind = [], nextWind = [];
+            var nextTemps = [], nextHum = [], nextPres = [], nextWind = [];
             for (var i = 0; i < times.length; i++) {
                 var t = new Date(times[i]);
-                if (t >= prevFrom && t < now) {
-                    if (temps[i] != null) prevTemps.push(temps[i]);
-                    if (hums[i]  != null) prevHum.push(hums[i]);
-                    if (press[i] != null) prevPres.push(press[i]);
-                    if (winds[i] != null) prevWind.push(winds[i]);
-                } else if (t >= now && t <= nextTo) {
+                if (t >= now && t <= nextTo) {
                     if (temps[i] != null) nextTemps.push(temps[i]);
                     if (hums[i]  != null) nextHum.push(hums[i]);
                     if (press[i] != null) nextPres.push(press[i]);
                     if (winds[i] != null) nextWind.push(winds[i]);
                 }
             }
-            if (prevTemps.length < 2 || nextTemps.length < 2) { el.innerHTML = ''; return; }
+            if (nextTemps.length < 2) { el.innerHTML = ''; return; }
 
             var avg = function(arr) { return arr.reduce(function(a,b){ return a+b; }, 0) / arr.length; };
 
@@ -1602,21 +1597,25 @@
                 return { icon: '=', color: '#64748b' };
             }
 
-            // Temperatura máxima / mínima
-            var prevMax = Math.max.apply(null, prevTemps), prevMin = Math.min.apply(null, prevTemps);
-            var nextMax = Math.max.apply(null, nextTemps), nextMin = Math.min.apply(null, nextTemps);
-            var trendMax = arrow(nextMax - prevMax, 1);
-            var trendMin = arrow(nextMin - prevMin, 1);
+            // Valor actual = primer punto horario (el más cercano a "ahora")
+            // Próximas horas = resto de puntos hasta 24h vista
+            var curTemp  = nextTemps[0], restTemps = nextTemps.slice(1);
+            var curHum   = nextHum[0],   restHum   = nextHum.slice(1);
+            var curPres  = nextPres[0],  restPres  = nextPres.slice(1);
+            var curWind  = nextWind[0],  restWind  = nextWind.slice(1);
+
+            // Temperatura
+            var trendTemp = arrow(avg(restTemps) - curTemp, 1);
 
             // Humedad
-            var trendHum = arrow(avg(nextHum) - avg(prevHum), 5);
+            var trendHum = arrow(avg(restHum) - curHum, 5);
 
             // Presión
-            var trendPres = arrow(avg(nextPres) - avg(prevPres), 1);
+            var trendPres = arrow(avg(restPres) - curPres, 1);
 
             // Viento
-            var avgPrevWind = avg(prevWind), avgNextWind = avg(nextWind);
-            var diffWindPct = avgPrevWind > 0 ? ((avgNextWind - avgPrevWind) / avgPrevWind * 100) : 0;
+            var avgRestWind = avg(restWind);
+            var diffWindPct = curWind > 0 ? ((avgRestWind - curWind) / curWind * 100) : 0;
             var trendWind = arrow(diffWindPct, 20);
 
             function item(label, trend, labelColor) {
@@ -1627,11 +1626,10 @@
             }
 
             el.innerHTML =
-                item('Temp. Máxima', trendMax,  '#dc2626') +
-                item('Temp. Mínima', trendMin,  '#2563eb') +
-                item('Humedad',      trendHum,  '#64748b') +
-                item('Presión',      trendPres, '#1e3a5f') +
-                item('Viento',       trendWind, '#92400e');
+                item('Temperatura', trendTemp, '#dc2626') +
+                item('Humedad',     trendHum,  '#64748b') +
+                item('Presión',     trendPres, '#1e3a5f') +
+                item('Viento',      trendWind, '#92400e');
         }
         // Cargar comparación automáticamente al iniciar
         cargarComparacion24h();
