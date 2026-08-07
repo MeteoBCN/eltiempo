@@ -790,7 +790,7 @@
                  COMPARATIVA vs 24H ANTERIORES (TENDENCIA)
             ════════════════════════════════════════════ -->
             <div id="compare24h-section" style="max-width:600px;margin:0 auto;background:#f8fafc;padding:8px 18px 10px;">
-                <div style="text-align:center;font-size:10px;font-weight:800;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;">Tendencia</div>
+                <div style="text-align:center;font-size:10px;font-weight:800;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;">Tendencia respecto ayer</div>
                 <div id="compare24h-content" style="display:flex;justify-content:space-around;gap:4px;padding:9px 6px;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
                     <div style="font-size:11px;color:#94a3b8;text-align:center;width:100%;">Cargando...</div>
                 </div>
@@ -1599,7 +1599,7 @@
             function arrow(diff, thresh) {
                 if (diff >= thresh)  return { icon: '↑', color: '#dc2626' };
                 if (diff <= -thresh) return { icon: '↓', color: '#2563eb' };
-                return { icon: '→', color: '#64748b' };
+                return { icon: '=', color: '#64748b' };
             }
 
             // Temperatura máxima / mínima
@@ -1619,19 +1619,19 @@
             var diffWindPct = avgPrevWind > 0 ? ((avgNextWind - avgPrevWind) / avgPrevWind * 100) : 0;
             var trendWind = arrow(diffWindPct, 20);
 
-            function item(label, trend) {
+            function item(label, trend, labelColor) {
                 return '<div style="text-align:center;flex:1;min-width:0;">' +
-                    '<div style="font-size:8.5px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-bottom:3px;white-space:nowrap;">' + label + '</div>' +
+                    '<div style="font-size:8.5px;color:' + labelColor + ';text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-bottom:3px;white-space:nowrap;">' + label + '</div>' +
                     '<div style="font-size:16px;font-weight:800;color:' + trend.color + ';">' + trend.icon + '</div>' +
                 '</div>';
             }
 
             el.innerHTML =
-                item('T. Máxima', trendMax) +
-                item('T. Mínima', trendMin) +
-                item('Humedad',   trendHum) +
-                item('Presión',   trendPres) +
-                item('Viento',    trendWind);
+                item('Temp. Máxima', trendMax,  '#dc2626') +
+                item('Temp. Mínima', trendMin,  '#2563eb') +
+                item('Humedad',      trendHum,  '#64748b') +
+                item('Presión',      trendPres, '#1e3a5f') +
+                item('Viento',       trendWind, '#92400e');
         }
         // Cargar comparación automáticamente al iniciar
         cargarComparacion24h();
