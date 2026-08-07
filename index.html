@@ -1624,16 +1624,16 @@
                 'El viento soplará con más intensidad', 'El viento amainará',
                 (avgRestWind <= 10 ? 'El viento se mantendrá en calma' : 'El viento se mantendrá estable'));
 
-            // Lluvia próximas 6 horas
+            // Lluvia próximas horas
             var rainPhrase;
             if (rainProb6h.length) {
                 var maxRain = Math.max.apply(null, rainProb6h);
                 if (maxRain >= 50) {
-                    rainPhrase = 'Hay probabilidad alta de lluvia en las próximas 6 horas (' + Math.round(maxRain) + '%).';
+                    rainPhrase = 'Se espera lluvia en las próximas horas (' + Math.round(maxRain) + '%).';
                 } else if (maxRain >= 20) {
-                    rainPhrase = 'Existe posibilidad de lluvia en las próximas 6 horas (' + Math.round(maxRain) + '%).';
+                    rainPhrase = 'No se descarta lluvia en las próximas horas (' + Math.round(maxRain) + '%).';
                 } else {
-                    rainPhrase = 'No se esperan precipitaciones en las próximas 6 horas.';
+                    rainPhrase = 'No se esperan lluvias en las próximas horas.';
                 }
             } else {
                 rainPhrase = '';
@@ -1648,6 +1648,8 @@
         }
         // Cargar comparación automáticamente al iniciar
         cargarComparacion24h();
+        // Y refrescarla cada hora
+        setInterval(cargarComparacion24h, 3600000);
         </script>
 
         <script>
