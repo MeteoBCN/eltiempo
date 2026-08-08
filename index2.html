@@ -806,26 +806,41 @@
             <div class="hero-zone">
                 <div class="current-weather" style="text-align:left;padding:20px 20px 18px;background:#ffffff;">
                 <div id="current-datetime" style="font-size:13px;font-weight:700;color:#123653;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px;">--</div>
-                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;row-gap:18px;column-gap:14px;">
-                    <div style="display:flex;align-items:center;gap:14px;">
-                        <div class="icon-large" id="current-icon" style="font-size:2em;margin:0;line-height:1;">🌧️</div>
-                        <div class="temperature" id="current-temp" style="color:#123653;font-size:56px;font-weight:800;margin-bottom:0;display:inline-block;transform:scaleX(1.25);transform-origin:left center;">--°</div>
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+                    <div class="icon-large" id="current-icon" style="font-size:2em;margin:0;line-height:1;">🌧️</div>
+                    <div class="temperature" id="current-temp" style="color:#123653;font-size:56px;font-weight:800;margin-bottom:0;display:inline-block;transform:scaleX(1.25);transform-origin:left center;">--°</div>
+                </div>
+
+                <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);border-radius:18px;padding:18px 10px;display:grid;grid-template-columns:repeat(3,1fr);row-gap:20px;column-gap:6px;">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                        <i class="wi wi-thermometer" style="color:#ffffff;font-size:20px;"></i>
+                        <div class="detail-value" id="feels-like" style="font-size:14px;font-weight:700;color:#ffffff;">--°</div>
+                        <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.4px;">Sensación</div>
                     </div>
-                    <div style="display:grid;grid-template-columns:auto auto;column-gap:10px;row-gap:6px;align-items:baseline;">
-                        <div class="detail-value" id="feels-like" style="font-size:14px;font-weight:700;color:#123653;text-align:right;">--°</div>
-                        <div style="font-size:12px;font-weight:500;color:#123653;">Sensación</div>
-
-                        <div class="detail-value" id="humidity" style="font-size:14px;font-weight:700;color:#123653;text-align:right;">--%</div>
-                        <div style="font-size:12px;font-weight:500;color:#123653;">Humedad</div>
-
-                        <div class="detail-value" id="wind" style="font-size:14px;font-weight:700;color:#123653;text-align:right;">-- km/h</div>
-                        <div style="font-size:12px;font-weight:500;color:#123653;">Viento</div>
-
-                        <div class="detail-value" id="wind-gusts" style="font-size:14px;font-weight:700;color:#123653;text-align:right;">-- km/h</div>
-                        <div style="font-size:12px;font-weight:500;color:#123653;">Racha</div>
-
-                        <div class="detail-value" id="pressure" style="font-size:14px;font-weight:700;color:#123653;text-align:right;">-- hPa</div>
-                        <div style="font-size:12px;font-weight:500;color:#123653;">Presión</div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                        <i class="wi wi-humidity" style="color:#ffffff;font-size:20px;"></i>
+                        <div class="detail-value" id="humidity" style="font-size:14px;font-weight:700;color:#ffffff;">--%</div>
+                        <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.4px;">Humedad</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                        <i class="wi wi-barometer" style="color:#ffffff;font-size:20px;"></i>
+                        <div class="detail-value" id="pressure" style="font-size:14px;font-weight:700;color:#ffffff;">-- hPa</div>
+                        <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.4px;">Presión</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                        <i class="wi wi-windy" style="color:#ffffff;font-size:20px;"></i>
+                        <div class="detail-value" id="wind" style="font-size:14px;font-weight:700;color:#ffffff;">-- km/h</div>
+                        <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.4px;">Viento <span id="wind-direction" style="text-transform:none;"></span></div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                        <i class="wi wi-strong-wind" style="color:#ffffff;font-size:20px;"></i>
+                        <div class="detail-value" id="wind-gusts" style="font-size:14px;font-weight:700;color:#ffffff;">-- km/h</div>
+                        <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.4px;">Racha</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                        <i class="wi wi-umbrella" style="color:#ffffff;font-size:20px;"></i>
+                        <div class="detail-value" id="rain-prob-6h" style="font-size:14px;font-weight:700;color:#ffffff;">--%</div>
+                        <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.4px;text-align:center;">Lluvia 6h</div>
                     </div>
                 </div>
 
@@ -4118,6 +4133,7 @@
                 updateCurrentWeather(data.current, data.current.weather_code, precipToday, data.hourly);
                 updateTemp24hChart(data.hourly, data.daily);
                 updateRainSemaphore(data.hourly);
+                updateRainProb6h(data.hourly);
                 updateHourlyStrip(data.hourly, data.daily);
                 updateFranjasTable(data.hourly, data.daily);
                 updateTodayTable(data.daily, data.hourly);
@@ -5346,6 +5362,25 @@
         // ══════════════════════════════════════════════
         //  FIN SEMÁFORO PROBABILIDAD DE LLUVIA
         // ══════════════════════════════════════════════
+
+        // ══════════════════════════════════════════════
+        //  PROBABILIDAD DE LLUVIA PRÓXIMAS 6 HORAS
+        // ══════════════════════════════════════════════
+        function updateRainProb6h(hourly) {
+            const el = document.getElementById('rain-prob-6h');
+            if (!el || !hourly?.time || !hourly?.precipitation_probability) return;
+            const now = new Date();
+            const nowStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + 'T' + String(now.getHours()).padStart(2,'0');
+            let maxProb = 0, count = 0;
+            for (let i = 0; i < hourly.time.length; i++) {
+                if (hourly.time[i] < nowStr) continue;
+                if (count >= 6) break;
+                const p = hourly.precipitation_probability[i] ?? 0;
+                if (p > maxProb) maxProb = p;
+                count++;
+            }
+            el.textContent = Math.round(maxProb) + '%';
+        }
 
         // ══════════════════════════════════════════════
         //  FIN GRÁFICO TEMPERATURA 24H
