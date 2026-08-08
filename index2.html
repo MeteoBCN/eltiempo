@@ -77,6 +77,13 @@
         .detail-item { text-align: center; min-width: 90px; }
         .detail-item > div:first-child { color: #2c4a6e; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 6px; }
         .detail-value { font-size: 16px; font-weight: 600; margin-top: 6px; color: #1a3a5c; }
+        .weather-circle-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .weather-circle { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(180deg, #1c4f78 0%, #123653 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(18,54,83,0.22); flex-shrink: 0; }
+        .weather-circle i { color: #ffffff; font-size: 22px; }
+        .wc-wind-dir { color: #ffffff; text-align: center; line-height: 1.15; }
+        .wc-wind-dir .arrow { display: block; font-size: 18px; }
+        .wc-wind-dir .letters { display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; margin-top: 1px; }
+        .wc-label { font-size: 10px; font-weight: 500; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; }
         .weather-alerts-banner { margin: 24px 0; padding: 0; animation: fadeIn 0.6s ease-out 0.4s both; }
         .alert-banner-item { padding: 16px 18px; border-left: 4px solid; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 10px; background: transparent; border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0; box-shadow: none; }
         .alert-banner-item:last-child { margin-bottom: 0; }
@@ -811,36 +818,36 @@
                     <div class="temperature" id="current-temp" style="color:#123653;font-size:56px;font-weight:800;margin-bottom:0;display:inline-block;transform:scaleX(1.25);transform-origin:left center;">--°</div>
                 </div>
 
-                <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);border-radius:18px;padding:18px 10px;display:grid;grid-template-columns:repeat(3,1fr);row-gap:20px;column-gap:6px;">
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-                        <i class="wi wi-thermometer" style="color:#ffffff;font-size:20px;"></i>
-                        <div class="detail-value" id="feels-like" style="font-size:14px;font-weight:700;color:#ffffff;">--°</div>
-                        <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.4px;">Sensación</div>
+                <div style="padding:20px 4px 4px;display:grid;grid-template-columns:repeat(3,1fr);row-gap:22px;column-gap:6px;">
+                    <div class="weather-circle-item">
+                        <div class="weather-circle"><i class="wi wi-thermometer"></i></div>
+                        <div class="detail-value" id="feels-like" style="font-size:14px;margin-top:0;">--°</div>
+                        <div class="wc-label">Sensación</div>
                     </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-                        <i class="wi wi-humidity" style="color:#ffffff;font-size:20px;"></i>
-                        <div class="detail-value" id="humidity" style="font-size:14px;font-weight:700;color:#ffffff;">--%</div>
-                        <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.4px;">Humedad</div>
+                    <div class="weather-circle-item">
+                        <div class="weather-circle"><i class="wi wi-raindrop"></i></div>
+                        <div class="detail-value" id="humidity" style="font-size:14px;margin-top:0;">--%</div>
+                        <div class="wc-label">Humedad</div>
                     </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-                        <i class="wi wi-barometer" style="color:#ffffff;font-size:20px;"></i>
-                        <div class="detail-value" id="pressure" style="font-size:14px;font-weight:700;color:#ffffff;">-- hPa</div>
-                        <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.4px;">Presión</div>
+                    <div class="weather-circle-item">
+                        <div class="weather-circle"><i class="wi wi-barometer"></i></div>
+                        <div class="detail-value" id="pressure" style="font-size:14px;margin-top:0;">-- hPa</div>
+                        <div class="wc-label">Presión</div>
                     </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-                        <i class="wi wi-windy" style="color:#ffffff;font-size:20px;"></i>
-                        <div class="detail-value" id="wind" style="font-size:14px;font-weight:700;color:#ffffff;">-- km/h</div>
-                        <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.4px;">Viento <span id="wind-direction" style="text-transform:none;"></span></div>
+                    <div class="weather-circle-item">
+                        <div class="weather-circle"><span class="wc-wind-dir" id="wind-direction"><span class="arrow">--</span></span></div>
+                        <div class="detail-value" id="wind" style="font-size:14px;margin-top:0;">-- km/h</div>
+                        <div class="wc-label">Viento</div>
                     </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-                        <i class="wi wi-strong-wind" style="color:#ffffff;font-size:20px;"></i>
-                        <div class="detail-value" id="wind-gusts" style="font-size:14px;font-weight:700;color:#ffffff;">-- km/h</div>
-                        <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.4px;">Racha</div>
+                    <div class="weather-circle-item">
+                        <div class="weather-circle"><i class="wi wi-day-sunny"></i></div>
+                        <div class="detail-value" id="uvi-value" style="font-size:14px;margin-top:0;">--</div>
+                        <div class="wc-label" id="uvi-level">UVI</div>
                     </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-                        <i class="wi wi-umbrella" style="color:#ffffff;font-size:20px;"></i>
-                        <div class="detail-value" id="rain-prob-6h" style="font-size:14px;font-weight:700;color:#ffffff;">--%</div>
-                        <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.4px;text-align:center;">Lluvia 6h</div>
+                    <div class="weather-circle-item">
+                        <div class="weather-circle"><i class="wi wi-umbrella"></i></div>
+                        <div class="detail-value" id="rain-prob-6h" style="font-size:14px;margin-top:0;">--%</div>
+                        <div class="wc-label" style="text-align:center;">Lluvia 6h</div>
                     </div>
                 </div>
 
@@ -4230,7 +4237,7 @@
                     const arrows = ['↓','↙','↙','↙','←','↖','↖','↖','↑','↗','↗','↗','→','↘','↘','↘'];
                     const idx16 = Math.round(deg / 22.5) % 16;
                     const wdEl = document.getElementById('wind-direction');
-                    if (wdEl) wdEl.textContent = arrows[idx16] + ' ' + dirs[idx16];
+                    if (wdEl) wdEl.innerHTML = '<span class="arrow">' + arrows[idx16] + '</span><span class="letters">' + dirs[idx16] + '</span>';
                 }
             }
             if (current.apparent_temperature !== undefined) {
@@ -4243,10 +4250,13 @@
             }
 
             if (hourly?.time && hourly?.uv_index) {
-                const idx=hourly.time.findIndex(t=>Math.abs(new Date(t)-now)<30*60*1000);
-                if (idx!==-1&&hourly.uv_index[idx]!==undefined) {
-                    const el=document.getElementById('uvi-current');
-                    if (el) { el.textContent=Math.round(hourly.uv_index[idx]); el.style.color='#1a3a5c'; }
+                const idxUvi=hourly.time.findIndex(t=>Math.abs(new Date(t)-now)<30*60*1000);
+                if (idxUvi!==-1&&hourly.uv_index[idxUvi]!==undefined) {
+                    const uviNow = hourly.uv_index[idxUvi];
+                    const uviValEl = document.getElementById('uvi-value');
+                    const uviLvlEl = document.getElementById('uvi-level');
+                    if (uviValEl) uviValEl.textContent = Math.round(uviNow);
+                    if (uviLvlEl && typeof uviLevel === 'function') uviLvlEl.textContent = uviLevel(uviNow).lbl;
                 }
             }
         }
@@ -5401,7 +5411,7 @@
             const roundedMin = Math.floor(now.getMinutes() / 10) * 10;
             const hh = String(now.getHours()).padStart(2, '0');
             const mm = String(roundedMin).padStart(2, '0');
-            el.textContent = `${diaSemana}, ${diaMes} de ${mes} · ${hh}:${mm}`;
+            el.innerHTML = `${diaSemana}, ${diaMes} de ${mes} · <span style="font-size:15px;">${hh}:${mm}</span>`;
         }
         updateCurrentDateTime();
         setInterval(updateCurrentDateTime, 60000);
