@@ -83,6 +83,8 @@
         .wc-wind-dir { color: #ffffff; text-align: center; line-height: 1.15; }
         .wc-wind-dir .arrow { display: block; font-size: 18px; }
         .wc-wind-dir .letters { display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; margin-top: 1px; }
+        .wc-pressure-arrow { color: #ffffff; font-size: 24px; font-weight: 700; line-height: 1; }
+        .wc-uvi-tag { color: #ffffff; font-size: 14px; font-weight: 800; letter-spacing: 0.5px; }
         .wc-label { font-size: 10px; font-weight: 500; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; }
         .weather-alerts-banner { margin: 24px 0; padding: 0; animation: fadeIn 0.6s ease-out 0.4s both; }
         .alert-banner-item { padding: 16px 18px; border-left: 4px solid; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 10px; background: transparent; border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0; box-shadow: none; }
@@ -812,7 +814,7 @@
 
             <div class="hero-zone">
                 <div class="current-weather" style="text-align:left;padding:20px 20px 18px;background:#ffffff;">
-                <div id="current-datetime" style="font-size:13px;font-weight:700;color:#123653;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px;">--</div>
+                <div id="current-datetime" style="font-size:13px;font-weight:400;color:#123653;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px;">--</div>
                 <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
                     <div class="icon-large" id="current-icon" style="font-size:2em;margin:0;line-height:1;">🌧️</div>
                     <div class="temperature" id="current-temp" style="color:#123653;font-size:56px;font-weight:800;margin-bottom:0;display:inline-block;transform:scaleX(1.25);transform-origin:left center;">--°</div>
@@ -825,12 +827,16 @@
                         <div class="wc-label">Sensación</div>
                     </div>
                     <div class="weather-circle-item">
-                        <div class="weather-circle"><i class="wi wi-raindrop"></i></div>
+                        <div class="weather-circle">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2.5C12 2.5 5 11.2 5 15.6C5 19.6 8.13 22.5 12 22.5C15.87 22.5 19 19.6 19 15.6C19 11.2 12 2.5 12 2.5Z"/>
+                            </svg>
+                        </div>
                         <div class="detail-value" id="humidity" style="font-size:14px;margin-top:0;">--%</div>
                         <div class="wc-label">Humedad</div>
                     </div>
                     <div class="weather-circle-item">
-                        <div class="weather-circle"><i class="wi wi-barometer"></i></div>
+                        <div class="weather-circle"><span class="wc-pressure-arrow">↕</span></div>
                         <div class="detail-value" id="pressure" style="font-size:14px;margin-top:0;">-- hPa</div>
                         <div class="wc-label">Presión</div>
                     </div>
@@ -840,7 +846,7 @@
                         <div class="wc-label">Viento</div>
                     </div>
                     <div class="weather-circle-item">
-                        <div class="weather-circle"><i class="wi wi-day-sunny"></i></div>
+                        <div class="weather-circle"><span class="wc-uvi-tag">UVI</span></div>
                         <div class="detail-value" id="uvi-value" style="font-size:14px;margin-top:0;">--</div>
                         <div class="wc-label" id="uvi-level">UVI</div>
                     </div>
@@ -850,6 +856,8 @@
                         <div class="wc-label" style="text-align:center;">Lluvia 6h</div>
                     </div>
                 </div>
+
+                <div id="sun-countdown" style="text-align:center;margin-top:18px;font-size:13px;font-weight:600;color:#123653;letter-spacing:0.2px;"></div>
 
                 </div><!-- fin current-weather -->
 
@@ -4158,6 +4166,7 @@
                 _hourlyCache = data.hourly;
                 window._hourlyCache = data.hourly;
                 window._dailyCache  = data.daily;
+                updateSunCountdown(data.daily);
                 // Construir datos 7 días desde los daily ya cargados y renderizar iconos
                 // con los datos horarios ya disponibles (misma lógica que cabeceras de días)
                 (function buildF7FromMainData(hourly, daily) {
@@ -5399,6 +5408,28 @@
         // ══════════════════════════════════════════════
         //  FECHA Y HORA ACTUAL (redondeada a intervalos de 10 min)
         // ══════════════════════════════════════════════
+        function updateSunCountdown(daily) {
+            const el = document.getElementById('sun-countdown');
+            if (!el) return;
+            if (!daily?.time || !daily?.sunrise || !daily?.sunset) { el.textContent = ''; return; }
+            const now = new Date();
+            const events = [];
+            for (let i = 0; i < daily.time.length; i++) {
+                if (daily.sunrise[i]) events.push({ type: 'sunrise', t: new Date(daily.sunrise[i]) });
+                if (daily.sunset[i])  events.push({ type: 'sunset',  t: new Date(daily.sunset[i]) });
+            }
+            events.sort((a, b) => a.t - b.t);
+            const next = events.find(e => e.t > now);
+            if (!next) { el.textContent = ''; return; }
+            const diffMin = Math.max(0, Math.round((next.t - now) / 60000));
+            const h = Math.floor(diffMin / 60);
+            const m = diffMin % 60;
+            const faltaTxt = h > 0 ? `${h}h ${m}min` : `${m}min`;
+            const icon  = next.type === 'sunset' ? '🌇' : '🌅';
+            const label = next.type === 'sunset' ? 'Atardecer' : 'Amanecer';
+            el.innerHTML = `${icon} ${label} en ${faltaTxt}`;
+        }
+
         function updateCurrentDateTime() {
             const el = document.getElementById('current-datetime');
             if (!el) return;
@@ -5411,10 +5442,11 @@
             const roundedMin = Math.floor(now.getMinutes() / 10) * 10;
             const hh = String(now.getHours()).padStart(2, '0');
             const mm = String(roundedMin).padStart(2, '0');
-            el.innerHTML = `${diaSemana}, ${diaMes} de ${mes} · <span style="font-size:15px;">${hh}:${mm}</span>`;
+            el.innerHTML = `${diaSemana}, ${diaMes} de ${mes} · <span style="font-size:15px;font-weight:600;">${hh}:${mm}</span>`;
         }
         updateCurrentDateTime();
         setInterval(updateCurrentDateTime, 60000);
+        setInterval(() => { if (window._dailyCache) updateSunCountdown(window._dailyCache); }, 60000);
 
         loadWeatherData();
         setInterval(loadWeatherData, 600000);
