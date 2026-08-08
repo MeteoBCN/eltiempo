@@ -938,31 +938,6 @@
 
         <div style="height:60px;background:#ffffff;"></div>
 
-        <!-- ═══════════════════════════════════════════
-             MAPA DE RISC D'INCENDIS (Gencat)
-        ════════════════════════════════════════════ -->
-        <div style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <div onclick="toggleExtraSection('incendis-map')" style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;cursor:pointer;user-select:none;">
-                <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">RIESGO INCENDIOS FORESTALES (CATALUNYA)</span>
-                <span id="arrow-incendis-map" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
-            </div>
-            <div id="panel-incendis-map" style="display:none;overflow:hidden;">
-                <div style="background:#1a2a1a;padding:0;">
-                    <img
-                        src="https://gencat.cat/medinatural/incendis/mapes/mapweb_muni.gif"
-                        alt="Mapa de risc d'incendis forestals – Generalitat de Catalunya"
-                        style="width:100%;display:block;object-fit:contain;background:#1a2a1a;"
-                        loading="lazy"
-                        onerror="this.parentElement.innerHTML='<div style=\'padding:20px;text-align:center;color:#94a3b8;font-size:13px;\'>No s\'ha pogut carregar el mapa. <a href=\'https://gencat.cat/medinatural/incendis/mapes/mapweb_muni.gif\' target=\'_blank\' style=\'color:#6fcfe0;\'>Veure a Gencat</a></div>'"
-                    />
-                    <div style="background:#0f1f0f;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;">
-                        <span style="font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">Fuente: Gencat · Bombers</span>
-                        <a href="https://gencat.cat/medinatural/incendis/mapes/mapweb_muni.gif" target="_blank" style="font-size:9px;color:#6fcfe0;letter-spacing:1px;text-transform:uppercase;text-decoration:none;">Abrir mapa ↗</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- ══════════════════════════════════════════════
              SEMÁFORO CALIDAD DEL AIRE
         ═══════════════════════════════════════════════ -->
@@ -1102,6 +1077,83 @@
                 <div id="embalses-error" style="display:none;padding:16px;text-align:center;color:#ef4444;font-size:13px;">No se pudieron cargar los datos.</div>
                 <div style="background:#f8fafc;border-top:1px solid #eef2f6;padding:5px 12px;text-align:center;">
                     <span style="font-size:9px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">Fuente: ACA — Agència Catalana de l'Aigua</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+             RIESGO INCENDIOS FORESTALES (Gencat)
+        ════════════════════════════════════════════ -->
+        <div id="incendis-map-section" style="max-width:600px;width:calc(100% - 32px);margin:14px auto 0;border:2px solid #2c4a6e;border-radius:var(--border-radius);overflow:hidden;">
+            <div onclick="toggleExtraSection('incendis-map')" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px 8px;background:#2c4a6e;cursor:pointer;user-select:none;">
+                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">RIESGO INCENDIOS FORESTALES (CATALUNYA)</span>
+                <span id="arrow-incendis-map" style="font-size:10px;color:rgba(255,255,255,0.75);transition:transform 0.3s;">▼</span>
+            </div>
+            <div id="panel-incendis-map" style="display:none;overflow:hidden;">
+                <div style="background:#1a2a1a;padding:0;">
+                    <img
+                        src="https://gencat.cat/medinatural/incendis/mapes/mapweb_muni.gif"
+                        alt="Mapa de risc d'incendis forestals – Generalitat de Catalunya"
+                        style="width:100%;display:block;object-fit:contain;background:#1a2a1a;"
+                        loading="lazy"
+                        onerror="this.parentElement.innerHTML='<div style=\'padding:20px;text-align:center;color:#94a3b8;font-size:13px;\'>No s\'ha pogut carregar el mapa. <a href=\'https://gencat.cat/medinatural/incendis/mapes/mapweb_muni.gif\' target=\'_blank\' style=\'color:#6fcfe0;\'>Veure a Gencat</a></div>'"
+                    />
+                    <div style="background:#0f1f0f;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;">
+                        <span style="font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">Fuente: Gencat · Bombers</span>
+                        <a href="https://gencat.cat/medinatural/incendis/mapes/mapweb_muni.gif" target="_blank" style="font-size:9px;color:#6fcfe0;letter-spacing:1px;text-transform:uppercase;text-decoration:none;">Abrir mapa ↗</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+             ÚLTIMO RADIOSONDEO (UB/SMC)
+        ════════════════════════════════════════════ -->
+        <div id="radiosondeo-section" style="max-width:600px;width:calc(100% - 32px);margin:14px auto 0;border:2px solid #2c4a6e;border-radius:var(--border-radius);overflow:hidden;">
+            <div onclick="toggleExtraSection('radiosondeo')" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px 8px;background:#2c4a6e;cursor:pointer;user-select:none;">
+                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">RADIOSONDEO BARCELONA (UB/SMC)</span>
+                <span id="arrow-radiosondeo" style="font-size:10px;color:rgba(255,255,255,0.75);transition:transform 0.3s;">▼</span>
+            </div>
+            <div id="panel-radiosondeo" style="display:none;background:#000;overflow:hidden;">
+                <img src="https://static-m.meteo.cat/content/radiosondatge/images/ultim.png"
+                     alt="Últim radiosondatge Barcelona"
+                     style="width:100%;display:block;"
+                     loading="lazy"/>
+                <div style="background:#1e293b;padding:6px 12px;text-align:center;">
+                    <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Meteocat</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+             METAR / TAF — LEBL (AEROPUERTO)
+        ════════════════════════════════════════════ -->
+        <div id="metartaf-section" style="max-width:600px;width:calc(100% - 32px);margin:14px auto 0;border:2px solid #2c4a6e;border-radius:var(--border-radius);overflow:hidden;">
+            <div onclick="toggleMetarTaf()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px 8px;background:#2c4a6e;cursor:pointer;user-select:none;">
+                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">METAR / TAF — LEBL (AEROPUERTO)</span>
+                <span id="arrow-metartaf" style="font-size:10px;color:rgba(255,255,255,0.75);transition:transform 0.3s;">▼</span>
+            </div>
+            <div id="panel-metartaf" style="display:none;background:#f4f6f8;overflow:hidden;">
+                <!-- Tabs -->
+                <div style="display:flex;border-bottom:2px solid #e2e8f0;background:#fff;">
+                    <button id="tab-metar-btn" onclick="switchMetarTab('metar')"
+                        style="flex:1;padding:10px 0;background:#fff;border:none;border-bottom:2px solid #2c4a6e;cursor:pointer;font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:1.5px;text-transform:uppercase;transition:all 0.2s;margin-bottom:-2px;">METAR</button>
+                    <button id="tab-taf-btn" onclick="switchMetarTab('taf')"
+                        style="flex:1;padding:10px 0;background:#fff;border:none;border-bottom:2px solid transparent;cursor:pointer;font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;transition:all 0.2s;margin-bottom:-2px;">TAF</button>
+                </div>
+                <!-- METAR panel -->
+                <div id="metar-panel" style="padding:14px 16px;">
+                    <div id="metar-loading" style="text-align:center;padding:20px 0;color:#94a3b8;font-size:12px;letter-spacing:1px;">Cargando METAR…</div>
+                    <div id="metar-raw" style="display:none;font-family:'Courier New',monospace;font-size:11px;color:#334155;background:#e8edf2;padding:10px 12px;border-radius:6px;line-height:1.7;word-break:break-all;margin-bottom:12px;border-left:3px solid #6fcfe0;"></div>
+                    <div id="metar-decoded" style="display:none;"></div>
+                    <div id="metar-source" style="text-align:right;font-size:9px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-top:8px;">Fuente: CheckWX</div>
+                </div>
+                <!-- TAF panel -->
+                <div id="taf-panel" style="display:none;padding:14px 16px;">
+                    <div id="taf-loading" style="text-align:center;padding:20px 0;color:#94a3b8;font-size:12px;letter-spacing:1px;">Cargando TAF…</div>
+                    <div id="taf-raw" style="display:none;font-family:'Courier New',monospace;font-size:11px;color:#334155;background:#e8edf2;padding:10px 12px;border-radius:6px;line-height:1.7;word-break:break-all;margin-bottom:12px;border-left:3px solid #6fcfe0;"></div>
+                    <div id="taf-decoded" style="display:none;"></div>
+                    <div id="taf-source" style="text-align:right;font-size:9px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-top:8px;">Fuente: CheckWX</div>
                 </div>
             </div>
         </div>
@@ -1269,7 +1321,7 @@
             </div>
 
             <!-- Gráfico de presión atmosférica -->
-            <div style="border-bottom:1px solid #e2e8f0;">
+            <div>
                 <div style="display:flex;align-items:center;padding:9px 16px;background:#f0f6fa;">
                     <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">PRESIÓN ATMOSFÉRICA (ÚLTIMAS 24 HORAS)</span>
                 </div>
@@ -1286,54 +1338,6 @@
                     <div id="presion-error" style="display:none;padding:16px;text-align:center;color:#ef4444;font-size:13px;">No se pudieron cargar los datos.</div>
                     <div style="background:#e2eaf3;padding:5px 12px;text-align:center;">
                         <span style="font-size:9px;color:#6b86a0;letter-spacing:1px;text-transform:uppercase;">Fuente: Open-Meteo</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- METAR / TAF Barcelona (CheckWX) -->
-            <div style="border-bottom:1px solid #e2e8f0;">
-                <div onclick="toggleMetarTaf()" style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;cursor:pointer;user-select:none;">
-                    <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">METAR / TAF — LEBL (AEROPUERTO)</span>
-                    <span id="arrow-metartaf" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
-                </div>
-                <div id="panel-metartaf" style="display:none;background:#f4f6f8;overflow:hidden;">
-                    <!-- Tabs -->
-                    <div style="display:flex;border-bottom:2px solid #e2e8f0;background:#fff;">
-                        <button id="tab-metar-btn" onclick="switchMetarTab('metar')"
-                            style="flex:1;padding:10px 0;background:#fff;border:none;border-bottom:2px solid #2c4a6e;cursor:pointer;font-size:10px;font-weight:700;color:#2c4a6e;letter-spacing:1.5px;text-transform:uppercase;transition:all 0.2s;margin-bottom:-2px;">METAR</button>
-                        <button id="tab-taf-btn" onclick="switchMetarTab('taf')"
-                            style="flex:1;padding:10px 0;background:#fff;border:none;border-bottom:2px solid transparent;cursor:pointer;font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;transition:all 0.2s;margin-bottom:-2px;">TAF</button>
-                    </div>
-                    <!-- METAR panel -->
-                    <div id="metar-panel" style="padding:14px 16px;">
-                        <div id="metar-loading" style="text-align:center;padding:20px 0;color:#94a3b8;font-size:12px;letter-spacing:1px;">Cargando METAR…</div>
-                        <div id="metar-raw" style="display:none;font-family:'Courier New',monospace;font-size:11px;color:#334155;background:#e8edf2;padding:10px 12px;border-radius:6px;line-height:1.7;word-break:break-all;margin-bottom:12px;border-left:3px solid #6fcfe0;"></div>
-                        <div id="metar-decoded" style="display:none;"></div>
-                        <div id="metar-source" style="text-align:right;font-size:9px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-top:8px;">Fuente: CheckWX</div>
-                    </div>
-                    <!-- TAF panel -->
-                    <div id="taf-panel" style="display:none;padding:14px 16px;">
-                        <div id="taf-loading" style="text-align:center;padding:20px 0;color:#94a3b8;font-size:12px;letter-spacing:1px;">Cargando TAF…</div>
-                        <div id="taf-raw" style="display:none;font-family:'Courier New',monospace;font-size:11px;color:#334155;background:#e8edf2;padding:10px 12px;border-radius:6px;line-height:1.7;word-break:break-all;margin-bottom:12px;border-left:3px solid #6fcfe0;"></div>
-                        <div id="taf-decoded" style="display:none;"></div>
-                        <div id="taf-source" style="text-align:right;font-size:9px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-top:8px;">Fuente: CheckWX</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Último Radiosondeo -->
-            <div>
-                <div onclick="toggleExtraSection('radiosondeo')" style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;cursor:pointer;user-select:none;">
-                    <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">RADIOSONDEO BARCELONA (UB/SMC)</span>
-                    <span id="arrow-radiosondeo" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
-                </div>
-                <div id="panel-radiosondeo" style="display:none;background:#000;overflow:hidden;">
-                    <img src="https://static-m.meteo.cat/content/radiosondatge/images/ultim.png"
-                         alt="Últim radiosondatge Barcelona"
-                         style="width:100%;display:block;"
-                         loading="lazy"/>
-                    <div style="background:#1e293b;padding:6px 12px;text-align:center;">
-                        <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Meteocat</span>
                     </div>
                 </div>
             </div>
