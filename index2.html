@@ -840,6 +840,29 @@
                 </div><!-- fin current-weather -->
 
                 <!-- ═══════════════════════════════════════════
+                     SEMÁFORO PROBABILIDAD DE LLUVIA (24H)
+                ════════════════════════════════════════════ -->
+                <div id="rain-semaphore-section" style="max-width:600px;margin:0 auto;background:#f8fafc;padding:14px 18px 16px;">
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:10px;gap:3px;">
+                        <span style="font-size:11px;font-weight:800;color:#000000;letter-spacing:1.2px;text-transform:uppercase;">Probabilidad de lluvia</span>
+                    </div>
+                    <div style="position:relative;padding-top:16px;">
+                        <div id="rain-semaphore-arrow" style="position:absolute;top:0;left:0%;transform:translateX(-50%);transition:left 0.5s ease, color 0.3s ease;font-size:16px;line-height:1;">▼</div>
+                        <div id="rain-semaphore-bar" style="width:100%;height:18px;border-radius:10px;background:linear-gradient(to right, #eaf3fb 0%, #a9c9de 25%, #5f8daf 50%, #2c5a80 75%, #123653 100%);box-shadow:inset 0 1px 3px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.06);"></div>
+                    </div>
+                    <div style="display:flex;width:100%;margin-top:5px;gap:2px;">
+                        <div style="flex:1;text-align:center;font-size:8px;font-weight:600;color:#64748b;">MUY BAJA</div>
+                        <div style="flex:1;text-align:center;font-size:8px;font-weight:600;color:#64748b;">BAJA</div>
+                        <div style="flex:1;text-align:center;font-size:8px;font-weight:600;color:#64748b;">POSIBLE</div>
+                        <div style="flex:1;text-align:center;font-size:8px;font-weight:600;color:#64748b;">PROBABLE</div>
+                        <div style="flex:1;text-align:center;font-size:8px;font-weight:600;color:#64748b;">MUY PROB.</div>
+                    </div>
+                </div>
+                <!-- ═══════════════════════════════════════════
+                     FIN SEMÁFORO PROBABILIDAD DE LLUVIA
+                ════════════════════════════════════════════ -->
+
+                <!-- ═══════════════════════════════════════════
                      PREVISIÓN SEMANAL ESTILO BBC WEATHER
                 ════════════════════════════════════════════ -->
                 <div class="bbc-week-container" id="bbc-week-container">
@@ -894,29 +917,6 @@
                  no hace nada — ver `if (!contenedor) return;` en el JS) -->
 
             <!-- ═══════════════════════════════════════════
-                 SEMÁFORO PROBABILIDAD DE LLUVIA (24H)
-            ════════════════════════════════════════════ -->
-            <div id="rain-semaphore-section" style="max-width:600px;margin:0 auto;background:#f8fafc;padding:14px 18px 16px;">
-                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:10px;gap:3px;">
-                    <span style="font-size:11px;font-weight:800;color:#000000;letter-spacing:1.2px;text-transform:uppercase;">Probabilidad de lluvia</span>
-                </div>
-                <div style="position:relative;padding-top:16px;">
-                    <div id="rain-semaphore-arrow" style="position:absolute;top:0;left:0%;transform:translateX(-50%);transition:left 0.5s ease, color 0.3s ease;font-size:16px;line-height:1;">▼</div>
-                    <div id="rain-semaphore-bar" style="width:100%;height:18px;border-radius:10px;background:linear-gradient(to right, #10B981 0%, #6EE7B7 25%, #F59E0B 50%, #F97316 75%, #EF4444 100%);box-shadow:inset 0 1px 3px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.06);"></div>
-                </div>
-                <div style="display:flex;width:100%;margin-top:5px;gap:2px;">
-                    <div style="flex:1;text-align:center;font-size:8px;font-weight:600;color:#64748b;">MUY BAJA</div>
-                    <div style="flex:1;text-align:center;font-size:8px;font-weight:600;color:#64748b;">BAJA</div>
-                    <div style="flex:1;text-align:center;font-size:8px;font-weight:600;color:#64748b;">POSIBLE</div>
-                    <div style="flex:1;text-align:center;font-size:8px;font-weight:600;color:#64748b;">PROBABLE</div>
-                    <div style="flex:1;text-align:center;font-size:8px;font-weight:600;color:#64748b;">MUY PROB.</div>
-                </div>
-            </div>
-            <!-- ═══════════════════════════════════════════
-                 FIN SEMÁFORO PROBABILIDAD DE LLUVIA
-            ════════════════════════════════════════════ -->
-
-            <!-- ═══════════════════════════════════════════
                  GRÁFICO SOLAR (AMANECER / PUESTA)
             ════════════════════════════════════════════ -->
             <div id="sun-arc-container" style="display:none;max-width:600px;margin:0 auto;background:#f8fafc;">
@@ -931,33 +931,7 @@
 
         </div><!-- fin content-section -->
 
-        <!-- ═══════════════════════════════════════════
-             PREVISIÓN POR HORAS
-        ════════════════════════════════════════════ -->
-        <div style="height:60px;background:#ffffff;"></div>
-        <div id="forecast7-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <!-- Cabecera -->
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;gap:3px;">
-                <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">PREVISIÓN POR HORAS</span>
-                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">PULSAR SOBRE EL DÍA A CONSULTAR</span>
-            </div>
-            <div id="panel-forecast7" style="background:#f0f6fa;">
-                <!-- Fila de iconos del tiempo por día -->
-                <div id="f7-icons-row" style="display:grid;grid-template-columns:repeat(7,1fr);background:#ffffff;padding:6px 4px 5px;border-bottom:1px solid #e2e8f0;overflow:hidden;">
-                    <!-- Se rellena por JS -->
-                </div>
-                <!-- Panel de detalle del día seleccionado -->
-                <div id="f7-day-detail">
-                    <!-- Se rellena por JS al clicar un día -->
-                </div>
-                <div id="forecast7-loading" style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
-            </div>
-        </div>
-        <!-- ═══════════════════════════════════════════
-             FIN PREVISIÓN POR HORAS
-        ════════════════════════════════════════════ -->
-
-        <div style="height:20px;background:#ffffff;"></div>
+        <div style="height:40px;background:#ffffff;"></div>
 
         <!-- ═══════════════════════════════════════════
              IMAGEN PLAYAS
