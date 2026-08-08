@@ -166,18 +166,11 @@
         .bbc-hourly-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
         .bbc-hourly-title { font-size: 13px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px; }
         .bbc-hourly-wrap { position: relative; }
-        .bbc-hourly-wrap::after {
-            content: '';
-            position: absolute;
-            top: 0; right: 0; bottom: 0;
-            width: 34px;
-            background: linear-gradient(to right, rgba(18,54,83,0), rgba(18,54,83,0.92));
-            pointer-events: none;
-        }
         .bbc-hourly-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .bbc-hourly-scroll::-webkit-scrollbar { display: none; }
         .bbc-hourly-inner { display: flex; gap: 14px; padding-bottom: 2px; }
-        .bbc-hour-col { flex: 0 0 auto; width: calc((100vw - 74px) / 4); box-sizing: border-box; text-align: center; }
+        .bbc-hour-col { flex: 0 0 auto; width: calc((100vw - 74px) / 4); box-sizing: border-box; text-align: center; border-radius: 10px; padding: 8px 2px; }
+        .bbc-hour-col.current { background: rgba(255,255,255,0.12); }
         .bbc-hour-time { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); margin-bottom: 14px; }
         .bbc-hour-icon { width: 42px; height: 42px; margin: 0 auto 14px; }
         .bbc-hour-icon svg { width: 100%; height: 100%; }
@@ -3586,7 +3579,7 @@
             let bbcSelectedIdx = 0;
 
             function bbcHourLabel(h) {
-                return String(h);
+                return String(h).padStart(2, '0') + ':00';
             }
 
             // Código de tiempo más repetido del día (08h-20h), en vez del
@@ -3640,7 +3633,8 @@
                     slots.push({ h, i, ht });
                 }
                 slots.sort((a, b) => a.h - b.h);
-                inner.innerHTML = slots.map(({ h, i, ht }) => {
+                inner.innerHTML = slots.map(({ h, i, ht }, slotIdx) => {
+                    const isCurrent = row.isToday && slotIdx === 0;
                     const isNight = isNightTime(ht);
                     const wmo = bbcHourly.weather_code?.[i] ?? 0;
                     const pp = Math.round(bbcHourly.precipitation_probability?.[i] ?? 0);
@@ -3653,7 +3647,7 @@
                     const hum = bbcHourly.relative_humidity_2m?.[i] !== undefined ? Math.round(bbcHourly.relative_humidity_2m[i]) + '%' : '--';
                     const ws = Math.round(bbcHourly.wind_speed_10m?.[i] ?? 0);
                     const wd = bbcHourly.wind_direction_10m?.[i] ?? 0;
-                    return `<div class="bbc-hour-col">
+                    return `<div class="bbc-hour-col${isCurrent ? ' current' : ''}">
                         <div class="bbc-hour-time">${bbcHourLabel(h)}</div>
                         <div class="bbc-hour-icon">${icon}</div>
                         <div class="bbc-hour-temp">${temp}</div>
