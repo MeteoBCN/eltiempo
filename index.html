@@ -1071,6 +1071,41 @@
             </div>
         </div>
 
+        <!-- ═══════════════════════════════════════════
+             EMBALSES CUENCAS INTERNAS CATALUNYA
+        ════════════════════════════════════════════ -->
+        <div id="embalses-section" style="max-width:600px;width:calc(100% - 32px);margin:14px auto 0;border:2px solid #2c4a6e;border-radius:var(--border-radius);overflow:hidden;">
+            <div onclick="toggleExtraSection('embalses')" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px 8px;background:#2c4a6e;cursor:pointer;user-select:none;">
+                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">EMBALSES (CATALUNYA) CUENCAS INTERNAS</span>
+                <span id="arrow-embalses" style="font-size:10px;color:rgba(255,255,255,0.75);transition:transform 0.3s;">▼</span>
+            </div>
+            <div id="panel-embalses" style="display:none;background:#ffffff;overflow:hidden;">
+                <div id="embalses-loading" style="padding:20px;text-align:center;color:#64748b;font-size:13px;">Cargando datos...</div>
+                <div id="embalses-content" style="display:none;">
+                    <!-- Barra total -->
+                    <div style="padding:16px 16px 8px;">
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+                            <span style="font-size:11px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;">Total cuencas internas</span>
+                            <span id="emb-total-pct" style="font-size:20px;font-weight:800;color:#1e3a5f;">—</span>
+                        </div>
+                        <div style="background:#eef2f6;border-radius:6px;height:8px;overflow:hidden;">
+                            <div id="emb-total-bar" style="height:100%;border-radius:6px;background:#16a34a;width:0%;transition:width 1s ease;"></div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin-top:5px;">
+                            <span id="emb-total-hm3" style="font-size:11px;color:#64748b;"></span>
+                            <span id="emb-total-fecha" style="font-size:10px;color:#94a3b8;"></span>
+                        </div>
+                    </div>
+                    <!-- Lista embalses -->
+                    <div id="embalses-list" style="padding:4px 16px 12px;display:flex;flex-direction:column;"></div>
+                </div>
+                <div id="embalses-error" style="display:none;padding:16px;text-align:center;color:#ef4444;font-size:13px;">No se pudieron cargar los datos.</div>
+                <div style="background:#f8fafc;border-top:1px solid #eef2f6;padding:5px 12px;text-align:center;">
+                    <span style="font-size:9px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">Fuente: ACA — Agència Catalana de l'Aigua</span>
+                </div>
+            </div>
+        </div>
+
         <div style="height:60px;background:#ffffff;"></div>
 
 
@@ -1287,7 +1322,7 @@
             </div>
 
             <!-- Último Radiosondeo -->
-            <div style="border-bottom:1px solid #e2e8f0;">
+            <div>
                 <div onclick="toggleExtraSection('radiosondeo')" style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;cursor:pointer;user-select:none;">
                     <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">RADIOSONDEO BARCELONA (UB/SMC)</span>
                     <span id="arrow-radiosondeo" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
@@ -1299,39 +1334,6 @@
                          loading="lazy"/>
                     <div style="background:#1e293b;padding:6px 12px;text-align:center;">
                         <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Meteocat</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Embalses Cuencas Internas Catalunya -->
-            <div style="border-bottom:1px solid #e2e8f0;">
-                <div onclick="toggleExtraSection('embalses')" style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#f0f6fa;cursor:pointer;user-select:none;">
-                    <span style="font-size:9px;font-weight:700;color:#2c4a6e;letter-spacing:2px;text-transform:uppercase;">EMBALSES (CATALUNYA) CUENCAS INTERNAS</span>
-                    <span id="arrow-embalses" style="font-size:12px;color:#2c4a6e;transition:transform 0.3s;">▼</span>
-                </div>
-                <div id="panel-embalses" style="display:none;background:#ffffff;overflow:hidden;">
-                    <div id="embalses-loading" style="padding:20px;text-align:center;color:#64748b;font-size:13px;">Cargando datos...</div>
-                    <div id="embalses-content" style="display:none;">
-                        <!-- Barra total -->
-                        <div style="padding:16px 16px 8px;">
-                            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
-                                <span style="font-size:11px;font-weight:700;color:#2c4a6e;text-transform:uppercase;letter-spacing:1px;">Total cuencas internas</span>
-                                <span id="emb-total-pct" style="font-size:20px;font-weight:800;color:#1e3a5f;">—</span>
-                            </div>
-                            <div style="background:#eef2f6;border-radius:6px;height:8px;overflow:hidden;">
-                                <div id="emb-total-bar" style="height:100%;border-radius:6px;background:#16a34a;width:0%;transition:width 1s ease;"></div>
-                            </div>
-                            <div style="display:flex;justify-content:space-between;margin-top:5px;">
-                                <span id="emb-total-hm3" style="font-size:11px;color:#64748b;"></span>
-                                <span id="emb-total-fecha" style="font-size:10px;color:#94a3b8;"></span>
-                            </div>
-                        </div>
-                        <!-- Lista embalses -->
-                        <div id="embalses-list" style="padding:4px 16px 12px;display:flex;flex-direction:column;"></div>
-                    </div>
-                    <div id="embalses-error" style="display:none;padding:16px;text-align:center;color:#ef4444;font-size:13px;">No se pudieron cargar los datos.</div>
-                    <div style="background:#f8fafc;border-top:1px solid #eef2f6;padding:5px 12px;text-align:center;">
-                        <span style="font-size:9px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">Fuente: ACA — Agència Catalana de l'Aigua</span>
                     </div>
                 </div>
             </div>
