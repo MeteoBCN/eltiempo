@@ -176,9 +176,15 @@
         .bbc-hour-icon { width: 24px; height: 24px; margin: 0 auto 8px; }
         .bbc-hour-icon svg { width: 100%; height: 100%; }
         .bbc-hour-temp { font-size: 15px; font-weight: 700; color: #ffffff; margin-bottom: 10px; }
+        .bbc-hour-humidity { font-size: 11px; color: rgba(255,255,255,0.85); margin-bottom: 10px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
         .bbc-hour-precip { font-size: 11px; color: rgba(255,255,255,0.85); margin-bottom: 10px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
         .bbc-hour-wind { font-size: 11px; color: rgba(255,255,255,0.85); display: flex; flex-direction: column; align-items: center; gap: 3px; }
         .bbc-week-loading { padding: 24px; text-align: center; color: rgba(255,255,255,0.7); font-size: 13px; grid-column: 1/-1; width: 100%; }
+        .bbc-sun-uvi { display: flex; border-top: 1px solid rgba(255,255,255,0.14); padding: 12px 16px 14px; gap: 10px; }
+        .bbc-sun-item { flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .bbc-sun-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+        .bbc-sun-value { font-size: 13px; font-weight: 700; color: #ffffff; white-space: nowrap; }
+        .bbc-sun-sub { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.7); margin-left: 2px; }
 
 
         .divulgacion-link { text-align: center; padding: 24px 0 36px; }
@@ -854,6 +860,7 @@
                             <div class="bbc-hourly-inner" id="bbc-hourly-inner"></div>
                         </div>
                     </div>
+                    <div class="bbc-sun-uvi" id="bbc-sun-uvi"></div>
                 </div>
                 <!-- ═══════════════════════════════════════════
                      FIN PREVISIÓN SEMANAL ESTILO BBC WEATHER
@@ -3571,12 +3578,36 @@
             const DIAS_CORTO_BBC = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
             let bbcDailyRows = [];
             let bbcHourly = null;
+            let bbcDaily = null;
             let bbcSelectedIdx = 0;
 
             function bbcHourLabel(h) {
                 if (h === 0) return '12am';
                 if (h === 12) return '12pm';
                 return h > 12 ? (h - 12) + 'pm' : h + 'am';
+            }
+
+            // Código de tiempo más repetido del día (08h-20h), en vez del
+            // código "representativo" que da la API (que puede no coincidir
+            // con lo que más se repite a lo largo del día).
+            function bbcModeWmo(dateStr, hourly, fallback) {
+                if (!hourly?.time) return fallback;
+                const freq = {};
+                for (let i = 0; i < hourly.time.length; i++) {
+                    if (!hourly.time[i].startsWith(dateStr)) continue;
+                    const h = parseInt(hourly.time[i].slice(11, 13), 10);
+                    if (h < 8 || h > 20) continue;
+                    const wmoRaw = hourly.weather_code?.[i] ?? 0;
+                    const pp = hourly.precipitation_probability?.[i] ?? 0;
+                    const isRain = (wmoRaw >= 51 && wmoRaw <= 82) || (wmoRaw >= 85 && wmoRaw <= 86) || (wmoRaw >= 95 && wmoRaw <= 99);
+                    const isFog = (wmoRaw === 45 || wmoRaw === 48);
+                    let wmo = wmoRaw;
+                    if (!isFog) { if (!isRain && pp >= 50) wmo = 80; else if (isRain && pp < 50) wmo = 3; }
+                    freq[wmo] = (freq[wmo] || 0) + 1;
+                }
+                const keys = Object.keys(freq);
+                if (!keys.length) return fallback;
+                return Number(keys.reduce((a, b) => freq[a] >= freq[b] ? a : b));
             }
 
             function renderBBCDays() {
@@ -3617,14 +3648,19 @@
                     if (!isFog) { if (!isRain && pp >= 50) eWmo = 80; else if (isRain && pp < 50) eWmo = 3; }
                     const icon = getSvgIcon(isFog ? 45 : eWmo, 24, isNight);
                     const temp = bbcHourly.temperature_2m?.[i] !== undefined ? Math.round(bbcHourly.temperature_2m[i]) + '°' : '--';
+                    const hum = bbcHourly.relative_humidity_2m?.[i] !== undefined ? Math.round(bbcHourly.relative_humidity_2m[i]) + '%' : '--';
                     const ws = Math.round(bbcHourly.wind_speed_10m?.[i] ?? 0);
                     const wd = bbcHourly.wind_direction_10m?.[i] ?? 0;
                     return `<div class="bbc-hour-col">
                         <div class="bbc-hour-time">${bbcHourLabel(h)}</div>
                         <div class="bbc-hour-icon">${icon}</div>
                         <div class="bbc-hour-temp">${temp}</div>
-                        <div class="bbc-hour-precip">
+                        <div class="bbc-hour-humidity">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-13-7-13z" fill="#8ec7e8"/></svg>
+                            <span>${hum}</span>
+                        </div>
+                        <div class="bbc-hour-precip">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 14a5 5 0 0 0 10 0c0-3-5-9-5-9s-5 6-5 9z"/><path d="M15 8a4 4 0 0 0 5 0" stroke="#8ec7e8" stroke-width="1.4" fill="none"/></svg>
                             <span>${pp}%</span>
                         </div>
                         <div class="bbc-hour-wind">
@@ -3635,33 +3671,68 @@
                 }).join('');
             }
 
+            function renderBBCSunUvi(idx) {
+                const box = document.getElementById('bbc-sun-uvi');
+                if (!box || !bbcDaily) return;
+                const fmt = (iso) => iso ? new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                const sr = fmt(bbcDaily.sunrise?.[idx]);
+                const ss = fmt(bbcDaily.sunset?.[idx]);
+                const uv = bbcDaily.uv_index_max?.[idx] !== undefined ? Math.round(bbcDaily.uv_index_max[idx]) : '--';
+                function uviLabel(v) {
+                    if (v === '--') return '';
+                    const n = parseInt(v, 10);
+                    if (n <= 2) return 'Bajo';
+                    if (n <= 5) return 'Moderado';
+                    if (n <= 7) return 'Alto';
+                    if (n <= 10) return 'Muy alto';
+                    return 'Extremo';
+                }
+                box.innerHTML = `
+                    <div class="bbc-sun-item">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="17" r="4" fill="#ffcf5c"/><path d="M2 21h20M12 2v3M5 8l2 2M19 8l-2 2M4 14h2M18 14h2" stroke="#ffcf5c" stroke-width="1.6" stroke-linecap="round"/></svg>
+                        <div><div class="bbc-sun-label">Amanecer</div><div class="bbc-sun-value">${sr}</div></div>
+                    </div>
+                    <div class="bbc-sun-item">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="17" r="4" fill="#ff9d5c"/><path d="M2 21h20M4 14h2M18 14h2M6.5 10.5l1.6 1.6M17.5 10.5l-1.6 1.6" stroke="#ff9d5c" stroke-width="1.6" stroke-linecap="round"/></svg>
+                        <div><div class="bbc-sun-label">Atardecer</div><div class="bbc-sun-value">${ss}</div></div>
+                    </div>
+                    <div class="bbc-sun-item">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="5" fill="#c9e02c"/><path d="M12 1v3M12 20v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M1 12h3M20 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke="#c9e02c" stroke-width="1.6" stroke-linecap="round"/></svg>
+                        <div><div class="bbc-sun-label">Radiación UVI</div><div class="bbc-sun-value">${uv} <span class="bbc-sun-sub">${uviLabel(uv)}</span></div></div>
+                    </div>`;
+            }
+
             window.bbcSelectDay = function(idx) {
                 bbcSelectedIdx = idx;
                 document.querySelectorAll('.bbc-day-cell').forEach(c => c.classList.toggle('selected', parseInt(c.dataset.idx, 10) === idx));
                 const scrollEl = document.getElementById('bbc-hourly-scroll');
                 if (scrollEl) scrollEl.scrollLeft = 0;
                 renderBBCHourly(idx);
+                renderBBCSunUvi(idx);
             };
 
             window.renderBBCWeek = function(daily, hourly) {
                 if (!daily?.time || !hourly?.time) return;
                 bbcHourly = hourly;
+                bbcDaily = daily;
                 const todayStr = new Date().toISOString().slice(0, 10);
                 bbcDailyRows = daily.time.map((ds, i) => {
                     const dt = new Date(ds + 'T12:00:00');
                     const isToday = ds === todayStr;
+                    const fallbackWmo = daily.weather_code?.[i] ?? 0;
                     return {
                         dateStr: ds,
                         isToday,
                         label: isToday ? 'Hoy' : (DIAS_CORTO_BBC[dt.getDay()] + ' ' + dt.getDate()),
                         tmax: Math.round(daily.temperature_2m_max?.[i] ?? 0),
                         tmin: Math.round(daily.temperature_2m_min?.[i] ?? 0),
-                        wmo: daily.weather_code?.[i] ?? 0,
+                        wmo: bbcModeWmo(ds, hourly, fallbackWmo),
                     };
                 });
                 if (bbcSelectedIdx >= bbcDailyRows.length) bbcSelectedIdx = 0;
                 renderBBCDays();
                 renderBBCHourly(bbcSelectedIdx);
+                renderBBCSunUvi(bbcSelectedIdx);
             };
 
             const bbcLeftBtn = document.getElementById('bbc-scroll-left');
