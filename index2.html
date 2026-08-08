@@ -165,9 +165,15 @@
         .bbc-hourly-section { border-top: 1px solid rgba(255,255,255,0.14); padding: 16px 16px 18px; }
         .bbc-hourly-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
         .bbc-hourly-title { font-size: 13px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px; }
-        .bbc-hourly-nav { display: flex; gap: 6px; }
-        .bbc-nav-btn { width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(255,255,255,0.14); color: #ffffff; font-size: 15px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .bbc-nav-btn:hover { background: rgba(255,255,255,0.26); }
+        .bbc-hourly-wrap { position: relative; }
+        .bbc-hourly-wrap::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0;
+            width: 34px;
+            background: linear-gradient(to right, rgba(18,54,83,0), rgba(18,54,83,0.92));
+            pointer-events: none;
+        }
         .bbc-hourly-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .bbc-hourly-scroll::-webkit-scrollbar { display: none; }
         .bbc-hourly-inner { display: flex; gap: 14px; padding-bottom: 2px; }
@@ -851,13 +857,11 @@
                     <div class="bbc-hourly-section">
                         <div class="bbc-hourly-header">
                             <span class="bbc-hourly-title">Previsión horaria</span>
-                            <div class="bbc-hourly-nav">
-                                <button class="bbc-nav-btn" id="bbc-scroll-left" aria-label="Anterior" type="button">&#8249;</button>
-                                <button class="bbc-nav-btn" id="bbc-scroll-right" aria-label="Siguiente" type="button">&#8250;</button>
-                            </div>
                         </div>
-                        <div class="bbc-hourly-scroll" id="bbc-hourly-scroll">
-                            <div class="bbc-hourly-inner" id="bbc-hourly-inner"></div>
+                        <div class="bbc-hourly-wrap">
+                            <div class="bbc-hourly-scroll" id="bbc-hourly-scroll">
+                                <div class="bbc-hourly-inner" id="bbc-hourly-inner"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="bbc-sun-uvi" id="bbc-sun-uvi"></div>
@@ -3582,9 +3586,7 @@
             let bbcSelectedIdx = 0;
 
             function bbcHourLabel(h) {
-                if (h === 0) return '12am';
-                if (h === 12) return '12pm';
-                return h > 12 ? (h - 12) + 'pm' : h + 'am';
+                return String(h);
             }
 
             // Código de tiempo más repetido del día (08h-20h), en vez del
@@ -3734,12 +3736,6 @@
                 renderBBCHourly(bbcSelectedIdx);
                 renderBBCSunUvi(bbcSelectedIdx);
             };
-
-            const bbcLeftBtn = document.getElementById('bbc-scroll-left');
-            const bbcRightBtn = document.getElementById('bbc-scroll-right');
-            const bbcScrollEl = document.getElementById('bbc-hourly-scroll');
-            if (bbcLeftBtn) bbcLeftBtn.addEventListener('click', () => bbcScrollEl && bbcScrollEl.scrollBy({ left: -180, behavior: 'smooth' }));
-            if (bbcRightBtn) bbcRightBtn.addEventListener('click', () => bbcScrollEl && bbcScrollEl.scrollBy({ left: 180, behavior: 'smooth' }));
         })();
 
         /* ── Abre el detalle de un día en el panel inferior de f7 ── */
