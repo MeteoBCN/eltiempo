@@ -170,10 +170,10 @@
         .bbc-nav-btn:hover { background: rgba(255,255,255,0.26); }
         .bbc-hourly-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .bbc-hourly-scroll::-webkit-scrollbar { display: none; }
-        .bbc-hourly-inner { display: flex; gap: 22px; padding-bottom: 2px; }
-        .bbc-hour-col { flex: 0 0 auto; min-width: 42px; text-align: center; }
+        .bbc-hourly-inner { display: flex; gap: 14px; padding-bottom: 2px; }
+        .bbc-hour-col { flex: 0 0 auto; min-width: 66px; text-align: center; }
         .bbc-hour-time { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); margin-bottom: 8px; }
-        .bbc-hour-icon { width: 24px; height: 24px; margin: 0 auto 8px; }
+        .bbc-hour-icon { width: 42px; height: 42px; margin: 0 auto 8px; }
         .bbc-hour-icon svg { width: 100%; height: 100%; }
         .bbc-hour-temp { font-size: 15px; font-weight: 700; color: #ffffff; margin-bottom: 10px; }
         .bbc-hour-humidity { font-size: 11px; color: rgba(255,255,255,0.85); margin-bottom: 10px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
@@ -3646,7 +3646,7 @@
                     const isRain = (wmo >= 51 && wmo <= 82) || (wmo >= 85 && wmo <= 86) || (wmo >= 95 && wmo <= 99);
                     let eWmo = wmo;
                     if (!isFog) { if (!isRain && pp >= 50) eWmo = 80; else if (isRain && pp < 50) eWmo = 3; }
-                    const icon = getSvgIcon(isFog ? 45 : eWmo, 24, isNight);
+                    const icon = getSvgIcon(isFog ? 45 : eWmo, 42, isNight);
                     const temp = bbcHourly.temperature_2m?.[i] !== undefined ? Math.round(bbcHourly.temperature_2m[i]) + '°' : '--';
                     const hum = bbcHourly.relative_humidity_2m?.[i] !== undefined ? Math.round(bbcHourly.relative_humidity_2m[i]) + '%' : '--';
                     const ws = Math.round(bbcHourly.wind_speed_10m?.[i] ?? 0);
@@ -3656,11 +3656,11 @@
                         <div class="bbc-hour-icon">${icon}</div>
                         <div class="bbc-hour-temp">${temp}</div>
                         <div class="bbc-hour-humidity">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-13-7-13z" fill="#8ec7e8"/></svg>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-13-7-13z" fill="#ffffff"/></svg>
                             <span>${hum}</span>
                         </div>
                         <div class="bbc-hour-precip">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 14a5 5 0 0 0 10 0c0-3-5-9-5-9s-5 6-5 9z"/><path d="M15 8a4 4 0 0 0 5 0" stroke="#8ec7e8" stroke-width="1.4" fill="none"/></svg>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a9 9 0 0 0-9 9h18a9 9 0 0 0-9-9z" fill="#ffffff"/><line x1="12" y1="11" x2="12" y2="19" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/><path d="M12 19a2 2 0 1 0 4 0" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
                             <span>${pp}%</span>
                         </div>
                         <div class="bbc-hour-wind">
@@ -3689,15 +3689,15 @@
                 }
                 box.innerHTML = `
                     <div class="bbc-sun-item">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="17" r="4" fill="#ffcf5c"/><path d="M2 21h20M12 2v3M5 8l2 2M19 8l-2 2M4 14h2M18 14h2" stroke="#ffcf5c" stroke-width="1.6" stroke-linecap="round"/></svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="17" r="4" fill="#ffffff"/><path d="M2 21h20M12 2v3M5 8l2 2M19 8l-2 2M4 14h2M18 14h2" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/></svg>
                         <div><div class="bbc-sun-label">Amanecer</div><div class="bbc-sun-value">${sr}</div></div>
                     </div>
                     <div class="bbc-sun-item">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="17" r="4" fill="#ff9d5c"/><path d="M2 21h20M4 14h2M18 14h2M6.5 10.5l1.6 1.6M17.5 10.5l-1.6 1.6" stroke="#ff9d5c" stroke-width="1.6" stroke-linecap="round"/></svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="17" r="4" fill="#ffffff"/><path d="M2 21h20M4 14h2M18 14h2M6.5 10.5l1.6 1.6M17.5 10.5l-1.6 1.6" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/></svg>
                         <div><div class="bbc-sun-label">Atardecer</div><div class="bbc-sun-value">${ss}</div></div>
                     </div>
                     <div class="bbc-sun-item">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="5" fill="#c9e02c"/><path d="M12 1v3M12 20v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M1 12h3M20 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke="#c9e02c" stroke-width="1.6" stroke-linecap="round"/></svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="5" fill="#ffffff"/><path d="M12 1v3M12 20v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M1 12h3M20 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/></svg>
                         <div><div class="bbc-sun-label">Radiación UVI</div><div class="bbc-sun-value">${uv} <span class="bbc-sun-sub">${uviLabel(uv)}</span></div></div>
                     </div>`;
             }
