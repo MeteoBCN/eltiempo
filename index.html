@@ -765,18 +765,6 @@
 
                 </div><!-- fin current-weather -->
 
-                <!-- ═══════════════════════════════════════════
-                     COMPARATIVA vs TIEMPO ACTUAL (TENDENCIA)
-                ════════════════════════════════════════════ -->
-                <div id="compare24h-section" style="max-width:600px;margin:14px auto 0;padding:6px 20px 24px;">
-                    <div id="compare24h-content" style="padding:0 6px;font-family:Georgia,'Playfair Display',serif;font-style:italic;font-size:14px;line-height:1.7;color:#2c4a6e;text-align:center;">
-                        Cargando...
-                    </div>
-                </div>
-                <!-- ═══════════════════════════════════════════
-                     FIN COMPARATIVA vs TIEMPO ACTUAL
-                ════════════════════════════════════════════ -->
-
             </div><!-- fin hero-zone -->
 
             <!-- ═══════════════════════════════════════════
@@ -976,15 +964,10 @@
         </div>
 
         <!-- ══════════════════════════════════════════════
-             MARCO: CALIDAD DEL AIRE + DEPORTE AL AIRE LIBRE
-        ═══════════════════════════════════════════════ -->
-        <div id="aqi-running-wrapper" style="max-width:600px;width:calc(100% - 32px);margin:0 auto;border:2px solid #2c4a6e;border-radius:var(--border-radius);overflow:hidden;">
-
-        <!-- ══════════════════════════════════════════════
              SEMÁFORO CALIDAD DEL AIRE
         ═══════════════════════════════════════════════ -->
 
-        <div id="aqi-semaforo-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+        <div id="aqi-semaforo-section" style="max-width:600px;width:calc(100% - 32px);margin:0 auto;border:2px solid #2c4a6e;border-radius:var(--border-radius);overflow:hidden;">
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;gap:3px;">
                 <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">CALIDAD DEL AIRE (EAQI)</span>
             </div>
@@ -1080,7 +1063,7 @@
         <!-- ═══════════════════════════════════════════
              ÍNDICE PARA CORRER / DEPORTE AL AIRE LIBRE
         ════════════════════════════════════════════ -->
-        <div id="running-section" style="max-width:600px;margin:0 auto;">
+        <div id="running-section" style="max-width:600px;width:calc(100% - 32px);margin:14px auto 0;border:2px solid #2c4a6e;border-radius:var(--border-radius);overflow:hidden;">
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;gap:3px;">
                 <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">DEPORTE AL AIRE LIBRE</span>
             </div>
@@ -1088,8 +1071,6 @@
                 <div style="font-size:12px;color:#94a3b8;text-align:center;">Calculando...</div>
             </div>
         </div>
-
-        </div><!-- fin aqi-running-wrapper -->
 
         <div style="height:60px;background:#ffffff;"></div>
 
@@ -1544,117 +1525,6 @@
         }
         // Cargar presión automáticamente al iniciar
         cargarPresion();
-
-        // ══════════════════════════════════════════════
-        //  COMPARATIVA 24H (próximas vs anteriores)
-        // ══════════════════════════════════════════════
-        async function cargarComparacion24h() {
-            var el = document.getElementById('compare24h-content');
-            if (!el) return;
-            try {
-                var PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
-                var url = PROXY_BASE + '/forecast?latitude=41.3888&longitude=2.159&hourly=temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,precipitation_probability&daily=weathercode,temperature_2m_max,temperature_2m_min,apparent_temperature_max,precipitation_probability_max&past_days=1&forecast_days=2&timezone=Europe%2FMadrid';
-                var r = await fetch(url);
-                if (!r.ok) throw new Error('HTTP ' + r.status);
-                var data = await r.json();
-                renderComparacion24h(data);
-            } catch(e) {
-                console.warn('[Comparacion24h]', e);
-                el.innerHTML = '<div style="font-size:11px;color:#ef4444;text-align:center;width:100%;">No se pudo cargar la comparación.</div>';
-            }
-        }
-
-        // Descripciones WMO (sustantivo, para encajar en frases fluidas)
-        var WMO_RESUMEN = {
-            0:'el cielo despejado', 1:'un cielo mayormente despejado', 2:'intervalos nubosos',
-            3:'un cielo cubierto de nubes', 45:'niebla', 48:'niebla con escarcha',
-            51:'llovizna ligera', 53:'llovizna', 55:'llovizna intensa',
-            56:'llovizna helada', 57:'llovizna helada intensa',
-            61:'lluvia ligera', 63:'lluvia moderada', 65:'lluvia intensa',
-            66:'lluvia helada', 67:'lluvia helada intensa',
-            71:'nevadas ligeras', 73:'nevadas moderadas', 75:'nevadas intensas', 77:'granos de nieve',
-            80:'chubascos ligeros', 81:'chubascos moderados', 82:'chubascos fuertes',
-            85:'chubascos de nieve ligeros', 86:'chubascos de nieve intensos',
-            95:'tormenta', 96:'tormenta con granizo ligero', 99:'tormenta con granizo fuerte'
-        };
-        function descWmo(c) { return WMO_RESUMEN[c] || 'un tiempo variable'; }
-        function esLluvioso(c) { return (c >= 51 && c <= 67) || (c >= 80 && c <= 99); }
-
-        function renderComparacion24h(data) {
-            var el = document.getElementById('compare24h-content');
-            if (!el) return;
-            var daily = data.daily;
-            // Con past_days=1 y forecast_days=2 → índices: 0=ayer, 1=hoy, 2=mañana
-            if (!daily || !daily.time || daily.time.length < 3) { el.innerHTML = ''; return; }
-
-            var codeAyer = daily.weathercode[0];
-            var maxAyer  = Math.round(daily.temperature_2m_max[0]);
-
-            var codeHoy  = daily.weathercode[1];
-            var maxHoy   = Math.round(daily.temperature_2m_max[1]);
-            var minHoy   = Math.round(daily.temperature_2m_min[1]);
-            var apHoy    = (daily.apparent_temperature_max ? daily.apparent_temperature_max[1] : maxHoy);
-            var lluviaHoy = (daily.precipitation_probability_max && daily.precipitation_probability_max[1] != null)
-                ? Math.round(daily.precipitation_probability_max[1]) : null;
-
-            var codeManana = daily.weathercode[2];
-            var maxManana  = Math.round(daily.temperature_2m_max[2]);
-            var minManana  = Math.round(daily.temperature_2m_min[2]);
-            var apManana   = (daily.apparent_temperature_max ? daily.apparent_temperature_max[2] : maxManana);
-            var lluviaManana = (daily.precipitation_probability_max && daily.precipitation_probability_max[2] != null)
-                ? Math.round(daily.precipitation_probability_max[2]) : null;
-
-            // Frase de tendencia de temperatura respecto al día de referencia
-            function fraseTendencia(actual, referencia, sujeto) {
-                var diff = actual - referencia;
-                if (diff >= 2)  return 'las temperaturas subirán respecto a ' + sujeto + ' (' + (diff>0?'+':'') + diff + '°)';
-                if (diff <= -2) return 'las temperaturas bajarán respecto a ' + sujeto + ' (' + diff + '°)';
-                return 'las temperaturas se mantendrán similares a ' + sujeto;
-            }
-
-            // Frase de sensación (calor / bochorno / frío) según temperatura aparente
-            function fraseSensacion(maxReal, apMax) {
-                var bochorno = (apMax - maxReal) >= 2.5 && apMax >= 27;
-                if (apMax >= 34) return bochorno ? 'con calor sofocante y ambiente muy bochornoso' : 'con calor intenso';
-                if (apMax >= 29) return bochorno ? 'con sensación de bochorno' : 'con ambiente caluroso';
-                if (apMax >= 22) return 'con temperaturas agradables';
-                if (apMax >= 15) return 'con ambiente fresco';
-                return 'con ambiente frío';
-            }
-
-            function fraseLluvia(code, prob) {
-                if (esLluvioso(code)) {
-                    return prob != null
-                        ? ' No se descarta que llueva a lo largo del día (' + prob + '% de probabilidad).'
-                        : ' No se descarta que llueva a lo largo del día.';
-                }
-                if (prob != null && prob >= 40) {
-                    return ' Existe cierta probabilidad de lluvia (' + prob + '%).';
-                }
-                if (prob != null && prob >= 20) {
-                    return ' No se descarta algún chubasco puntual (' + prob + '%).';
-                }
-                return ' No se esperan precipitaciones.';
-            }
-
-            var parrafoHoy =
-                'La jornada de hoy se presenta con ' + descWmo(codeHoy) + ', ' +
-                fraseTendencia(maxHoy, maxAyer, 'ayer') + ', ' + fraseSensacion(maxHoy, apHoy) +
-                '. Las temperaturas oscilarán entre los ' + minHoy + '° y los ' + maxHoy + '°.' +
-                fraseLluvia(codeHoy, lluviaHoy);
-
-            var parrafoManana =
-                ' Para mañana se espera ' + descWmo(codeManana) + ', ' +
-                fraseTendencia(maxManana, maxHoy, 'hoy') + ', ' + fraseSensacion(maxManana, apManana) +
-                ', con valores entre los ' + minManana + '° y los ' + maxManana + '°.' +
-                fraseLluvia(codeManana, lluviaManana);
-
-            el.innerHTML = parrafoHoy + parrafoManana;
-        }
-        // Cargar comparación automáticamente al iniciar
-        cargarComparacion24h();
-        // Y refrescarla cada hora
-        setInterval(cargarComparacion24h, 3600000);
         </script>
 
         <script>
