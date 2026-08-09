@@ -6077,8 +6077,8 @@
 
                 const pill = (label, val, bg, textColor) => `
                     <div style="text-align:center;width:100%;">
-                        <div style="font-size:7px;font-weight:700;color:#6a8aab;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;">${label}</div>
-                        <div style="font-size:13px;font-weight:900;color:${bg};text-align:center;">${val}</div>
+                        <div style="font-size:8px;font-weight:700;color:#6a8aab;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;">${label}</div>
+                        <div style="font-size:14.5px;font-weight:900;color:${bg};text-align:center;">${val}</div>
                     </div>`;
 
                 const precColor  = maxPrec >= 70 ? '#3b82f6' : maxPrec >= 40 ? '#60a5fa' : maxPrec >= 20 ? '#93c5fd' : '#cbd5e1';
@@ -6095,10 +6095,10 @@
                 const skyIconHtml = reprWcode !== null ? getSvgIcon(reprWcode, 32, false) : '';
 
                 return `<div style="flex:1;${borderStyle}padding:6px 5px 10px;background:#ffffff;display:flex;flex-direction:column;align-items:center;gap:7px;">
-                    ${pill('Ba\u00f1o', bath.txt, bath.color, '#fff')}
+                    ${pill('Ba\u00f1o', bath.txt.toUpperCase(), '#123653', '#fff')}
                     <div style="text-align:center;width:100%;padding-top:2px;">
                         <div style="display:flex;justify-content:center;align-items:center;">${skyIconHtml}</div>
-                        <div style="font-size:13px;font-weight:900;color:#123653;margin-top:3px;">${avgTemp !== null ? avgTemp+'\u00b0C' : '\u2014'}</div>
+                        <div style="font-size:14.5px;font-weight:900;color:#123653;margin-top:3px;">${avgTemp !== null ? avgTemp+'\u00b0C' : '\u2014'}</div>
                     </div>
                     ${pill('Altura Olas', avgWH !== null ? avgWH.toFixed(1)+' m' : '\u2014', '#123653', '#fff')}
                     ${pill('Mar',    wl.txt,   '#123653',   '#fff')}
@@ -6190,29 +6190,29 @@
                             <!-- Círculo AGUA -->
                             <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
                                 <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,#1c4f78 0%,#123653 100%);box-shadow:0 4px 10px rgba(18,54,83,0.22);display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                                    <span style="font-size:14px;font-weight:700;color:#fff;line-height:1;">${avgSST !== null ? avgSST+'°C' : '—'}</span>
+                                    <span style="font-size:15px;font-weight:700;color:#fff;line-height:1;">${avgSST !== null ? avgSST+'°C' : '—'}</span>
                                 </div>
-                                <span style="font-size:10px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;">Agua</span>
+                                <span style="font-size:11px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;">Agua</span>
                             </div>
                             <!-- Círculo UV MÁXIMO -->
                             <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
                                 <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,#1c4f78 0%,#123653 100%);box-shadow:0 4px 10px rgba(18,54,83,0.22);display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                                    <span style="font-size:14px;font-weight:700;color:#fff;line-height:1;">${uviRedondeado !== null ? uviRedondeado : '—'}</span>
+                                    <span style="font-size:15px;font-weight:700;color:#fff;line-height:1;">${uviRedondeado !== null ? uviRedondeado : '—'}</span>
                                 </div>
-                                <span style="font-size:10px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;">Máx. UVI${uviRedondeado !== null ? ' · '+_uvi3.nivel : ''}</span>
+                                <span style="font-size:11px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;">UVI${uviRedondeado !== null ? ' · '+_uvi3.nivel : ''}</span>
                             </div>
                             <!-- Círculo LLUVIA -->
                             <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
                                 <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,#1c4f78 0%,#123653 100%);box-shadow:0 4px 10px rgba(18,54,83,0.22);display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                                    <span style="font-size:14px;font-weight:700;color:#fff;line-height:1;">${_maxRainProb !== null ? _maxRainProb+'%' : '—'}</span>
+                                    <span style="font-size:15px;font-weight:700;color:#fff;line-height:1;">${_maxRainProb !== null ? _maxRainProb+'%' : '—'}</span>
                                 </div>
-                                <span style="font-size:10px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;">Máx. lluvia</span>
+                                <span style="font-size:11px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;">Lluvia</span>
                             </div>
                         </div>
                         <div style="display:flex;border-bottom:1px solid #e2e8f0;">
-                            <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;border-right:1px solid #e2e8f0;font-size:9px;font-weight:700;color:#123653;letter-spacing:0.5px;">08 a 12H</div>
-                            <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;border-right:1px solid #e2e8f0;font-size:9px;font-weight:700;color:#123653;letter-spacing:0.5px;">12 a 16H</div>
-                            <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;font-size:9px;font-weight:700;color:#123653;letter-spacing:0.5px;">16 a 20H</div>
+                            <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;border-right:1px solid #e2e8f0;font-size:10px;font-weight:700;color:#123653;letter-spacing:0.5px;">08 a 12H</div>
+                            <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;border-right:1px solid #e2e8f0;font-size:10px;font-weight:700;color:#123653;letter-spacing:0.5px;">12 a 16H</div>
+                            <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;font-size:10px;font-weight:700;color:#123653;letter-spacing:0.5px;">16 a 20H</div>
                         </div>
                         <div style="display:flex;">
                             ${buildCell(f1, bdr)}
@@ -6234,23 +6234,23 @@
                         <div style="display:none;padding:10px 14px 14px;background:#ffffff;">
                             <div style="display:flex;flex-direction:column;gap:6px;">
                                 <div style="display:flex;align-items:flex-start;gap:8px;background:rgba(76,175,80,0.1);border-left:3px solid #4caf50;border-radius:4px;padding:6px 10px;">
-                                    <span style="min-width:32px;text-align:center;font-size:9px;font-weight:800;color:#fff;background:#4caf50;border-radius:3px;padding:2px 4px;flex-shrink:0;">0–2</span>
+                                    <span style="min-width:34px;text-align:center;font-size:10px;font-weight:800;color:#fff;background:#4caf50;border-radius:3px;padding:2px 4px;flex-shrink:0;">0–2</span>
                                     <span style="font-size:10.5px;color:#123653;line-height:1.55;"><b>Bajo</b> — Sin protección especial. Disfruta del sol con tranquilidad.</span>
                                 </div>
                                 <div style="display:flex;align-items:flex-start;gap:8px;background:rgba(255,179,0,0.1);border-left:3px solid #ffb300;border-radius:4px;padding:6px 10px;">
-                                    <span style="min-width:32px;text-align:center;font-size:9px;font-weight:800;color:#fff;background:#ffb300;border-radius:3px;padding:2px 4px;flex-shrink:0;">3–5</span>
+                                    <span style="min-width:34px;text-align:center;font-size:10px;font-weight:800;color:#fff;background:#ffb300;border-radius:3px;padding:2px 4px;flex-shrink:0;">3–5</span>
                                     <span style="font-size:10.5px;color:#123653;line-height:1.55;"><b>Moderado</b> — FPS 30+. Sombrero recomendado. ≤30 min sin crema.</span>
                                 </div>
                                 <div style="display:flex;align-items:flex-start;gap:8px;background:rgba(255,112,67,0.1);border-left:3px solid #ff7043;border-radius:4px;padding:6px 10px;">
-                                    <span style="min-width:32px;text-align:center;font-size:9px;font-weight:800;color:#fff;background:#ff7043;border-radius:3px;padding:2px 4px;flex-shrink:0;">6–7</span>
+                                    <span style="min-width:34px;text-align:center;font-size:10px;font-weight:800;color:#fff;background:#ff7043;border-radius:3px;padding:2px 4px;flex-shrink:0;">6–7</span>
                                     <span style="font-size:10.5px;color:#123653;line-height:1.55;"><b>Alto</b> — FPS 50+. Evita el sol entre 12h–16h. ≤20 min sin crema.</span>
                                 </div>
                                 <div style="display:flex;align-items:flex-start;gap:8px;background:rgba(229,57,53,0.1);border-left:3px solid #e53935;border-radius:4px;padding:6px 10px;">
-                                    <span style="min-width:32px;text-align:center;font-size:9px;font-weight:800;color:#fff;background:#e53935;border-radius:3px;padding:2px 4px;flex-shrink:0;">8–10</span>
+                                    <span style="min-width:34px;text-align:center;font-size:10px;font-weight:800;color:#fff;background:#e53935;border-radius:3px;padding:2px 4px;flex-shrink:0;">8–10</span>
                                     <span style="font-size:10.5px;color:#123653;line-height:1.55;"><b>Muy alto</b> — FPS 50+ obligatorio. Sombra al mediodía. ≤10 min sin protección.</span>
                                 </div>
                                 <div style="display:flex;align-items:flex-start;gap:8px;background:rgba(156,39,176,0.1);border-left:3px solid #9c27b0;border-radius:4px;padding:6px 10px;">
-                                    <span style="min-width:32px;text-align:center;font-size:9px;font-weight:800;color:#fff;background:#9c27b0;border-radius:3px;padding:2px 4px;flex-shrink:0;">11+</span>
+                                    <span style="min-width:34px;text-align:center;font-size:10px;font-weight:800;color:#fff;background:#9c27b0;border-radius:3px;padding:2px 4px;flex-shrink:0;">11+</span>
                                     <span style="font-size:10.5px;color:#123653;line-height:1.55;"><b>Extremo</b> — Exposición mínima. FPS 50+ y ropa protectora. Evita la playa en horas centrales.</span>
                                 </div>
                             </div>
@@ -6513,8 +6513,8 @@
                     const dayDate = d.getDate() + '/' + (d.getMonth()+1);
                     const btn = document.createElement('button');
                     btn.id = 'mar3-top-btn-' + off;
-                    btn.style.cssText = 'flex:1;padding:8px 2px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#123653;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;';
-                    btn.innerHTML = dayName + '<br><span style="font-size:8px;font-weight:500;color:#64748b;">' + dayDate + '</span>';
+                    btn.style.cssText = 'flex:1;padding:9px 2px;font-size:10.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#123653;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;';
+                    btn.innerHTML = dayName + '<br><span style="font-size:9.5px;font-weight:500;color:#64748b;">' + dayDate + '</span>';
                     btn.onclick = () => mar3TopShowDay(off);
                     tabsEl.appendChild(btn);
                 }
