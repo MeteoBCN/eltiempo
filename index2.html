@@ -858,6 +858,7 @@
                 </div>
 
                 <div id="sun-countdown" style="text-align:center;margin-top:18px;font-size:13px;font-weight:600;color:#123653;letter-spacing:0.2px;"></div>
+                <div id="moon-info" style="text-align:center;margin-top:6px;font-size:13px;font-weight:600;color:#123653;letter-spacing:0.2px;"></div>
 
                 </div><!-- fin current-weather -->
 
@@ -5445,6 +5446,32 @@
             el.innerHTML = `${label} en ${faltaTxt} (${horaTxt})`;
         }
 
+        function getMoonPhaseInfo(date) {
+            const synodic = 29.53058867;
+            const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14, 0);
+            const diffDays = (date.getTime() - knownNewMoon) / 86400000;
+            let phase = (diffDays % synodic) / synodic;
+            if (phase < 0) phase += 1;
+            const illumination = Math.round((1 - Math.cos(2 * Math.PI * phase)) / 2 * 100);
+            let nombre;
+            if (phase < 0.0625 || phase >= 0.9375) nombre = 'Luna nueva';
+            else if (phase < 0.1875) nombre = 'Luna creciente';
+            else if (phase < 0.3125) nombre = 'Cuarto creciente';
+            else if (phase < 0.4375) nombre = 'Gibosa creciente';
+            else if (phase < 0.5625) nombre = 'Luna llena';
+            else if (phase < 0.6875) nombre = 'Gibosa menguante';
+            else if (phase < 0.8125) nombre = 'Cuarto menguante';
+            else nombre = 'Luna menguante';
+            return { nombre, illumination };
+        }
+
+        function updateMoonInfo() {
+            const el = document.getElementById('moon-info');
+            if (!el) return;
+            const { nombre, illumination } = getMoonPhaseInfo(new Date());
+            el.innerHTML = `${nombre} · ${illumination}% iluminada`;
+        }
+
         function updateCurrentDateTime() {
             const el = document.getElementById('current-datetime');
             if (!el) return;
@@ -5462,6 +5489,8 @@
         updateCurrentDateTime();
         setInterval(updateCurrentDateTime, 60000);
         setInterval(() => { if (window._dailyCache) updateSunCountdown(window._dailyCache); }, 60000);
+        updateMoonInfo();
+        setInterval(updateMoonInfo, 60000);
 
         loadWeatherData();
         setInterval(loadWeatherData, 600000);
