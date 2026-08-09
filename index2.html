@@ -907,9 +907,9 @@
                 <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">PLAYAS BARCELONA</span>
             </div>
             <!-- Panel colapsable con los 3 días -->
-            <div id="mar3-top-panel" style="display:block;background:#f0f6fa;">
+            <div id="mar3-top-panel" style="display:block;background:#ffffff;">
                 <!-- Fila de botones de día -->
-                <div id="mar3-top-tabs" style="display:grid;grid-template-columns:repeat(3,1fr);background:#e4eef6;border-bottom:2px solid #c9ddf0;">
+                <div id="mar3-top-tabs" style="display:grid;grid-template-columns:repeat(3,1fr);background:#ffffff;border-bottom:1px solid #e2e8f0;">
                     <!-- Se generan por JS -->
                 </div>
                 <!-- Contenido del día activo -->
@@ -6050,7 +6050,7 @@
 
             // ── Celda de franja (galletas compactas) ─────────────────────
             function buildCell(slots, borderStyle) {
-                if (!slots.length) return `<div style="flex:1;${borderStyle}background:#f0f7fc;"></div>`;
+                if (!slots.length) return `<div style="flex:1;${borderStyle}background:#ffffff;"></div>`;
 
                 const whs   = slots.map(s=>s.wh).filter(v=>v!==null);
                 const wss   = slots.map(s=>s.ws).filter(v=>v!==null);
@@ -6094,7 +6094,7 @@
                 }
                 const skyIconHtml = reprWcode !== null ? getSvgIcon(reprWcode, 32, false) : '';
 
-                return `<div style="flex:1;${borderStyle}padding:6px 5px 10px;background:#f0f7fc;display:flex;flex-direction:column;align-items:center;gap:7px;">
+                return `<div style="flex:1;${borderStyle}padding:6px 5px 10px;background:#ffffff;display:flex;flex-direction:column;align-items:center;gap:7px;">
                     ${pill('Ba\u00f1o', bath.txt, bath.color, '#fff')}
                     <div style="text-align:center;width:100%;padding-top:2px;">
                         <div style="display:flex;justify-content:center;align-items:center;">${skyIconHtml}</div>
@@ -6172,7 +6172,7 @@
                 const wdlMax = windLabel(maxWS ?? 0);
 
                 // ── 3 columnas como bloque unico ──
-                const bdr = 'border-right:1px solid rgba(44,74,110,0.15);';
+                const bdr = 'border-right:1px solid #e2e8f0;';
                 const uviRedondeado = uviMax !== null ? Math.round(uviMax) : null;
 
                 const _uvi3 = uviInfo(uviMax);
@@ -6185,35 +6185,34 @@
                     : _maxRainProb >= 40 ? '#eab308'
                     : '#86efac';
                 const chartHtml = `
-                    <div style="background:#f0f7fc;padding:10px 0 0;">
+                    <div style="background:#ffffff;padding:10px 0 0;">
                         <div style="display:flex;justify-content:space-around;align-items:flex-start;padding:0 16px 12px;">
                             <!-- Círculo AGUA -->
                             <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-                                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#0e6fa8,#38bdf8);box-shadow:0 3px 10px rgba(14,111,168,0.35);display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                                    <span style="font-size:16px;font-weight:900;color:#fff;line-height:1;">${avgSST !== null ? avgSST+'°C' : '—'}</span>
+                                <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,#1c4f78 0%,#123653 100%);box-shadow:0 4px 10px rgba(18,54,83,0.22);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                    <span style="font-size:14px;font-weight:700;color:#fff;line-height:1;">${avgSST !== null ? avgSST+'°C' : '—'}</span>
                                 </div>
-                                <span style="font-size:9px;font-weight:700;color:#123653;text-transform:uppercase;letter-spacing:0.8px;">AGUA</span>
+                                <span style="font-size:10px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;">Agua</span>
                             </div>
                             <!-- Círculo UV MÁXIMO -->
                             <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-                                <div style="width:64px;height:64px;border-radius:50%;background:${uviRedondeado !== null ? _uvi3.color : '#94a3b8'};box-shadow:0 3px 10px ${uviRedondeado !== null ? _uvi3.color : '#94a3b8'}55;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                                    <span style="font-size:20px;font-weight:900;color:#fff;line-height:1;">${uviRedondeado !== null ? uviRedondeado : '—'}</span>
-                                    <span style="font-size:7px;font-weight:700;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.3px;">${uviRedondeado !== null ? _uvi3.nivel : ''}</span>
+                                <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,#1c4f78 0%,#123653 100%);box-shadow:0 4px 10px rgba(18,54,83,0.22);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                    <span style="font-size:14px;font-weight:700;color:#fff;line-height:1;">${uviRedondeado !== null ? uviRedondeado : '—'}</span>
                                 </div>
-                                <span style="font-size:9px;font-weight:700;color:#123653;text-transform:uppercase;letter-spacing:0.8px;">UV MÁX.</span>
+                                <span style="font-size:10px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;">Máx. UVI${uviRedondeado !== null ? ' · '+_uvi3.nivel : ''}</span>
                             </div>
                             <!-- Círculo LLUVIA -->
                             <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-                                <div style="width:64px;height:64px;border-radius:50%;background:${_rainColor};box-shadow:0 3px 10px ${_rainColor}88;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                                    <span style="font-size:20px;font-weight:900;color:#fff;line-height:1;">${_maxRainProb !== null ? _maxRainProb+'%' : '—'}</span>
+                                <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,#1c4f78 0%,#123653 100%);box-shadow:0 4px 10px rgba(18,54,83,0.22);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                    <span style="font-size:14px;font-weight:700;color:#fff;line-height:1;">${_maxRainProb !== null ? _maxRainProb+'%' : '—'}</span>
                                 </div>
-                                <span style="font-size:9px;font-weight:700;color:#123653;text-transform:uppercase;letter-spacing:0.8px;">PROB. LLUVIA</span>
+                                <span style="font-size:10px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;">Máx. lluvia</span>
                             </div>
                         </div>
-                        <div style="display:flex;border-bottom:1px solid rgba(44,74,110,0.15);">
-                            <div style="flex:1;text-align:center;padding:4px 2px;background:#dbeafe;border-right:1px solid rgba(44,74,110,0.15);font-size:9px;font-weight:800;color:#123653;letter-spacing:0.5px;">08 a 12H</div>
-                            <div style="flex:1;text-align:center;padding:4px 2px;background:#dbeafe;border-right:1px solid rgba(44,74,110,0.15);font-size:9px;font-weight:800;color:#123653;letter-spacing:0.5px;">12 a 16H</div>
-                            <div style="flex:1;text-align:center;padding:4px 2px;background:#dbeafe;font-size:9px;font-weight:800;color:#123653;letter-spacing:0.5px;">16 a 20H</div>
+                        <div style="display:flex;border-bottom:1px solid #e2e8f0;">
+                            <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;border-right:1px solid #e2e8f0;font-size:9px;font-weight:700;color:#123653;letter-spacing:0.5px;">08 a 12H</div>
+                            <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;border-right:1px solid #e2e8f0;font-size:9px;font-weight:700;color:#123653;letter-spacing:0.5px;">12 a 16H</div>
+                            <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;font-size:9px;font-weight:700;color:#123653;letter-spacing:0.5px;">16 a 20H</div>
                         </div>
                         <div style="display:flex;">
                             ${buildCell(f1, bdr)}
@@ -6228,11 +6227,11 @@
                 const uviHtml = `
                     <div style="border-top:2px solid #e2f0fb;">
                         <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.uv-leg-arrow').style.transform=this.nextElementSibling.style.display==='block'?'rotate(180deg)':'rotate(0deg)';"
-                             style="padding:8px 16px;background:#dbeafe;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
+                             style="padding:8px 16px;background:#ffffff;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
                             <span style="font-size:8px;font-weight:800;color:#123653;text-transform:uppercase;letter-spacing:1px;">Leyenda - UV / Niveles y recomendaciones</span>
                             <span class="uv-leg-arrow" style="font-size:11px;color:#123653;transition:transform 0.3s;">▼</span>
                         </div>
-                        <div style="display:none;padding:10px 14px 14px;background:#fffbf0;">
+                        <div style="display:none;padding:10px 14px 14px;background:#ffffff;">
                             <div style="display:flex;flex-direction:column;gap:6px;">
                                 <div style="display:flex;align-items:flex-start;gap:8px;background:rgba(76,175,80,0.1);border-left:3px solid #4caf50;border-radius:4px;padding:6px 10px;">
                                     <span style="min-width:32px;text-align:center;font-size:9px;font-weight:800;color:#fff;background:#4caf50;border-radius:3px;padding:2px 4px;flex-shrink:0;">0–2</span>
@@ -6280,13 +6279,13 @@
                 const legendaHtml = `
                     <div style="border-top:2px solid #e2f0fb;">
                         <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.wave-leg-arrow').style.transform=this.nextElementSibling.style.display==='block'?'rotate(180deg)':'rotate(0deg)';"
-                             style="padding:8px 16px;background:#e0f2fe;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
+                             style="padding:8px 16px;background:#ffffff;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
                             <div style="display:flex;align-items:center;gap:8px;">
                                 <span style="font-size:8px;font-weight:800;color:#123653;text-transform:uppercase;letter-spacing:1px;">Leyenda — Estado del mar</span>
                             </div>
                             <span class="wave-leg-arrow" style="font-size:11px;color:#123653;transition:transform 0.3s;">▼</span>
                         </div>
-                        <div style="display:none;padding:10px 14px 14px;background:#f8fbfe;">
+                        <div style="display:none;padding:10px 14px 14px;background:#ffffff;">
                             <div style="display:flex;flex-direction:column;gap:5px;">
                                 ${legendRows.map(r =>
                                     `<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:#fff;border-left:4px solid ${r[0]};">
@@ -6533,9 +6532,9 @@
                     const b = document.getElementById('mar3-top-btn-' + i);
                     if (!b) continue;
                     if (i === off) {
-                        b.style.color = '#2c4a6e';
-                        b.style.borderBottom = '2px solid #0b4c90';
-                        b.style.background = 'rgba(11,76,144,0.06)';
+                        b.style.color = '#123653';
+                        b.style.borderBottom = '2px solid #123653';
+                        b.style.background = 'transparent';
                     } else {
                         b.style.color = '#64748b';
                         b.style.borderBottom = '2px solid transparent';
