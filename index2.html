@@ -938,38 +938,46 @@
                     <canvas id="f7-chart-combo" style="display:block;width:100%;"></canvas>
                 </div>
                 </div>
-
-                <!-- Botón para expandir temperatura a 15 días (850hPa / 500hPa) -->
-                <div onclick="toggleExtraSection('temp15')" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-top:1px solid rgba(255,255,255,0.14);cursor:pointer;user-select:none;">
-                    <span style="font-size:10px;font-weight:700;color:#ffffff;letter-spacing:1px;text-transform:uppercase;">Temperatura en altura · 15 días</span>
-                    <span id="arrow-temp15" style="font-size:10px;color:rgba(255,255,255,0.75);transition:transform 0.3s;">▼</span>
-                </div>
-
-                <!-- Panel expandible: mismo fondo, se despliega hacia abajo -->
-                <div id="panel-temp15" style="display:none;overflow:hidden;">
-                    <div style="position:relative;min-height:120px;">
-                        <div style="padding:10px 12px 16px;">
-                            <table id="temp15-table" style="width:100%;border-collapse:collapse;">
-                                <thead>
-                                    <tr style="border-bottom:1px solid rgba(255,255,255,0.18);">
-                                        <th style="text-align:left;padding:6px 4px;font-size:9px;font-weight:700;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.4px;">Día</th>
-                                        <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#f97316;">850hPa</th>
-                                        <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#38bdf8;">500hPa</th>
-                                        <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#facc15;">2 metros</th>
-                                        <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#60a5fa;">Lluvia</th>
-                                        <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#e2e8f0;">Nieve</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="temp15-tbody"></tbody>
-                            </table>
-                        </div>
-                        <div id="temp15-loading" style="padding:20px 0;text-align:center;color:rgba(255,255,255,0.7);font-size:13px;">Cargando...</div>
-                    </div>
-                </div>
             </div>
         </div>
         <!-- ═══════════════════════════════════════════
              FIN GRÁFICOS SEMANA
+        ════════════════════════════════════════════ -->
+
+        <!-- ═══════════════════════════════════════════
+             METEOGRAMA NUMÉRICO (10 días, 00h/12h) — fondo blanco
+        ════════════════════════════════════════════ -->
+        <div id="temp15-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;background:#ffffff;">
+            <!-- Botón para expandir -->
+            <div onclick="toggleExtraSection('temp15')" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 16px 12px;cursor:pointer;user-select:none;">
+                <span style="font-size:11px;font-weight:700;color:#123653;letter-spacing:2px;text-transform:uppercase;">Meteograma numérico · 10 días</span>
+                <span id="arrow-temp15" style="font-size:10px;color:#123653;transition:transform 0.3s;">▼</span>
+            </div>
+
+            <!-- Panel expandible -->
+            <div id="panel-temp15" style="display:none;overflow:hidden;background:#ffffff;">
+                <div style="position:relative;min-height:120px;">
+                    <div style="padding:0 12px 16px;">
+                        <table id="temp15-table" style="width:100%;border-collapse:collapse;">
+                            <thead>
+                                <tr style="border-bottom:1px solid rgba(18,54,83,0.18);">
+                                    <th style="text-align:left;padding:6px 4px;font-size:9px;font-weight:700;color:rgba(18,54,83,0.65);text-transform:uppercase;letter-spacing:0.4px;">Día</th>
+                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">850hPa</th>
+                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">500hPa</th>
+                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">2 metros</th>
+                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">Lluvia</th>
+                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">Nieve</th>
+                                </tr>
+                            </thead>
+                            <tbody id="temp15-tbody"></tbody>
+                        </table>
+                    </div>
+                    <div id="temp15-loading" style="padding:20px 0;text-align:center;color:rgba(18,54,83,0.6);font-size:13px;">Cargando...</div>
+                </div>
+            </div>
+        </div>
+        <!-- ═══════════════════════════════════════════
+             FIN METEOGRAMA NUMÉRICO
         ════════════════════════════════════════════ -->
 
         <div style="height:60px;background:#ffffff;"></div>
@@ -3981,24 +3989,23 @@
             if (!tbody || !rows || !rows.length) return;
 
             tbody.innerHTML = rows.map((r, i) => {
-                const bg = r.isToday ? 'background:rgba(255,255,255,0.10);' : '';
+                const bg = r.isToday ? 'background:rgba(18,54,83,0.06);' : '';
                 const newDay = i > 0 && r.hour === 0;
                 const borderTop = newDay
-                    ? 'border-top:1px solid rgba(255,255,255,0.22);'
-                    : (i > 0 ? 'border-top:1px solid rgba(255,255,255,0.08);' : '');
+                    ? 'border-top:1px solid rgba(18,54,83,0.20);'
+                    : (i > 0 ? 'border-top:1px solid rgba(18,54,83,0.08);' : '');
                 const hourLabel = r.hour === 0 ? '00h' : '12h';
                 const dayLabel = r.isToday
                     ? `HOY · ${hourLabel}`
                     : `${r.dayName} ${r.dayNum} · ${hourLabel}`;
-                const dayColor = r.isToday ? '#ffffff' : 'rgba(255,255,255,0.85)';
                 const dayWeight = r.isToday ? '700' : '500';
                 return `<tr style="${bg}${borderTop}">
-                    <td style="padding:7px 4px;font-size:11px;font-weight:${dayWeight};color:${dayColor};white-space:nowrap;">${dayLabel}</td>
-                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#f97316;">${r.t850}°</td>
-                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#38bdf8;">${r.t500}°</td>
-                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#facc15;">${r.tsup}°</td>
-                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#60a5fa;">${r.pprob}%</td>
-                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#e2e8f0;">${r.cotaNieve} m</td>
+                    <td style="padding:7px 4px;font-size:11px;font-weight:${dayWeight};color:#123653;white-space:nowrap;">${dayLabel}</td>
+                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${r.t850}°</td>
+                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${r.t500}°</td>
+                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${r.tsup}°</td>
+                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${r.pprob}%</td>
+                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${r.cotaNieve} m</td>
                 </tr>`;
             }).join('');
         }
