@@ -3556,7 +3556,7 @@
                             <span>${pp}%</span>
                         </div>
                         <div class="bbc-hour-wind">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(${wd}deg)"><path d="M12 2L6 20l6-4 6 4L12 2z" fill="#cfe8f7"/></svg>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(${(wd + 180) % 360}deg)"><path d="M12 2L6 20l6-4 6 4L12 2z" fill="#cfe8f7"/></svg>
                             <span>${ws}km/h</span>
                         </div>
                     </div>`;
@@ -5847,10 +5847,10 @@
                 return               { txt:'Muy fuerte', color:'#ef4444' };
             }
             function bathLabel(wh, ws) {
-                if (wh >= 2.5 || ws >= 62)  return { txt:'No aconsejable', color:'#ef4444' };
-                if (wh >= 1.25 || ws >= 40) return { txt:'Precaucion',     color:'#f97316' };
-                if (wh >= 0.5  || ws >= 25) return { txt:'Aceptable',      color:'#f59e0b' };
-                return                       { txt:'Ideal',                color:'#10b981' };
+                if (wh >= 2.5 || ws >= 62)  return { txt:'No aconsejable', color:'#ef4444', consejo:'Mar agitado y/o viento fuerte. Se desaconseja el baño por seguridad, especialmente para niños y nadadores inexpertos.' };
+                if (wh >= 1.25 || ws >= 40) return { txt:'Precaucion',     color:'#f97316', consejo:'Oleaje y viento notables. Baño no recomendado para niños o nadadores poco experimentados. Extrema la precaución.' };
+                if (wh >= 0.5  || ws >= 25) return { txt:'Aceptable',      color:'#f59e0b', consejo:'Mar y viento moderados. Apto para el baño, pero mantente atento si nadas lejos de la orilla.' };
+                return                       { txt:'Ideal',                color:'#10b981', consejo:'Condiciones óptimas para el baño: mar en calma y viento suave. Disfruta con tranquilidad.' };
             }
             function uviInfo(uvi) {
                 if (uvi === null) return { nivel:'Sin datos', color:'#94a3b8', mins:'—', fps:'—', consejo:'Sin datos UV disponibles.' };
@@ -6022,7 +6022,7 @@
             }
 
             // ── Celda de franja (galletas compactas) ─────────────────────
-            function buildCell(slots, borderStyle) {
+            function buildCell(slots, borderStyle, cellId) {
                 if (!slots.length) return `<div style="flex:1;${borderStyle}background:#ffffff;"></div>`;
 
                 const whs   = slots.map(s=>s.wh).filter(v=>v!==null);
@@ -6069,6 +6069,15 @@
 
                 return `<div style="flex:1;${borderStyle}padding:6px 5px 10px;background:#ffffff;display:flex;flex-direction:column;align-items:center;gap:7px;">
                     ${pill('Ba\u00f1o', bath.txt.toUpperCase(), '#123653', '#fff')}
+                    <div style="width:100%;text-align:center;margin-top:-3px;">
+                        <div onclick="var p=this.nextElementSibling;var isOpen=p.style.display==='block';p.style.display=isOpen?'none':'block';this.querySelector('.cell-info-arrow').style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';" style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;">
+                            <span style="font-size:8px;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:0.4px;">Ampliar informaci\u00f3n</span>
+                            <span class="cell-info-arrow" style="font-size:8px;color:#0ea5e9;display:inline-block;transition:transform 0.25s;">\u25be</span>
+                        </div>
+                        <div id="cell-info-${cellId}" style="display:none;text-align:left;font-size:9.5px;color:#123653;line-height:1.5;background:#f8fbfe;border-radius:8px;padding:7px 8px;margin-top:5px;">
+                            ${bath.consejo}
+                        </div>
+                    </div>
                     <div style="text-align:center;width:100%;padding-top:2px;">
                         <div style="display:flex;justify-content:center;align-items:center;">${skyIconHtml}</div>
                         <div style="font-size:14.5px;font-weight:900;color:#123653;margin-top:3px;">${avgTemp !== null ? avgTemp+'\u00b0C' : '\u2014'}</div>
@@ -6188,9 +6197,9 @@
                             <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;font-size:10px;font-weight:700;color:#123653;letter-spacing:0.5px;">16 a 20H</div>
                         </div>
                         <div style="display:flex;">
-                            ${buildCell(f1, bdr)}
-                            ${buildCell(f2, bdr)}
-                            ${buildCell(f3, '')}
+                            ${buildCell(f1, bdr, cardId + '-f1')}
+                            ${buildCell(f2, bdr, cardId + '-f2')}
+                            ${buildCell(f3, '', cardId + '-f3')}
                         </div>
                     </div>`;
 
