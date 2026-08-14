@@ -947,16 +947,31 @@
 
                 <!-- Panel expandible: mismo fondo, se despliega hacia abajo -->
                 <div id="panel-temp15" style="display:none;overflow:hidden;">
-                    <div style="display:flex;align-items:center;gap:10px;padding:12px 16px 0;">
-                        <span style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.65);letter-spacing:1px;text-transform:uppercase;">Temp. en altura</span>
-                        <span style="font-size:10px;font-weight:700;color:#f97316;">●<span style="color:#ffffff;"> 850 hPa</span></span>
-                        <span style="font-size:10px;font-weight:700;color:#38bdf8;">●<span style="color:#ffffff;"> 500 hPa</span></span>
+                    <div style="display:flex;align-items:center;gap:8px;padding:12px 16px 8px;flex-wrap:wrap;">
+                        <span style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.65);letter-spacing:0.6px;text-transform:uppercase;">Previsión numérica</span>
+                        <span style="font-size:9px;font-weight:700;color:#f97316;">● 850 hPa</span>
+                        <span style="font-size:9px;font-weight:700;color:#38bdf8;">● 500 hPa</span>
+                        <span style="font-size:9px;font-weight:700;color:#facc15;">● Superficie</span>
+                        <span style="font-size:9px;font-weight:700;color:#60a5fa;">● Lluvia</span>
+                        <span style="font-size:9px;font-weight:700;color:#e2e8f0;">● Cota nieve</span>
                     </div>
-                    <div style="position:relative;height:226px;">
-                        <div style="padding:12px 4px 16px 16px;position:absolute;inset:0;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;">
-                            <canvas id="temp15-chart" style="display:block;"></canvas>
+                    <div style="position:relative;min-height:120px;">
+                        <div style="padding:0 12px 16px;">
+                            <table id="temp15-table" style="width:100%;border-collapse:collapse;">
+                                <thead>
+                                    <tr style="border-bottom:1px solid rgba(255,255,255,0.18);">
+                                        <th style="text-align:left;padding:6px 4px;font-size:9px;font-weight:700;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.4px;">Día</th>
+                                        <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#f97316;">850hPa</th>
+                                        <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#38bdf8;">500hPa</th>
+                                        <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#facc15;">Superf.</th>
+                                        <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#60a5fa;">Lluvia</th>
+                                        <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#e2e8f0;">Nieve</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="temp15-tbody"></tbody>
+                            </table>
                         </div>
-                        <div id="temp15-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.7);font-size:13px;">Cargando...</div>
+                        <div id="temp15-loading" style="padding:20px 0;text-align:center;color:rgba(255,255,255,0.7);font-size:13px;">Cargando...</div>
                     </div>
                 </div>
             </div>
@@ -3924,7 +3939,7 @@
             const loadingEl = document.getElementById('temp15-loading');
             try {
                 const PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
-                const url = `${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&hourly=temperature_850hPa,temperature_500hPa&timezone=Europe/Madrid&forecast_days=15`;
+                const url = `${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&hourly=temperature_850hPa,temperature_500hPa,temperature_2m,precipitation_probability,freezing_level_height&timezone=Europe/Madrid&forecast_days=15`;
                 const controller = new AbortController();
                 const timer = setTimeout(() => controller.abort(), 10000);
                 const r = await fetch(url, { cache: 'no-store', signal: controller.signal });
@@ -3947,104 +3962,42 @@
                         isToday : d.time[i].slice(0,10) === todayStr,
                         t850    : Math.round(d.temperature_850hPa[i] ?? 0),
                         t500    : Math.round(d.temperature_500hPa[i] ?? 0),
+                        tsup    : Math.round(d.temperature_2m?.[i] ?? 0),
+                        pprob   : Math.round(d.precipitation_probability?.[i] ?? 0),
+                        cotaNieve: Math.round((d.freezing_level_height?.[i] ?? 0) / 10) * 10,
                     });
                 }
 
                 _temp15Data = rows;
                 _temp15Loaded = true;
                 if (loadingEl) loadingEl.style.display = 'none';
-                requestAnimationFrame(() => requestAnimationFrame(() => drawTemp15Chart()));
+                renderTemp15Table();
             } catch(e) {
                 console.warn('Temp15 error:', e);
                 if (loadingEl) loadingEl.textContent = 'No se pudieron cargar los datos.';
             }
         }
 
-        function drawTemp15Chart() {
+        function renderTemp15Table() {
             const rows = _temp15Data;
-            const canvas = document.getElementById('temp15-chart');
-            if (!canvas || !rows || rows.length < 2) return;
+            const tbody = document.getElementById('temp15-tbody');
+            if (!tbody || !rows || !rows.length) return;
 
-            const dpr = window.devicePixelRatio || 1;
-            const scrollWrap  = canvas.parentElement;
-            const visibleW    = scrollWrap.clientWidth;
-            const n     = rows.length;
-            const DAY_W = 46; // ancho fijo por día → permite mostrar TODOS los valores sin apretarse
-            const W     = Math.max(visibleW, DAY_W * n);
-            const H     = 198;
-            canvas.width  = W * dpr;
-            canvas.height = H * dpr;
-            canvas.style.width  = W + 'px';
-            canvas.style.height = H + 'px';
-            const ctx = canvas.getContext('2d');
-            ctx.scale(dpr, dpr);
-
-            const PAD = { t:18, r:16, b:24, l:8 };
-            const cw  = W - PAD.l - PAD.r;
-            const ch  = H - PAD.t - PAD.b;
-
-            const t850 = rows.map(r => r.t850);
-            const t500 = rows.map(r => r.t500);
-            const allT = [...t850, ...t500];
-            const tMin = Math.floor(Math.min(...allT)) - 2;
-            const tMax = Math.ceil(Math.max(...allT)) + 2;
-
-            const xPos  = i => PAD.l + (i / (n - 1)) * cw;
-            const yTemp = v => PAD.t + ch - ((v - tMin) / (tMax - tMin)) * ch;
-
-            ctx.clearRect(0, 0, W, H);
-
-            // Líneas guía Y (blancas translúcidas)
-            const steps = 3;
-            for (let s = 0; s <= steps; s++) {
-                const v = tMin + (tMax - tMin) * s / steps;
-                const y = yTemp(v);
-                ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
-                ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1; ctx.stroke();
-            }
-
-            // Área bajo la curva de 850hPa
-            ctx.beginPath();
-            ctx.moveTo(xPos(0), yTemp(t850[0]));
-            for (let i = 1; i < n; i++) {
-                const xc = (xPos(i-1) + xPos(i)) / 2;
-                ctx.bezierCurveTo(xc, yTemp(t850[i-1]), xc, yTemp(t850[i]), xPos(i), yTemp(t850[i]));
-            }
-            ctx.lineTo(xPos(n-1), PAD.t + ch);
-            ctx.lineTo(xPos(0), PAD.t + ch);
-            ctx.closePath();
-            const gArea = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ch);
-            gArea.addColorStop(0, 'rgba(249,115,22,0.20)');
-            gArea.addColorStop(1, 'rgba(255,255,255,0)');
-            ctx.fillStyle = gArea; ctx.fill();
-
-            // Líneas 850hPa / 500hPa con TODOS los valores numéricos visibles
-            const drawLine = (vals, color, offset) => {
-                ctx.beginPath();
-                ctx.moveTo(xPos(0), yTemp(vals[0]));
-                for (let i = 1; i < n; i++) {
-                    const xc = (xPos(i-1) + xPos(i)) / 2;
-                    ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xPos(i), yTemp(vals[i]));
-                }
-                ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
-                vals.forEach((v, i) => {
-                    ctx.beginPath(); ctx.arc(xPos(i), yTemp(v), 2.8, 0, Math.PI*2);
-                    ctx.fillStyle = color; ctx.fill();
-                    ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(v + '°', xPos(i), yTemp(v) + offset);
-                });
-            };
-            drawLine(t850, '#f97316', -8);
-            drawLine(t500, '#38bdf8', 14);
-
-            // Etiquetas eje X (día del mes; HOY resaltado)
-            ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif';
-            rows.forEach((r, i) => {
-                ctx.fillStyle = r.isToday ? '#ffffff' : 'rgba(255,255,255,0.6)';
-                ctx.font = r.isToday ? 'bold 8px Inter,sans-serif' : '8px Inter,sans-serif';
-                ctx.fillText(r.isToday ? 'HOY' : String(r.dayNum), xPos(i), H - 6);
-            });
+            tbody.innerHTML = rows.map((r, i) => {
+                const bg = r.isToday ? 'background:rgba(255,255,255,0.10);' : '';
+                const borderTop = i > 0 ? 'border-top:1px solid rgba(255,255,255,0.08);' : '';
+                const dayLabel = r.isToday ? 'HOY' : `${r.dayName} ${r.dayNum}`;
+                const dayColor = r.isToday ? '#ffffff' : 'rgba(255,255,255,0.85)';
+                const dayWeight = r.isToday ? '700' : '500';
+                return `<tr style="${bg}${borderTop}">
+                    <td style="padding:7px 4px;font-size:11px;font-weight:${dayWeight};color:${dayColor};white-space:nowrap;">${dayLabel}</td>
+                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#f97316;">${r.t850}°</td>
+                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#38bdf8;">${r.t500}°</td>
+                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#facc15;">${r.tsup}°</td>
+                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#60a5fa;">${r.pprob}%</td>
+                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#e2e8f0;">${r.cotaNieve} m</td>
+                </tr>`;
+            }).join('');
         }
 
         /* ══════════════════════════════════════════════
