@@ -944,6 +944,8 @@
              FIN GRÁFICOS SEMANA
         ════════════════════════════════════════════ -->
 
+        <div style="height:28px;background:#ffffff;"></div>
+
         <!-- ═══════════════════════════════════════════
              METEOGRAMA NUMÉRICO (10 días, 00h/12h) — fondo blanco
         ════════════════════════════════════════════ -->
@@ -951,22 +953,25 @@
             <!-- Botón para expandir -->
             <div onclick="toggleExtraSection('temp15')" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 16px 12px;cursor:pointer;user-select:none;">
                 <span style="font-size:11px;font-weight:700;color:#123653;letter-spacing:2px;text-transform:uppercase;">Meteograma numérico · 10 días</span>
-                <span id="arrow-temp15" style="font-size:10px;color:#123653;transition:transform 0.3s;">▼</span>
+                <span id="arrow-temp15" style="font-size:10px;color:#123653;transition:transform 0.3s;transform:rotate(180deg);">▼</span>
             </div>
 
             <!-- Panel expandible -->
-            <div id="panel-temp15" style="display:none;overflow:hidden;background:#ffffff;">
+            <div id="panel-temp15" style="display:block;overflow:hidden;background:#ffffff;">
                 <div style="position:relative;min-height:120px;">
                     <div style="padding:0 12px 16px;">
+                        <div style="padding:2px 4px 10px;font-size:10px;line-height:1.5;color:rgba(18,54,83,0.65);">
+                            <strong style="color:#123653;">850hPa</strong> (1500m) · <strong style="color:#123653;">500hPa</strong> (5500m) · <strong style="color:#123653;">2m</strong> (Superficie) · <strong style="color:#123653;">Precipitación</strong> (acumulado 12 horas) · <strong style="color:#123653;">Cota ºC</strong> (cota de nieve)
+                        </div>
                         <table id="temp15-table" style="width:100%;border-collapse:collapse;">
                             <thead>
                                 <tr style="border-bottom:1px solid rgba(18,54,83,0.18);">
                                     <th style="text-align:left;padding:6px 4px;font-size:9px;font-weight:700;color:rgba(18,54,83,0.65);text-transform:uppercase;letter-spacing:0.4px;">Día</th>
-                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">1500m</th>
-                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">5500m</th>
-                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">ºC</th>
-                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">Lluvia</th>
-                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">Cota nieve</th>
+                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">850hPa</th>
+                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">500hPa</th>
+                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">2m</th>
+                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">Precipitación</th>
+                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">Cota ºC</th>
                                 </tr>
                             </thead>
                             <tbody id="temp15-tbody"></tbody>
@@ -3456,6 +3461,7 @@
             };
 
             loadForecast7();
+            loadTemp15Chart();
         })();
 
         /* ══════════════════════════════════════════════
