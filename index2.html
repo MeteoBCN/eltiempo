@@ -3781,7 +3781,6 @@
 
             const tempTop    = PAD.t;
             const tempBottom = tempTop + tempH;
-            const dividerY   = tempBottom + gap / 2;
             const rainTop    = tempBottom + gap;
             const rainBottom = rainTop + rainH;
             const xAxisY     = rainBottom + 16;
@@ -3842,16 +3841,6 @@
             };
             drawLine(tmax, '#ef4444', -9);
             drawLine(tmin, '#3b82f6', 16);
-
-            // ── Divisor sutil entre las dos gráficas ──
-            ctx.beginPath();
-            ctx.moveTo(PAD.l, dividerY);
-            ctx.lineTo(PAD.l + cw, dividerY);
-            ctx.strokeStyle = 'rgba(255,255,255,0.16)';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([3, 4]);
-            ctx.stroke();
-            ctx.setLineDash([]);
 
             // ── Zona lluvia: título + barras, ancladas abajo de su propia franja ──
             ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
