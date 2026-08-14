@@ -909,9 +909,9 @@
             <!-- Panel colapsable con los 3 días -->
             <div id="mar3-top-panel" style="display:block;background:#ffffff;">
                 <!-- Fila de botones de día -->
-                <div id="mar3-top-tabs" style="display:grid;grid-template-columns:repeat(3,1fr);background:#ffffff;border-bottom:1px solid #e2e8f0;">
+                <button id="mar3-top-tabs" onclick="mar3TopCycleDay()" style="display:grid;grid-template-columns:repeat(3,1fr);width:100%;background:#ffffff;border:none;border-bottom:1px solid #e2e8f0;padding:0;margin:0;cursor:pointer;font:inherit;">
                     <!-- Se generan por JS -->
-                </div>
+                </button>
                 <!-- Contenido del día activo -->
                 <div id="mar3-top-day-content" style=""></div>
                 <div id="mar3-top-loading" style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
@@ -6490,17 +6490,22 @@
                     d.setDate(d.getDate() + off);
                     const dayName = off === 0 ? 'HOY' : (off === 1 ? 'MAÑANA' : DIAS_FULL[d.getDay()].toUpperCase());
                     const dayDate = d.getDate() + '/' + (d.getMonth()+1);
-                    const btn = document.createElement('button');
+                    const btn = document.createElement('div');
                     btn.id = 'mar3-top-btn-' + off;
-                    btn.style.cssText = 'flex:1;padding:9px 2px;font-size:10.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#123653;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;';
+                    btn.style.cssText = 'flex:1;padding:9px 2px;font-size:10.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;background:transparent;color:#123653;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;pointer-events:none;';
                     btn.innerHTML = dayName + '<br><span style="font-size:9.5px;font-weight:500;color:#64748b;">' + dayDate + '</span>';
-                    btn.onclick = () => mar3TopShowDay(off);
                     tabsEl.appendChild(btn);
                 }
 
                 window._mar3TopBuilt = true;
                 mar3TopShowDay(0);
             }
+
+            // ── Ciclar día al pulsar el botón único (HOY → MAÑANA → día 3 → HOY…) ──
+            window.mar3TopCycleDay = function() {
+                const next = ((window._mar3TopActiveDay || 0) + 1) % 3;
+                mar3TopShowDay(next);
+            };
 
             // ── Mostrar contenido de un día ────────────────────────────────
             window.mar3TopShowDay = function(off) {
