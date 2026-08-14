@@ -938,33 +938,31 @@
                     <canvas id="f7-chart-combo" style="display:block;width:100%;"></canvas>
                 </div>
                 </div>
-            </div>
-        </div>
-        <!-- ═══════════════════════════════════════════
-             FIN GRÁFICOS SEMANA
-        ════════════════════════════════════════════ -->
 
-        <div style="height:1px;"></div>
+                <!-- Botón para expandir temperatura a 15 días -->
+                <div onclick="toggleExtraSection('temp15')" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-top:1px solid rgba(255,255,255,0.14);cursor:pointer;user-select:none;">
+                    <span style="font-size:10px;font-weight:700;color:#ffffff;letter-spacing:1px;text-transform:uppercase;">Temperatura a 15 días</span>
+                    <span id="arrow-temp15" style="font-size:10px;color:rgba(255,255,255,0.75);transition:transform 0.3s;">▼</span>
+                </div>
 
-        <!-- ═══════════════════════════════════════════
-             TEMPERATURA A 15 DÍAS (desplegable)
-        ════════════════════════════════════════════ -->
-        <div id="temp15-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <div onclick="toggleExtraSection('temp15')" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px 8px;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);cursor:pointer;user-select:none;">
-                <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">TEMPERATURA A 15 DÍAS</span>
-                <span id="arrow-temp15" style="font-size:10px;color:rgba(255,255,255,0.75);transition:transform 0.3s;">▼</span>
-            </div>
-            <div id="panel-temp15" style="display:none;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);overflow:hidden;">
-                <div style="position:relative;height:230px;">
-                    <div style="padding:14px 16px 18px;position:absolute;inset:0;display:block;">
-                        <canvas id="temp15-chart" style="display:block;width:100%;"></canvas>
+                <!-- Panel expandible: mismo fondo, se despliega hacia abajo -->
+                <div id="panel-temp15" style="display:none;overflow:hidden;">
+                    <div style="display:flex;align-items:center;gap:10px;padding:12px 16px 0;">
+                        <span style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.65);letter-spacing:1px;text-transform:uppercase;">Temperatura</span>
+                        <span style="font-size:10px;font-weight:700;color:#ef4444;">●<span style="color:#ffffff;"> Máx</span></span>
+                        <span style="font-size:10px;font-weight:700;color:#3b82f6;">●<span style="color:#ffffff;"> Mín</span></span>
                     </div>
-                    <div id="temp15-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.7);font-size:13px;">Cargando...</div>
+                    <div style="position:relative;height:226px;">
+                        <div style="padding:12px 4px 16px 16px;position:absolute;inset:0;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;">
+                            <canvas id="temp15-chart" style="display:block;"></canvas>
+                        </div>
+                        <div id="temp15-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.7);font-size:13px;">Cargando...</div>
+                    </div>
                 </div>
             </div>
         </div>
         <!-- ═══════════════════════════════════════════
-             FIN TEMPERATURA A 15 DÍAS
+             FIN GRÁFICOS SEMANA
         ════════════════════════════════════════════ -->
 
         <div style="height:60px;background:#ffffff;"></div>
@@ -3965,8 +3963,12 @@
             if (!canvas || !rows || rows.length < 2) return;
 
             const dpr = window.devicePixelRatio || 1;
-            const W   = canvas.parentElement.offsetWidth - 32;
-            const H   = 198;
+            const scrollWrap  = canvas.parentElement;
+            const visibleW    = scrollWrap.clientWidth;
+            const n     = rows.length;
+            const DAY_W = 46; // ancho fijo por día → permite mostrar TODOS los valores sin apretarse
+            const W     = Math.max(visibleW, DAY_W * n);
+            const H     = 198;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -3974,10 +3976,9 @@
             const ctx = canvas.getContext('2d');
             ctx.scale(dpr, dpr);
 
-            const PAD = { t:34, r:12, b:24, l:12 };
+            const PAD = { t:18, r:16, b:24, l:8 };
             const cw  = W - PAD.l - PAD.r;
             const ch  = H - PAD.t - PAD.b;
-            const n   = rows.length;
 
             const tmax = rows.map(r => r.tmax);
             const tmin = rows.map(r => r.tmin);
@@ -4014,7 +4015,7 @@
             gArea.addColorStop(1, 'rgba(255,255,255,0)');
             ctx.fillStyle = gArea; ctx.fill();
 
-            // Líneas máx/mín con etiquetas cada 2 días para no saturar
+            // Líneas máx/mín con TODOS los valores numéricos visibles
             const drawLine = (vals, color, offset) => {
                 ctx.beginPath();
                 ctx.moveTo(xPos(0), yTemp(vals[0]));
@@ -4026,11 +4027,9 @@
                 vals.forEach((v, i) => {
                     ctx.beginPath(); ctx.arc(xPos(i), yTemp(v), 2.8, 0, Math.PI*2);
                     ctx.fillStyle = color; ctx.fill();
-                    if (i % 2 === 0) {
-                        ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif';
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillText(v + '°', xPos(i), yTemp(v) + offset);
-                    }
+                    ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(v + '°', xPos(i), yTemp(v) + offset);
                 });
             };
             drawLine(tmax, '#ef4444', -8);
@@ -4043,17 +4042,6 @@
                 ctx.font = r.isToday ? 'bold 8px Inter,sans-serif' : '8px Inter,sans-serif';
                 ctx.fillText(r.isToday ? 'HOY' : String(r.dayNum), xPos(i), H - 6);
             });
-
-            // Título + leyenda
-            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
-            ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.fillText('TEMPERATURA', PAD.l, PAD.t - 22);
-
-            ctx.font = 'bold 9px Inter,sans-serif';
-            ctx.fillStyle = '#ef4444'; ctx.fillText('●', PAD.l, PAD.t - 12);
-            ctx.fillStyle = '#ffffff'; ctx.fillText(' Máx', PAD.l + 7, PAD.t - 12);
-            ctx.fillStyle = '#3b82f6'; ctx.fillText('●', PAD.l + 55, PAD.t - 12);
-            ctx.fillStyle = '#ffffff'; ctx.fillText(' Mín', PAD.l + 62, PAD.t - 12);
         }
 
         /* ══════════════════════════════════════════════
