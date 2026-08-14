@@ -939,18 +939,18 @@
                 </div>
                 </div>
 
-                <!-- Botón para expandir temperatura a 15 días -->
+                <!-- Botón para expandir temperatura a 15 días (850hPa / 500hPa) -->
                 <div onclick="toggleExtraSection('temp15')" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-top:1px solid rgba(255,255,255,0.14);cursor:pointer;user-select:none;">
-                    <span style="font-size:10px;font-weight:700;color:#ffffff;letter-spacing:1px;text-transform:uppercase;">Temperatura a 15 días</span>
+                    <span style="font-size:10px;font-weight:700;color:#ffffff;letter-spacing:1px;text-transform:uppercase;">Temperatura en altura · 15 días</span>
                     <span id="arrow-temp15" style="font-size:10px;color:rgba(255,255,255,0.75);transition:transform 0.3s;">▼</span>
                 </div>
 
                 <!-- Panel expandible: mismo fondo, se despliega hacia abajo -->
                 <div id="panel-temp15" style="display:none;overflow:hidden;">
                     <div style="display:flex;align-items:center;gap:10px;padding:12px 16px 0;">
-                        <span style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.65);letter-spacing:1px;text-transform:uppercase;">Temperatura</span>
-                        <span style="font-size:10px;font-weight:700;color:#ef4444;">●<span style="color:#ffffff;"> Máx</span></span>
-                        <span style="font-size:10px;font-weight:700;color:#3b82f6;">●<span style="color:#ffffff;"> Mín</span></span>
+                        <span style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.65);letter-spacing:1px;text-transform:uppercase;">Temp. en altura</span>
+                        <span style="font-size:10px;font-weight:700;color:#f97316;">●<span style="color:#ffffff;"> 850 hPa</span></span>
+                        <span style="font-size:10px;font-weight:700;color:#38bdf8;">●<span style="color:#ffffff;"> 500 hPa</span></span>
                     </div>
                     <div style="position:relative;height:226px;">
                         <div style="padding:12px 4px 16px 16px;position:absolute;inset:0;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;">
@@ -3924,28 +3924,31 @@
             const loadingEl = document.getElementById('temp15-loading');
             try {
                 const PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
-                const url = `${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&daily=temperature_2m_max,temperature_2m_min&timezone=Europe/Madrid&forecast_days=15`;
+                const url = `${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&hourly=temperature_850hPa,temperature_500hPa&timezone=Europe/Madrid&forecast_days=15`;
                 const controller = new AbortController();
                 const timer = setTimeout(() => controller.abort(), 10000);
                 const r = await fetch(url, { cache: 'no-store', signal: controller.signal });
                 clearTimeout(timer);
                 if (!r.ok) throw new Error(r.status);
                 const data = await r.json();
-                const d = data?.daily;
-                if (!d?.time) throw new Error('sin datos');
+                const d = data?.hourly;
+                if (!d?.time || !d?.temperature_850hPa || !d?.temperature_500hPa) throw new Error('sin datos');
 
                 const DIAS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
                 const todayStr = new Date().toISOString().slice(0,10);
-                const rows = d.time.map((ds, i) => {
-                    const dt = new Date(ds + 'T12:00:00');
-                    return {
+                // Un valor representativo por día (mediodía local)
+                const rows = [];
+                for (let i = 0; i < d.time.length; i++) {
+                    const dt = new Date(d.time[i]);
+                    if (dt.getHours() !== 12) continue;
+                    rows.push({
                         dayName : DIAS_ES[dt.getDay()],
                         dayNum  : dt.getDate(),
-                        isToday : ds === todayStr,
-                        tmax    : Math.round(d.temperature_2m_max[i] ?? 0),
-                        tmin    : Math.round(d.temperature_2m_min[i] ?? 0),
-                    };
-                });
+                        isToday : d.time[i].slice(0,10) === todayStr,
+                        t850    : Math.round(d.temperature_850hPa[i] ?? 0),
+                        t500    : Math.round(d.temperature_500hPa[i] ?? 0),
+                    });
+                }
 
                 _temp15Data = rows;
                 _temp15Loaded = true;
@@ -3980,9 +3983,9 @@
             const cw  = W - PAD.l - PAD.r;
             const ch  = H - PAD.t - PAD.b;
 
-            const tmax = rows.map(r => r.tmax);
-            const tmin = rows.map(r => r.tmin);
-            const allT = [...tmax, ...tmin];
+            const t850 = rows.map(r => r.t850);
+            const t500 = rows.map(r => r.t500);
+            const allT = [...t850, ...t500];
             const tMin = Math.floor(Math.min(...allT)) - 2;
             const tMax = Math.ceil(Math.max(...allT)) + 2;
 
@@ -4000,22 +4003,22 @@
                 ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1; ctx.stroke();
             }
 
-            // Área bajo la máxima
+            // Área bajo la curva de 850hPa
             ctx.beginPath();
-            ctx.moveTo(xPos(0), yTemp(tmax[0]));
+            ctx.moveTo(xPos(0), yTemp(t850[0]));
             for (let i = 1; i < n; i++) {
                 const xc = (xPos(i-1) + xPos(i)) / 2;
-                ctx.bezierCurveTo(xc, yTemp(tmax[i-1]), xc, yTemp(tmax[i]), xPos(i), yTemp(tmax[i]));
+                ctx.bezierCurveTo(xc, yTemp(t850[i-1]), xc, yTemp(t850[i]), xPos(i), yTemp(t850[i]));
             }
             ctx.lineTo(xPos(n-1), PAD.t + ch);
             ctx.lineTo(xPos(0), PAD.t + ch);
             ctx.closePath();
             const gArea = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ch);
-            gArea.addColorStop(0, 'rgba(239,68,68,0.20)');
+            gArea.addColorStop(0, 'rgba(249,115,22,0.20)');
             gArea.addColorStop(1, 'rgba(255,255,255,0)');
             ctx.fillStyle = gArea; ctx.fill();
 
-            // Líneas máx/mín con TODOS los valores numéricos visibles
+            // Líneas 850hPa / 500hPa con TODOS los valores numéricos visibles
             const drawLine = (vals, color, offset) => {
                 ctx.beginPath();
                 ctx.moveTo(xPos(0), yTemp(vals[0]));
@@ -4032,8 +4035,8 @@
                     ctx.fillText(v + '°', xPos(i), yTemp(v) + offset);
                 });
             };
-            drawLine(tmax, '#ef4444', -8);
-            drawLine(tmin, '#3b82f6', 14);
+            drawLine(t850, '#f97316', -8);
+            drawLine(t500, '#38bdf8', 14);
 
             // Etiquetas eje X (día del mes; HOY resaltado)
             ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif';
