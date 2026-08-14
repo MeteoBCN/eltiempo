@@ -6195,8 +6195,8 @@
                             ${buildCell(f3, '', cardId + '-f3')}
                         </div>
                         <div onclick="mar3ToggleCellInfo('${cardId}')" style="padding:7px 16px;background:#ffffff;border-top:1px solid #e2e8f0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;user-select:none;">
-                            <span style="font-size:10.5px;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:0.6px;">Ampliar informaci\u00f3n</span>
-                            <span id="cell-info-arrow-${cardId}" style="font-size:10.5px;color:#0ea5e9;display:inline-block;transition:transform 0.25s;">\u25be</span>
+                            <span style="font-size:10.5px;font-weight:700;color:#123653;text-transform:uppercase;letter-spacing:0.6px;">Ampliar informaci\u00f3n</span>
+                            <span id="cell-info-arrow-${cardId}" style="font-size:10.5px;color:#123653;display:inline-block;transition:transform 0.25s;">\u25be</span>
                         </div>
                     </div>`;
 
@@ -6256,24 +6256,16 @@
                         + '</div>';
                 });
                 const legendaHtml = `
-                    <div style="border-top:2px solid #e2f0fb;">
-                        <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.wave-leg-arrow').style.transform=this.nextElementSibling.style.display==='block'?'rotate(180deg)':'rotate(0deg)';"
-                             style="padding:8px 16px;background:#ffffff;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
-                            <div style="display:flex;align-items:center;gap:8px;">
-                                <span style="font-size:8px;font-weight:800;color:#123653;text-transform:uppercase;letter-spacing:1px;">Leyenda — Estado del mar</span>
-                            </div>
-                            <span class="wave-leg-arrow" style="font-size:11px;color:#123653;transition:transform 0.3s;">▼</span>
-                        </div>
-                        <div style="display:none;padding:10px 14px 14px;background:#ffffff;">
-                            <div style="display:flex;flex-direction:column;gap:5px;">
-                                ${legendRows.map(r =>
-                                    `<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:#fff;border-left:4px solid ${r[0]};">
-                                        <span style="font-size:10px;font-weight:800;color:#123653;min-width:72px;">${r[1]}</span>
-                                        <span style="font-size:9.5px;color:#123653;min-width:58px;">${r[2]}</span>
-                                        <span style="font-size:9.5px;color:#123653;flex:1;">${r[3]}</span>
-                                    </div>`
-                                ).join('')}
-                            </div>
+                    <div id="cell-info-mar-${cardId}" style="display:none;border-top:2px solid #e2f0fb;padding:10px 14px 14px;background:#ffffff;">
+                        <div style="font-size:8px;font-weight:800;color:#123653;text-transform:uppercase;letter-spacing:1px;padding:0 2px 8px;">Leyenda — Estado del mar</div>
+                        <div style="display:flex;flex-direction:column;gap:5px;">
+                            ${legendRows.map(r =>
+                                `<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:#fff;border-left:4px solid ${r[0]};">
+                                    <span style="font-size:10px;font-weight:800;color:#123653;min-width:72px;">${r[1]}</span>
+                                    <span style="font-size:9.5px;color:#123653;min-width:58px;">${r[2]}</span>
+                                    <span style="font-size:9.5px;color:#123653;flex:1;">${r[3]}</span>
+                                </div>`
+                            ).join('')}
                         </div>
                     </div>`;
                 const bodyHtml = `
@@ -6310,6 +6302,8 @@
                     const el = document.getElementById('cell-info-' + id);
                     if (el) el.style.display = isOpen ? 'none' : 'flex';
                 });
+                const mar = document.getElementById('cell-info-mar-' + cardId);
+                if (mar) mar.style.display = isOpen ? 'none' : 'block';
                 const arrow = document.getElementById('cell-info-arrow-' + cardId);
                 if (arrow) arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
             };
