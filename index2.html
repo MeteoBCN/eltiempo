@@ -933,7 +933,7 @@
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <!-- Panel único -->
-                <div style="position:relative;height:322px;">
+                <div style="position:relative;height:334px;">
                 <div id="f7-panel-combo" style="padding:14px 16px 18px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-combo" style="display:block;width:100%;"></canvas>
                 </div>
@@ -3760,7 +3760,7 @@
 
             const dpr = window.devicePixelRatio || 1;
             const W   = canvas.parentElement.offsetWidth - 32;
-            const H   = 288;
+            const H   = 300;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -3768,7 +3768,7 @@
             const ctx = canvas.getContext('2d');
             ctx.scale(dpr, dpr);
 
-            const PAD = { t:40, r:16, b:24, l:16 };
+            const PAD = { t:52, r:16, b:24, l:16 };
             const cw  = W - PAD.l - PAD.r;
             const n   = rows.length;
 
@@ -3852,8 +3852,8 @@
                 const barH = (v / 100) * rainH;
                 const x  = xPos(i) - barW / 2;
                 const g = ctx.createLinearGradient(0, rainBottom - barH, 0, rainBottom);
-                g.addColorStop(0, v >= 70 ? '#60a5fa' : v >= 40 ? '#93c5fd' : '#bfdbfe');
-                g.addColorStop(1, 'rgba(191,219,254,0.15)');
+                g.addColorStop(0, 'rgba(255,255,255,0.55)');
+                g.addColorStop(1, 'rgba(255,255,255,0.12)');
                 ctx.fillStyle = g;
                 ctx.beginPath();
                 ctx.roundRect(x, rainBottom - barH, barW, Math.max(barH, 2), 3);
@@ -3878,7 +3878,7 @@
             // Título + leyenda de temperatura (texto blanco, puntos de color para diferenciar máx/mín)
             ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.fillText('TEMPERATURA', PAD.l, PAD.t - 22);
+            ctx.fillText('TEMPERATURA', PAD.l, PAD.t - 30);
 
             ctx.font = 'bold 9px Inter,sans-serif';
             ctx.fillStyle = '#ef4444'; ctx.fillText('●', PAD.l, PAD.t - 12);
