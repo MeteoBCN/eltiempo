@@ -928,13 +928,13 @@
         ════════════════════════════════════════════ -->
         <div id="forecast7-charts-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
             <!-- Cabecera -->
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;gap:3px;">
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);gap:3px;">
                 <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">METEOGRAMA SEMANAL</span>
                 <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">TEMPERATURA Y LLUVIA</span>
             </div>
-            <div style="background:#c9ddf0;">
+            <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <!-- Panel único -->
-                <div style="position:relative;height:237px;">
+                <div style="position:relative;height:260px;">
                 <div id="f7-panel-combo" style="padding:14px 16px 18px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-combo" style="display:block;width:100%;"></canvas>
                 </div>
@@ -3761,7 +3761,7 @@
 
             const dpr = window.devicePixelRatio || 1;
             const W   = canvas.parentElement.offsetWidth - 32;
-            const H   = 205;
+            const H   = 228;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -3777,7 +3777,9 @@
             const tmax = rows.map(r => r.tmax);
             const tmin = rows.map(r => r.tmin);
             const allT = [...tmax, ...tmin];
-            const tMin = Math.floor(Math.min(...allT)) - 2;
+            // Más margen inferior en la escala de temperatura para que las barras
+            // de lluvia tengan su propia franja y no se solapen con la línea mínima
+            const tMin = Math.floor(Math.min(...allT)) - 7;
             const tMax = Math.ceil(Math.max(...allT)) + 2;
 
             const xPos  = i => PAD.l + (i / (n - 1)) * cw;
@@ -3785,32 +3787,33 @@
 
             ctx.clearRect(0, 0, W, H);
 
-            // Líneas guía Y
+            // Líneas guía Y (blancas translúcidas para resaltar sobre el degradado)
             const steps = 4;
             for (let s = 0; s <= steps; s++) {
                 const v = tMin + (tMax - tMin) * s / steps;
                 const y = yTemp(v);
                 ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
-                ctx.strokeStyle = 'rgba(18,54,83,0.1)'; ctx.lineWidth = 1; ctx.stroke();
+                ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
             }
 
-            // ── Barras de lluvia (fondo, anclado abajo) ──
+            // ── Barras de lluvia (fondo, ancladas abajo, franja propia) ──
             const barW = cw / n * 0.5;
+            const barMaxH = ch * 0.24; // menor altura máxima → más margen respecto a las temperaturas
             rows.forEach((r, i) => {
                 const v = r.pprob;
-                const barH = (v / 100) * ch * 0.55;
+                const barH = (v / 100) * barMaxH;
                 const x  = xPos(i) - barW / 2;
                 const y0 = PAD.t + ch;
                 const g = ctx.createLinearGradient(0, y0 - barH, 0, y0);
-                g.addColorStop(0, v >= 70 ? '#2563eb' : v >= 40 ? '#60a5fa' : '#bfdbfe');
-                g.addColorStop(1, 'rgba(59,130,246,0.12)');
+                g.addColorStop(0, v >= 70 ? '#60a5fa' : v >= 40 ? '#93c5fd' : '#bfdbfe');
+                g.addColorStop(1, 'rgba(191,219,254,0.15)');
                 ctx.fillStyle = g;
                 ctx.beginPath();
                 ctx.roundRect(x, y0 - barH, barW, barH, 3);
                 ctx.fill();
                 if (v > 0) {
                     ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif';
-                    ctx.fillStyle = v >= 40 ? '#1d4ed8' : '#64748b';
+                    ctx.fillStyle = '#ffffff';
                     ctx.fillText(v + '%', xPos(i), y0 - barH - 5);
                 }
             });
@@ -3831,9 +3834,9 @@
                 g.addColorStop(1, 'rgba(255,255,255,0)');
                 ctx.fillStyle = g; ctx.fill();
             };
-            drawArea(tmax, 'rgba(239,68,68,0.14)');
+            drawArea(tmax, 'rgba(239,68,68,0.20)');
 
-            const drawLine = (vals, color, labelColor, offset) => {
+            const drawLine = (vals, color, offset) => {
                 ctx.beginPath();
                 ctx.moveTo(xPos(0), yTemp(vals[0]));
                 for (let i = 1; i < n; i++) {
@@ -3845,25 +3848,28 @@
                     ctx.beginPath(); ctx.arc(xPos(i), yTemp(v), 3.5, 0, Math.PI*2);
                     ctx.fillStyle = color; ctx.fill();
                     ctx.textAlign = 'center'; ctx.font = 'bold 10px Inter,sans-serif';
-                    ctx.fillStyle = labelColor;
+                    ctx.fillStyle = '#ffffff';
                     ctx.fillText(v + '°', xPos(i), yTemp(v) + offset);
                 });
             };
-            drawLine(tmax, '#ef4444', '#c53030', -9);
-            drawLine(tmin, '#3b82f6', '#1d4ed8', 16);
+            drawLine(tmax, '#ef4444', -9);
+            drawLine(tmin, '#3b82f6', 16);
 
-            // Etiquetas eje X
-            ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#123653';
+            // Etiquetas eje X (blancas)
+            ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
             rows.forEach((r, i) => {
                 const lbl = r.isToday ? 'HOY' : r.dayName;
                 ctx.fillText(lbl, xPos(i), H - 6);
             });
 
-            // Leyenda
+            // Leyenda (texto blanco, puntos de color para diferenciar máx/mín/lluvia)
             ctx.textAlign = 'left'; ctx.font = 'bold 9px Inter,sans-serif';
-            ctx.fillStyle = '#ef4444'; ctx.fillText('● Máx', PAD.l, PAD.t - 12);
-            ctx.fillStyle = '#3b82f6'; ctx.fillText('● Mín', PAD.l + 55, PAD.t - 12);
-            ctx.fillStyle = '#2563eb'; ctx.fillText('▮ Lluvia', PAD.l + 110, PAD.t - 12);
+            ctx.fillStyle = '#ef4444'; ctx.fillText('●', PAD.l, PAD.t - 12);
+            ctx.fillStyle = '#ffffff'; ctx.fillText(' Máx', PAD.l + 7, PAD.t - 12);
+            ctx.fillStyle = '#3b82f6'; ctx.fillText('●', PAD.l + 55, PAD.t - 12);
+            ctx.fillStyle = '#ffffff'; ctx.fillText(' Mín', PAD.l + 62, PAD.t - 12);
+            ctx.fillStyle = '#93c5fd'; ctx.fillText('▮', PAD.l + 110, PAD.t - 12);
+            ctx.fillStyle = '#ffffff'; ctx.fillText(' Lluvia', PAD.l + 118, PAD.t - 12);
         }
 
         /* ══════════════════════════════════════════════
