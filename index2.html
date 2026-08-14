@@ -961,7 +961,7 @@
                 <div style="position:relative;min-height:120px;">
                     <div style="padding:0 12px 16px;">
                         <div style="padding:2px 4px 10px;font-size:10px;line-height:1.5;color:rgba(18,54,83,0.65);">
-                            <strong style="color:#123653;">850hPa</strong> (1500m) · <strong style="color:#123653;">500hPa</strong> (5500m) · <strong style="color:#123653;">2m</strong> (Superficie) · <strong style="color:#123653;">Precipitación</strong> (acumulado 12 horas) · <strong style="color:#123653;">Cota ºC</strong> (cota de nieve)
+                            <strong style="color:#123653;">850hPa</strong> (1500m) · <strong style="color:#123653;">500hPa</strong> (5500m) · <strong style="color:#123653;">2m</strong> (Superficie) · <strong style="color:#123653;">mm</strong> (precipitación acumulado en 12 horas) · <strong style="color:#123653;">Cota ºC</strong> (cota de nieve)
                         </div>
                         <table id="temp15-table" style="width:100%;border-collapse:collapse;">
                             <thead>
@@ -970,7 +970,7 @@
                                     <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">850hPa</th>
                                     <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">500hPa</th>
                                     <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">2m</th>
-                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">Precipitación</th>
+                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">mm</th>
                                     <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">Cota ºC</th>
                                 </tr>
                             </thead>
@@ -4019,10 +4019,10 @@
                     : (i > 0 ? 'border-top:1px solid rgba(18,54,83,0.08);' : '');
                 const hourLabel = r.hour === 0 ? '00h' : '12h';
                 const namePart = r.hour === 0
-                    ? (r.isToday ? 'HOY · ' : `${r.dayName} ${r.dayNum} · `)
+                    ? (r.isToday ? 'HOY ' : `${r.dayName} ${r.dayNum} `)
                     : '';
                 const dayWeight = r.isToday ? '700' : '500';
-                const rainLabel = r.rainMm > 0 ? `${r.rainMm.toFixed(1)} mm` : '0 mm';
+                const rainLabel = r.rainMm > 0 ? r.rainMm.toFixed(1) : '0';
                 return `<tr style="${bg}${borderTop}">
                     <td style="padding:7px 4px;font-size:11px;font-weight:${dayWeight};color:#123653;white-space:nowrap;"><span style="display:inline-block;width:62px;">${namePart}</span>${hourLabel}</td>
                     <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${r.t850}°</td>
