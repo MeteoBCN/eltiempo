@@ -934,7 +934,7 @@
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <!-- Panel único -->
-                <div style="position:relative;height:260px;">
+                <div style="position:relative;height:322px;">
                 <div id="f7-panel-combo" style="padding:14px 16px 18px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-combo" style="display:block;width:100%;"></canvas>
                 </div>
@@ -3761,7 +3761,7 @@
 
             const dpr = window.devicePixelRatio || 1;
             const W   = canvas.parentElement.offsetWidth - 32;
-            const H   = 228;
+            const H   = 288;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -3769,56 +3769,44 @@
             const ctx = canvas.getContext('2d');
             ctx.scale(dpr, dpr);
 
-            const PAD = { t:32, r:16, b:38, l:16 };
+            const PAD = { t:32, r:16, b:24, l:16 };
             const cw  = W - PAD.l - PAD.r;
-            const ch  = H - PAD.t - PAD.b;
             const n   = rows.length;
+
+            // ── Dos zonas apiladas: temperatura arriba, lluvia abajo,
+            //    separadas por un hueco con divisor sutil ──
+            const tempH  = 128;   // alto zona temperatura
+            const gap    = 26;    // separación entre zonas (con divisor centrado)
+            const rainH  = 62;    // alto zona lluvia
+
+            const tempTop    = PAD.t;
+            const tempBottom = tempTop + tempH;
+            const dividerY   = tempBottom + gap / 2;
+            const rainTop    = tempBottom + gap;
+            const rainBottom = rainTop + rainH;
+            const xAxisY     = rainBottom + 16;
 
             const tmax = rows.map(r => r.tmax);
             const tmin = rows.map(r => r.tmin);
             const allT = [...tmax, ...tmin];
-            // Más margen inferior en la escala de temperatura para que las barras
-            // de lluvia tengan su propia franja y no se solapen con la línea mínima
-            const tMin = Math.floor(Math.min(...allT)) - 7;
+            const tMin = Math.floor(Math.min(...allT)) - 2;
             const tMax = Math.ceil(Math.max(...allT)) + 2;
 
             const xPos  = i => PAD.l + (i / (n - 1)) * cw;
-            const yTemp = v => PAD.t + ch - ((v - tMin) / (tMax - tMin)) * ch;
+            const yTemp = v => tempTop + tempH - ((v - tMin) / (tMax - tMin)) * tempH;
 
             ctx.clearRect(0, 0, W, H);
 
-            // Líneas guía Y (blancas translúcidas para resaltar sobre el degradado)
-            const steps = 4;
+            // Líneas guía Y de la zona de temperatura (blancas translúcidas)
+            const steps = 3;
             for (let s = 0; s <= steps; s++) {
                 const v = tMin + (tMax - tMin) * s / steps;
                 const y = yTemp(v);
                 ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
-                ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+                ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1; ctx.stroke();
             }
 
-            // ── Barras de lluvia (fondo, ancladas abajo, franja propia) ──
-            const barW = cw / n * 0.5;
-            const barMaxH = ch * 0.24; // menor altura máxima → más margen respecto a las temperaturas
-            rows.forEach((r, i) => {
-                const v = r.pprob;
-                const barH = (v / 100) * barMaxH;
-                const x  = xPos(i) - barW / 2;
-                const y0 = PAD.t + ch;
-                const g = ctx.createLinearGradient(0, y0 - barH, 0, y0);
-                g.addColorStop(0, v >= 70 ? '#60a5fa' : v >= 40 ? '#93c5fd' : '#bfdbfe');
-                g.addColorStop(1, 'rgba(191,219,254,0.15)');
-                ctx.fillStyle = g;
-                ctx.beginPath();
-                ctx.roundRect(x, y0 - barH, barW, barH, 3);
-                ctx.fill();
-                if (v > 0) {
-                    ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(v + '%', xPos(i), y0 - barH - 5);
-                }
-            });
-
-            // ── Área + línea de temperatura máxima ──
+            // ── Zona temperatura: área + línea máxima/mínima ──
             const drawArea = (vals, fill) => {
                 ctx.beginPath();
                 ctx.moveTo(xPos(0), yTemp(vals[0]));
@@ -3826,10 +3814,10 @@
                     const xc = (xPos(i-1) + xPos(i)) / 2;
                     ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xPos(i), yTemp(vals[i]));
                 }
-                ctx.lineTo(xPos(n-1), PAD.t + ch);
-                ctx.lineTo(xPos(0), PAD.t + ch);
+                ctx.lineTo(xPos(n-1), tempBottom);
+                ctx.lineTo(xPos(0), tempBottom);
                 ctx.closePath();
-                const g = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ch);
+                const g = ctx.createLinearGradient(0, tempTop, 0, tempBottom);
                 g.addColorStop(0, fill);
                 g.addColorStop(1, 'rgba(255,255,255,0)');
                 ctx.fillStyle = g; ctx.fill();
@@ -3855,21 +3843,58 @@
             drawLine(tmax, '#ef4444', -9);
             drawLine(tmin, '#3b82f6', 16);
 
-            // Etiquetas eje X (blancas)
+            // ── Divisor sutil entre las dos gráficas ──
+            ctx.beginPath();
+            ctx.moveTo(PAD.l, dividerY);
+            ctx.lineTo(PAD.l + cw, dividerY);
+            ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 4]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // ── Zona lluvia: título + barras, ancladas abajo de su propia franja ──
+            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            ctx.fillText('PROBABILIDAD DE LLUVIA', PAD.l, rainTop - 6);
+
+            const barW = cw / n * 0.5;
+            rows.forEach((r, i) => {
+                const v = r.pprob;
+                const barH = (v / 100) * rainH;
+                const x  = xPos(i) - barW / 2;
+                const g = ctx.createLinearGradient(0, rainBottom - barH, 0, rainBottom);
+                g.addColorStop(0, v >= 70 ? '#60a5fa' : v >= 40 ? '#93c5fd' : '#bfdbfe');
+                g.addColorStop(1, 'rgba(191,219,254,0.15)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.roundRect(x, rainBottom - barH, barW, Math.max(barH, 2), 3);
+                ctx.fill();
+                if (v > 0) {
+                    ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(v + '%', xPos(i), rainBottom - barH - 5);
+                }
+            });
+            // Línea base de la zona de lluvia
+            ctx.beginPath();
+            ctx.moveTo(PAD.l, rainBottom);
+            ctx.lineTo(PAD.l + cw, rainBottom);
+            ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+
+            // Etiquetas eje X (blancas, compartidas por ambas gráficas)
             ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
             rows.forEach((r, i) => {
                 const lbl = r.isToday ? 'HOY' : r.dayName;
-                ctx.fillText(lbl, xPos(i), H - 6);
+                ctx.fillText(lbl, xPos(i), xAxisY);
             });
 
-            // Leyenda (texto blanco, puntos de color para diferenciar máx/mín/lluvia)
+            // Leyenda (texto blanco, puntos de color para diferenciar máx/mín)
             ctx.textAlign = 'left'; ctx.font = 'bold 9px Inter,sans-serif';
             ctx.fillStyle = '#ef4444'; ctx.fillText('●', PAD.l, PAD.t - 12);
             ctx.fillStyle = '#ffffff'; ctx.fillText(' Máx', PAD.l + 7, PAD.t - 12);
             ctx.fillStyle = '#3b82f6'; ctx.fillText('●', PAD.l + 55, PAD.t - 12);
             ctx.fillStyle = '#ffffff'; ctx.fillText(' Mín', PAD.l + 62, PAD.t - 12);
-            ctx.fillStyle = '#93c5fd'; ctx.fillText('▮', PAD.l + 110, PAD.t - 12);
-            ctx.fillStyle = '#ffffff'; ctx.fillText(' Lluvia', PAD.l + 118, PAD.t - 12);
         }
 
         /* ══════════════════════════════════════════════
