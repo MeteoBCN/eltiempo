@@ -3988,16 +3988,19 @@
             const tbody = document.getElementById('temp15-tbody');
             if (!tbody || !rows || !rows.length) return;
 
+            let dayIndex = 0;
             tbody.innerHTML = rows.map((r, i) => {
-                const bg = r.isToday ? 'background:rgba(18,54,83,0.06);' : '';
+                if (r.hour === 0) dayIndex++;
+                const shaded = dayIndex % 2 === 1; // días 1,3,5,7,9 sombreados
+                const bg = shaded ? 'background:rgba(18,54,83,0.06);' : '';
                 const newDay = i > 0 && r.hour === 0;
                 const borderTop = newDay
                     ? 'border-top:1px solid rgba(18,54,83,0.20);'
                     : (i > 0 ? 'border-top:1px solid rgba(18,54,83,0.08);' : '');
                 const hourLabel = r.hour === 0 ? '00h' : '12h';
-                const dayLabel = r.isToday
-                    ? `HOY · ${hourLabel}`
-                    : `${r.dayName} ${r.dayNum} · ${hourLabel}`;
+                const dayLabel = r.hour === 0
+                    ? (r.isToday ? `HOY · ${hourLabel}` : `${r.dayName} ${r.dayNum} · ${hourLabel}`)
+                    : hourLabel;
                 const dayWeight = r.isToday ? '700' : '500';
                 return `<tr style="${bg}${borderTop}">
                     <td style="padding:7px 4px;font-size:11px;font-weight:${dayWeight};color:#123653;white-space:nowrap;">${dayLabel}</td>
