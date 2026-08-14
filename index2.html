@@ -930,7 +930,6 @@
             <!-- Cabecera -->
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);gap:3px;">
                 <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">METEOGRAMA SEMANAL</span>
-                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">TEMPERATURA Y LLUVIA</span>
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <!-- Panel único -->
@@ -3769,7 +3768,7 @@
             const ctx = canvas.getContext('2d');
             ctx.scale(dpr, dpr);
 
-            const PAD = { t:32, r:16, b:24, l:16 };
+            const PAD = { t:40, r:16, b:24, l:16 };
             const cw  = W - PAD.l - PAD.r;
             const n   = rows.length;
 
@@ -3860,7 +3859,7 @@
                 ctx.roundRect(x, rainBottom - barH, barW, Math.max(barH, 2), 3);
                 ctx.fill();
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif';
-                ctx.fillStyle = v > 0 ? '#ffffff' : 'rgba(255,255,255,0.55)';
+                ctx.fillStyle = '#ffffff';
                 ctx.fillText(v + '%', xPos(i), rainBottom - barH - 5);
             });
             // Línea base de la zona de lluvia
@@ -3876,8 +3875,12 @@
                 ctx.fillText(lbl, xPos(i), xAxisY);
             });
 
-            // Leyenda (texto blanco, puntos de color para diferenciar máx/mín)
-            ctx.textAlign = 'left'; ctx.font = 'bold 9px Inter,sans-serif';
+            // Título + leyenda de temperatura (texto blanco, puntos de color para diferenciar máx/mín)
+            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            ctx.fillText('TEMPERATURA', PAD.l, PAD.t - 22);
+
+            ctx.font = 'bold 9px Inter,sans-serif';
             ctx.fillStyle = '#ef4444'; ctx.fillText('●', PAD.l, PAD.t - 12);
             ctx.fillStyle = '#ffffff'; ctx.fillText(' Máx', PAD.l + 7, PAD.t - 12);
             ctx.fillStyle = '#3b82f6'; ctx.fillText('●', PAD.l + 55, PAD.t - 12);
