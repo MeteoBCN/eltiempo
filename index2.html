@@ -962,11 +962,11 @@
                             <thead>
                                 <tr style="border-bottom:1px solid rgba(18,54,83,0.18);">
                                     <th style="text-align:left;padding:6px 4px;font-size:9px;font-weight:700;color:rgba(18,54,83,0.65);text-transform:uppercase;letter-spacing:0.4px;">Día</th>
-                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">850hPa</th>
-                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">500hPa</th>
-                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">2 metros</th>
+                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">1500m</th>
+                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">5500m</th>
+                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">ºC</th>
                                     <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">Lluvia</th>
-                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">Nieve</th>
+                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">Cota nieve</th>
                                 </tr>
                             </thead>
                             <tbody id="temp15-tbody"></tbody>
@@ -3939,7 +3939,7 @@
             const loadingEl = document.getElementById('temp15-loading');
             try {
                 const PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
-                const url = `${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&hourly=temperature_850hPa,temperature_500hPa,temperature_2m,freezing_level_height&daily=precipitation_probability_max&timezone=Europe/Madrid&forecast_days=10`;
+                const url = `${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&hourly=temperature_850hPa,temperature_500hPa,temperature_2m,freezing_level_height,precipitation&timezone=Europe/Madrid&forecast_days=10`;
                 const controller = new AbortController();
                 const timer = setTimeout(() => controller.abort(), 10000);
                 const r = await fetch(url, { cache: 'no-store', signal: controller.signal });
@@ -3947,19 +3947,33 @@
                 if (!r.ok) throw new Error(r.status);
                 const data = await r.json();
                 const d = data?.hourly;
-                const daily = data?.daily;
                 if (!d?.time || !d?.temperature_850hPa || !d?.temperature_500hPa) throw new Error('sin datos');
 
                 const DIAS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
                 const todayStr = new Date().toISOString().slice(0,10);
-                // Dos lecturas por día (00h y 12h locales); la prob. de lluvia usa el máximo diario
+
+                // Máximo de lluvia horaria por franja: 00:00-11:59 y 12:00-23:59, por fecha
+                const rainMorningMax = {}; // fecha -> mm máx (00-11h)
+                const rainAfternoonMax = {}; // fecha -> mm máx (12-23h)
+                for (let i = 0; i < d.time.length; i++) {
+                    const dt = new Date(d.time[i]);
+                    const hour = dt.getHours();
+                    const dateStr = d.time[i].slice(0,10);
+                    const mm = d.precipitation?.[i] ?? 0;
+                    if (hour < 12) {
+                        rainMorningMax[dateStr] = Math.max(rainMorningMax[dateStr] ?? 0, mm);
+                    } else {
+                        rainAfternoonMax[dateStr] = Math.max(rainAfternoonMax[dateStr] ?? 0, mm);
+                    }
+                }
+
+                // Dos lecturas por día (00h y 12h locales)
                 const rows = [];
                 for (let i = 0; i < d.time.length; i++) {
                     const dt = new Date(d.time[i]);
                     const hour = dt.getHours();
                     if (hour !== 0 && hour !== 12) continue;
                     const dateStr = d.time[i].slice(0,10);
-                    const dIdx = daily?.time?.indexOf(dateStr) ?? -1;
                     rows.push({
                         dayName : DIAS_ES[dt.getDay()],
                         dayNum  : dt.getDate(),
@@ -3968,7 +3982,7 @@
                         t850    : Math.round(d.temperature_850hPa[i] ?? 0),
                         t500    : Math.round(d.temperature_500hPa[i] ?? 0),
                         tsup    : Math.round(d.temperature_2m?.[i] ?? 0),
-                        pprob   : Math.round((dIdx >= 0 ? daily.precipitation_probability_max?.[dIdx] : 0) ?? 0),
+                        rainMm  : hour === 0 ? (rainMorningMax[dateStr] ?? 0) : (rainAfternoonMax[dateStr] ?? 0),
                         cotaNieve: Math.round((d.freezing_level_height?.[i] ?? 0) / 10) * 10,
                     });
                 }
@@ -3998,16 +4012,17 @@
                     ? 'border-top:1px solid rgba(18,54,83,0.20);'
                     : (i > 0 ? 'border-top:1px solid rgba(18,54,83,0.08);' : '');
                 const hourLabel = r.hour === 0 ? '00h' : '12h';
-                const dayLabel = r.hour === 0
-                    ? (r.isToday ? `HOY · ${hourLabel}` : `${r.dayName} ${r.dayNum} · ${hourLabel}`)
-                    : hourLabel;
+                const namePart = r.hour === 0
+                    ? (r.isToday ? 'HOY · ' : `${r.dayName} ${r.dayNum} · `)
+                    : '';
                 const dayWeight = r.isToday ? '700' : '500';
+                const rainLabel = r.rainMm > 0 ? `${r.rainMm.toFixed(1)} mm` : '0 mm';
                 return `<tr style="${bg}${borderTop}">
-                    <td style="padding:7px 4px;font-size:11px;font-weight:${dayWeight};color:#123653;white-space:nowrap;">${dayLabel}</td>
+                    <td style="padding:7px 4px;font-size:11px;font-weight:${dayWeight};color:#123653;white-space:nowrap;"><span style="display:inline-block;width:62px;">${namePart}</span>${hourLabel}</td>
                     <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${r.t850}°</td>
                     <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${r.t500}°</td>
                     <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${r.tsup}°</td>
-                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${r.pprob}%</td>
+                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${rainLabel}</td>
                     <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${r.cotaNieve} m</td>
                 </tr>`;
             }).join('');
