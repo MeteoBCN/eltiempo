@@ -6069,10 +6069,6 @@
 
                 return `<div style="flex:1;${borderStyle}padding:6px 5px 10px;background:#ffffff;display:flex;flex-direction:column;align-items:center;gap:7px;">
                     ${pill('Ba\u00f1o', bath.txt.toUpperCase(), '#123653', '#fff')}
-                    <div onclick="var p=this.nextElementSibling;var isOpen=p.style.display==='flex';p.style.display=isOpen?'none':'flex';this.querySelector('.cell-info-arrow').style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';" style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;margin-top:-3px;">
-                        <span style="font-size:8px;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:0.4px;">Ampliar informaci\u00f3n</span>
-                        <span class="cell-info-arrow" style="font-size:8px;color:#0ea5e9;display:inline-block;transition:transform 0.25s;">\u25be</span>
-                    </div>
                     <div id="cell-info-${cellId}" style="display:none;flex-direction:column;align-items:center;gap:7px;width:100%;">
                         <div style="text-align:center;width:100%;padding-top:2px;">
                             <div style="display:flex;justify-content:center;align-items:center;">${skyIconHtml}</div>
@@ -6198,6 +6194,10 @@
                             ${buildCell(f2, bdr, cardId + '-f2')}
                             ${buildCell(f3, '', cardId + '-f3')}
                         </div>
+                        <div onclick="mar3ToggleCellInfo('${cardId}')" style="padding:7px 16px;background:#ffffff;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;user-select:none;">
+                            <span style="font-size:9px;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:0.6px;">Ampliar informaci\u00f3n</span>
+                            <span id="cell-info-arrow-${cardId}" style="font-size:9px;color:#0ea5e9;display:inline-block;transition:transform 0.25s;">\u25be</span>
+                        </div>
                     </div>`;
 
                 // ── Leyenda UV desplegable (cerrada por defecto) ──
@@ -6299,6 +6299,20 @@
                 }
             }
 
+
+            // ── Desplegar info ampliada de las 3 celdas (Baño) a la vez ─────
+            window.mar3ToggleCellInfo = function(cardId) {
+                const ids = [cardId + '-f1', cardId + '-f2', cardId + '-f3'];
+                const first = document.getElementById('cell-info-' + ids[0]);
+                if (!first) return;
+                const isOpen = first.style.display === 'flex';
+                ids.forEach(id => {
+                    const el = document.getElementById('cell-info-' + id);
+                    if (el) el.style.display = isOpen ? 'none' : 'flex';
+                });
+                const arrow = document.getElementById('cell-info-arrow-' + cardId);
+                if (arrow) arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+            };
 
             // ── Acordeon ──────────────────────────────────────────
             window.mar3ToggleCard = function(cardId) {
