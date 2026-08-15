@@ -3344,7 +3344,7 @@
 
         /* ── Lógica principal ── */
         (function() {
-            const DIAS_ES  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+            const DIAS_ES  = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
 
             window._f7Data = null;
 
@@ -3656,7 +3656,7 @@
 
             // ── Construir cabecera del día ──
             const r = rows[idx];
-            const DIAS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+            const DIAS_ES = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
             const MESES   = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
             const dt      = new Date(r.dateStr + 'T12:00:00');
             const label   = r.isToday ? 'HOY' : DIAS_ES[dt.getDay()];
@@ -3841,7 +3841,7 @@
             // ── Zonas apiladas: temperatura / lluvia / precipitación acumulada,
             //    separadas por huecos con divisor sutil ──
             const tempH   = 140;   // alto zona temperatura
-            const gap     = 80;    // separación entre zonas (incluye fila de días bajo temperatura, con bastante aire antes de "PROBABILIDAD DE LLUVIA")
+            const gap     = 98;    // separación entre zonas (incluye fila de días bajo temperatura, con bastante aire antes de "PROBABILIDAD DE LLUVIA"; igualado al espacio COTA ISOCERO ↔ fila de días de ATMÓSFERA LIBRE)
             const rainH   = 72;    // alto zona lluvia
 
             const tempTop    = PAD.t;
@@ -4048,7 +4048,7 @@
             const W   = canvas.parentElement.offsetWidth - 32;
             const ctx = canvas.getContext('2d');
 
-            const PAD = { t:130, r:16, b:24, l:16 };
+            const PAD = { t:161, r:16, b:24, l:16 };
             const cw  = W - PAD.l - PAD.r;
             const n   = (rows && rows.length) || 7;
             const xPos = i => PAD.l + (i / (n - 1)) * cw;
@@ -4058,7 +4058,7 @@
             const isoH    = 70;    // alto zona cota isocero
             const gap4    = 150;   // separación antes de CAPE/LI
             const capeH   = 80;    // alto sub-zona CAPE (barras)
-            const capeGap = 44;    // separación entre CAPE y Lifted Index
+            const capeGap = 86;    // separación entre CAPE y Lifted Index (mismo aire que el resto de titulares respecto a su fila de arriba)
             const liH     = 70;    // alto sub-zona Lifted Index (línea)
             const gap5    = 95;    // separación antes del semáforo de riesgo de tormenta (más aire encima del titular)
             const riskH   = 80;    // alto de la fila de riesgo de tormenta (dot + Mañana/Tarde + nivel)
@@ -4478,7 +4478,7 @@
                     try {
                         if (!daily?.time) return;
                         const todayStr = new Date().toISOString().slice(0,10);
-                        const DIAS_ES  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+                        const DIAS_ES  = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
                         const rows = daily.time.map((ds, i) => {
                             const dt = new Date(ds + 'T12:00:00');
                             const liMin = _f7DayAgg(hourly, 'lifted_index', ds, arr => Math.min(...arr));
