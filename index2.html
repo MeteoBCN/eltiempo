@@ -3625,7 +3625,7 @@
             const tempBottom = tempTop + tempH;
             const rainTop    = tempBottom + gap;
             const rainBottom = rainTop + rainH;
-            const accGap     = 54;   // separación tras la fila de días de lluvia
+            const accGap     = 74;   // separación tras la fila de días de lluvia (más aire antes del gráfico)
             const accH       = 80;   // alto zona precipitación acumulada
             const accTop     = rainBottom + accGap;
             const accBottom  = accTop + accH;
@@ -3733,12 +3733,6 @@
             rows.forEach((r, i) => {
                 const lbl = r.isToday ? 'HOY' : r.dayName;
                 ctx.fillText(lbl, xPos(i), rainBottom + 14);
-            });
-
-            // Total acumulado de lluvia (mm) del día, debajo del nombre del día
-            ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif'; ctx.fillStyle = 'rgba(147,197,253,0.85)';
-            rows.forEach((r, i) => {
-                ctx.fillText(r.precip + 'mm', xPos(i), rainBottom + 26);
             });
 
             // ══════════════════════════════════════════════
