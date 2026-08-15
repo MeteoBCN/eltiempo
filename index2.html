@@ -3673,8 +3673,16 @@
         }
 
         function drawF7ComboChart() {
-            drawF7ChartTop();
-            drawF7ChartBottom();
+            try {
+                drawF7ChartTop();
+            } catch (e) {
+                console.error('[Meteograma] Error dibujando gráfico superior (temperatura/lluvia):', e);
+            }
+            try {
+                drawF7ChartBottom();
+            } catch (e) {
+                console.error('[Meteograma] Error dibujando gráfico inferior (atmósfera libre/CAPE):', e);
+            }
         }
 
         // ── Desplegable: por qué mostramos probabilidad y acumulado por separado ──
@@ -3814,7 +3822,11 @@
                 g.addColorStop(1, 'rgba(56,189,248,0.25)');
                 ctx.fillStyle = g;
                 ctx.beginPath();
-                ctx.roundRect(x, rainBottom - barH, barW, Math.max(barH, 2), 3);
+                if (ctx.roundRect) {
+                    ctx.roundRect(x, rainBottom - barH, barW, Math.max(barH, 2), 3);
+                } else {
+                    ctx.rect(x, rainBottom - barH, barW, Math.max(barH, 2));
+                }
                 ctx.fill();
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif';
                 ctx.fillStyle = '#ffffff';
@@ -4110,7 +4122,11 @@
                     const color = v >= 1500 ? '#EF4444' : v >= 500 ? '#F59E0B' : '#34D399';
                     ctx.fillStyle = color;
                     ctx.beginPath();
-                    ctx.roundRect(x, capeBottom - barH, capeBarW, barH, 2);
+                    if (ctx.roundRect) {
+                        ctx.roundRect(x, capeBottom - barH, capeBarW, barH, 2);
+                    } else {
+                        ctx.rect(x, capeBottom - barH, capeBarW, barH);
+                    }
                     ctx.fill();
                     if (l.hour === 0 && v > 0) {
                         ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = color;
