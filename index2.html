@@ -3313,6 +3313,35 @@
             return _f7WorstRisk(riskAM, riskPM);
         }
 
+        // Construye los puntos de INESTABILIDAD CONVECTIVA (CAPE/LI) y RIESGO DE
+        // TORMENTA limitados a 3 días, con una franja "Mañana" (00-12h) y otra
+        // "Tarde" (12-24h) por día → 6 puntos en total (en vez de 7 días × 00h/12h).
+        // (función global: la usa drawF7ChartBottom)
+        function _f7BuildStormRows(hourly, dailyRows) {
+            const days = (dailyRows || []).slice(0, 3);
+            const out = [];
+            days.forEach(day => {
+                const ds = day.dateStr;
+                [['AM', 0, 12, 'Mañana'], ['PM', 12, 24, 'Tarde']].forEach(([period, hStart, hEnd, periodLabel]) => {
+                    const capeV = _f7HalfDayAgg(hourly, 'cape', ds, hStart, hEnd, arr => Math.max(...arr));
+                    const liV   = _f7HalfDayAgg(hourly, 'lifted_index', ds, hStart, hEnd, arr => Math.min(...arr));
+                    const ppV   = _f7HalfDayAgg(hourly, 'precipitation_probability', ds, hStart, hEnd, arr => Math.max(...arr));
+                    const cinV  = _f7HalfDayAgg(hourly, 'convective_inhibition', ds, hStart, hEnd, arr => Math.min(...arr));
+                    out.push({
+                        dateStr     : ds,
+                        dayName     : day.dayName,
+                        isToday     : day.isToday,
+                        period      : period,
+                        periodLabel : periodLabel,
+                        cape        : capeV !== null ? Math.round(capeV) : 0,
+                        li          : liV !== null ? Math.round(liV * 10) / 10 : 0,
+                        risk        : _f7StormRisk(capeV, liV, ppV, cinV),
+                    });
+                });
+            });
+            return out;
+        }
+
         /* ── Lógica principal ── */
         (function() {
             const DIAS_ES  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
@@ -3377,6 +3406,7 @@
                         }
                     }
                     window._f7LevelData = levelRows;
+                    window._f7StormRows = _f7BuildStormRows(hourly, rows);
 
                     // Ocultar loading, mostrar paneles
                     const loading = document.getElementById('forecast7-loading');
@@ -4031,7 +4061,7 @@
             const capeGap = 44;    // separación entre CAPE y Lifted Index
             const liH     = 70;    // alto sub-zona Lifted Index (línea)
             const gap5    = 60;    // separación antes del semáforo de riesgo de tormenta
-            const riskH   = 66;    // alto de la fila de riesgo de tormenta
+            const riskH   = 80;    // alto de la fila de riesgo de tormenta (dot + Mañana/Tarde + nivel)
 
             const levelsTop    = PAD.t;
             const levelsBottom = levelsTop + levelsH;
@@ -4190,29 +4220,35 @@
 
                 // ══════════════════════════════════════════════
                 // Zona CAPE (barras) + Lifted Index (línea) — inestabilidad convectiva
+                // Limitada a 3 días, con un punto "Mañana" y otro "Tarde" por día
+                // (6 puntos en total) en vez de 7 días × 00h/12h.
                 // ══════════════════════════════════════════════
-                const capeV = levels.map(l => l.cape);
-                const liV   = levels.map(l => l.li);
-                const capeMaxScale = Math.max(...capeV, 500);
-                const liMinV = Math.min(...liV, -2);
-                const liMaxV = Math.max(...liV, 2);
+                const stormRows = window._f7StormRows || _f7BuildStormRows(window._hourlyCache, rows);
+                const sN = stormRows.length || 1;
+                const xPosStorm = i => sN > 1 ? (PAD.l + (i / (sN - 1)) * cw) : (PAD.l + cw / 2);
+
+                const capeVS = stormRows.map(r => r.cape);
+                const liVS   = stormRows.map(r => r.li);
+                const capeMaxScale = Math.max(...capeVS, 500);
+                const liMinV = Math.min(...liVS, -2);
+                const liMaxV = Math.max(...liVS, 2);
                 const yLi = v => liTop + liH - ((v - liMinV) / (liMaxV - liMinV || 1)) * liH;
 
                 // Título general de la sección
                 ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                ctx.fillText('INESTABILIDAD CONVECTIVA', PAD.l, capeTop - 40);
+                ctx.fillText('INESTABILIDAD CONVECTIVA · 3 DÍAS (MAÑANA/TARDE)', PAD.l, capeTop - 40);
 
                 // ── Sub-zona CAPE: barras con color según intensidad ──
                 ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.65)';
                 ctx.fillText('CAPE (J/kg)', PAD.l, capeTop - 8);
 
-                const capeBarW = cw / m * 0.45;
-                levels.forEach((l, j) => {
-                    const v = l.cape;
+                const capeBarW = cw / sN * 0.5;
+                stormRows.forEach((r, j) => {
+                    const v = r.cape;
                     const barH = Math.max((v / capeMaxScale) * capeH, v > 0 ? 2 : 0);
-                    const x = xPos2(j) - capeBarW / 2;
+                    const x = xPosStorm(j) - capeBarW / 2;
                     const color = v >= 1500 ? '#EF4444' : v >= 500 ? '#F59E0B' : '#34D399';
                     ctx.fillStyle = color;
                     ctx.beginPath();
@@ -4222,9 +4258,9 @@
                         ctx.rect(x, capeBottom - barH, capeBarW, barH);
                     }
                     ctx.fill();
-                    if (l.hour === 0 && v > 0) {
+                    if (v > 0) {
                         ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = color;
-                        ctx.fillText(v, xPos2(j), capeBottom - barH - 5);
+                        ctx.fillText(v, xPosStorm(j), capeBottom - barH - 5);
                     }
                 });
 
@@ -4246,33 +4282,28 @@
                 }
 
                 ctx.beginPath();
-                levels.forEach((l, j) => { const x = xPos2(j), y = yLi(l.li); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
+                stormRows.forEach((r, j) => { const x = xPosStorm(j), y = yLi(r.li); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
                 ctx.setLineDash([]);
                 ctx.strokeStyle = '#38BDF8'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
 
-                levels.forEach((l, j) => {
-                    const x = xPos2(j), y = yLi(l.li);
-                    const color = l.li <= -4 ? '#EF4444' : l.li <= -1 ? '#F59E0B' : '#38BDF8';
+                stormRows.forEach((r, j) => {
+                    const x = xPosStorm(j), y = yLi(r.li);
+                    const color = r.li <= -4 ? '#EF4444' : r.li <= -1 ? '#F59E0B' : '#38BDF8';
                     ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = color; ctx.fill();
-                    if (l.hour === 0) {
-                        ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = color;
-                        ctx.fillText(l.li, x, y - 7);
-                    }
+                    ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = color;
+                    ctx.fillText(r.li, x, y - 7);
                 });
 
-                // Etiquetas 00h/12h de esta franja
+                // Etiquetas Mañana/Tarde de esta franja
                 ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                levels.forEach((l, j) => { ctx.fillText(l.hour === 0 ? '00h' : '12h', xPos2(j), liBottom + 24); });
+                stormRows.forEach((r, j) => { ctx.fillText(r.periodLabel, xPosStorm(j), liBottom + 24); });
 
-                // Fila de días
-                if (rows) {
-                    ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                    rows.forEach((r, i) => {
-                        const lbl = r.isToday ? 'HOY' : r.dayName;
-                        const j00 = levels.findIndex(l => l.dateStr === r.dateStr && l.hour === 0);
-                        const x = j00 !== -1 ? xPos2(j00) : xPos(i);
-                        ctx.fillText(lbl, x, liBottom + 40);
-                    });
+                // Fila de días (una etiqueta por día, centrada entre su punto de mañana y de tarde)
+                ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                for (let d = 0; d < stormRows.length; d += 2) {
+                    const r = stormRows[d];
+                    const xMid = (xPosStorm(d) + xPosStorm(d + 1)) / 2;
+                    ctx.fillText(r.isToday ? 'HOY' : r.dayName, xMid, liBottom + 40);
                 }
 
                 // Línea base Lifted Index
@@ -4281,31 +4312,37 @@
                 ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
 
                 // ══════════════════════════════════════════════
-                // Semáforo de riesgo de tormenta (CAPE + Lifted Index + prob. lluvia,
-                // calculado en franjas de 00-12h y 12-24h; se muestra la peor de las dos)
+                // Semáforo de riesgo de tormenta (CAPE + Lifted Index + prob. lluvia),
+                // limitado a 3 días con una franja Mañana y otra Tarde por día
                 // ══════════════════════════════════════════════
-                if (rows) {
-                    ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
-                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                    ctx.fillText('RIESGO DE TORMENTA', PAD.l, riskTop - 8);
+                ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                ctx.fillText('RIESGO DE TORMENTA · 3 DÍAS (MAÑANA/TARDE)', PAD.l, riskTop - 8);
 
-                    const dotR = 9;
-                    rows.forEach((r, i) => {
-                        const x = xPos(i);
-                        const risk = r.risk ?? _f7StormRisk(r.capeMax, r.liMin, r.pprob, r.cinMin);
-                        const yDot = riskTop + 20;
-                        ctx.beginPath(); ctx.arc(x, yDot, dotR, 0, Math.PI*2);
-                        ctx.fillStyle = risk.color; ctx.fill();
-                        // Aviso "Loaded Gun": cap extremo pero LI muy negativo, no se rebaja el riesgo
-                        if (risk.loadedGun) {
-                            ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#FFFFFF'; ctx.textAlign = 'center';
-                            ctx.fillText('⚠', x, yDot + 3.5);
-                        }
-                        ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                        ctx.fillText(r.isToday ? 'HOY' : r.dayName, x, yDot + 24);
-                        ctx.font = 'bold 7px Inter,sans-serif'; ctx.fillStyle = risk.color;
-                        ctx.fillText(risk.level, x, yDot + 35);
-                    });
+                const dotR = 9;
+                const yDot = riskTop + 20;
+                stormRows.forEach((r, j) => {
+                    const x = xPosStorm(j);
+                    const risk = r.risk;
+                    ctx.beginPath(); ctx.arc(x, yDot, dotR, 0, Math.PI*2);
+                    ctx.fillStyle = risk.color; ctx.fill();
+                    // Aviso "Loaded Gun": cap extremo pero LI muy negativo, no se rebaja el riesgo
+                    if (risk.loadedGun) {
+                        ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#FFFFFF'; ctx.textAlign = 'center';
+                        ctx.fillText('⚠', x, yDot + 3.5);
+                    }
+                    ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                    ctx.fillText(r.periodLabel, x, yDot + 24);
+                    ctx.font = 'bold 7px Inter,sans-serif'; ctx.fillStyle = risk.color;
+                    ctx.fillText(risk.level, x, yDot + 35);
+                });
+
+                // Fila de días bajo el semáforo, centrada entre mañana/tarde de cada día
+                ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                for (let d = 0; d < stormRows.length; d += 2) {
+                    const r = stormRows[d];
+                    const xMid = (xPosStorm(d) + xPosStorm(d + 1)) / 2;
+                    ctx.fillText(r.isToday ? 'HOY' : r.dayName, xMid, yDot + 48);
                 }
             }
         }
@@ -4491,6 +4528,7 @@
                             }
                         }
                         window._f7LevelData = levelRows;
+                        window._f7StormRows = _f7BuildStormRows(hourly, rows);
 
                         // Ocultar loading
                         const loading = document.getElementById('forecast7-loading');
