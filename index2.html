@@ -3844,7 +3844,7 @@
             const rainH   = 72;    // alto zona lluvia
             const gap2    = 140;   // separación antes de niveles (fila de días + más aire + título de sección + título/leyenda)
             const levelsH = 170;   // alto zona 850hPa/500hPa (con espacio para ambas líneas y etiquetas)
-            const gap3    = 65;    // separación antes de isocero (más aire entre ambas gráficas)
+            const gap3    = 30;    // separación antes de isocero
             const isoH    = 70;    // alto zona cota isocero (reducida)
 
             const tempTop    = PAD.t;
@@ -3962,13 +3962,14 @@
                 const lvMax = Math.ceil(Math.max(...allLv)) + 8;
                 const yLv   = v => levelsTop + levelsH - ((v - lvMin) / (lvMax - lvMin)) * levelsH;
 
-                // Líneas guía
-                for (let s = 0; s <= 2; s++) {
-                    const v = lvMin + (lvMax - lvMin) * s / 2;
+                // Líneas guía cada 10°C (30, 20, 10, 0, -10, -20, -30), sin etiquetar salvo la de 30°
+                const guideTemps = [30, 20, 10, 0, -10, -20, -30];
+                guideTemps.forEach(v => {
+                    if (v < lvMin || v > lvMax) return;
                     const y = yLv(v);
                     ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
                     ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1; ctx.stroke();
-                }
+                });
 
                 // Línea 850hPa — blanca continua
                 ctx.beginPath();
