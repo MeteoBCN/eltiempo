@@ -6048,12 +6048,6 @@
                 }
                 const flag = alertFlag(avgWH ?? 0, avgWS ?? 0, maxPrec ?? 0);
 
-                const pill = (label, val, bg, textColor) => `
-                    <div style="text-align:center;width:100%;">
-                        <div style="font-size:8px;font-weight:700;color:#6a8aab;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;">${label}</div>
-                        <div style="font-size:14.5px;font-weight:900;color:${bg};text-align:center;">${val}</div>
-                    </div>`;
-
                 const precColor  = maxPrec >= 70 ? '#3b82f6' : maxPrec >= 40 ? '#60a5fa' : maxPrec >= 20 ? '#93c5fd' : '#cbd5e1';
                 const tempColor  = avgTemp >= 32 ? '#ef4444' : avgTemp >= 26 ? '#f97316' : avgTemp >= 20 ? '#10b981' : '#3b82f6';
 
@@ -6065,19 +6059,41 @@
                     wcodes2.forEach(c => { freq[c] = (freq[c]||0)+1; });
                     reprWcode = parseInt(Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0]);
                 }
-                const skyIconHtml = reprWcode !== null ? getSvgIcon(reprWcode, 32, false) : '';
+                const skyIconHtml = reprWcode !== null ? getSvgIcon(reprWcode, 30, false) : '';
 
-                return `<div style="flex:1;${borderStyle}padding:6px 5px 10px;background:#ffffff;display:flex;flex-direction:column;align-items:center;gap:7px;">
-                    ${pill('Ba\u00f1o', bath.txt.toUpperCase(), '#123653', '#fff')}
-                    <div id="cell-info-${cellId}" style="display:none;flex-direction:column;align-items:center;gap:7px;width:100%;">
-                        <div style="text-align:center;width:100%;padding-top:2px;">
-                            <div style="display:flex;justify-content:center;align-items:center;">${skyIconHtml}</div>
-                            <div style="font-size:14.5px;font-weight:900;color:#123653;margin-top:3px;">${avgTemp !== null ? avgTemp+'\u00b0C' : '\u2014'}</div>
+                // Barra horizontal de gauge (0-100%) con icono a la izquierda
+                const gauge = (iconHtml, label, val, pct, color) => `
+                    <div style="width:100%;">
+                        <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
+                            <span style="font-size:11px;line-height:1;flex-shrink:0;">${iconHtml}</span>
+                            <span style="font-size:8px;font-weight:700;color:#6a8aab;text-transform:uppercase;letter-spacing:0.6px;flex:1;">${label}</span>
+                            <span style="font-size:9px;font-weight:800;color:${color};white-space:nowrap;">${val}</span>
                         </div>
-                        ${pill('Altura Olas', avgWH !== null ? avgWH.toFixed(1)+' m' : '\u2014', '#123653', '#fff')}
-                        ${pill('Mar',    wl.txt,   '#123653',   '#fff')}
-                        ${pill('Viento', wdl.txt,  '#123653',  '#fff')}
-                        ${pill('Lluvia', maxPrec !== null ? maxPrec+'%' : '\u2014', '#123653', '#fff')}
+                        <div style="width:100%;height:5px;background:#e6eef5;border-radius:3px;overflow:hidden;">
+                            <div style="width:${Math.max(4,Math.min(100,pct))}%;height:100%;background:${color};border-radius:3px;"></div>
+                        </div>
+                    </div>`;
+
+                const whPct   = avgWH !== null ? (avgWH / 2.5) * 100 : 0;
+                const wsPct   = avgWS !== null ? (avgWS / 75) * 100 : 0;
+                const rainPct = maxPrec !== null ? maxPrec : 0;
+
+                // Emoji nadador para el badge de baño (icono en vez de solo texto)
+                const bathEmoji = bath.txt === 'Ideal' ? '\u{1F3CA}' : bath.txt === 'Aceptable' ? '\u{1F30A}' : bath.txt === 'Precaucion' ? '\u26A0\uFE0F' : '\u26D4';
+
+                return `<div style="flex:1;${borderStyle}padding:7px 6px 9px;background:#ffffff;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                    <div style="display:flex;justify-content:center;align-items:center;">${skyIconHtml}</div>
+                    <div style="font-size:13px;font-weight:900;color:${tempColor};margin-top:-2px;">${avgTemp !== null ? avgTemp+'\u00b0C' : '\u2014'}</div>
+                    <div style="width:100%;display:flex;flex-direction:column;gap:5px;">
+                        ${gauge('\u{1F30A}', 'Olas',   avgWH !== null ? avgWH.toFixed(1)+'m' : '\u2014', whPct, wl.color)}
+                        ${gauge('\u{1F4A8}', 'Viento', avgWS !== null ? avgWS+'km/h' : '\u2014', wsPct, wdl.color)}
+                        ${gauge('\u2614',    'Lluvia',  maxPrec !== null ? maxPrec+'%' : '\u2014', rainPct, precColor)}
+                    </div>
+                    <div style="width:100%;margin-top:2px;padding:4px 4px;border-radius:8px;background:${bath.color}18;border:1px solid ${bath.color}55;display:flex;align-items:center;justify-content:center;gap:4px;">
+                        <span style="font-size:12px;line-height:1;">${bathEmoji}</span>
+                        <span style="font-size:9px;font-weight:900;color:${bath.color};text-transform:uppercase;letter-spacing:0.4px;">${bath.txt}</span>
+                    </div>
+                    <div id="cell-info-${cellId}" style="display:none;width:100%;">
                     </div>
                 </div>`;
             }
@@ -6184,7 +6200,10 @@
                                 <span style="font-size:11px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;">Lluvia</span>
                             </div>
                         </div>
-                        <div style="display:flex;border-bottom:1px solid #e2e8f0;">
+                        <div style="padding:2px 8px 6px;background:#ffffff;display:flex;justify-content:center;">
+                            <canvas id="wave-chart-${cardId}" style="display:block;max-width:100%;"></canvas>
+                        </div>
+                        <div style="display:flex;border-bottom:1px solid #e2e8f0;border-top:1px solid #e2e8f0;">
                             <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;border-right:1px solid #e2e8f0;font-size:10px;font-weight:700;color:#123653;letter-spacing:0.5px;">08 a 12H</div>
                             <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;border-right:1px solid #e2e8f0;font-size:10px;font-weight:700;color:#123653;letter-spacing:0.5px;">12 a 16H</div>
                             <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;font-size:10px;font-weight:700;color:#123653;letter-spacing:0.5px;">16 a 20H</div>
@@ -6320,6 +6339,14 @@
                 } else {
                     body.style.display = 'block';
                     if (arrow) arrow.style.transform = 'rotate(180deg)';
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            const slots = window._mar3Slots && window._mar3Slots[cardId];
+                            if (slots && window._mar3DrawChart) {
+                                window._mar3DrawChart('wave-chart-' + cardId, slots);
+                            }
+                        });
+                    });
                 }
             };
 
@@ -6426,13 +6453,16 @@
                         }
                     }
 
-                    // Dibujar gráfico de HOY al cargar (ya está visible)
+                    // Dibujar gráfico de HOY al cargar (ya está visible); el resto se dibuja al abrir su acordeón
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
                             setTimeout(() => {
-                                const slots0 = window._mar3Slots && window._mar3Slots['day0'];
-                                if (slots0 && window._mar3DrawChart) {
-                                    window._mar3DrawChart('wave-chart-day0', slots0);
+                                for (let off = 0; off < 3; off++) {
+                                    const slotsN = window._mar3Slots && window._mar3Slots['day' + off];
+                                    const canvasEl = document.getElementById('wave-chart-day' + off);
+                                    if (slotsN && canvasEl && window._mar3DrawChart) {
+                                        window._mar3DrawChart('wave-chart-day' + off, slotsN);
+                                    }
                                 }
                             }, 80);
                         });
