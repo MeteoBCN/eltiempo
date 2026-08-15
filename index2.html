@@ -4329,6 +4329,25 @@
                             };
                         });
                         window._f7Data = rows;
+
+                        // ── Niveles 850hPa / 500hPa + cota de isocero cada 12h (7 días) ──
+                        const levelRows = [];
+                        if (hourly?.time && hourly?.temperature_850hPa && hourly?.temperature_500hPa) {
+                            for (let i = 0; i < hourly.time.length; i++) {
+                                const hdt = new Date(hourly.time[i]);
+                                const hh = hdt.getHours();
+                                if (hh !== 0 && hh !== 12) continue;
+                                levelRows.push({
+                                    dateStr : hourly.time[i].slice(0,10),
+                                    hour    : hh,
+                                    t850    : Math.round(hourly.temperature_850hPa[i] ?? 0),
+                                    t500    : Math.round(hourly.temperature_500hPa[i] ?? 0),
+                                    cota    : Math.round((hourly.freezing_level_height?.[i] ?? 0) / 10) * 10,
+                                });
+                            }
+                        }
+                        window._f7LevelData = levelRows;
+
                         // Ocultar loading
                         const loading = document.getElementById('forecast7-loading');
                         if (loading) loading.style.display = 'none';
