@@ -959,7 +959,7 @@
                 </div>
 
                 <!-- Panel inferior: niveles 850hPa/500hPa (atmósfera libre) / cota de isocero -->
-                <div id="f7-panel-wrap-bottom" style="position:relative;height:502px;">
+                <div id="f7-panel-wrap-bottom" style="position:relative;height:582px;">
                 <div id="f7-panel-combo-bottom" style="padding:0 16px 18px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-bottom" style="display:block;width:100%;"></canvas>
                 </div>
@@ -3868,13 +3868,13 @@
             const W   = canvas.parentElement.offsetWidth - 32;
             const ctx = canvas.getContext('2d');
 
-            const PAD = { t:90, r:16, b:24, l:16 };
+            const PAD = { t:130, r:16, b:24, l:16 };
             const cw  = W - PAD.l - PAD.r;
             const n   = (rows && rows.length) || 7;
             const xPos = i => PAD.l + (i / (n - 1)) * cw;
 
             const levelsH = 170;   // alto zona 850hPa/500hPa (con espacio para ambas líneas y etiquetas)
-            const gap3    = 130;   // separación antes de isocero (margen amplio)
+            const gap3    = 170;   // separación antes de isocero (margen amplio)
             const isoH    = 70;    // alto zona cota isocero
 
             const levelsTop    = PAD.t;
@@ -3940,12 +3940,14 @@
                 ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 levels.forEach((l, j) => { ctx.fillText(l.hour === 0 ? '00h' : '12h', xPos2(j), levelsBottom + 24); });
 
-                // Fila de días, centrada bajo cada par de horas (00h/12h)
+                // Fila de días, alineada justo bajo la hora 00h de cada día
                 if (rows) {
                     ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                     rows.forEach((r, i) => {
                         const lbl = r.isToday ? 'HOY' : r.dayName;
-                        ctx.fillText(lbl, xPos(i), levelsBottom + 40);
+                        const j00 = levels.findIndex(l => l.dateStr === r.dateStr && l.hour === 0);
+                        const x = j00 !== -1 ? xPos2(j00) : xPos(i);
+                        ctx.fillText(lbl, x, levelsBottom + 40);
                     });
                 }
 
