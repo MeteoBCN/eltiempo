@@ -3222,21 +3222,65 @@
             return vals.length ? fn(vals) : null;
         }
 
-        // Clasifica el riesgo de tormenta por condiciones (CAPE + Lifted Index + prob. de lluvia)
-        // RIESGO BAJO  → cape < 500 J/kg  O  lifted_index > -1 °C (sin energía o sin ascenso, aunque llueva es lluvia común)
-        // RIESGO MEDIO → 500 ≤ cape ≤ 1500  Y  -4 ≤ lifted_index ≤ -1  Y  prob. lluvia > 30%
-        // RIESGO ALTO  → cape > 1500  Y  lifted_index < -4  Y  prob. lluvia > 40%
+        // Clasifica el riesgo de tormenta por condiciones (CAPE + Lifted Index + prob. de lluvia),
+        // y lo modula después según el CIN (tapa convectiva):
+        // RIESGO BAJO  (base) → cape < 500 J/kg  O  lifted_index > -1 °C
+        // RIESGO MEDIO (base) → 500 ≤ cape ≤ 1500  Y  -4 ≤ lifted_index ≤ -1  Y  prob. lluvia > 30%
+        // RIESGO ALTO  (base) → cape > 1500  Y  lifted_index < -4  Y  prob. lluvia > 40%
+        // Ajuste por CIN:
+        //   Débil (0 a -50 J/kg)          → sin cambios sobre el riesgo base
+        //   Moderado/Fuerte (-50 a -150)  → baja 1 escalón (ALTO→MEDIO, MEDIO→BAJO)
+        //   Extremo (< -150)              → baja 2 escalones (o directo a BAJO)…
+        //                                    …salvo que el LI sea extremadamente negativo (≤ -6°C),
+        //                                    escenario "Loaded Gun": el cap es casi indestructible pero,
+        //                                    si se rompe, la energía acumulada es explosiva, así que
+        //                                    NO se rebaja el riesgo, se mantiene como aviso.
         // (función global: la usa _f7DayStormRisk para calcular cada franja de 12h)
-        function _f7StormRisk(capeMax, liMin, pprob) {
+        const _F7_RISK_ORDER = ['BAJO', 'MEDIO', 'ALTO'];
+        const _F7_RISK_COLOR = { 'BAJO': '#10B981', 'MEDIO': '#F59E0B', 'ALTO': '#EF4444' };
+        const _F7_LOADED_GUN_LI = -6; // LI a partir del cual un cap extremo se considera "pistola amartillada"
+
+        function _f7StepDownRisk(level, steps) {
+            let idx = _F7_RISK_ORDER.indexOf(level);
+            if (idx === -1) return level;
+            idx = Math.max(0, idx - steps);
+            return _F7_RISK_ORDER[idx];
+        }
+
+        function _f7StormRisk(capeMax, liMin, pprob, cinMin) {
             if (capeMax === null || capeMax === undefined) return { level: '—', color: '#94A3B8' };
             const p = pprob ?? 0;
+
+            // 1) Riesgo base según CAPE + LI + prob. lluvia
+            let level;
             if (capeMax > 1500 && liMin !== null && liMin !== undefined && liMin < -4 && p > 40) {
-                return { level: 'ALTO', color: '#EF4444' };
+                level = 'ALTO';
+            } else if (capeMax >= 500 && capeMax <= 1500 && liMin !== null && liMin !== undefined && liMin <= -1 && liMin >= -4 && p > 30) {
+                level = 'MEDIO';
+            } else {
+                level = 'BAJO';
             }
-            if (capeMax >= 500 && capeMax <= 1500 && liMin !== null && liMin !== undefined && liMin <= -1 && liMin >= -4 && p > 30) {
-                return { level: 'MEDIO', color: '#F59E0B' };
+
+            // 2) Modulación por CIN (tapa convectiva)
+            let loadedGun = false;
+            if (cinMin !== null && cinMin !== undefined) {
+                if (cinMin <= -150) {
+                    // Cap extremo: casi indestructible
+                    const liExtremo = liMin !== null && liMin !== undefined && liMin <= _F7_LOADED_GUN_LI;
+                    if (liExtremo) {
+                        // "Pistola amartillada": no se rebaja, se marca como aviso especial
+                        loadedGun = true;
+                    } else {
+                        level = _f7StepDownRisk(level, 2);
+                    }
+                } else if (cinMin <= -50) {
+                    // Cap moderado/fuerte
+                    level = _f7StepDownRisk(level, 1);
+                }
+                // Cap débil (0 a -50): sin cambios
             }
-            return { level: 'BAJO', color: '#10B981' };
+
+            return { level, color: _F7_RISK_COLOR[level], loadedGun };
         }
 
         // Rango de niveles para poder comparar cuál es "peor"
@@ -3244,22 +3288,28 @@
         function _f7WorstRisk(a, b) {
             if (!a) return b;
             if (!b) return a;
-            return (_F7_RISK_RANK[a.level] ?? -1) >= (_F7_RISK_RANK[b.level] ?? -1) ? a : b;
+            const worst = (_F7_RISK_RANK[a.level] ?? -1) >= (_F7_RISK_RANK[b.level] ?? -1) ? a : b;
+            // El aviso "Loaded Gun" se conserva si cualquiera de las dos franjas lo tuvo,
+            // aunque esa franja no sea la de nivel más alto
+            return { ...worst, loadedGun: !!(a.loadedGun || b.loadedGun) };
         }
 
         // Riesgo de tormenta de un día completo: se calcula por separado en la franja
-        // 00-12h y en la 12-24h, y se muestra el peor de los dos (más restrictivo)
+        // 00-12h y en la 12-24h (incluyendo CIN de cada franja), y se muestra el peor
+        // de los dos (más restrictivo)
         // (función global: la usa drawF7ChartBottom para el semáforo diario)
         function _f7DayStormRisk(hourly, dateStr) {
             const capeAM = _f7HalfDayAgg(hourly, 'cape', dateStr, 0, 12, arr => Math.max(...arr));
             const liAM   = _f7HalfDayAgg(hourly, 'lifted_index', dateStr, 0, 12, arr => Math.min(...arr));
             const ppAM   = _f7HalfDayAgg(hourly, 'precipitation_probability', dateStr, 0, 12, arr => Math.max(...arr));
+            const cinAM  = _f7HalfDayAgg(hourly, 'convective_inhibition', dateStr, 0, 12, arr => Math.min(...arr));
             const capePM = _f7HalfDayAgg(hourly, 'cape', dateStr, 12, 24, arr => Math.max(...arr));
             const liPM   = _f7HalfDayAgg(hourly, 'lifted_index', dateStr, 12, 24, arr => Math.min(...arr));
             const ppPM   = _f7HalfDayAgg(hourly, 'precipitation_probability', dateStr, 12, 24, arr => Math.max(...arr));
+            const cinPM  = _f7HalfDayAgg(hourly, 'convective_inhibition', dateStr, 12, 24, arr => Math.min(...arr));
 
-            const riskAM = _f7StormRisk(capeAM, liAM, ppAM);
-            const riskPM = _f7StormRisk(capePM, liPM, ppPM);
+            const riskAM = _f7StormRisk(capeAM, liAM, ppAM, cinAM);
+            const riskPM = _f7StormRisk(capePM, liPM, ppPM, cinPM);
             return _f7WorstRisk(riskAM, riskPM);
         }
 
@@ -4242,10 +4292,15 @@
                     const dotR = 9;
                     rows.forEach((r, i) => {
                         const x = xPos(i);
-                        const risk = r.risk ?? _f7StormRisk(r.capeMax, r.liMin, r.pprob);
+                        const risk = r.risk ?? _f7StormRisk(r.capeMax, r.liMin, r.pprob, r.cinMin);
                         const yDot = riskTop + 20;
                         ctx.beginPath(); ctx.arc(x, yDot, dotR, 0, Math.PI*2);
                         ctx.fillStyle = risk.color; ctx.fill();
+                        // Aviso "Loaded Gun": cap extremo pero LI muy negativo, no se rebaja el riesgo
+                        if (risk.loadedGun) {
+                            ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#FFFFFF'; ctx.textAlign = 'center';
+                            ctx.fillText('⚠', x, yDot + 3.5);
+                        }
                         ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                         ctx.fillText(r.isToday ? 'HOY' : r.dayName, x, yDot + 24);
                         ctx.font = 'bold 7px Inter,sans-serif'; ctx.fillStyle = risk.color;
