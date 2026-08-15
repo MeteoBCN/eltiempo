@@ -3671,7 +3671,7 @@
             // ── Zonas apiladas: temperatura / lluvia / precipitación acumulada,
             //    separadas por huecos con divisor sutil ──
             const tempH   = 140;   // alto zona temperatura
-            const gap     = 32;    // separación entre zonas
+            const gap     = 44;    // separación entre zonas (incluye fila de días bajo temperatura)
             const rainH   = 72;    // alto zona lluvia
 
             const tempTop    = PAD.t;
@@ -3753,6 +3753,13 @@
             };
             drawLine(tmax, '#FF8A65', -9, false);
             drawLine(tmin, '#7DD3FC', 16, true);
+
+            // Fila de días debajo de la gráfica de temperatura (máx/mín)
+            ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+            rows.forEach((r, i) => {
+                const lbl = r.isToday ? 'HOY' : r.dayName;
+                ctx.fillText(lbl, xPos(i), tempBottom + 14);
+            });
 
             // ── Zona lluvia: título + barras, ancladas abajo de su propia franja ──
             ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
@@ -3915,27 +3922,29 @@
                     ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1; ctx.stroke();
                 });
 
-                // Línea 850hPa — blanca continua
+                // Línea 850hPa — naranja continua (igual que Máx)
                 ctx.beginPath();
                 levels.forEach((l, j) => { const x = xPos2(j), y = yLv(l.t850); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
                 ctx.setLineDash([]);
-                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
 
-                // Línea 500hPa — blanca discontinua
+                // Línea 500hPa — celeste discontinua (igual que Mín)
                 ctx.beginPath();
                 levels.forEach((l, j) => { const x = xPos2(j), y = yLv(l.t500); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
                 ctx.setLineDash([5, 4]);
-                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.strokeStyle = '#7DD3FC'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
                 ctx.setLineDash([]);
 
                 // Puntos + etiquetas (solo cada 12h a las 00h para no saturar, y todas a 12h)
                 levels.forEach((l, j) => {
                     const x850 = xPos2(j), y850 = yLv(l.t850);
-                    ctx.beginPath(); ctx.arc(x850, y850, 2.3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
+                    ctx.beginPath(); ctx.arc(x850, y850, 2.3, 0, Math.PI*2); ctx.fillStyle = '#FF8A65'; ctx.fill();
                     const y500 = yLv(l.t500);
-                    ctx.beginPath(); ctx.arc(x850, y500, 2.3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
-                    ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.85)';
+                    ctx.beginPath(); ctx.arc(x850, y500, 2.3, 0, Math.PI*2); ctx.fillStyle = '#7DD3FC'; ctx.fill();
+                    ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif';
+                    ctx.fillStyle = '#FF8A65';
                     ctx.fillText(l.t850 + '°', x850, y850 - 6);
+                    ctx.fillStyle = '#7DD3FC';
                     ctx.fillText(l.t500 + '°', x850, y500 + 11);
                 });
 
@@ -3964,13 +3973,16 @@
                 ctx.fillStyle = 'rgba(255,255,255,0.65)';
                 ctx.fillText('TEMPERATURA 850hPa / 500hPa · CADA 12H', PAD.l, levelsTop - 35);
 
-                ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 9px Inter,sans-serif';
                 ctx.textAlign = 'left';
                 ctx.beginPath(); ctx.moveTo(PAD.l, levelsTop - 24); ctx.lineTo(PAD.l + 14, levelsTop - 24);
-                ctx.setLineDash([]); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+                ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 2; ctx.stroke();
+                ctx.fillStyle = '#FF8A65';
                 ctx.fillText(' 850hPa', PAD.l + 14, levelsTop - 21);
                 ctx.beginPath(); ctx.moveTo(PAD.l + 72, levelsTop - 24); ctx.lineTo(PAD.l + 86, levelsTop - 24);
+                ctx.strokeStyle = '#7DD3FC';
                 ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+                ctx.fillStyle = '#7DD3FC';
                 ctx.fillText(' 500hPa', PAD.l + 86, levelsTop - 21);
 
                 // Línea base
