@@ -933,7 +933,7 @@
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <!-- Panel único -->
-                <div style="position:relative;height:534px;">
+                <div style="position:relative;height:625px;">
                 <div id="f7-panel-combo" style="padding:14px 16px 18px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-combo" style="display:block;width:100%;"></canvas>
                 </div>
@@ -3825,7 +3825,7 @@
 
             const dpr = window.devicePixelRatio || 1;
             const W   = canvas.parentElement.offsetWidth - 32;
-            const H   = 500;
+            const H   = 590;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -3833,19 +3833,19 @@
             const ctx = canvas.getContext('2d');
             ctx.scale(dpr, dpr);
 
-            const PAD = { t:52, r:16, b:24, l:16 };
+            const PAD = { t:56, r:16, b:24, l:16 };
             const cw  = W - PAD.l - PAD.r;
             const n   = rows.length;
 
             // ── Zonas apiladas: temperatura / lluvia / niveles 850-500hPa / cota isocero,
             //    separadas por huecos con divisor sutil ──
-            const tempH   = 128;   // alto zona temperatura
-            const gap     = 26;    // separación entre zonas
-            const rainH   = 62;    // alto zona lluvia
-            const gap2    = 26;    // separación antes de niveles
-            const levelsH = 92;    // alto zona 850hPa/500hPa
-            const gap3    = 22;    // separación antes de isocero
-            const isoH    = 64;    // alto zona cota isocero
+            const tempH   = 140;   // alto zona temperatura
+            const gap     = 32;    // separación entre zonas
+            const rainH   = 72;    // alto zona lluvia
+            const gap2    = 32;    // separación antes de niveles
+            const levelsH = 110;   // alto zona 850hPa/500hPa
+            const gap3    = 28;    // separación antes de isocero
+            const isoH    = 78;    // alto zona cota isocero
 
             const tempTop    = PAD.t;
             const tempBottom = tempTop + tempH;
@@ -3855,7 +3855,7 @@
             const levelsBottom = levelsTop + levelsH;
             const isoTop     = levelsBottom + gap3;
             const isoBottom  = isoTop + isoH;
-            const xAxisY     = isoBottom + 16;
+            const xAxisY     = isoBottom + 20;
 
             const tmax = rows.map(r => r.tmax);
             const tmin = rows.map(r => r.tmin);
