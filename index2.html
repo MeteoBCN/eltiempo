@@ -3207,19 +3207,60 @@
             return vals.length ? fn(vals) : null;
         }
 
-        // Clasifica el riesgo de tormenta combinando CAPE máx, Lifted Index mín y CIN mín del día
-        // (función global: la usa drawF7ChartBottom para el semáforo de riesgo de tormenta)
-        function _f7StormRisk(capeMax, liMin, cinMin) {
-            if (capeMax === null || capeMax === undefined) return { level: '—', color: '#94A3B8' };
-            let score = 0;
-            if (capeMax >= 1500) score += 2; else if (capeMax >= 500) score += 1;
-            if (liMin !== null && liMin !== undefined) {
-                if (liMin <= -4) score += 2; else if (liMin <= -1) score += 1;
+        // Agrega un array horario para una franja concreta (hStart inclusive - hEnd exclusive) de un día
+        // (función global: usada por _f7DayStormRisk para separar mañana/tarde-noche)
+        function _f7HalfDayAgg(hourly, field, dateStr, hStart, hEnd, fn) {
+            if (!hourly?.time || !hourly?.[field]) return null;
+            const vals = [];
+            for (let i = 0; i < hourly.time.length; i++) {
+                if (hourly.time[i].slice(0,10) !== dateStr) continue;
+                const hh = parseInt(hourly.time[i].slice(11,13), 10);
+                if (hh < hStart || hh >= hEnd) continue;
+                const v = hourly[field][i];
+                if (v !== null && v !== undefined) vals.push(v);
             }
-            if (cinMin !== null && cinMin !== undefined && cinMin <= -100) score -= 1;
-            if (score >= 3) return { level: 'ALTO',  color: '#EF4444' };
-            if (score >= 1) return { level: 'MEDIO', color: '#F59E0B' };
+            return vals.length ? fn(vals) : null;
+        }
+
+        // Clasifica el riesgo de tormenta por condiciones (CAPE + Lifted Index + prob. de lluvia)
+        // RIESGO BAJO  → cape < 500 J/kg  O  lifted_index > -1 °C (sin energía o sin ascenso, aunque llueva es lluvia común)
+        // RIESGO MEDIO → 500 ≤ cape ≤ 1500  Y  -4 ≤ lifted_index ≤ -1  Y  prob. lluvia > 30%
+        // RIESGO ALTO  → cape > 1500  Y  lifted_index < -4  Y  prob. lluvia > 40%
+        // (función global: la usa _f7DayStormRisk para calcular cada franja de 12h)
+        function _f7StormRisk(capeMax, liMin, pprob) {
+            if (capeMax === null || capeMax === undefined) return { level: '—', color: '#94A3B8' };
+            const p = pprob ?? 0;
+            if (capeMax > 1500 && liMin !== null && liMin !== undefined && liMin < -4 && p > 40) {
+                return { level: 'ALTO', color: '#EF4444' };
+            }
+            if (capeMax >= 500 && capeMax <= 1500 && liMin !== null && liMin !== undefined && liMin <= -1 && liMin >= -4 && p > 30) {
+                return { level: 'MEDIO', color: '#F59E0B' };
+            }
             return { level: 'BAJO', color: '#10B981' };
+        }
+
+        // Rango de niveles para poder comparar cuál es "peor"
+        const _F7_RISK_RANK = { '—': -1, 'BAJO': 0, 'MEDIO': 1, 'ALTO': 2 };
+        function _f7WorstRisk(a, b) {
+            if (!a) return b;
+            if (!b) return a;
+            return (_F7_RISK_RANK[a.level] ?? -1) >= (_F7_RISK_RANK[b.level] ?? -1) ? a : b;
+        }
+
+        // Riesgo de tormenta de un día completo: se calcula por separado en la franja
+        // 00-12h y en la 12-24h, y se muestra el peor de los dos (más restrictivo)
+        // (función global: la usa drawF7ChartBottom para el semáforo diario)
+        function _f7DayStormRisk(hourly, dateStr) {
+            const capeAM = _f7HalfDayAgg(hourly, 'cape', dateStr, 0, 12, arr => Math.max(...arr));
+            const liAM   = _f7HalfDayAgg(hourly, 'lifted_index', dateStr, 0, 12, arr => Math.min(...arr));
+            const ppAM   = _f7HalfDayAgg(hourly, 'precipitation_probability', dateStr, 0, 12, arr => Math.max(...arr));
+            const capePM = _f7HalfDayAgg(hourly, 'cape', dateStr, 12, 24, arr => Math.max(...arr));
+            const liPM   = _f7HalfDayAgg(hourly, 'lifted_index', dateStr, 12, 24, arr => Math.min(...arr));
+            const ppPM   = _f7HalfDayAgg(hourly, 'precipitation_probability', dateStr, 12, 24, arr => Math.max(...arr));
+
+            const riskAM = _f7StormRisk(capeAM, liAM, ppAM);
+            const riskPM = _f7StormRisk(capePM, liPM, ppPM);
+            return _f7WorstRisk(riskAM, riskPM);
         }
 
         /* ── Lógica principal ── */
@@ -3258,6 +3299,7 @@
                             capeMax : capeMax !== null ? Math.round(capeMax) : null,
                             liMin   : liMin !== null ? Math.round(liMin * 10) / 10 : null,
                             cinMin  : cinMin !== null ? Math.round(cinMin) : null,
+                            risk    : _f7DayStormRisk(hourly, ds),
                         };
                     });
 
@@ -4189,7 +4231,8 @@
                 ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
 
                 // ══════════════════════════════════════════════
-                // Semáforo de riesgo de tormenta (resumen diario CAPE+LI+CIN)
+                // Semáforo de riesgo de tormenta (CAPE + Lifted Index + prob. lluvia,
+                // calculado en franjas de 00-12h y 12-24h; se muestra la peor de las dos)
                 // ══════════════════════════════════════════════
                 if (rows) {
                     ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
@@ -4199,7 +4242,7 @@
                     const dotR = 9;
                     rows.forEach((r, i) => {
                         const x = xPos(i);
-                        const risk = _f7StormRisk(r.capeMax, r.liMin, r.cinMin);
+                        const risk = r.risk ?? _f7StormRisk(r.capeMax, r.liMin, r.pprob);
                         const yDot = riskTop + 20;
                         ctx.beginPath(); ctx.arc(x, yDot, dotR, 0, Math.PI*2);
                         ctx.fillStyle = risk.color; ctx.fill();
@@ -4366,6 +4409,7 @@
                                 capeMax : capeMax !== null ? Math.round(capeMax) : null,
                                 liMin   : liMin !== null ? Math.round(liMin * 10) / 10 : null,
                                 cinMin  : cinMin !== null ? Math.round(cinMin) : null,
+                                risk    : _f7DayStormRisk(hourly, ds),
                             };
                         });
                         window._f7Data = rows;
