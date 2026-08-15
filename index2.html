@@ -3844,7 +3844,7 @@
             const rainH   = 72;    // alto zona lluvia
             const gap2    = 140;   // separación antes de niveles (fila de días + más aire + título de sección + título/leyenda)
             const levelsH = 170;   // alto zona 850hPa/500hPa (con espacio para ambas líneas y etiquetas)
-            const gap3    = 30;    // separación antes de isocero
+            const gap3    = 90;    // separación antes de isocero (margen amplio)
             const isoH    = 70;    // alto zona cota isocero (reducida)
 
             const tempTop    = PAD.t;
@@ -4026,7 +4026,10 @@
                 // ══════════════════════════════════════════════
                 // Zona cota de isocero (0°C) — línea + área
                 // ══════════════════════════════════════════════
-                const cotaV = levels.map(l => l.cota);
+                // Se descarta el último dato: se solapaba visualmente con el penúltimo
+                const isoLevels = levels.slice(0, -1);
+                const mIso = isoLevels.length;
+                const cotaV = isoLevels.map(l => l.cota);
                 const cMin = Math.min(...cotaV, 0);
                 const cMax = Math.max(...cotaV, 500);
                 const yIso = v => isoTop + isoH - ((v - cMin) / (cMax - cMin || 1)) * isoH;
@@ -4034,8 +4037,8 @@
                 // Área bajo la línea
                 ctx.beginPath();
                 ctx.moveTo(xPos2(0), yIso(cotaV[0]));
-                for (let j = 1; j < m; j++) ctx.lineTo(xPos2(j), yIso(cotaV[j]));
-                ctx.lineTo(xPos2(m-1), isoBottom);
+                for (let j = 1; j < mIso; j++) ctx.lineTo(xPos2(j), yIso(cotaV[j]));
+                ctx.lineTo(xPos2(mIso-1), isoBottom);
                 ctx.lineTo(xPos2(0), isoBottom);
                 ctx.closePath();
                 const gIso = ctx.createLinearGradient(0, isoTop, 0, isoBottom);
@@ -4045,14 +4048,14 @@
 
                 // Línea de cota isocero — blanca continua
                 ctx.beginPath();
-                levels.forEach((l, j) => { const x = xPos2(j), y = yIso(l.cota); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
+                isoLevels.forEach((l, j) => { const x = xPos2(j), y = yIso(l.cota); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
                 ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
 
-                levels.forEach((l, j) => {
+                isoLevels.forEach((l, j) => {
                     const x = xPos2(j), y = yIso(l.cota);
                     ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
                     // Solo etiquetar a las 00h para no saturar (y siempre el primero/último)
-                    if (l.hour === 0 || j === m - 1) {
+                    if (l.hour === 0 || j === mIso - 1) {
                         ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                         ctx.fillText(l.cota + 'm', x, y - 7);
                     }
