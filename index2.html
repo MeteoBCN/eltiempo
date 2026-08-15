@@ -3673,7 +3673,7 @@
             // ── Zonas apiladas: temperatura / lluvia / precipitación acumulada,
             //    separadas por huecos con divisor sutil ──
             const tempH   = 140;   // alto zona temperatura
-            const gap     = 62;    // separación entre zonas (incluye fila de días bajo temperatura, con aire extra antes de "PROBABILIDAD DE LLUVIA")
+            const gap     = 80;    // separación entre zonas (incluye fila de días bajo temperatura, con bastante aire antes de "PROBABILIDAD DE LLUVIA")
             const rainH   = 72;    // alto zona lluvia
 
             const tempTop    = PAD.t;
@@ -3886,24 +3886,15 @@
             const xPos = i => PAD.l + (i / (n - 1)) * cw;
 
             const levelsH = 170;   // alto zona 850hPa/500hPa (con espacio para ambas líneas y etiquetas)
-            const gap3    = 170;   // separación antes de isocero (margen amplio)
+            const gap3    = 148;   // separación antes de isocero (un poco menos de aire respecto a la fila de días)
             const isoH    = 70;    // alto zona cota isocero
-            const gap4    = 170;   // separación antes de viento/presión (margen amplio)
-            const windLineH = 80;  // alto sub-zona viento
-            const windGap2  = 46;  // separación entre viento y presión
-            const presLineH = 80;  // alto sub-zona presión
 
             const levelsTop    = PAD.t;
             const levelsBottom = levelsTop + levelsH;
             const isoTop     = levelsBottom + gap3;
             const isoBottom  = isoTop + isoH;
-            const windTop        = isoBottom + gap4;
-            const windLineBottom = windTop + windLineH;
-            const presTop         = windLineBottom + windGap2;
-            const presBottom      = presTop + presLineH;
-            const windBottom      = presBottom;
 
-            const H = windBottom + PAD.b;
+            const H = isoBottom + PAD.b;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -4045,101 +4036,6 @@
                 // Línea base
                 ctx.beginPath();
                 ctx.moveTo(PAD.l, isoBottom); ctx.lineTo(PAD.l + cw, isoBottom);
-                ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
-
-                // ══════════════════════════════════════════════
-                // Zona viento / presión a 10m — dos sub-zonas separadas
-                // ══════════════════════════════════════════════
-                const windV = levels.map(l => l.wind);
-                const presV = levels.map(l => l.pres);
-                const wMin = Math.max(0, Math.floor(Math.min(...windV) / 5) * 5 - 5);
-                const wMax = Math.ceil(Math.max(...windV) / 5) * 5 + 5;
-                const pMin = Math.floor(Math.min(...presV)) - 3;
-                const pMax = Math.ceil(Math.max(...presV)) + 3;
-                const yWind = v => windTop + windLineH - ((v - wMin) / (wMax - wMin || 1)) * windLineH;
-                const yPres = v => presTop + presLineH - ((v - pMin) / (pMax - pMin || 1)) * presLineH;
-
-                // Etiquetar solo cada 24h (a las 00h) para no saturar el eje de puntos
-                const labelEvery = l => l.hour === 0;
-
-                // ── Sub-zona viento ──
-                ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
-                ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText('VELOCIDAD DEL VIENTO (km/h)', PAD.l, windTop - 8);
-
-                ctx.beginPath();
-                ctx.moveTo(xPos2(0), yWind(windV[0]));
-                for (let j = 1; j < m; j++) ctx.lineTo(xPos2(j), yWind(windV[j]));
-                ctx.lineTo(xPos2(m-1), windLineBottom);
-                ctx.lineTo(xPos2(0), windLineBottom);
-                ctx.closePath();
-                const gWind = ctx.createLinearGradient(0, windTop, 0, windLineBottom);
-                gWind.addColorStop(0, 'rgba(52,211,153,0.30)');
-                gWind.addColorStop(1, 'rgba(52,211,153,0)');
-                ctx.fillStyle = gWind; ctx.fill();
-
-                ctx.beginPath();
-                levels.forEach((l, j) => { const x = xPos2(j), y = yWind(l.wind); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
-                ctx.setLineDash([]);
-                ctx.strokeStyle = '#34D399'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
-
-                levels.forEach((l, j) => {
-                    const x = xPos2(j), y = yWind(l.wind);
-                    ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = '#34D399'; ctx.fill();
-                    if (labelEvery(l)) {
-                        ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#34D399';
-                        ctx.fillText(l.wind, x, y - 7);
-                    }
-                });
-
-                // Línea base viento
-                ctx.beginPath();
-                ctx.moveTo(PAD.l, windLineBottom); ctx.lineTo(PAD.l + cw, windLineBottom);
-                ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
-
-                // ── Sub-zona presión ──
-                ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
-                ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText('PRESIÓN (hPa)', PAD.l, presTop - 8);
-
-                ctx.beginPath();
-                levels.forEach((l, j) => { const x = xPos2(j), y = yPres(l.pres); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
-                ctx.setLineDash([5, 4]);
-                ctx.strokeStyle = '#FBBF24'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
-                ctx.setLineDash([]);
-
-                levels.forEach((l, j) => {
-                    const x = xPos2(j), y = yPres(l.pres);
-                    ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = '#FBBF24'; ctx.fill();
-                    if (labelEvery(l)) {
-                        ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#FBBF24';
-                        ctx.fillText(l.pres, x, y - 7);
-                    }
-                });
-
-                // Etiquetas 00h/12h de esta franja
-                ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                levels.forEach((l, j) => { ctx.fillText(l.hour === 0 ? '00h' : '12h', xPos2(j), presBottom + 24); });
-
-                // Fila de días, alineada justo bajo la hora 00h de cada día
-                if (rows) {
-                    ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                    rows.forEach((r, i) => {
-                        const lbl = r.isToday ? 'HOY' : r.dayName;
-                        const j00 = levels.findIndex(l => l.dateStr === r.dateStr && l.hour === 0);
-                        const x = j00 !== -1 ? xPos2(j00) : xPos(i);
-                        ctx.fillText(lbl, x, presBottom + 40);
-                    });
-                }
-
-                // Título general de la sección
-                ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
-                ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                ctx.fillText('VIENTO Y PRESIÓN A 10M', PAD.l, windTop - 40);
-
-                // Línea base presión
-                ctx.beginPath();
-                ctx.moveTo(PAD.l, presBottom); ctx.lineTo(PAD.l + cw, presBottom);
                 ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
             }
         }
