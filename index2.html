@@ -940,7 +940,7 @@
                 </div>
 
                 <!-- Botón + desplegable: por qué probabilidad y acumulado se muestran por separado -->
-                <div style="padding:0 16px 14px;">
+                <div style="padding:0 16px 56px;">
                     <button id="f7-info-toggle" onclick="toggleF7InfoPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
                         <span style="font-size:11.5px;font-weight:600;color:#ffffff;line-height:1.3;">¿Por qué mostramos la probabilidad y el acumulado por separado?</span>
                         <span id="f7-info-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
@@ -959,7 +959,7 @@
                 </div>
 
                 <!-- Panel inferior: niveles 850hPa/500hPa (atmósfera libre) / cota de isocero -->
-                <div id="f7-panel-wrap-bottom" style="position:relative;height:502px;">
+                <div id="f7-panel-wrap-bottom" style="position:relative;height:462px;">
                 <div id="f7-panel-combo-bottom" style="padding:0 16px 18px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-bottom" style="display:block;width:100%;"></canvas>
                 </div>
@@ -3863,7 +3863,7 @@
             const W   = canvas.parentElement.offsetWidth - 32;
             const ctx = canvas.getContext('2d');
 
-            const PAD = { t:90, r:16, b:44, l:16 };
+            const PAD = { t:90, r:16, b:24, l:16 };
             const cw  = W - PAD.l - PAD.r;
             const n   = (rows && rows.length) || 7;
             const xPos = i => PAD.l + (i / (n - 1)) * cw;
@@ -3876,9 +3876,8 @@
             const levelsBottom = levelsTop + levelsH;
             const isoTop     = levelsBottom + gap3;
             const isoBottom  = isoTop + isoH;
-            const xAxisY     = isoBottom + 20;
 
-            const H = xAxisY + PAD.b;
+            const H = isoBottom + PAD.b;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -3935,6 +3934,15 @@
                 // Etiquetas 00h/12h de esta franja
                 ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 levels.forEach((l, j) => { ctx.fillText(l.hour === 0 ? '00h' : '12h', xPos2(j), levelsBottom + 24); });
+
+                // Fila de días, centrada bajo cada par de horas (00h/12h)
+                if (rows) {
+                    ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                    rows.forEach((r, i) => {
+                        const lbl = r.isToday ? 'HOY' : r.dayName;
+                        ctx.fillText(lbl, xPos(i), levelsBottom + 40);
+                    });
+                }
 
                 // Título de sección "ATMÓSFERA LIBRE" (con espacio respecto a la fila de días de arriba)
                 ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
@@ -4005,16 +4013,6 @@
                 ctx.beginPath();
                 ctx.moveTo(PAD.l, isoBottom); ctx.lineTo(PAD.l + cw, isoBottom);
                 ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
-            }
-
-            // Etiquetas eje X (blancas, para leer temperatura/lluvia/acumulado desde
-            // esta franja también, sin tener que mirar arriba)
-            ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-            if (rows) {
-                rows.forEach((r, i) => {
-                    const lbl = r.isToday ? 'HOY' : r.dayName;
-                    ctx.fillText(lbl, xPos(i), xAxisY);
-                });
             }
         }
 
