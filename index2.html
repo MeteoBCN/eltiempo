@@ -3215,7 +3215,7 @@
                             isToday : ds === todayStr,
                             tmax    : Math.round(d.temperature_2m_max[i] ?? 0),
                             tmin    : Math.round(d.temperature_2m_min[i] ?? 0),
-                            precip  : Math.round(d.precipitation_sum[i] ?? 0),
+                            precip  : Math.round((d.precipitation_sum[i] ?? 0) * 10) / 10,
                             pprob   : Math.round(d.precipitation_probability_max[i] ?? 0),
                             humMax  : Math.round(d.relative_humidity_2m_max?.[i] ?? 0),
                             humMin  : Math.round(d.relative_humidity_2m_min?.[i] ?? 0),
@@ -3829,7 +3829,7 @@
                 const x = xPos(i), y = yAcc(v);
                 ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fillStyle = '#8B5CF6'; ctx.fill();
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                ctx.fillText(v + 'mm', x, y - 8);
+                ctx.fillText(v, x, y - 8);
             });
 
             // Línea base
@@ -4178,7 +4178,7 @@
                                 isToday : ds === todayStr,
                                 tmax    : Math.round(daily.temperature_2m_max?.[i] ?? 0),
                                 tmin    : Math.round(daily.temperature_2m_min?.[i] ?? 0),
-                                precip  : Math.round(daily.precipitation_sum?.[i] ?? 0),
+                                precip  : Math.round((daily.precipitation_sum?.[i] ?? 0) * 10) / 10,
                                 pprob   : Math.round(daily.precipitation_probability_max?.[i] ?? 0),
                                 humMax  : Math.round(daily.relative_humidity_2m_max?.[i] ?? 0),
                                 humMin  : Math.round(daily.relative_humidity_2m_min?.[i] ?? 0),
