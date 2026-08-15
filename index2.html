@@ -3731,7 +3731,7 @@
                 g.addColorStop(1, 'rgba(255,255,255,0)');
                 ctx.fillStyle = g; ctx.fill();
             };
-            drawArea(tmax, 'rgba(255,255,255,0.20)');
+            drawArea(tmax, 'rgba(255,138,101,0.22)');
 
             const drawLine = (vals, color, offset, dashed) => {
                 ctx.beginPath();
@@ -3747,12 +3747,12 @@
                     ctx.beginPath(); ctx.arc(xPos(i), yTemp(v), 3.5, 0, Math.PI*2);
                     ctx.fillStyle = color; ctx.fill();
                     ctx.textAlign = 'center'; ctx.font = 'bold 10px Inter,sans-serif';
-                    ctx.fillStyle = '#ffffff';
+                    ctx.fillStyle = color;
                     ctx.fillText(v + '°', xPos(i), yTemp(v) + offset);
                 });
             };
-            drawLine(tmax, '#ffffff', -9, false);
-            drawLine(tmin, '#ffffff', 16, true);
+            drawLine(tmax, '#FF8A65', -9, false);
+            drawLine(tmin, '#7DD3FC', 16, true);
 
             // ── Zona lluvia: título + barras, ancladas abajo de su propia franja ──
             ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
@@ -3765,8 +3765,8 @@
                 const barH = (v / 100) * rainH;
                 const x  = xPos(i) - barW / 2;
                 const g = ctx.createLinearGradient(0, rainBottom - barH, 0, rainBottom);
-                g.addColorStop(0, 'rgba(255,255,255,0.55)');
-                g.addColorStop(1, 'rgba(255,255,255,0.12)');
+                g.addColorStop(0, 'rgba(56,189,248,0.85)');
+                g.addColorStop(1, 'rgba(56,189,248,0.25)');
                 ctx.fillStyle = g;
                 ctx.beginPath();
                 ctx.roundRect(x, rainBottom - barH, barW, Math.max(barH, 2), 3);
@@ -3804,8 +3804,8 @@
             ctx.lineTo(xPos(0), accBottom);
             ctx.closePath();
             const gAcc = ctx.createLinearGradient(0, accTop, 0, accBottom);
-            gAcc.addColorStop(0, 'rgba(96,165,250,0.35)');
-            gAcc.addColorStop(1, 'rgba(96,165,250,0)');
+            gAcc.addColorStop(0, 'rgba(139,92,246,0.40)');
+            gAcc.addColorStop(1, 'rgba(139,92,246,0)');
             ctx.fillStyle = gAcc; ctx.fill();
 
             // Línea
@@ -3815,12 +3815,12 @@
                 const xc = (xPos(i-1) + xPos(i)) / 2;
                 ctx.bezierCurveTo(xc, yAcc(precipVals[i-1]), xc, yAcc(precipVals[i]), xPos(i), yAcc(precipVals[i]));
             }
-            ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+            ctx.strokeStyle = '#8B5CF6'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
 
             // Puntos + etiquetas
             precipVals.forEach((v, i) => {
                 const x = xPos(i), y = yAcc(v);
-                ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fillStyle = '#60a5fa'; ctx.fill();
+                ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fillStyle = '#8B5CF6'; ctx.fill();
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                 ctx.fillText(v + 'mm', x, y - 8);
             });
@@ -3842,13 +3842,16 @@
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
             ctx.fillText('TEMPERATURA', PAD.l, PAD.t - 30);
 
-            ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 9px Inter,sans-serif';
             ctx.textAlign = 'left';
             ctx.beginPath(); ctx.moveTo(PAD.l, PAD.t - 15); ctx.lineTo(PAD.l + 14, PAD.t - 15);
-            ctx.setLineDash([]); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.fillStyle = '#FF8A65';
             ctx.fillText(' Máx', PAD.l + 14, PAD.t - 12);
             ctx.beginPath(); ctx.moveTo(PAD.l + 60, PAD.t - 15); ctx.lineTo(PAD.l + 74, PAD.t - 15);
+            ctx.strokeStyle = '#7DD3FC';
             ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+            ctx.fillStyle = '#7DD3FC';
             ctx.fillText(' Mín', PAD.l + 74, PAD.t - 12);
         }
 
