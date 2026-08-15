@@ -3625,7 +3625,7 @@
             const tempBottom = tempTop + tempH;
             const rainTop    = tempBottom + gap;
             const rainBottom = rainTop + rainH;
-            const accGap     = 74;   // separación tras la fila de días de lluvia (más aire antes del gráfico)
+            const accGap     = 40;   // separación entre barras de lluvia y gráfico acumulado
             const accH       = 80;   // alto zona precipitación acumulada
             const accTop     = rainBottom + accGap;
             const accBottom  = accTop + accH;
@@ -3740,15 +3740,9 @@
             ctx.lineTo(PAD.l + cw, rainBottom);
             ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
 
-            // Fila de días justo debajo de las barras de lluvia
-            ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-            rows.forEach((r, i) => {
-                const lbl = r.isToday ? 'HOY' : r.dayName;
-                ctx.fillText(lbl, xPos(i), rainBottom + 14);
-            });
-
             // ══════════════════════════════════════════════
             // Zona precipitación acumulada (mm) — área + línea
+            // (justo debajo de la barra de probabilidad de lluvia)
             // ══════════════════════════════════════════════
             ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
@@ -3794,6 +3788,13 @@
             ctx.beginPath();
             ctx.moveTo(PAD.l, accBottom); ctx.lineTo(PAD.l + cw, accBottom);
             ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+
+            // Fila de días, ahora debajo del gráfico de precipitación acumulada
+            ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+            rows.forEach((r, i) => {
+                const lbl = r.isToday ? 'HOY' : r.dayName;
+                ctx.fillText(lbl, xPos(i), accBottom + 14);
+            });
 
             // ══════════════════════════════════════════════
             // Zona 850hPa / 500hPa — cada 12h, 7 días (14 puntos)
