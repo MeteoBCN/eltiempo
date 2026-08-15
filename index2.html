@@ -3199,6 +3199,33 @@
 
             window._f7Data = null;
 
+            // Agrega un array horario (cape, lifted_index, convective_inhibition...) para un día concreto
+            function _f7DayAgg(hourly, field, dateStr, fn) {
+                if (!hourly?.time || !hourly?.[field]) return null;
+                const vals = [];
+                for (let i = 0; i < hourly.time.length; i++) {
+                    if (hourly.time[i].slice(0,10) === dateStr) {
+                        const v = hourly[field][i];
+                        if (v !== null && v !== undefined) vals.push(v);
+                    }
+                }
+                return vals.length ? fn(vals) : null;
+            }
+
+            // Clasifica el riesgo de tormenta combinando CAPE máx, Lifted Index mín y CIN mín del día
+            function _f7StormRisk(capeMax, liMin, cinMin) {
+                if (capeMax === null || capeMax === undefined) return { level: '—', color: '#94A3B8' };
+                let score = 0;
+                if (capeMax >= 1500) score += 2; else if (capeMax >= 500) score += 1;
+                if (liMin !== null && liMin !== undefined) {
+                    if (liMin <= -4) score += 2; else if (liMin <= -1) score += 1;
+                }
+                if (cinMin !== null && cinMin !== undefined && cinMin <= -100) score -= 1;
+                if (score >= 3) return { level: 'ALTO',  color: '#EF4444' };
+                if (score >= 1) return { level: 'MEDIO', color: '#F59E0B' };
+                return { level: 'BAJO', color: '#10B981' };
+            }
+
             async function loadForecast7() {
                 try {
                     // Reutilizar datos ya cargados por loadWeatherData (evita fetch duplicado)
@@ -3207,8 +3234,12 @@
                     if (!d?.time) return;
 
                     const todayStr = new Date().toISOString().slice(0,10);
+                    const hourly = data?.hourly;
                     const rows = d.time.map((ds, i) => {
                         const dt = new Date(ds + 'T12:00:00');
+                        const liMin = _f7DayAgg(hourly, 'lifted_index', ds, arr => Math.min(...arr));
+                        const cinMin = _f7DayAgg(hourly, 'convective_inhibition', ds, arr => Math.min(...arr));
+                        const capeMax = d.cape_max?.[i] ?? _f7DayAgg(hourly, 'cape', ds, arr => Math.max(...arr));
                         return {
                             dateStr : ds,
                             dayName : DIAS_ES[dt.getDay()],
@@ -3222,13 +3253,15 @@
                             pres    : Math.round(d.pressure_msl_mean?.[i] ?? 0),
                             wind    : Math.round(d.wind_speed_10m_max?.[i] ?? 0),
                             gusts   : Math.round(d.wind_gusts_10m_max?.[i] ?? 0),
+                            capeMax : capeMax !== null ? Math.round(capeMax) : null,
+                            liMin   : liMin !== null ? Math.round(liMin * 10) / 10 : null,
+                            cinMin  : cinMin !== null ? Math.round(cinMin) : null,
                         };
                     });
 
                     window._f7Data = rows;
 
-                    // ── Niveles 850hPa / 500hPa + cota de isocero cada 12h (7 días) ──
-                    const hourly = data?.hourly;
+                    // ── Niveles 850hPa / 500hPa + cota de isocero + CAPE/LI cada 12h (7 días) ──
                     const levelRows = [];
                     if (hourly?.time && hourly?.temperature_850hPa && hourly?.temperature_500hPa) {
                         for (let i = 0; i < hourly.time.length; i++) {
@@ -3243,6 +3276,9 @@
                                 cota    : Math.round((hourly.freezing_level_height?.[i] ?? 0) / 10) * 10,
                                 wind    : Math.round(hourly.wind_speed_10m?.[i] ?? 0),
                                 pres    : Math.round(hourly.pressure_msl?.[i] ?? 0),
+                                cape    : Math.round(hourly.cape?.[i] ?? 0),
+                                li      : Math.round((hourly.lifted_index?.[i] ?? 0) * 10) / 10,
+                                cin     : Math.round(hourly.convective_inhibition?.[i] ?? 0),
                             });
                         }
                     }
@@ -3763,10 +3799,10 @@
                 ctx.fillText(lbl, xPos(i), tempBottom + 14);
             });
 
-            // ── Zona lluvia: título + barras, ancladas abajo de su propia franja ──
+            // ── Zona lluvia: título combinado + barras, ancladas abajo de su propia franja ──
             ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.fillText('PROBABILIDAD DE LLUVIA', PAD.l, rainTop - 6);
+            ctx.fillText('PROBABILIDAD DE LLUVIA · PRECIPITACIÓN ACUMULADA (MM)', PAD.l, rainTop - 6);
 
             const barW = cw / n * 0.5;
             rows.forEach((r, i) => {
@@ -3792,12 +3828,8 @@
 
             // ══════════════════════════════════════════════
             // Zona precipitación acumulada (mm) — área + línea
-            // (justo debajo de la barra de probabilidad de lluvia)
+            // (justo debajo de la barra de probabilidad de lluvia; título ya incluido arriba)
             // ══════════════════════════════════════════════
-            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
-            ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.fillText('PRECIPITACIÓN ACUMULADA (mm)', PAD.l, accTop - 10);
-
             const precipVals = rows.map(r => r.precip);
             const accMax = Math.max(...precipVals, 1);
             const yAcc = v => accTop + accH - (v / accMax) * accH;
@@ -3888,13 +3920,25 @@
             const levelsH = 170;   // alto zona 850hPa/500hPa (con espacio para ambas líneas y etiquetas)
             const gap3    = 148;   // separación antes de isocero (un poco menos de aire respecto a la fila de días)
             const isoH    = 70;    // alto zona cota isocero
+            const gap4    = 150;   // separación antes de CAPE/LI
+            const capeH   = 80;    // alto sub-zona CAPE (barras)
+            const capeGap = 44;    // separación entre CAPE y Lifted Index
+            const liH     = 70;    // alto sub-zona Lifted Index (línea)
+            const gap5    = 60;    // separación antes del semáforo de riesgo de tormenta
+            const riskH   = 66;    // alto de la fila de riesgo de tormenta
 
             const levelsTop    = PAD.t;
             const levelsBottom = levelsTop + levelsH;
             const isoTop     = levelsBottom + gap3;
             const isoBottom  = isoTop + isoH;
+            const capeTop    = isoBottom + gap4;
+            const capeBottom = capeTop + capeH;
+            const liTop      = capeBottom + capeGap;
+            const liBottom   = liTop + liH;
+            const riskTop    = liBottom + gap5;
+            const riskBottom = riskTop + riskH;
 
-            const H = isoBottom + PAD.b;
+            const H = riskBottom + PAD.b;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -4037,6 +4081,116 @@
                 ctx.beginPath();
                 ctx.moveTo(PAD.l, isoBottom); ctx.lineTo(PAD.l + cw, isoBottom);
                 ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+
+                // ══════════════════════════════════════════════
+                // Zona CAPE (barras) + Lifted Index (línea) — inestabilidad convectiva
+                // ══════════════════════════════════════════════
+                const capeV = levels.map(l => l.cape);
+                const liV   = levels.map(l => l.li);
+                const capeMaxScale = Math.max(...capeV, 500);
+                const liMinV = Math.min(...liV, -2);
+                const liMaxV = Math.max(...liV, 2);
+                const yLi = v => liTop + liH - ((v - liMinV) / (liMaxV - liMinV || 1)) * liH;
+
+                // Título general de la sección
+                ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                ctx.fillText('INESTABILIDAD CONVECTIVA', PAD.l, capeTop - 40);
+
+                // ── Sub-zona CAPE: barras con color según intensidad ──
+                ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.65)';
+                ctx.fillText('CAPE (J/kg)', PAD.l, capeTop - 8);
+
+                const capeBarW = cw / m * 0.45;
+                levels.forEach((l, j) => {
+                    const v = l.cape;
+                    const barH = Math.max((v / capeMaxScale) * capeH, v > 0 ? 2 : 0);
+                    const x = xPos2(j) - capeBarW / 2;
+                    const color = v >= 1500 ? '#EF4444' : v >= 500 ? '#F59E0B' : '#34D399';
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.roundRect(x, capeBottom - barH, capeBarW, barH, 2);
+                    ctx.fill();
+                    if (l.hour === 0 && v > 0) {
+                        ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = color;
+                        ctx.fillText(v, xPos2(j), capeBottom - barH - 5);
+                    }
+                });
+
+                // Línea base CAPE
+                ctx.beginPath();
+                ctx.moveTo(PAD.l, capeBottom); ctx.lineTo(PAD.l + cw, capeBottom);
+                ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+
+                // ── Sub-zona Lifted Index: línea (negativo = inestable) ──
+                ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.65)';
+                ctx.fillText('LIFTED INDEX (°C)', PAD.l, liTop - 8);
+
+                // Línea guía en 0 (referencia estable/inestable)
+                if (liMinV < 0 && liMaxV > 0) {
+                    const y0 = yLi(0);
+                    ctx.beginPath(); ctx.moveTo(PAD.l, y0); ctx.lineTo(PAD.l + cw, y0);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 1; ctx.stroke();
+                }
+
+                ctx.beginPath();
+                levels.forEach((l, j) => { const x = xPos2(j), y = yLi(l.li); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
+                ctx.setLineDash([]);
+                ctx.strokeStyle = '#38BDF8'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+
+                levels.forEach((l, j) => {
+                    const x = xPos2(j), y = yLi(l.li);
+                    const color = l.li <= -4 ? '#EF4444' : l.li <= -1 ? '#F59E0B' : '#38BDF8';
+                    ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = color; ctx.fill();
+                    if (l.hour === 0) {
+                        ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = color;
+                        ctx.fillText(l.li, x, y - 7);
+                    }
+                });
+
+                // Etiquetas 00h/12h de esta franja
+                ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                levels.forEach((l, j) => { ctx.fillText(l.hour === 0 ? '00h' : '12h', xPos2(j), liBottom + 24); });
+
+                // Fila de días
+                if (rows) {
+                    ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                    rows.forEach((r, i) => {
+                        const lbl = r.isToday ? 'HOY' : r.dayName;
+                        const j00 = levels.findIndex(l => l.dateStr === r.dateStr && l.hour === 0);
+                        const x = j00 !== -1 ? xPos2(j00) : xPos(i);
+                        ctx.fillText(lbl, x, liBottom + 40);
+                    });
+                }
+
+                // Línea base Lifted Index
+                ctx.beginPath();
+                ctx.moveTo(PAD.l, liBottom); ctx.lineTo(PAD.l + cw, liBottom);
+                ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+
+                // ══════════════════════════════════════════════
+                // Semáforo de riesgo de tormenta (resumen diario CAPE+LI+CIN)
+                // ══════════════════════════════════════════════
+                if (rows) {
+                    ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
+                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                    ctx.fillText('RIESGO DE TORMENTA', PAD.l, riskTop - 8);
+
+                    const dotR = 9;
+                    rows.forEach((r, i) => {
+                        const x = xPos(i);
+                        const risk = _f7StormRisk(r.capeMax, r.liMin, r.cinMin);
+                        const yDot = riskTop + 20;
+                        ctx.beginPath(); ctx.arc(x, yDot, dotR, 0, Math.PI*2);
+                        ctx.fillStyle = risk.color; ctx.fill();
+                        ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                        ctx.fillText(r.isToday ? 'HOY' : r.dayName, x, yDot + 24);
+                        ctx.font = 'bold 7px Inter,sans-serif'; ctx.fillStyle = risk.color;
+                        ctx.fillText(risk.level, x, yDot + 35);
+                    });
+                }
             }
         }
 
@@ -4099,7 +4253,7 @@
             // const PROXY_BASE = 'https://tiempo-bcn-proxy.tunombre.workers.dev';
             const PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
 
-            const url=`${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_850hPa,temperature_500hPa,freezing_level_height&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean&timezone=Europe/Madrid&forecast_days=7`;
+            const url=`${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_850hPa,temperature_500hPa,freezing_level_height,cape,lifted_index,convective_inhibition&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean,cape_max&timezone=Europe/Madrid&forecast_days=7`;
             const aqUrl=`${PROXY_BASE}/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&hourly=pm10&forecast_days=2&timezone=Europe/Madrid`;
             const marineUrl=`${PROXY_BASE}/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
 
@@ -4174,6 +4328,9 @@
                         const DIAS_ES  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
                         const rows = daily.time.map((ds, i) => {
                             const dt = new Date(ds + 'T12:00:00');
+                            const liMin = _f7DayAgg(hourly, 'lifted_index', ds, arr => Math.min(...arr));
+                            const cinMin = _f7DayAgg(hourly, 'convective_inhibition', ds, arr => Math.min(...arr));
+                            const capeMax = daily.cape_max?.[i] ?? _f7DayAgg(hourly, 'cape', ds, arr => Math.max(...arr));
                             return {
                                 dateStr : ds,
                                 dayName : DIAS_ES[dt.getDay()],
@@ -4188,11 +4345,14 @@
                                 wind    : Math.round(daily.wind_speed_10m_max?.[i] ?? 0),
                                 gusts   : Math.round(daily.wind_gusts_10m_max?.[i] ?? 0),
                                 wmo     : daily.weather_code?.[i] ?? 0,
+                                capeMax : capeMax !== null ? Math.round(capeMax) : null,
+                                liMin   : liMin !== null ? Math.round(liMin * 10) / 10 : null,
+                                cinMin  : cinMin !== null ? Math.round(cinMin) : null,
                             };
                         });
                         window._f7Data = rows;
 
-                        // ── Niveles 850hPa / 500hPa + cota de isocero cada 12h (7 días) ──
+                        // ── Niveles 850hPa / 500hPa + cota de isocero + CAPE/LI cada 12h (7 días) ──
                         const levelRows = [];
                         if (hourly?.time && hourly?.temperature_850hPa && hourly?.temperature_500hPa) {
                             for (let i = 0; i < hourly.time.length; i++) {
@@ -4207,6 +4367,9 @@
                                     cota    : Math.round((hourly.freezing_level_height?.[i] ?? 0) / 10) * 10,
                                     wind    : Math.round(hourly.wind_speed_10m?.[i] ?? 0),
                                     pres    : Math.round(hourly.pressure_msl?.[i] ?? 0),
+                                    cape    : Math.round(hourly.cape?.[i] ?? 0),
+                                    li      : Math.round((hourly.lifted_index?.[i] ?? 0) * 10) / 10,
+                                    cin     : Math.round(hourly.convective_inhibition?.[i] ?? 0),
                                 });
                             }
                         }
