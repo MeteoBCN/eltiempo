@@ -933,7 +933,7 @@
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <!-- Panel único -->
-                <div style="position:relative;height:725px;">
+                <div style="position:relative;height:740px;">
                 <div id="f7-panel-combo" style="padding:14px 16px 18px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-combo" style="display:block;width:100%;"></canvas>
                 </div>
@@ -3825,7 +3825,7 @@
 
             const dpr = window.devicePixelRatio || 1;
             const W   = canvas.parentElement.offsetWidth - 32;
-            const H   = 690;
+            const H   = 700;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -3842,10 +3842,10 @@
             const tempH   = 140;   // alto zona temperatura
             const gap     = 32;    // separación entre zonas
             const rainH   = 72;    // alto zona lluvia
-            const gap2    = 36;    // separación antes de niveles
+            const gap2    = 70;    // separación antes de niveles (incluye fila de días + aire + título/leyenda)
             const levelsH = 170;   // alto zona 850hPa/500hPa (con espacio para ambas líneas y etiquetas)
-            const gap3    = 34;    // separación antes de isocero
-            const isoH    = 110;   // alto zona cota isocero
+            const gap3    = 55;    // separación antes de isocero (más aire entre ambas gráficas)
+            const isoH    = 70;    // alto zona cota isocero (reducida)
 
             const tempTop    = PAD.t;
             const tempBottom = tempTop + tempH;
@@ -3941,6 +3941,13 @@
             ctx.lineTo(PAD.l + cw, rainBottom);
             ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
 
+            // Fila de días justo debajo de las barras de lluvia
+            ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+            rows.forEach((r, i) => {
+                const lbl = r.isToday ? 'HOY' : r.dayName;
+                ctx.fillText(lbl, xPos(i), rainBottom + 14);
+            });
+
             // ══════════════════════════════════════════════
             // Zona 850hPa / 500hPa — cada 12h, 7 días (14 puntos)
             // ══════════════════════════════════════════════
@@ -3991,18 +3998,19 @@
                 ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 levels.forEach((l, j) => { ctx.fillText(l.hour === 0 ? '00h' : '12h', xPos2(j), levelsBottom + 14); });
 
-                // Título + leyenda
+                // Título + leyenda (leyenda debajo del título)
                 ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText('TEMPERATURA 850hPa / 500hPa · CADA 12H', PAD.l, levelsTop - 6);
+                ctx.fillText('TEMPERATURA 850hPa / 500hPa · CADA 12H', PAD.l, levelsTop - 20);
 
                 ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                ctx.beginPath(); ctx.moveTo(PAD.l + cw - 92, levelsTop - 9); ctx.lineTo(PAD.l + cw - 78, levelsTop - 9);
+                ctx.textAlign = 'left';
+                ctx.beginPath(); ctx.moveTo(PAD.l, levelsTop - 9); ctx.lineTo(PAD.l + 14, levelsTop - 9);
                 ctx.setLineDash([]); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
-                ctx.fillText(' 850hPa', PAD.l + cw - 78, levelsTop - 6);
-                ctx.beginPath(); ctx.moveTo(PAD.l + cw - 32, levelsTop - 9); ctx.lineTo(PAD.l + cw - 18, levelsTop - 9);
+                ctx.fillText(' 850hPa', PAD.l + 14, levelsTop - 6);
+                ctx.beginPath(); ctx.moveTo(PAD.l + 72, levelsTop - 9); ctx.lineTo(PAD.l + 86, levelsTop - 9);
                 ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
-                ctx.fillText(' 500hPa', PAD.l + cw - 18, levelsTop - 6);
+                ctx.fillText(' 500hPa', PAD.l + 86, levelsTop - 6);
 
                 // Línea base
                 ctx.beginPath();
