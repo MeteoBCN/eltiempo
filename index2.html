@@ -3963,18 +3963,16 @@
                 const yLv   = v => levelsTop + levelsH - ((v - lvMin) / (lvMax - lvMin)) * levelsH;
 
                 // Líneas guía cada 10°C (40, 30, 20, 10, 0, -10, -20, -30, -40)
-                // La de 0°C resalta más (más gruesa/opaca); su etiqueta se dibuja al final para quedar siempre por encima
+                // La de 0°C se resalta en azul en vez de blanco
                 const guideTemps = [40, 30, 20, 10, 0, -10, -20, -30, -40];
-                let zeroY = null;
                 guideTemps.forEach(v => {
                     if (v < lvMin || v > lvMax) return;
                     const y = yLv(v);
                     const isZero = v === 0;
                     ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
-                    ctx.strokeStyle = isZero ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.10)';
+                    ctx.strokeStyle = isZero ? 'rgba(96,165,250,0.65)' : 'rgba(255,255,255,0.10)';
                     ctx.lineWidth = isZero ? 1.6 : 1;
                     ctx.stroke();
-                    if (isZero) zeroY = y;
                 });
 
                 // Línea 850hPa — blanca continua
@@ -4000,18 +3998,6 @@
                     ctx.fillText(l.t850 + '°', x850, y850 - 6);
                     ctx.fillText(l.t500 + '°', x850, y500 + 11);
                 });
-
-                // Etiqueta "0°C" de la línea guía, dibujada al final con fondo para quedar
-                // siempre legible aunque coincida con la posición de algún dato
-                if (zeroY !== null) {
-                    ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
-                    const label = '0°C';
-                    const tw = ctx.measureText(label).width;
-                    ctx.fillStyle = 'rgba(15,35,60,0.8)';
-                    ctx.fillRect(PAD.l - 2, zeroY - 11, tw + 4, 11);
-                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                    ctx.fillText(label, PAD.l, zeroY - 3);
-                }
 
                 // Etiquetas 00h/12h de esta franja
                 ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
