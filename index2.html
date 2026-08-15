@@ -933,14 +933,14 @@
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <!-- Panel superior: temperatura / probabilidad de lluvia / acumulado -->
-                <div id="f7-panel-wrap-top" style="position:relative;height:476px;">
+                <div id="f7-panel-wrap-top" style="position:relative;height:502px;">
                 <div id="f7-panel-combo-top" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-top" style="display:block;width:100%;"></canvas>
                 </div>
                 </div>
 
                 <!-- Botón + desplegable: por qué probabilidad y acumulado se muestran por separado -->
-                <div style="padding:0 16px 56px;">
+                <div style="padding:0 16px 90px;">
                     <button id="f7-info-toggle" onclick="toggleF7InfoPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
                         <span style="font-size:11.5px;font-weight:600;color:#ffffff;line-height:1.3;">¿Por qué mostramos la probabilidad y el acumulado por separado?</span>
                         <span id="f7-info-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
@@ -959,7 +959,7 @@
                 </div>
 
                 <!-- Panel inferior: niveles 850hPa/500hPa (atmósfera libre) / cota de isocero -->
-                <div id="f7-panel-wrap-bottom" style="position:relative;height:462px;">
+                <div id="f7-panel-wrap-bottom" style="position:relative;height:502px;">
                 <div id="f7-panel-combo-bottom" style="padding:0 16px 18px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-bottom" style="display:block;width:100%;"></canvas>
                 </div>
@@ -3664,7 +3664,7 @@
             const W   = canvas.parentElement.offsetWidth - 32;
             const ctx = canvas.getContext('2d');
 
-            const PAD = { t:56, r:16, b:24, l:16 };
+            const PAD = { t:56, r:16, b:50, l:16 };
             const cw  = W - PAD.l - PAD.r;
             const n   = rows.length;
 
@@ -3731,16 +3731,18 @@
                 g.addColorStop(1, 'rgba(255,255,255,0)');
                 ctx.fillStyle = g; ctx.fill();
             };
-            drawArea(tmax, 'rgba(239,68,68,0.20)');
+            drawArea(tmax, 'rgba(255,255,255,0.20)');
 
-            const drawLine = (vals, color, offset) => {
+            const drawLine = (vals, color, offset, dashed) => {
                 ctx.beginPath();
                 ctx.moveTo(xPos(0), yTemp(vals[0]));
                 for (let i = 1; i < n; i++) {
                     const xc = (xPos(i-1) + xPos(i)) / 2;
                     ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xPos(i), yTemp(vals[i]));
                 }
+                ctx.setLineDash(dashed ? [5, 4] : []);
                 ctx.strokeStyle = color; ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.setLineDash([]);
                 vals.forEach((v, i) => {
                     ctx.beginPath(); ctx.arc(xPos(i), yTemp(v), 3.5, 0, Math.PI*2);
                     ctx.fillStyle = color; ctx.fill();
@@ -3749,8 +3751,8 @@
                     ctx.fillText(v + '°', xPos(i), yTemp(v) + offset);
                 });
             };
-            drawLine(tmax, '#ef4444', -9);
-            drawLine(tmin, '#3b82f6', 16);
+            drawLine(tmax, '#ffffff', -9, false);
+            drawLine(tmin, '#ffffff', 16, true);
 
             // ── Zona lluvia: título + barras, ancladas abajo de su propia franja ──
             ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
@@ -3835,16 +3837,19 @@
                 ctx.fillText(lbl, xPos(i), accBottom + 14);
             });
 
-            // Título + leyenda de temperatura (texto blanco, puntos de color para diferenciar máx/mín)
+            // Título + leyenda de temperatura (línea continua = máx, discontinua = mín)
             ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
             ctx.fillText('TEMPERATURA', PAD.l, PAD.t - 30);
 
-            ctx.font = 'bold 9px Inter,sans-serif';
-            ctx.fillStyle = '#ef4444'; ctx.fillText('●', PAD.l, PAD.t - 12);
-            ctx.fillStyle = '#ffffff'; ctx.fillText(' Máx', PAD.l + 7, PAD.t - 12);
-            ctx.fillStyle = '#3b82f6'; ctx.fillText('●', PAD.l + 55, PAD.t - 12);
-            ctx.fillStyle = '#ffffff'; ctx.fillText(' Mín', PAD.l + 62, PAD.t - 12);
+            ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'left';
+            ctx.beginPath(); ctx.moveTo(PAD.l, PAD.t - 15); ctx.lineTo(PAD.l + 14, PAD.t - 15);
+            ctx.setLineDash([]); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.fillText(' Máx', PAD.l + 14, PAD.t - 12);
+            ctx.beginPath(); ctx.moveTo(PAD.l + 60, PAD.t - 15); ctx.lineTo(PAD.l + 74, PAD.t - 15);
+            ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+            ctx.fillText(' Mín', PAD.l + 74, PAD.t - 12);
         }
 
         // ── Canvas inferior: niveles 850hPa/500hPa (atmósfera libre) / cota de isocero ──
@@ -3869,7 +3874,7 @@
             const xPos = i => PAD.l + (i / (n - 1)) * cw;
 
             const levelsH = 170;   // alto zona 850hPa/500hPa (con espacio para ambas líneas y etiquetas)
-            const gap3    = 90;    // separación antes de isocero (margen amplio)
+            const gap3    = 130;   // separación antes de isocero (margen amplio)
             const isoH    = 70;    // alto zona cota isocero
 
             const levelsTop    = PAD.t;
