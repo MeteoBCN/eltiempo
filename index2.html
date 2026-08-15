@@ -933,7 +933,7 @@
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <!-- Panel único -->
-                <div style="position:relative;height:740px;">
+                <div style="position:relative;height:780px;">
                 <div id="f7-panel-combo" style="padding:14px 16px 18px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-combo" style="display:block;width:100%;"></canvas>
                 </div>
@@ -3825,7 +3825,7 @@
 
             const dpr = window.devicePixelRatio || 1;
             const W   = canvas.parentElement.offsetWidth - 32;
-            const H   = 700;
+            const H   = 745;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -3842,7 +3842,7 @@
             const tempH   = 140;   // alto zona temperatura
             const gap     = 32;    // separación entre zonas
             const rainH   = 72;    // alto zona lluvia
-            const gap2    = 70;    // separación antes de niveles (incluye fila de días + aire + título/leyenda)
+            const gap2    = 110;   // separación antes de niveles (fila de días + aire + título de sección + título/leyenda)
             const levelsH = 170;   // alto zona 850hPa/500hPa (con espacio para ambas líneas y etiquetas)
             const gap3    = 55;    // separación antes de isocero (más aire entre ambas gráficas)
             const isoH    = 70;    // alto zona cota isocero (reducida)
@@ -3998,6 +3998,11 @@
                 ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 levels.forEach((l, j) => { ctx.fillText(l.hour === 0 ? '00h' : '12h', xPos2(j), levelsBottom + 14); });
 
+                // Título de sección "ATMÓSFERA LIBRE" (con espacio respecto a la fila de días de arriba)
+                ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                ctx.fillText('ATMÓSFERA LIBRE', PAD.l, levelsTop - 36);
+
                 // Título + leyenda (leyenda debajo del título)
                 ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.65)';
@@ -4052,10 +4057,10 @@
                     }
                 });
 
-                // Título
+                // Título (con espacio respecto a la gráfica)
                 ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText('COTA DE ISOCERO (0°C)', PAD.l, isoTop - 6);
+                ctx.fillText('COTA DE ISOCERO (0°C)', PAD.l, isoTop - 16);
 
                 // Línea base
                 ctx.beginPath();
