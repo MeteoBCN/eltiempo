@@ -933,7 +933,7 @@
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <!-- Panel único -->
-                <div style="position:relative;height:820px;">
+                <div id="f7-panel-wrap" style="position:relative;height:1050px;">
                 <div id="f7-panel-combo" style="padding:14px 16px 18px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-combo" style="display:block;width:100%;"></canvas>
                 </div>
@@ -3643,6 +3643,18 @@
             canvas.style.width  = W + 'px';
             canvas.style.height = H + 'px';
             ctx.scale(dpr, dpr);
+
+            // Ajustar el alto del contenedor (position:relative) al alto real
+            // del canvas + el padding del panel, para que ninguna zona (p.ej.
+            // la cota de isocero, al final del stack) quede recortada fuera
+            // del fondo azul y se "pierda" sobre el fondo blanco de la página.
+            const wrap = document.getElementById('f7-panel-wrap');
+            if (wrap) {
+                const panel = document.getElementById('f7-panel-combo');
+                const csPanel = panel ? getComputedStyle(panel) : null;
+                const padTB = csPanel ? (parseFloat(csPanel.paddingTop) + parseFloat(csPanel.paddingBottom)) : 32;
+                wrap.style.height = (H + padTB) + 'px';
+            }
 
             const tmax = rows.map(r => r.tmax);
             const tmin = rows.map(r => r.tmin);
