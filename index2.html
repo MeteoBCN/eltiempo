@@ -947,42 +947,6 @@
         <div style="height:28px;background:#ffffff;"></div>
 
         <!-- ═══════════════════════════════════════════
-             METEOGRAMA NUMÉRICO (10 días, 00h/12h) — fondo blanco
-        ════════════════════════════════════════════ -->
-        <div id="temp15-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;background:#ffffff;">
-            <!-- Cabecera fija — siempre abierta -->
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 16px 4px;gap:3px;">
-                <span style="font-size:11px;font-weight:700;color:#123653;letter-spacing:2px;text-transform:uppercase;">Meteograma numérico · 10 días</span>
-                <span style="font-size:9px;font-weight:500;color:rgba(18,54,83,0.5);letter-spacing:0.4px;">Datos: Open-Meteo (modelo combinado ICON · GFS · ECMWF)</span>
-            </div>
-
-            <!-- Panel — siempre visible -->
-            <div id="panel-temp15" style="display:block;overflow:hidden;background:#ffffff;">
-                <div style="position:relative;min-height:120px;">
-                    <div style="padding:0 12px 16px;">
-                        <div style="padding:8px 4px 14px;font-size:10px;line-height:1.9;color:rgba(18,54,83,0.65);text-align:center;">
-                            <div><strong style="color:#123653;">850hPa</strong> (1500m) · <strong style="color:#123653;">500hPa</strong> (5500m) · <strong style="color:#123653;">2m</strong> (Superficie)</div>
-                            <div><strong style="color:#123653;">mm</strong> (precipitación acumulado en 12 horas) · <strong style="color:#123653;">Cota 0ºC</strong> (cota de nieve)</div>
-                        </div>
-                        <table id="temp15-table" style="width:100%;border-collapse:collapse;">
-                            <thead>
-                                <tr style="border-bottom:1px solid rgba(18,54,83,0.18);">
-                                    <th style="text-align:left;padding:6px 4px;font-size:9px;font-weight:700;color:rgba(18,54,83,0.65);text-transform:uppercase;letter-spacing:0.4px;">Día</th>
-                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">850hPa</th>
-                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">500hPa</th>
-                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">2m</th>
-                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">mm</th>
-                                    <th style="text-align:right;padding:6px 4px;font-size:9px;font-weight:700;color:#123653;">Cota 0ºC</th>
-                                </tr>
-                            </thead>
-                            <tbody id="temp15-tbody"></tbody>
-                        </table>
-                    </div>
-                    <div id="temp15-loading" style="padding:20px 0;text-align:center;color:rgba(18,54,83,0.6);font-size:13px;">Cargando...</div>
-                </div>
-            </div>
-        </div>
-        <!-- ═══════════════════════════════════════════
              FIN METEOGRAMA NUMÉRICO
         ════════════════════════════════════════════ -->
 
@@ -1691,7 +1655,6 @@
             panel.style.display = isOpen ? 'none' : 'block';
             arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
             if (!isOpen && id === 'embalses') cargarEmbalses();
-            if (!isOpen && id === 'temp15') loadTemp15Chart();
             if (!isOpen && id === 'radar-rainviewer') {
                 setTimeout(function() { rvInit(); }, 150);
             }        }
@@ -3825,7 +3788,7 @@
 
             const dpr = window.devicePixelRatio || 1;
             const W   = canvas.parentElement.offsetWidth - 32;
-            const H   = 820;
+            const H   = 850;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -3842,7 +3805,7 @@
             const tempH   = 140;   // alto zona temperatura
             const gap     = 32;    // separación entre zonas
             const rainH   = 72;    // alto zona lluvia
-            const gap2    = 140;   // separación antes de niveles (fila de días + más aire + título de sección + título/leyenda)
+            const gap2    = 155;   // separación antes de niveles (fila de días + más aire + título de sección + título/leyenda)
             const levelsH = 170;   // alto zona 850hPa/500hPa (con espacio para ambas líneas y etiquetas)
             const gap3    = 90;    // separación antes de isocero (margen amplio)
             const isoH    = 70;    // alto zona cota isocero (reducida)
@@ -3948,6 +3911,12 @@
                 ctx.fillText(lbl, xPos(i), rainBottom + 14);
             });
 
+            // Total acumulado de lluvia (mm) del día, debajo del nombre del día
+            ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif'; ctx.fillStyle = 'rgba(147,197,253,0.85)';
+            rows.forEach((r, i) => {
+                ctx.fillText(r.precip + 'mm', xPos(i), rainBottom + 26);
+            });
+
             // ══════════════════════════════════════════════
             // Zona 850hPa / 500hPa — cada 12h, 7 días (14 puntos)
             // ══════════════════════════════════════════════
@@ -3963,16 +3932,12 @@
                 const yLv   = v => levelsTop + levelsH - ((v - lvMin) / (lvMax - lvMin)) * levelsH;
 
                 // Líneas guía cada 10°C (40, 30, 20, 10, 0, -10, -20, -30, -40)
-                // La de 0°C se resalta en azul en vez de blanco
                 const guideTemps = [40, 30, 20, 10, 0, -10, -20, -30, -40];
                 guideTemps.forEach(v => {
                     if (v < lvMin || v > lvMax) return;
                     const y = yLv(v);
-                    const isZero = v === 0;
                     ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
-                    ctx.strokeStyle = isZero ? 'rgba(96,165,250,0.65)' : 'rgba(255,255,255,0.10)';
-                    ctx.lineWidth = isZero ? 1.6 : 1;
-                    ctx.stroke();
+                    ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1; ctx.stroke();
                 });
 
                 // Línea 850hPa — blanca continua
@@ -4001,26 +3966,26 @@
 
                 // Etiquetas 00h/12h de esta franja
                 ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                levels.forEach((l, j) => { ctx.fillText(l.hour === 0 ? '00h' : '12h', xPos2(j), levelsBottom + 14); });
+                levels.forEach((l, j) => { ctx.fillText(l.hour === 0 ? '00h' : '12h', xPos2(j), levelsBottom + 24); });
 
                 // Título de sección "ATMÓSFERA LIBRE" (con espacio respecto a la fila de días de arriba)
                 ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                ctx.fillText('ATMÓSFERA LIBRE', PAD.l, levelsTop - 36);
+                ctx.fillText('ATMÓSFERA LIBRE', PAD.l, levelsTop - 51);
 
                 // Título + leyenda (leyenda debajo del título)
                 ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText('TEMPERATURA 850hPa / 500hPa · CADA 12H', PAD.l, levelsTop - 20);
+                ctx.fillText('TEMPERATURA 850hPa / 500hPa · CADA 12H', PAD.l, levelsTop - 35);
 
                 ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                 ctx.textAlign = 'left';
-                ctx.beginPath(); ctx.moveTo(PAD.l, levelsTop - 9); ctx.lineTo(PAD.l + 14, levelsTop - 9);
+                ctx.beginPath(); ctx.moveTo(PAD.l, levelsTop - 24); ctx.lineTo(PAD.l + 14, levelsTop - 24);
                 ctx.setLineDash([]); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
-                ctx.fillText(' 850hPa', PAD.l + 14, levelsTop - 6);
-                ctx.beginPath(); ctx.moveTo(PAD.l + 72, levelsTop - 9); ctx.lineTo(PAD.l + 86, levelsTop - 9);
+                ctx.fillText(' 850hPa', PAD.l + 14, levelsTop - 21);
+                ctx.beginPath(); ctx.moveTo(PAD.l + 72, levelsTop - 24); ctx.lineTo(PAD.l + 86, levelsTop - 24);
                 ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
-                ctx.fillText(' 500hPa', PAD.l + 86, levelsTop - 6);
+                ctx.fillText(' 500hPa', PAD.l + 86, levelsTop - 21);
 
                 // Línea base
                 ctx.beginPath();
@@ -4095,110 +4060,6 @@
 
         /* ══════════════════════════════════════════════
            FIN RESUMEN 7 DÍAS
-        ══════════════════════════════════════════════ */
-
-        /* ══════════════════════════════════════════════
-           TEMPERATURA A 15 DÍAS — carga y renderizado
-        ══════════════════════════════════════════════ */
-        var _temp15Loaded = false;
-        var _temp15Data   = null;
-
-        async function loadTemp15Chart() {
-            if (_temp15Loaded) return;
-            const loadingEl = document.getElementById('temp15-loading');
-            try {
-                const PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
-                const url = `${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&hourly=temperature_850hPa,temperature_500hPa,temperature_2m,freezing_level_height,precipitation&timezone=Europe/Madrid&forecast_days=10`;
-                const controller = new AbortController();
-                const timer = setTimeout(() => controller.abort(), 10000);
-                const r = await fetch(url, { cache: 'no-store', signal: controller.signal });
-                clearTimeout(timer);
-                if (!r.ok) throw new Error(r.status);
-                const data = await r.json();
-                const d = data?.hourly;
-                if (!d?.time || !d?.temperature_850hPa || !d?.temperature_500hPa) throw new Error('sin datos');
-
-                const DIAS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-                const todayStr = new Date().toISOString().slice(0,10);
-
-                // Máximo de lluvia horaria por franja: 00:00-11:59 y 12:00-23:59, por fecha
-                const rainMorningMax = {}; // fecha -> mm máx (00-11h)
-                const rainAfternoonMax = {}; // fecha -> mm máx (12-23h)
-                for (let i = 0; i < d.time.length; i++) {
-                    const dt = new Date(d.time[i]);
-                    const hour = dt.getHours();
-                    const dateStr = d.time[i].slice(0,10);
-                    const mm = d.precipitation?.[i] ?? 0;
-                    if (hour < 12) {
-                        rainMorningMax[dateStr] = Math.max(rainMorningMax[dateStr] ?? 0, mm);
-                    } else {
-                        rainAfternoonMax[dateStr] = Math.max(rainAfternoonMax[dateStr] ?? 0, mm);
-                    }
-                }
-
-                // Dos lecturas por día (00h y 12h locales)
-                const rows = [];
-                for (let i = 0; i < d.time.length; i++) {
-                    const dt = new Date(d.time[i]);
-                    const hour = dt.getHours();
-                    if (hour !== 0 && hour !== 12) continue;
-                    const dateStr = d.time[i].slice(0,10);
-                    rows.push({
-                        dayName : DIAS_ES[dt.getDay()],
-                        dayNum  : dt.getDate(),
-                        hour    : hour,
-                        isToday : dateStr === todayStr,
-                        t850    : Math.round(d.temperature_850hPa[i] ?? 0),
-                        t500    : Math.round(d.temperature_500hPa[i] ?? 0),
-                        tsup    : Math.round(d.temperature_2m?.[i] ?? 0),
-                        rainMm  : hour === 0 ? (rainMorningMax[dateStr] ?? 0) : (rainAfternoonMax[dateStr] ?? 0),
-                        cotaNieve: Math.round((d.freezing_level_height?.[i] ?? 0) / 10) * 10,
-                    });
-                }
-
-                _temp15Data = rows;
-                _temp15Loaded = true;
-                if (loadingEl) loadingEl.style.display = 'none';
-                renderTemp15Table();
-            } catch(e) {
-                console.warn('Temp15 error:', e);
-                if (loadingEl) loadingEl.textContent = 'No se pudieron cargar los datos.';
-            }
-        }
-
-        function renderTemp15Table() {
-            const rows = _temp15Data;
-            const tbody = document.getElementById('temp15-tbody');
-            if (!tbody || !rows || !rows.length) return;
-
-            let dayIndex = 0;
-            tbody.innerHTML = rows.map((r, i) => {
-                if (r.hour === 0) dayIndex++;
-                const shaded = dayIndex % 2 === 1; // días 1,3,5,7,9 sombreados
-                const bg = shaded ? 'background:rgba(18,54,83,0.06);' : '';
-                const newDay = i > 0 && r.hour === 0;
-                const borderTop = newDay
-                    ? 'border-top:1px solid rgba(18,54,83,0.20);'
-                    : (i > 0 ? 'border-top:1px solid rgba(18,54,83,0.08);' : '');
-                const hourLabel = r.hour === 0 ? '00h' : '12h';
-                const namePart = r.hour === 0
-                    ? (r.isToday ? 'HOY ' : `${r.dayName} ${r.dayNum} `)
-                    : '';
-                const dayWeight = r.isToday ? '700' : '500';
-                const rainLabel = r.rainMm > 0 ? r.rainMm.toFixed(1) : '0';
-                return `<tr style="${bg}${borderTop}">
-                    <td style="padding:7px 4px;font-size:11px;font-weight:${dayWeight};color:#123653;white-space:nowrap;"><span style="display:inline-block;width:62px;">${namePart}</span>${hourLabel}</td>
-                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${r.t850}°</td>
-                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${r.t500}°</td>
-                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${r.tsup}°</td>
-                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${rainLabel}</td>
-                    <td style="padding:7px 4px;text-align:right;font-size:11px;font-weight:700;color:#123653;">${r.cotaNieve} m</td>
-                </tr>`;
-            }).join('');
-        }
-
-        /* ══════════════════════════════════════════════
-           FIN TEMPERATURA A 15 DÍAS
         ══════════════════════════════════════════════ */
 
         function updateProximaLluvia(hourly) {
