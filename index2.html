@@ -933,7 +933,7 @@
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <!-- Panel único -->
-                <div style="position:relative;height:334px;">
+                <div style="position:relative;height:534px;">
                 <div id="f7-panel-combo" style="padding:14px 16px 18px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-combo" style="display:block;width:100%;"></canvas>
                 </div>
@@ -3420,6 +3420,25 @@
 
                     window._f7Data = rows;
 
+                    // ── Niveles 850hPa / 500hPa + cota de isocero cada 12h (7 días) ──
+                    const hourly = data?.hourly;
+                    const levelRows = [];
+                    if (hourly?.time && hourly?.temperature_850hPa && hourly?.temperature_500hPa) {
+                        for (let i = 0; i < hourly.time.length; i++) {
+                            const dt = new Date(hourly.time[i]);
+                            const hour = dt.getHours();
+                            if (hour !== 0 && hour !== 12) continue;
+                            levelRows.push({
+                                dateStr : hourly.time[i].slice(0,10),
+                                hour    : hour,
+                                t850    : Math.round(hourly.temperature_850hPa[i] ?? 0),
+                                t500    : Math.round(hourly.temperature_500hPa[i] ?? 0),
+                                cota    : Math.round((hourly.freezing_level_height?.[i] ?? 0) / 10) * 10,
+                            });
+                        }
+                    }
+                    window._f7LevelData = levelRows;
+
                     // Ocultar loading, mostrar paneles
                     const loading = document.getElementById('forecast7-loading');
                     if (loading) loading.style.display = 'none';
@@ -3802,9 +3821,11 @@
             const canvas = document.getElementById('f7-chart-combo');
             if (!canvas || !rows || rows.length < 2) return;
 
+            const levels = window._f7LevelData || [];
+
             const dpr = window.devicePixelRatio || 1;
             const W   = canvas.parentElement.offsetWidth - 32;
-            const H   = 300;
+            const H   = 500;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -3816,17 +3837,25 @@
             const cw  = W - PAD.l - PAD.r;
             const n   = rows.length;
 
-            // ── Dos zonas apiladas: temperatura arriba, lluvia abajo,
-            //    separadas por un hueco con divisor sutil ──
-            const tempH  = 128;   // alto zona temperatura
-            const gap    = 26;    // separación entre zonas (con divisor centrado)
-            const rainH  = 62;    // alto zona lluvia
+            // ── Zonas apiladas: temperatura / lluvia / niveles 850-500hPa / cota isocero,
+            //    separadas por huecos con divisor sutil ──
+            const tempH   = 128;   // alto zona temperatura
+            const gap     = 26;    // separación entre zonas
+            const rainH   = 62;    // alto zona lluvia
+            const gap2    = 26;    // separación antes de niveles
+            const levelsH = 92;    // alto zona 850hPa/500hPa
+            const gap3    = 22;    // separación antes de isocero
+            const isoH    = 64;    // alto zona cota isocero
 
             const tempTop    = PAD.t;
             const tempBottom = tempTop + tempH;
             const rainTop    = tempBottom + gap;
             const rainBottom = rainTop + rainH;
-            const xAxisY     = rainBottom + 16;
+            const levelsTop    = rainBottom + gap2;
+            const levelsBottom = levelsTop + levelsH;
+            const isoTop     = levelsBottom + gap3;
+            const isoBottom  = isoTop + isoH;
+            const xAxisY     = isoBottom + 16;
 
             const tmax = rows.map(r => r.tmax);
             const tmin = rows.map(r => r.tmin);
@@ -3911,6 +3940,120 @@
             ctx.moveTo(PAD.l, rainBottom);
             ctx.lineTo(PAD.l + cw, rainBottom);
             ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+
+            // ══════════════════════════════════════════════
+            // Zona 850hPa / 500hPa — cada 12h, 7 días (14 puntos)
+            // ══════════════════════════════════════════════
+            if (levels.length >= 2) {
+                const m = levels.length;
+                const xPos2 = j => PAD.l + (j / (m - 1)) * cw;
+
+                const t850v = levels.map(l => l.t850);
+                const t500v = levels.map(l => l.t500);
+                const allLv = [...t850v, ...t500v];
+                const lvMin = Math.floor(Math.min(...allLv)) - 2;
+                const lvMax = Math.ceil(Math.max(...allLv)) + 2;
+                const yLv   = v => levelsTop + levelsH - ((v - lvMin) / (lvMax - lvMin)) * levelsH;
+
+                // Líneas guía
+                for (let s = 0; s <= 2; s++) {
+                    const v = lvMin + (lvMax - lvMin) * s / 2;
+                    const y = yLv(v);
+                    ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1; ctx.stroke();
+                }
+
+                // Línea 850hPa — blanca continua
+                ctx.beginPath();
+                levels.forEach((l, j) => { const x = xPos2(j), y = yLv(l.t850); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
+                ctx.setLineDash([]);
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+
+                // Línea 500hPa — blanca discontinua
+                ctx.beginPath();
+                levels.forEach((l, j) => { const x = xPos2(j), y = yLv(l.t500); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
+                ctx.setLineDash([5, 4]);
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Puntos + etiquetas (solo cada 12h a las 00h para no saturar, y todas a 12h)
+                levels.forEach((l, j) => {
+                    const x850 = xPos2(j), y850 = yLv(l.t850);
+                    ctx.beginPath(); ctx.arc(x850, y850, 2.3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
+                    const y500 = yLv(l.t500);
+                    ctx.beginPath(); ctx.arc(x850, y500, 2.3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
+                    ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.85)';
+                    ctx.fillText(l.t850 + '°', x850, y850 - 6);
+                    ctx.fillText(l.t500 + '°', x850, y500 + 11);
+                });
+
+                // Etiquetas 00h/12h de esta franja
+                ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                levels.forEach((l, j) => { ctx.fillText(l.hour === 0 ? '00h' : '12h', xPos2(j), levelsBottom + 10); });
+
+                // Título + leyenda
+                ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.65)';
+                ctx.fillText('TEMPERATURA 850hPa / 500hPa · CADA 12H', PAD.l, levelsTop - 6);
+
+                ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                ctx.beginPath(); ctx.moveTo(PAD.l + cw - 92, levelsTop - 9); ctx.lineTo(PAD.l + cw - 78, levelsTop - 9);
+                ctx.setLineDash([]); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+                ctx.fillText(' 850hPa', PAD.l + cw - 78, levelsTop - 6);
+                ctx.beginPath(); ctx.moveTo(PAD.l + cw - 32, levelsTop - 9); ctx.lineTo(PAD.l + cw - 18, levelsTop - 9);
+                ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+                ctx.fillText(' 500hPa', PAD.l + cw - 18, levelsTop - 6);
+
+                // Línea base
+                ctx.beginPath();
+                ctx.moveTo(PAD.l, levelsBottom); ctx.lineTo(PAD.l + cw, levelsBottom);
+                ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+
+                // ══════════════════════════════════════════════
+                // Zona cota de isocero (0°C) — línea + área
+                // ══════════════════════════════════════════════
+                const cotaV = levels.map(l => l.cota);
+                const cMin = Math.min(...cotaV, 0);
+                const cMax = Math.max(...cotaV, 500);
+                const yIso = v => isoTop + isoH - ((v - cMin) / (cMax - cMin || 1)) * isoH;
+
+                // Área bajo la línea
+                ctx.beginPath();
+                ctx.moveTo(xPos2(0), yIso(cotaV[0]));
+                for (let j = 1; j < m; j++) ctx.lineTo(xPos2(j), yIso(cotaV[j]));
+                ctx.lineTo(xPos2(m-1), isoBottom);
+                ctx.lineTo(xPos2(0), isoBottom);
+                ctx.closePath();
+                const gIso = ctx.createLinearGradient(0, isoTop, 0, isoBottom);
+                gIso.addColorStop(0, 'rgba(255,255,255,0.22)');
+                gIso.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = gIso; ctx.fill();
+
+                // Línea de cota isocero — blanca continua
+                ctx.beginPath();
+                levels.forEach((l, j) => { const x = xPos2(j), y = yIso(l.cota); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+
+                levels.forEach((l, j) => {
+                    const x = xPos2(j), y = yIso(l.cota);
+                    ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
+                    // Solo etiquetar a las 00h para no saturar (y siempre el primero/último)
+                    if (l.hour === 0 || j === m - 1) {
+                        ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                        ctx.fillText(l.cota + 'm', x, y - 7);
+                    }
+                });
+
+                // Título
+                ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.65)';
+                ctx.fillText('COTA DE ISOCERO (0°C)', PAD.l, isoTop - 6);
+
+                // Línea base
+                ctx.beginPath();
+                ctx.moveTo(PAD.l, isoBottom); ctx.lineTo(PAD.l + cw, isoBottom);
+                ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+            }
 
             // Etiquetas eje X (blancas, compartidas por ambas gráficas)
             ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
@@ -4094,7 +4237,7 @@
             // const PROXY_BASE = 'https://tiempo-bcn-proxy.tunombre.workers.dev';
             const PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
 
-            const url=`${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean&timezone=Europe/Madrid&forecast_days=7`;
+            const url=`${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_850hPa,temperature_500hPa,freezing_level_height&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean&timezone=Europe/Madrid&forecast_days=7`;
             const aqUrl=`${PROXY_BASE}/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&hourly=pm10&forecast_days=2&timezone=Europe/Madrid`;
             const marineUrl=`${PROXY_BASE}/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
 
