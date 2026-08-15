@@ -932,10 +932,36 @@
                 <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">METEOGRAMA SEMANAL</span>
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
-                <!-- Panel único -->
-                <div id="f7-panel-wrap" style="position:relative;height:1050px;">
-                <div id="f7-panel-combo" style="padding:14px 16px 18px;position:absolute;inset:0;display:block;">
-                    <canvas id="f7-chart-combo" style="display:block;width:100%;"></canvas>
+                <!-- Panel superior: temperatura / probabilidad de lluvia / acumulado -->
+                <div id="f7-panel-wrap-top" style="position:relative;height:476px;">
+                <div id="f7-panel-combo-top" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
+                    <canvas id="f7-chart-top" style="display:block;width:100%;"></canvas>
+                </div>
+                </div>
+
+                <!-- Botón + desplegable: por qué probabilidad y acumulado se muestran por separado -->
+                <div style="padding:0 16px 14px;">
+                    <button id="f7-info-toggle" onclick="toggleF7InfoPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                        <span style="font-size:11.5px;font-weight:600;color:#ffffff;line-height:1.3;">¿Por qué mostramos la probabilidad y el acumulado por separado?</span>
+                        <span id="f7-info-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                    </button>
+                    <div id="f7-info-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
+                        <div style="padding:12px 2px 2px;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,0.9);">
+                            En Barcelona, especialmente con las tormentas de verano y otoño, el tiempo puede ser muy local. Imagina una nube de tormenta pequeña pero muy intensa sobre la ciudad:
+                            <br><br>
+                            <strong>La Probabilidad (en %)</strong> te dice qué tan fácil es que la nube pase exactamente por tu barrio (por ejemplo, un 20% porque es una tormenta muy localizada).
+                            <br><br>
+                            <strong>El Acumulado (en mm)</strong> te dice cuánta agua caerá si esa nube finalmente te pasa por encima (por ejemplo, 15 mm, que es un buen diluvio).
+                            <br><br>
+                            ¿El resumen? Un porcentaje bajo con un acumulado alto significa: "Es difícil que te toque, pero si te toca, te vas a mojar de verdad". ¡Por eso te mostramos ambos datos!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel inferior: niveles 850hPa/500hPa (atmósfera libre) / cota de isocero -->
+                <div id="f7-panel-wrap-bottom" style="position:relative;height:502px;">
+                <div id="f7-panel-combo-bottom" style="padding:0 16px 18px;position:absolute;inset:0;display:block;">
+                    <canvas id="f7-chart-bottom" style="display:block;width:100%;"></canvas>
                 </div>
                 </div>
             </div>
@@ -3596,12 +3622,43 @@
         };
 
         /* ── Motor de dibujo genérico ── */
-        function drawF7ComboChart() {
-            const rows = window._f7Data;
-            const canvas = document.getElementById('f7-chart-combo');
-            if (!canvas || !rows || rows.length < 2) return;
+        // Ajusta el alto de un contenedor (position:relative) al alto real de su
+        // canvas + el padding de su panel, para que ninguna zona quede recortada
+        // fuera del fondo azul y se "pierda" sobre el fondo blanco de la página.
+        function _f7SyncWrapHeight(wrapId, panelId, H) {
+            const wrap = document.getElementById(wrapId);
+            if (!wrap) return;
+            const panel = document.getElementById(panelId);
+            const csPanel = panel ? getComputedStyle(panel) : null;
+            const padTB = csPanel ? (parseFloat(csPanel.paddingTop) + parseFloat(csPanel.paddingBottom)) : 32;
+            wrap.style.height = (H + padTB) + 'px';
+        }
 
-            const levels = window._f7LevelData || [];
+        function drawF7ComboChart() {
+            drawF7ChartTop();
+            drawF7ChartBottom();
+        }
+
+        // ── Desplegable: por qué mostramos probabilidad y acumulado por separado ──
+        function toggleF7InfoPanel() {
+            const panel = document.getElementById('f7-info-panel');
+            const icon  = document.getElementById('f7-info-toggle-icon');
+            if (!panel) return;
+            const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
+            if (isOpen) {
+                panel.style.maxHeight = '0px';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + 'px';
+                if (icon) icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // ── Canvas superior: temperatura / probabilidad de lluvia / precipitación acumulada ──
+        function drawF7ChartTop() {
+            const rows = window._f7Data;
+            const canvas = document.getElementById('f7-chart-top');
+            if (!canvas || !rows || rows.length < 2) return;
 
             const dpr = window.devicePixelRatio || 1;
             const W   = canvas.parentElement.offsetWidth - 32;
@@ -3611,15 +3668,11 @@
             const cw  = W - PAD.l - PAD.r;
             const n   = rows.length;
 
-            // ── Zonas apiladas: temperatura / lluvia / niveles 850-500hPa / cota isocero,
+            // ── Zonas apiladas: temperatura / lluvia / precipitación acumulada,
             //    separadas por huecos con divisor sutil ──
             const tempH   = 140;   // alto zona temperatura
             const gap     = 32;    // separación entre zonas
             const rainH   = 72;    // alto zona lluvia
-            const gap2    = 155;   // separación antes de niveles (fila de días + más aire + título de sección + título/leyenda)
-            const levelsH = 170;   // alto zona 850hPa/500hPa (con espacio para ambas líneas y etiquetas)
-            const gap3    = 90;    // separación antes de isocero (margen amplio)
-            const isoH    = 70;    // alto zona cota isocero (reducida)
 
             const tempTop    = PAD.t;
             const tempBottom = tempTop + tempH;
@@ -3629,32 +3682,18 @@
             const accH       = 80;   // alto zona precipitación acumulada
             const accTop     = rainBottom + accGap;
             const accBottom  = accTop + accH;
-            const levelsTop    = accBottom + gap2;
-            const levelsBottom = levelsTop + levelsH;
-            const isoTop     = levelsBottom + gap3;
-            const isoBottom  = isoTop + isoH;
-            const xAxisY     = isoBottom + 20;
+            const dayLabelY  = accBottom + 14;
 
             // Altura del canvas calculada a partir de las zonas anteriores (se ajusta
             // sola si se añade, quita o redimensiona alguna zona/separación)
-            const H = xAxisY + PAD.b;
+            const H = dayLabelY + PAD.b;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
             canvas.style.height = H + 'px';
             ctx.scale(dpr, dpr);
 
-            // Ajustar el alto del contenedor (position:relative) al alto real
-            // del canvas + el padding del panel, para que ninguna zona (p.ej.
-            // la cota de isocero, al final del stack) quede recortada fuera
-            // del fondo azul y se "pierda" sobre el fondo blanco de la página.
-            const wrap = document.getElementById('f7-panel-wrap');
-            if (wrap) {
-                const panel = document.getElementById('f7-panel-combo');
-                const csPanel = panel ? getComputedStyle(panel) : null;
-                const padTB = csPanel ? (parseFloat(csPanel.paddingTop) + parseFloat(csPanel.paddingBottom)) : 32;
-                wrap.style.height = (H + padTB) + 'px';
-            }
+            _f7SyncWrapHeight('f7-panel-wrap-top', 'f7-panel-combo-top', H);
 
             const tmax = rows.map(r => r.tmax);
             const tmin = rows.map(r => r.tmin);
@@ -3796,9 +3835,59 @@
                 ctx.fillText(lbl, xPos(i), accBottom + 14);
             });
 
-            // ══════════════════════════════════════════════
-            // Zona 850hPa / 500hPa — cada 12h, 7 días (14 puntos)
-            // ══════════════════════════════════════════════
+            // Título + leyenda de temperatura (texto blanco, puntos de color para diferenciar máx/mín)
+            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            ctx.fillText('TEMPERATURA', PAD.l, PAD.t - 30);
+
+            ctx.font = 'bold 9px Inter,sans-serif';
+            ctx.fillStyle = '#ef4444'; ctx.fillText('●', PAD.l, PAD.t - 12);
+            ctx.fillStyle = '#ffffff'; ctx.fillText(' Máx', PAD.l + 7, PAD.t - 12);
+            ctx.fillStyle = '#3b82f6'; ctx.fillText('●', PAD.l + 55, PAD.t - 12);
+            ctx.fillStyle = '#ffffff'; ctx.fillText(' Mín', PAD.l + 62, PAD.t - 12);
+        }
+
+        // ── Canvas inferior: niveles 850hPa/500hPa (atmósfera libre) / cota de isocero ──
+        function drawF7ChartBottom() {
+            const levels = window._f7LevelData || [];
+            const rows   = window._f7Data;
+            const canvas = document.getElementById('f7-chart-bottom');
+            if (!canvas || !levels || levels.length < 2) {
+                // Sin datos de niveles: colapsar el contenedor para no dejar hueco vacío
+                const wrap = document.getElementById('f7-panel-wrap-bottom');
+                if (wrap) wrap.style.height = '0px';
+                return;
+            }
+
+            const dpr = window.devicePixelRatio || 1;
+            const W   = canvas.parentElement.offsetWidth - 32;
+            const ctx = canvas.getContext('2d');
+
+            const PAD = { t:90, r:16, b:44, l:16 };
+            const cw  = W - PAD.l - PAD.r;
+            const n   = (rows && rows.length) || 7;
+            const xPos = i => PAD.l + (i / (n - 1)) * cw;
+
+            const levelsH = 170;   // alto zona 850hPa/500hPa (con espacio para ambas líneas y etiquetas)
+            const gap3    = 90;    // separación antes de isocero (margen amplio)
+            const isoH    = 70;    // alto zona cota isocero
+
+            const levelsTop    = PAD.t;
+            const levelsBottom = levelsTop + levelsH;
+            const isoTop     = levelsBottom + gap3;
+            const isoBottom  = isoTop + isoH;
+            const xAxisY     = isoBottom + 20;
+
+            const H = xAxisY + PAD.b;
+            canvas.width  = W * dpr;
+            canvas.height = H * dpr;
+            canvas.style.width  = W + 'px';
+            canvas.style.height = H + 'px';
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, W, H);
+
+            _f7SyncWrapHeight('f7-panel-wrap-bottom', 'f7-panel-combo-bottom', H);
+
             if (levels.length >= 2) {
                 const m = levels.length;
                 const xPos2 = j => PAD.l + (j / (m - 1)) * cw;
@@ -3918,23 +4007,15 @@
                 ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
             }
 
-            // Etiquetas eje X (blancas, compartidas por ambas gráficas)
+            // Etiquetas eje X (blancas, para leer temperatura/lluvia/acumulado desde
+            // esta franja también, sin tener que mirar arriba)
             ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-            rows.forEach((r, i) => {
-                const lbl = r.isToday ? 'HOY' : r.dayName;
-                ctx.fillText(lbl, xPos(i), xAxisY);
-            });
-
-            // Título + leyenda de temperatura (texto blanco, puntos de color para diferenciar máx/mín)
-            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
-            ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.fillText('TEMPERATURA', PAD.l, PAD.t - 30);
-
-            ctx.font = 'bold 9px Inter,sans-serif';
-            ctx.fillStyle = '#ef4444'; ctx.fillText('●', PAD.l, PAD.t - 12);
-            ctx.fillStyle = '#ffffff'; ctx.fillText(' Máx', PAD.l + 7, PAD.t - 12);
-            ctx.fillStyle = '#3b82f6'; ctx.fillText('●', PAD.l + 55, PAD.t - 12);
-            ctx.fillStyle = '#ffffff'; ctx.fillText(' Mín', PAD.l + 62, PAD.t - 12);
+            if (rows) {
+                rows.forEach((r, i) => {
+                    const lbl = r.isToday ? 'HOY' : r.dayName;
+                    ctx.fillText(lbl, xPos(i), xAxisY);
+                });
+            }
         }
 
         /* ══════════════════════════════════════════════
