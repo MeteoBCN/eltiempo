@@ -4060,7 +4060,7 @@
             const capeH   = 80;    // alto sub-zona CAPE (barras)
             const capeGap = 44;    // separación entre CAPE y Lifted Index
             const liH     = 70;    // alto sub-zona Lifted Index (línea)
-            const gap5    = 60;    // separación antes del semáforo de riesgo de tormenta
+            const gap5    = 95;    // separación antes del semáforo de riesgo de tormenta (más aire encima del titular)
             const riskH   = 80;    // alto de la fila de riesgo de tormenta (dot + Mañana/Tarde + nivel)
 
             const levelsTop    = PAD.t;
@@ -4249,7 +4249,8 @@
                     const v = r.cape;
                     const barH = Math.max((v / capeMaxScale) * capeH, v > 0 ? 2 : 0);
                     const x = xPosStorm(j) - capeBarW / 2;
-                    const color = v >= 1500 ? '#EF4444' : v >= 500 ? '#F59E0B' : '#34D399';
+                    // Colores tenues: naranja (igual tono que 850hPa) / amarillo / verde
+                    const color = v >= 1500 ? 'rgba(255,138,101,0.72)' : v >= 500 ? 'rgba(250,204,21,0.65)' : 'rgba(52,211,153,0.55)';
                     ctx.fillStyle = color;
                     ctx.beginPath();
                     if (ctx.roundRect) {
@@ -4259,7 +4260,7 @@
                     }
                     ctx.fill();
                     if (v > 0) {
-                        ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = color;
+                        ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                         ctx.fillText(v, xPosStorm(j), capeBottom - barH - 5);
                     }
                 });
@@ -4284,13 +4285,12 @@
                 ctx.beginPath();
                 stormRows.forEach((r, j) => { const x = xPosStorm(j), y = yLi(r.li); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
                 ctx.setLineDash([]);
-                ctx.strokeStyle = '#38BDF8'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
 
                 stormRows.forEach((r, j) => {
                     const x = xPosStorm(j), y = yLi(r.li);
-                    const color = r.li <= -4 ? '#EF4444' : r.li <= -1 ? '#F59E0B' : '#38BDF8';
-                    ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = color; ctx.fill();
-                    ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = color;
+                    ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
+                    ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                     ctx.fillText(r.li, x, y - 7);
                 });
 
