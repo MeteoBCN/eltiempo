@@ -933,7 +933,7 @@
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <!-- Panel único -->
-                <div style="position:relative;height:625px;">
+                <div style="position:relative;height:725px;">
                 <div id="f7-panel-combo" style="padding:14px 16px 18px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-combo" style="display:block;width:100%;"></canvas>
                 </div>
@@ -3825,7 +3825,7 @@
 
             const dpr = window.devicePixelRatio || 1;
             const W   = canvas.parentElement.offsetWidth - 32;
-            const H   = 590;
+            const H   = 690;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -3842,10 +3842,10 @@
             const tempH   = 140;   // alto zona temperatura
             const gap     = 32;    // separación entre zonas
             const rainH   = 72;    // alto zona lluvia
-            const gap2    = 32;    // separación antes de niveles
-            const levelsH = 110;   // alto zona 850hPa/500hPa
-            const gap3    = 28;    // separación antes de isocero
-            const isoH    = 78;    // alto zona cota isocero
+            const gap2    = 36;    // separación antes de niveles
+            const levelsH = 170;   // alto zona 850hPa/500hPa (con espacio para ambas líneas y etiquetas)
+            const gap3    = 34;    // separación antes de isocero
+            const isoH    = 110;   // alto zona cota isocero
 
             const tempTop    = PAD.t;
             const tempBottom = tempTop + tempH;
@@ -3951,8 +3951,8 @@
                 const t850v = levels.map(l => l.t850);
                 const t500v = levels.map(l => l.t500);
                 const allLv = [...t850v, ...t500v];
-                const lvMin = Math.floor(Math.min(...allLv)) - 2;
-                const lvMax = Math.ceil(Math.max(...allLv)) + 2;
+                const lvMin = Math.floor(Math.min(...allLv)) - 8;
+                const lvMax = Math.ceil(Math.max(...allLv)) + 8;
                 const yLv   = v => levelsTop + levelsH - ((v - lvMin) / (lvMax - lvMin)) * levelsH;
 
                 // Líneas guía
@@ -3989,7 +3989,7 @@
 
                 // Etiquetas 00h/12h de esta franja
                 ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                levels.forEach((l, j) => { ctx.fillText(l.hour === 0 ? '00h' : '12h', xPos2(j), levelsBottom + 10); });
+                levels.forEach((l, j) => { ctx.fillText(l.hour === 0 ? '00h' : '12h', xPos2(j), levelsBottom + 14); });
 
                 // Título + leyenda
                 ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
