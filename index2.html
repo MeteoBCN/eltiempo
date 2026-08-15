@@ -964,6 +964,25 @@
                     <canvas id="f7-chart-bottom" style="display:block;width:100%;"></canvas>
                 </div>
                 </div>
+
+                <!-- Botón + desplegable: último radiosondeo (UB/SMC) -->
+                <div style="padding:0 16px 14px;">
+                    <button id="f7-radiosondeo-toggle" onclick="toggleF7RadiosondeoPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Último radiosondeo (UB/SMC)</span>
+                        <span id="f7-radiosondeo-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                    </button>
+                    <div id="f7-radiosondeo-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
+                        <div style="padding:12px 2px 2px;">
+                            <img src="https://static-m.meteo.cat/content/radiosondatge/images/ultim.png"
+                                 alt="Último radiosondeo Barcelona"
+                                 style="width:100%;display:block;border-radius:8px;"
+                                 loading="lazy"/>
+                            <div style="text-align:center;padding-top:6px;">
+                                <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Meteocat</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- ═══════════════════════════════════════════
@@ -1142,25 +1161,6 @@
                         <span style="font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">Fuente: Gencat · Bombers</span>
                         <a href="https://gencat.cat/medinatural/incendis/mapes/mapweb_muni.gif" target="_blank" style="font-size:9px;color:#6fcfe0;letter-spacing:1px;text-transform:uppercase;text-decoration:none;">Abrir mapa ↗</a>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════
-             ÚLTIMO RADIOSONDEO (UB/SMC)
-        ════════════════════════════════════════════ -->
-        <div id="radiosondeo-section" style="max-width:600px;width:calc(100% - 32px);margin:14px auto 0;border:2px solid #2c4a6e;border-radius:var(--border-radius);overflow:hidden;">
-            <div onclick="toggleExtraSection('radiosondeo')" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px 8px;background:#2c4a6e;cursor:pointer;user-select:none;">
-                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">RADIOSONDEO BARCELONA (UB/SMC)</span>
-                <span id="arrow-radiosondeo" style="font-size:10px;color:rgba(255,255,255,0.75);transition:transform 0.3s;">▼</span>
-            </div>
-            <div id="panel-radiosondeo" style="display:none;background:#000;overflow:hidden;">
-                <img src="https://static-m.meteo.cat/content/radiosondatge/images/ultim.png"
-                     alt="Últim radiosondatge Barcelona"
-                     style="width:100%;display:block;"
-                     loading="lazy"/>
-                <div style="background:#1e293b;padding:6px 12px;text-align:center;">
-                    <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Meteocat</span>
                 </div>
             </div>
         </div>
@@ -3821,6 +3821,28 @@
             } else {
                 panel.style.maxHeight = panel.scrollHeight + 'px';
                 if (icon) icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // ── Desplegable: último radiosondeo (UB/SMC), misma imagen que la sección de radiosondeo ──
+        function toggleF7RadiosondeoPanel() {
+            const panel = document.getElementById('f7-radiosondeo-panel');
+            const icon  = document.getElementById('f7-radiosondeo-toggle-icon');
+            if (!panel) return;
+            const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
+            if (isOpen) {
+                panel.style.maxHeight = '0px';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + 'px';
+                if (icon) icon.style.transform = 'rotate(180deg)';
+                // Si la imagen tarda en cargar, reajustar la altura del desplegable
+                const img = panel.querySelector('img');
+                if (img && !img.complete) {
+                    img.addEventListener('load', () => {
+                        if (panel.style.maxHeight !== '0px') panel.style.maxHeight = panel.scrollHeight + 'px';
+                    }, { once: true });
+                }
             }
         }
 
