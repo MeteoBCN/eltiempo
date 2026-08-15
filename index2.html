@@ -3241,6 +3241,8 @@
                                 t850    : Math.round(hourly.temperature_850hPa[i] ?? 0),
                                 t500    : Math.round(hourly.temperature_500hPa[i] ?? 0),
                                 cota    : Math.round((hourly.freezing_level_height?.[i] ?? 0) / 10) * 10,
+                                wind    : Math.round(hourly.wind_speed_10m?.[i] ?? 0),
+                                pres    : Math.round(hourly.pressure_msl?.[i] ?? 0),
                             });
                         }
                     }
@@ -3886,13 +3888,17 @@
             const levelsH = 170;   // alto zona 850hPa/500hPa (con espacio para ambas líneas y etiquetas)
             const gap3    = 170;   // separación antes de isocero (margen amplio)
             const isoH    = 70;    // alto zona cota isocero
+            const gap4    = 170;   // separación antes de viento/presión (margen amplio)
+            const windH   = 140;   // alto zona viento/presión a 10m
 
             const levelsTop    = PAD.t;
             const levelsBottom = levelsTop + levelsH;
             const isoTop     = levelsBottom + gap3;
             const isoBottom  = isoTop + isoH;
+            const windTop    = isoBottom + gap4;
+            const windBottom = windTop + windH;
 
-            const H = isoBottom + PAD.b;
+            const H = windBottom + PAD.b;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -4034,6 +4040,105 @@
                 // Línea base
                 ctx.beginPath();
                 ctx.moveTo(PAD.l, isoBottom); ctx.lineTo(PAD.l + cw, isoBottom);
+                ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+
+                // ══════════════════════════════════════════════
+                // Zona viento / presión a 10m — área+línea viento, línea discontinua presión
+                // ══════════════════════════════════════════════
+                const windV = levels.map(l => l.wind);
+                const presV = levels.map(l => l.pres);
+                const wMin = Math.max(0, Math.floor(Math.min(...windV) / 5) * 5 - 5);
+                const wMax = Math.ceil(Math.max(...windV) / 5) * 5 + 5;
+                const pMin = Math.floor(Math.min(...presV)) - 3;
+                const pMax = Math.ceil(Math.max(...presV)) + 3;
+                const yWind = v => windTop + windH - ((v - wMin) / (wMax - wMin || 1)) * windH;
+                const yPres = v => windTop + windH - ((v - pMin) / (pMax - pMin || 1)) * windH;
+
+                // Líneas guía horizontales sutiles
+                const windSteps = 3;
+                for (let s = 0; s <= windSteps; s++) {
+                    const y = windTop + (windH * s / windSteps);
+                    ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1; ctx.stroke();
+                }
+
+                // Área bajo la línea de viento
+                ctx.beginPath();
+                ctx.moveTo(xPos2(0), yWind(windV[0]));
+                for (let j = 1; j < m; j++) ctx.lineTo(xPos2(j), yWind(windV[j]));
+                ctx.lineTo(xPos2(m-1), windBottom);
+                ctx.lineTo(xPos2(0), windBottom);
+                ctx.closePath();
+                const gWind = ctx.createLinearGradient(0, windTop, 0, windBottom);
+                gWind.addColorStop(0, 'rgba(52,211,153,0.30)');
+                gWind.addColorStop(1, 'rgba(52,211,153,0)');
+                ctx.fillStyle = gWind; ctx.fill();
+
+                // Línea de viento — verde continua
+                ctx.beginPath();
+                levels.forEach((l, j) => { const x = xPos2(j), y = yWind(l.wind); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
+                ctx.setLineDash([]);
+                ctx.strokeStyle = '#34D399'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+
+                // Línea de presión — ámbar discontinua
+                ctx.beginPath();
+                levels.forEach((l, j) => { const x = xPos2(j), y = yPres(l.pres); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
+                ctx.setLineDash([5, 4]);
+                ctx.strokeStyle = '#FBBF24'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Puntos + etiquetas
+                levels.forEach((l, j) => {
+                    const xw = xPos2(j), yw = yWind(l.wind);
+                    ctx.beginPath(); ctx.arc(xw, yw, 2.3, 0, Math.PI*2); ctx.fillStyle = '#34D399'; ctx.fill();
+                    const yp = yPres(l.pres);
+                    ctx.beginPath(); ctx.arc(xw, yp, 2.3, 0, Math.PI*2); ctx.fillStyle = '#FBBF24'; ctx.fill();
+                    ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif';
+                    ctx.fillStyle = '#34D399';
+                    ctx.fillText(l.wind + 'km/h', xw, yw - 7);
+                    ctx.fillStyle = '#FBBF24';
+                    ctx.fillText(l.pres + 'hPa', xw, yp + 12);
+                });
+
+                // Etiquetas 00h/12h de esta franja
+                ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                levels.forEach((l, j) => { ctx.fillText(l.hour === 0 ? '00h' : '12h', xPos2(j), windBottom + 24); });
+
+                // Fila de días, alineada justo bajo la hora 00h de cada día
+                if (rows) {
+                    ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                    rows.forEach((r, i) => {
+                        const lbl = r.isToday ? 'HOY' : r.dayName;
+                        const j00 = levels.findIndex(l => l.dateStr === r.dateStr && l.hour === 0);
+                        const x = j00 !== -1 ? xPos2(j00) : xPos(i);
+                        ctx.fillText(lbl, x, windBottom + 40);
+                    });
+                }
+
+                // Título + leyenda
+                ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                ctx.fillText('VIENTO Y PRESIÓN A 10M', PAD.l, windTop - 51);
+
+                ctx.font = 'bold 8px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.65)';
+                ctx.fillText('VELOCIDAD DEL VIENTO / PRESIÓN · CADA 12H', PAD.l, windTop - 35);
+
+                ctx.font = 'bold 9px Inter,sans-serif';
+                ctx.textAlign = 'left';
+                ctx.beginPath(); ctx.moveTo(PAD.l, windTop - 24); ctx.lineTo(PAD.l + 14, windTop - 24);
+                ctx.setLineDash([]); ctx.strokeStyle = '#34D399'; ctx.lineWidth = 2; ctx.stroke();
+                ctx.fillStyle = '#34D399';
+                ctx.fillText(' Viento', PAD.l + 14, windTop - 21);
+                ctx.beginPath(); ctx.moveTo(PAD.l + 72, windTop - 24); ctx.lineTo(PAD.l + 86, windTop - 24);
+                ctx.strokeStyle = '#FBBF24';
+                ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+                ctx.fillStyle = '#FBBF24';
+                ctx.fillText(' Presión', PAD.l + 86, windTop - 21);
+
+                // Línea base
+                ctx.beginPath();
+                ctx.moveTo(PAD.l, windBottom); ctx.lineTo(PAD.l + cw, windBottom);
                 ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
             }
         }
@@ -4203,6 +4308,8 @@
                                     t850    : Math.round(hourly.temperature_850hPa[i] ?? 0),
                                     t500    : Math.round(hourly.temperature_500hPa[i] ?? 0),
                                     cota    : Math.round((hourly.freezing_level_height?.[i] ?? 0) / 10) * 10,
+                                    wind    : Math.round(hourly.wind_speed_10m?.[i] ?? 0),
+                                    pres    : Math.round(hourly.pressure_msl?.[i] ?? 0),
                                 });
                             }
                         }
