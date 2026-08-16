@@ -857,6 +857,22 @@
                     </div>
                 </div>
 
+                <div id="aqi-mini-widget" style="margin-top:16px;padding:12px 14px;background:#f7f9fb;border-radius:12px;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="flex-shrink:0;text-align:center;">
+                            <div style="display:flex;align-items:baseline;gap:4px;justify-content:center;">
+                                <span id="aqi-mini-value" style="font-size:24px;font-weight:900;color:#123653;font-family:monospace;line-height:1;">--</span>
+                                <span style="font-size:8px;color:#123653;opacity:0.7;">EAQI</span>
+                            </div>
+                            <div id="aqi-mini-badge" style="display:inline-block;margin-top:5px;font-size:10px;font-weight:700;color:#123653;background:#f0f6fa;border:1px solid rgba(44,74,110,0.2);border-radius:8px;padding:2px 8px;white-space:nowrap;">—</div>
+                        </div>
+                        <div id="aqi-mini-advice" style="flex:1;min-width:0;font-size:12px;color:#123653;line-height:1.4;border-left:3px solid rgba(44,74,110,0.3);padding-left:10px;"></div>
+                    </div>
+                    <div style="text-align:right;margin-top:10px;">
+                        <button onclick="document.getElementById('aqi-semaforo-section').scrollIntoView({behavior:'smooth', block:'start'});" style="font-size:9px;font-weight:700;color:#123653;background:#ffffff;border:1px solid rgba(44,74,110,0.25);border-radius:6px;padding:5px 10px;cursor:pointer;letter-spacing:0.5px;text-transform:uppercase;transition:all 0.2s;">Ampliar para más datos ↓</button>
+                    </div>
+                </div>
+
                 <div id="sun-countdown" style="text-align:center;margin-top:18px;font-size:13px;font-weight:600;color:#123653;letter-spacing:0.2px;"></div>
                 <div id="moon-info" style="text-align:center;margin-top:6px;font-size:13px;font-weight:600;color:#123653;letter-spacing:0.2px;"></div>
 
@@ -6104,6 +6120,10 @@
                 const badgeEl = document.getElementById('aqi-badge'); if (badgeEl) { badgeEl.style.background = level.bg; badgeEl.style.borderColor = level.color+'60'; }
                 const subEl = document.getElementById('aqi-sublabel'); if (subEl) subEl.textContent = level.sublabel;
                 const advEl = document.getElementById('aqi-advice'); if (advEl) { advEl.textContent = level.advice; advEl.style.borderLeftColor = level.color; }
+                // Mini-widget de calidad del aire (bajo Tiempo actual)
+                const miniValEl = document.getElementById('aqi-mini-value'); if (miniValEl) miniValEl.textContent = aqi;
+                const miniBadgeEl = document.getElementById('aqi-mini-badge'); if (miniBadgeEl) { miniBadgeEl.textContent = level.label; miniBadgeEl.style.color = level.color; miniBadgeEl.style.background = level.bg; miniBadgeEl.style.borderColor = level.color+'60'; }
+                const miniAdvEl = document.getElementById('aqi-mini-advice'); if (miniAdvEl) { miniAdvEl.textContent = level.advice; miniAdvEl.style.borderLeftColor = level.color; }
                 // Apagar todas las luces
                 setLight('aqi-light-purple',  '#3b1045', null);
                 setLight('aqi-light-darkred', '#3a0010', null);
