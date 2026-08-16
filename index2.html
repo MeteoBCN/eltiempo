@@ -377,6 +377,7 @@
         .hourly-wind-dir { font-size: 9px; color: #123653; letter-spacing: 0.5px; margin-bottom: 6px; }
         .hourly-precip { font-size: 10px; font-weight: 600; color: #123653; margin-top: 2px; }
         .hourly-precip.no-rain { color: rgba(26,90,122,0.3); }
+        #micro-forecast-inner::-webkit-scrollbar { display: none; }
         /* ══════════════════════════════════════════════
            SECCIÓN ARTÍCULO — estilos
            ══════════════════════════════════════════════ */
@@ -815,6 +816,11 @@
             <div class="hero-zone">
                 <div class="current-weather" style="text-align:left;padding:20px 20px 18px;background:#ffffff;">
                 <div id="current-datetime" style="font-size:13px;font-weight:400;color:#123653;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px;">--</div>
+
+                <div id="weather-alert-banner" style="display:none;align-items:center;gap:8px;border-radius:8px;padding:8px 12px;margin-bottom:16px;font-size:12px;font-weight:600;line-height:1.4;">
+                    <span style="font-size:15px;flex-shrink:0;">⚠️</span>
+                    <span id="weather-alert-text" style="flex:1;">Alerta meteorológica</span>
+                </div>
                 <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
                     <div class="icon-large" id="current-icon" style="font-size:2em;margin:0;line-height:1;">🌧️</div>
                     <div class="temperature" id="current-temp" style="color:#123653;font-size:56px;font-weight:800;margin-bottom:0;display:inline-block;transform:scaleX(1.25);transform-origin:left center;">--°</div>
@@ -855,6 +861,10 @@
                         <div class="detail-value" id="rain-prob-6h" style="font-size:14px;margin-top:0;">--%</div>
                         <div class="wc-label" style="text-align:center;">Lluvia 6h</div>
                     </div>
+                </div>
+
+                <div id="micro-forecast-strip" style="margin-top:16px;background:#ffffff;border-radius:12px;padding:8px 6px;">
+                    <div style="display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;" id="micro-forecast-inner"></div>
                 </div>
 
                 <div id="aqi-mini-widget" style="margin-top:16px;padding:12px 14px;background:#ffffff;border-radius:12px;">
@@ -2179,6 +2189,93 @@
             }
             const el=document.getElementById('air-quality-current');
             if(el){el.textContent=lvl(ac.european_aqi||0); el.style.color='#1E293B';}
+        }
+
+        function updateAlertBanner(hourly, daily) {
+            const banner = document.getElementById('weather-alert-banner');
+            const textEl = document.getElementById('weather-alert-text');
+            if (!banner || !textEl || !hourly?.time) return;
+
+            const now = new Date();
+            const limite = new Date(now.getTime() + 18 * 60 * 60 * 1000); // próximas 18h
+            let peak = null, maxWind = 0, maxWindHour = null, maxRainProb = 0, maxRainHour = null;
+
+            for (let i = 0; i < hourly.time.length; i++) {
+                const h = new Date(hourly.time[i]);
+                if (h < now || h > limite) continue;
+                const wcode = hourly.weather_code?.[i] ?? 0;
+                const prob  = hourly.precipitation_probability?.[i] ?? 0;
+                let probTorm = 0;
+                if (wcode >= 95) probTorm = Math.max(prob, 80);
+                else if (wcode >= 80) probTorm = Math.round(prob * 0.5);
+                else if (wcode >= 61) probTorm = Math.round(prob * 0.2);
+                if (!peak || probTorm > peak.probTorm) peak = { hora: h.getHours(), probTorm };
+
+                const gust = hourly.wind_gusts_10m?.[i] ?? 0;
+                if (gust > maxWind) { maxWind = gust; maxWindHour = h.getHours(); }
+
+                if (wcode >= 51 && prob > maxRainProb) { maxRainProb = prob; maxRainHour = h.getHours(); }
+            }
+
+            let level = null, msg = '';
+            if (peak && peak.probTorm >= 70) {
+                level = 'red';
+                msg = `Alerta: Tormentas intensas previstas a partir de las ${String(peak.hora).padStart(2,'0')}:00.`;
+            } else if (maxWind >= 70) {
+                level = 'red';
+                msg = `Alerta: Rachas de viento muy fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.`;
+            } else if (peak && peak.probTorm >= 40) {
+                level = 'yellow';
+                msg = `Aviso: Posibles tormentas a partir de las ${String(peak.hora).padStart(2,'0')}:00.`;
+            } else if (maxRainProb >= 70) {
+                level = 'yellow';
+                msg = `Aviso: Alta probabilidad de lluvia (${Math.round(maxRainProb)}%) a partir de las ${String(maxRainHour).padStart(2,'0')}:00.`;
+            } else if (maxWind >= 50) {
+                level = 'yellow';
+                msg = `Aviso: Rachas de viento fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.`;
+            }
+
+            if (!level) { banner.style.display = 'none'; return; }
+
+            if (level === 'red') {
+                banner.style.background = '#fee2e2';
+                banner.style.border = '1px solid #ef4444';
+                banner.style.borderLeft = '4px solid #ef4444';
+                banner.style.color = '#991b1b';
+            } else {
+                banner.style.background = '#fef3c7';
+                banner.style.border = '1px solid #f59e0b';
+                banner.style.borderLeft = '4px solid #f59e0b';
+                banner.style.color = '#92400e';
+            }
+            textEl.textContent = msg;
+            banner.style.display = 'flex';
+        }
+
+        function updateMicroForecast(hourly) {
+            const inner = document.getElementById('micro-forecast-inner');
+            if (!inner || !hourly?.time) return;
+            const now = new Date();
+            const items = [];
+            for (let i = 0; i < hourly.time.length; i++) {
+                const h = new Date(hourly.time[i]);
+                if (h <= now) continue;
+                items.push({ h, i });
+                if (items.length >= 4) break;
+            }
+            inner.innerHTML = items.map(({ h, i }, idx) => {
+                const wmo = hourly.weather_code?.[i] ?? 0;
+                const isNight = isNightTime(h);
+                const icon = getSvgIcon(wmo, 22, isNight);
+                const temp = hourly.temperature_2m?.[i] !== undefined ? Math.round(hourly.temperature_2m[i]) : '--';
+                const label = String(h.getHours()).padStart(2, '0') + ':00';
+                const borderStyle = idx < items.length - 1 ? 'border-right:1px solid rgba(44,74,110,0.08);' : '';
+                return `<div style="flex:1;min-width:56px;text-align:center;padding:6px 4px;${borderStyle}">
+                    <div style="font-size:10px;font-weight:700;color:#123653;opacity:0.65;margin-bottom:4px;">${label}</div>
+                    <div style="display:flex;justify-content:center;margin-bottom:4px;">${icon}</div>
+                    <div style="font-size:13px;font-weight:800;color:#123653;">${temp}°</div>
+                </div>`;
+            }).join('');
         }
 
         function updateTormentaSection(hourly) {
@@ -4494,6 +4591,8 @@
                 updateRainSemaphore(data.hourly);
                 updateRainProb6h(data.hourly);
                 updateHourlyStrip(data.hourly, data.daily);
+                updateMicroForecast(data.hourly);
+                updateAlertBanner(data.hourly, data.daily);
                 updateFranjasTable(data.hourly, data.daily);
                 updateTodayTable(data.daily, data.hourly);
                 if (aqData?.current) updateAirQualityTable(aqData.current);
