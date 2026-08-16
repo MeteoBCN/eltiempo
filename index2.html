@@ -377,7 +377,6 @@
         .hourly-wind-dir { font-size: 9px; color: #123653; letter-spacing: 0.5px; margin-bottom: 6px; }
         .hourly-precip { font-size: 10px; font-weight: 600; color: #123653; margin-top: 2px; }
         .hourly-precip.no-rain { color: rgba(26,90,122,0.3); }
-        #micro-forecast-inner::-webkit-scrollbar { display: none; }
         /* ══════════════════════════════════════════════
            SECCIÓN ARTÍCULO — estilos
            ══════════════════════════════════════════════ */
@@ -861,10 +860,6 @@
                         <div class="detail-value" id="rain-prob-6h" style="font-size:14px;margin-top:0;">--%</div>
                         <div class="wc-label" style="text-align:center;">Lluvia 6h</div>
                     </div>
-                </div>
-
-                <div id="micro-forecast-strip" style="margin-top:16px;background:#ffffff;border-radius:12px;padding:8px 6px;">
-                    <div style="display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;" id="micro-forecast-inner"></div>
                 </div>
 
                 <div id="aqi-mini-widget" style="margin-top:16px;padding:12px 14px;background:#ffffff;border-radius:12px;">
@@ -2250,32 +2245,6 @@
             }
             textEl.textContent = msg;
             banner.style.display = 'flex';
-        }
-
-        function updateMicroForecast(hourly) {
-            const inner = document.getElementById('micro-forecast-inner');
-            if (!inner || !hourly?.time) return;
-            const now = new Date();
-            const items = [];
-            for (let i = 0; i < hourly.time.length; i++) {
-                const h = new Date(hourly.time[i]);
-                if (h <= now) continue;
-                items.push({ h, i });
-                if (items.length >= 4) break;
-            }
-            inner.innerHTML = items.map(({ h, i }, idx) => {
-                const wmo = hourly.weather_code?.[i] ?? 0;
-                const isNight = isNightTime(h);
-                const icon = getSvgIcon(wmo, 22, isNight);
-                const temp = hourly.temperature_2m?.[i] !== undefined ? Math.round(hourly.temperature_2m[i]) : '--';
-                const label = String(h.getHours()).padStart(2, '0') + ':00';
-                const borderStyle = idx < items.length - 1 ? 'border-right:1px solid rgba(44,74,110,0.08);' : '';
-                return `<div style="flex:1;min-width:56px;text-align:center;padding:6px 4px;${borderStyle}">
-                    <div style="font-size:10px;font-weight:700;color:#123653;opacity:0.65;margin-bottom:4px;">${label}</div>
-                    <div style="display:flex;justify-content:center;margin-bottom:4px;">${icon}</div>
-                    <div style="font-size:13px;font-weight:800;color:#123653;">${temp}°</div>
-                </div>`;
-            }).join('');
         }
 
         function updateTormentaSection(hourly) {
@@ -4591,7 +4560,6 @@
                 updateRainSemaphore(data.hourly);
                 updateRainProb6h(data.hourly);
                 updateHourlyStrip(data.hourly, data.daily);
-                updateMicroForecast(data.hourly);
                 updateAlertBanner(data.hourly, data.daily);
                 updateFranjasTable(data.hourly, data.daily);
                 updateTodayTable(data.daily, data.hourly);
