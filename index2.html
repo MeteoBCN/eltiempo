@@ -4135,6 +4135,16 @@
                     ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1; ctx.stroke();
                 });
 
+                // Líneas verticales discontinuas y sutiles marcando las 00h (separación entre días)
+                levels.forEach((l, j) => {
+                    if (l.hour !== 0 || j === 0) return;
+                    const x = xPos2(j);
+                    ctx.beginPath(); ctx.moveTo(x, levelsTop); ctx.lineTo(x, levelsBottom);
+                    ctx.setLineDash([3, 3]);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1; ctx.stroke();
+                    ctx.setLineDash([]);
+                });
+
                 // Línea 850hPa — naranja continua (igual que Máx)
                 ctx.beginPath();
                 levels.forEach((l, j) => { const x = xPos2(j), y = yLv(l.t850); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
@@ -4264,6 +4274,17 @@
                 const liMinV = Math.min(...liVS, -2);
                 const liMaxV = Math.max(...liVS, 2);
                 const yLi = v => liTop + liH - ((v - liMinV) / (liMaxV - liMinV || 1)) * liH;
+
+                // Líneas verticales discontinuas y sutiles para diferenciar un día del otro
+                // (abarcan CAPE + Lifted Index + Riesgo de tormenta, que comparten el mismo eje X)
+                stormRows.forEach((r, j) => {
+                    if (r.period !== 'AM' || j === 0) return;
+                    const x = xPosStorm(j);
+                    ctx.beginPath(); ctx.moveTo(x, capeTop); ctx.lineTo(x, riskBottom);
+                    ctx.setLineDash([3, 3]);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1; ctx.stroke();
+                    ctx.setLineDash([]);
+                });
 
                 // Título general de la sección
                 ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
