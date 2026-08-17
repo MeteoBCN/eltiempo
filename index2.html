@@ -4275,17 +4275,6 @@
                 const liMaxV = Math.max(...liVS, 2);
                 const yLi = v => liTop + liH - ((v - liMinV) / (liMaxV - liMinV || 1)) * liH;
 
-                // Líneas verticales discontinuas y sutiles para diferenciar un día del otro
-                // (abarcan CAPE + Lifted Index + Riesgo de tormenta, que comparten el mismo eje X)
-                stormRows.forEach((r, j) => {
-                    if (r.period !== 'AM' || j === 0) return;
-                    const x = xPosStorm(j);
-                    ctx.beginPath(); ctx.moveTo(x, capeTop); ctx.lineTo(x, riskBottom);
-                    ctx.setLineDash([3, 3]);
-                    ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1; ctx.stroke();
-                    ctx.setLineDash([]);
-                });
-
                 // Título general de la sección
                 ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.9)';
