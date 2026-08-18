@@ -806,15 +806,13 @@
         </script>
         <!-- ══════ FIN MENÚ NAVEGACIÓN ══════ -->
 
-        <div style="padding:0 20px;">
-            <div id="weather-alert-banner" style="display:none;flex-direction:column;border-radius:8px;padding:8px 12px;margin-top:14px;font-size:12px;font-weight:600;line-height:1.4;">
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <span id="weather-alert-icon" style="font-size:15px;flex-shrink:0;">⚠️</span>
-                    <span id="weather-alert-text" style="flex:1;">Alerta meteorológica</span>
-                    <button id="weather-alert-toggle" onclick="toggleWeatherAlertDetails()" style="display:none;background:none;border:none;font-size:11px;font-weight:700;text-decoration:underline;cursor:pointer;color:inherit;padding:0;flex-shrink:0;white-space:nowrap;">Ver más detalles</button>
-                </div>
-                <div id="weather-alert-details" style="display:none;flex-direction:column;gap:6px;padding-top:8px;margin-top:8px;border-top:1px solid rgba(0,0,0,0.15);"></div>
+        <div id="weather-alert-banner" style="display:none;flex-direction:column;padding:8px 20px;font-size:12px;font-weight:600;line-height:1.4;">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span id="weather-alert-icon" style="font-size:15px;flex-shrink:0;">⚠️</span>
+                <span id="weather-alert-text" style="flex:1;">Alerta meteorológica</span>
+                <button id="weather-alert-toggle" onclick="toggleWeatherAlertDetails()" style="display:none;background:none;border:none;font-size:11px;font-weight:700;text-decoration:underline;cursor:pointer;color:inherit;padding:0;flex-shrink:0;white-space:nowrap;">Ver más detalles</button>
             </div>
+            <div id="weather-alert-details" style="display:none;flex-direction:column;gap:6px;padding-top:8px;margin-top:8px;border-top:1px solid rgba(0,0,0,0.15);"></div>
         </div>
 
 
@@ -2126,31 +2124,45 @@
             if (!banner || !textEl || !hourly?.time) return;
 
             const now = new Date();
-            const limite = new Date(now.getTime() + 18 * 60 * 60 * 1000); // próximas 18h
-            let peak = null, maxWind = 0, maxWindHour = null, maxRainProb = 0, maxRainHour = null;
+            // Ventanas de tiempo distintas según el tipo de fenómeno:
+            const limiteTormentaViento = new Date(now.getTime() + 3 * 60 * 60 * 1000);  // 3h: fenómenos súbitos
+            const limiteCalor          = new Date(now.getTime() + 12 * 60 * 60 * 1000); // 12h: evolución lenta/predecible
+            const limiteLluvia         = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24h: acumulación total
+
+            let peak = null, maxWind = 0, maxWindHour = null;
             let maxTemp = -99, maxTempHour = null, maxFeels = -99, maxFeelsHour = null;
+            let lluviaAcum = 0;
 
             for (let i = 0; i < hourly.time.length; i++) {
                 const h = new Date(hourly.time[i]);
-                if (h < now || h > limite) continue;
-                const wcode = hourly.weather_code?.[i] ?? 0;
-                const prob  = hourly.precipitation_probability?.[i] ?? 0;
-                let probTorm = 0;
-                if (wcode >= 95) probTorm = Math.max(prob, 80);
-                else if (wcode >= 80) probTorm = Math.round(prob * 0.5);
-                else if (wcode >= 61) probTorm = Math.round(prob * 0.2);
-                if (!peak || probTorm > peak.probTorm) peak = { hora: h.getHours(), probTorm };
+                if (h < now || h > limiteLluvia) continue;
 
-                const gust = hourly.wind_gusts_10m?.[i] ?? 0;
-                if (gust > maxWind) { maxWind = gust; maxWindHour = h.getHours(); }
+                // Acumulación de lluvia (ventana 24h)
+                const precip = hourly.precipitation?.[i] ?? 0;
+                lluviaAcum += precip;
 
-                if (wcode >= 51 && prob > maxRainProb) { maxRainProb = prob; maxRainHour = h.getHours(); }
+                // Tormenta y viento (ventana 3h)
+                if (h <= limiteTormentaViento) {
+                    const wcode = hourly.weather_code?.[i] ?? 0;
+                    const prob  = hourly.precipitation_probability?.[i] ?? 0;
+                    let probTorm = 0;
+                    if (wcode >= 95) probTorm = Math.max(prob, 80);
+                    else if (wcode >= 80) probTorm = Math.round(prob * 0.5);
+                    else if (wcode >= 61) probTorm = Math.round(prob * 0.2);
+                    if (!peak || probTorm > peak.probTorm) peak = { hora: h.getHours(), probTorm };
 
-                const temp = hourly.temperature_2m?.[i];
-                if (temp !== undefined && temp !== null && temp > maxTemp) { maxTemp = temp; maxTempHour = h.getHours(); }
+                    const gust = hourly.wind_gusts_10m?.[i] ?? 0;
+                    if (gust > maxWind) { maxWind = gust; maxWindHour = h.getHours(); }
+                }
 
-                const feels = hourly.apparent_temperature?.[i];
-                if (feels !== undefined && feels !== null && feels > maxFeels) { maxFeels = feels; maxFeelsHour = h.getHours(); }
+                // Calor y bochorno (ventana 12h)
+                if (h <= limiteCalor) {
+                    const temp = hourly.temperature_2m?.[i];
+                    if (temp !== undefined && temp !== null && temp > maxTemp) { maxTemp = temp; maxTempHour = h.getHours(); }
+
+                    const feels = hourly.apparent_temperature?.[i];
+                    if (feels !== undefined && feels !== null && feels > maxFeels) { maxFeels = feels; maxFeelsHour = h.getHours(); }
+                }
             }
 
             // Se recogen TODOS los avisos que se cumplan (no solo el primero), ordenados por severidad.
@@ -2173,11 +2185,13 @@
             if (peak && peak.probTorm >= 40 && peak.probTorm < 70) {
                 alerts.push({ level: 'yellow', msg: `Posibles tormentas a partir de las ${String(peak.hora).padStart(2,'0')}:00.` });
             }
-            if (maxRainProb >= 70) {
-                alerts.push({ level: 'blue', msg: `Alta probabilidad de lluvia (${Math.round(maxRainProb)}%) a partir de las ${String(maxRainHour).padStart(2,'0')}:00.` });
-            }
             if (maxWind >= 50 && maxWind < 70) {
                 alerts.push({ level: 'yellow', msg: `Rachas de viento fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.` });
+            }
+            if (lluviaAcum >= 50) {
+                alerts.push({ level: 'red', msg: `Lluvia intensa: acumulación prevista de ${lluviaAcum.toFixed(0)} mm en las próximas 24h.` });
+            } else if (lluviaAcum >= 30) {
+                alerts.push({ level: 'yellow', msg: `Lluvia significativa: acumulación prevista de ${lluviaAcum.toFixed(0)} mm en las próximas 24h.` });
             }
 
             if (alerts.length === 0) { banner.style.display = 'none'; return; }
@@ -2191,8 +2205,6 @@
             const prefix = main.level === 'blue' ? 'Info' : (main.level === 'red' ? 'Alerta' : 'Aviso');
 
             banner.style.background = style.bg;
-            banner.style.border = `1px solid ${style.border}`;
-            banner.style.borderLeft = `4px solid ${style.border}`;
             banner.style.color = style.text;
             iconEl.textContent = style.icon;
             textEl.textContent = `${prefix}: ${main.msg}`;
