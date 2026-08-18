@@ -806,7 +806,16 @@
         </script>
         <!-- ══════ FIN MENÚ NAVEGACIÓN ══════ -->
 
-
+        <div style="padding:0 20px;">
+            <div id="weather-alert-banner" style="display:none;flex-direction:column;border-radius:8px;padding:8px 12px;margin-top:14px;font-size:12px;font-weight:600;line-height:1.4;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span id="weather-alert-icon" style="font-size:15px;flex-shrink:0;">⚠️</span>
+                    <span id="weather-alert-text" style="flex:1;">Alerta meteorológica</span>
+                    <button id="weather-alert-toggle" onclick="toggleWeatherAlertDetails()" style="display:none;background:none;border:none;font-size:11px;font-weight:700;text-decoration:underline;cursor:pointer;color:inherit;padding:0;flex-shrink:0;white-space:nowrap;">Ver más detalles</button>
+                </div>
+                <div id="weather-alert-details" style="display:none;flex-direction:column;gap:6px;padding-top:8px;margin-top:8px;border-top:1px solid rgba(0,0,0,0.15);"></div>
+            </div>
+        </div>
 
 
 
@@ -815,11 +824,6 @@
             <div class="hero-zone">
                 <div class="current-weather" style="text-align:left;padding:20px 20px 18px;background:#ffffff;">
                 <div id="current-datetime" style="font-size:13px;font-weight:400;color:#123653;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px;">--</div>
-
-                <div id="weather-alert-banner" style="display:none;align-items:center;gap:8px;border-radius:8px;padding:8px 12px;margin-bottom:16px;font-size:12px;font-weight:600;line-height:1.4;">
-                    <span style="font-size:15px;flex-shrink:0;">⚠️</span>
-                    <span id="weather-alert-text" style="flex:1;">Alerta meteorológica</span>
-                </div>
                 <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
                     <div class="icon-large" id="current-icon" style="font-size:2em;margin:0;line-height:1;">🌧️</div>
                     <div class="temperature" id="current-temp" style="color:#123653;font-size:56px;font-weight:800;margin-bottom:0;display:inline-block;transform:scaleX(1.25);transform-origin:left center;">--°</div>
@@ -2097,9 +2101,28 @@
             if(el){el.textContent=lvl(ac.european_aqi||0); el.style.color='#1E293B';}
         }
 
+        function toggleWeatherAlertDetails() {
+            const details = document.getElementById('weather-alert-details');
+            const toggle = document.getElementById('weather-alert-toggle');
+            if (!details || !toggle) return;
+            const abierto = details.style.display === 'flex';
+            details.style.display = abierto ? 'none' : 'flex';
+            toggle.textContent = abierto ? 'Ver más detalles' : 'Ocultar detalles';
+        }
+
+        // Estilos por nivel de severidad: rojo = alarmante, amarillo = precaución, azul = informativo/neutro
+        const ALERT_LEVEL_STYLES = {
+            red:    { bg: '#fee2e2', border: '#ef4444', text: '#991b1b', icon: '⚠️' },
+            yellow: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', icon: '⚠️' },
+            blue:   { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af', icon: 'ℹ️' }
+        };
+
         function updateAlertBanner(hourly, daily) {
             const banner = document.getElementById('weather-alert-banner');
             const textEl = document.getElementById('weather-alert-text');
+            const iconEl = document.getElementById('weather-alert-icon');
+            const toggle = document.getElementById('weather-alert-toggle');
+            const details = document.getElementById('weather-alert-details');
             if (!banner || !textEl || !hourly?.time) return;
 
             const now = new Date();
@@ -2130,44 +2153,69 @@
                 if (feels !== undefined && feels !== null && feels > maxFeels) { maxFeels = feels; maxFeelsHour = h.getHours(); }
             }
 
-            let level = null, msg = '';
+            // Se recogen TODOS los avisos que se cumplan (no solo el primero), ordenados por severidad.
+            // Nivel de color = urgencia real: rojo (alarmante), amarillo (precaución), azul (informativo, sin alarmar).
+            const alerts = [];
             if (peak && peak.probTorm >= 70) {
-                level = 'red';
-                msg = `Alerta: Tormentas intensas previstas a partir de las ${String(peak.hora).padStart(2,'0')}:00.`;
-            } else if (maxWind >= 70) {
-                level = 'red';
-                msg = `Alerta: Rachas de viento muy fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.`;
-            } else if (maxFeels >= 35) {
-                level = 'red';
-                msg = `Alerta: Bochorno, sensación térmica de hasta ${Math.round(maxFeels)}° hacia las ${String(maxFeelsHour).padStart(2,'0')}:00.`;
-            } else if (maxTemp >= 32) {
-                level = 'yellow';
-                msg = `Aviso: Calor extremo, hasta ${Math.round(maxTemp)}° hacia las ${String(maxTempHour).padStart(2,'0')}:00.`;
-            } else if (peak && peak.probTorm >= 40) {
-                level = 'yellow';
-                msg = `Aviso: Posibles tormentas a partir de las ${String(peak.hora).padStart(2,'0')}:00.`;
-            } else if (maxRainProb >= 70) {
-                level = 'yellow';
-                msg = `Aviso: Alta probabilidad de lluvia (${Math.round(maxRainProb)}%) a partir de las ${String(maxRainHour).padStart(2,'0')}:00.`;
-            } else if (maxWind >= 50) {
-                level = 'yellow';
-                msg = `Aviso: Rachas de viento fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.`;
+                alerts.push({ level: 'red', msg: `Tormentas intensas previstas a partir de las ${String(peak.hora).padStart(2,'0')}:00.` });
+            }
+            if (maxWind >= 70) {
+                alerts.push({ level: 'red', msg: `Rachas de viento muy fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.` });
+            }
+            if (maxFeels >= 38) {
+                alerts.push({ level: 'red', msg: `Bochorno, sensación térmica de hasta ${Math.round(maxFeels)}° hacia las ${String(maxFeelsHour).padStart(2,'0')}:00.` });
+            } else if (maxFeels >= 34) {
+                alerts.push({ level: 'yellow', msg: `Bochorno, sensación térmica de hasta ${Math.round(maxFeels)}° hacia las ${String(maxFeelsHour).padStart(2,'0')}:00.` });
+            }
+            if (maxTemp >= 32) {
+                alerts.push({ level: 'yellow', msg: `Calor, hasta ${Math.round(maxTemp)}° hacia las ${String(maxTempHour).padStart(2,'0')}:00.` });
+            }
+            if (peak && peak.probTorm >= 40 && peak.probTorm < 70) {
+                alerts.push({ level: 'yellow', msg: `Posibles tormentas a partir de las ${String(peak.hora).padStart(2,'0')}:00.` });
+            }
+            if (maxRainProb >= 70) {
+                alerts.push({ level: 'blue', msg: `Alta probabilidad de lluvia (${Math.round(maxRainProb)}%) a partir de las ${String(maxRainHour).padStart(2,'0')}:00.` });
+            }
+            if (maxWind >= 50 && maxWind < 70) {
+                alerts.push({ level: 'yellow', msg: `Rachas de viento fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.` });
             }
 
-            if (!level) { banner.style.display = 'none'; return; }
+            if (alerts.length === 0) { banner.style.display = 'none'; return; }
 
-            if (level === 'red') {
-                banner.style.background = '#fee2e2';
-                banner.style.border = '1px solid #ef4444';
-                banner.style.borderLeft = '4px solid #ef4444';
-                banner.style.color = '#991b1b';
+            // Orden de severidad para decidir cuál se muestra como titular
+            const SEVERITY = { red: 0, yellow: 1, blue: 2 };
+            alerts.sort((a, b) => SEVERITY[a.level] - SEVERITY[b.level]);
+
+            const main = alerts[0];
+            const style = ALERT_LEVEL_STYLES[main.level];
+            const prefix = main.level === 'blue' ? 'Info' : (main.level === 'red' ? 'Alerta' : 'Aviso');
+
+            banner.style.background = style.bg;
+            banner.style.border = `1px solid ${style.border}`;
+            banner.style.borderLeft = `4px solid ${style.border}`;
+            banner.style.color = style.text;
+            iconEl.textContent = style.icon;
+            textEl.textContent = `${prefix}: ${main.msg}`;
+
+            // Detalles adicionales (resto de avisos activos), colapsados por defecto
+            if (alerts.length > 1) {
+                toggle.style.display = 'block';
+                toggle.textContent = 'Ver más detalles';
+                details.style.display = 'none';
+                details.innerHTML = alerts.slice(1).map(a => {
+                    const s = ALERT_LEVEL_STYLES[a.level];
+                    const p = a.level === 'blue' ? 'Info' : (a.level === 'red' ? 'Alerta' : 'Aviso');
+                    return `<div style="display:flex;align-items:flex-start;gap:6px;">
+                        <span style="font-size:13px;flex-shrink:0;">${s.icon}</span>
+                        <span style="flex:1;font-weight:600;">${p}: ${a.msg}</span>
+                    </div>`;
+                }).join('');
             } else {
-                banner.style.background = '#fef3c7';
-                banner.style.border = '1px solid #f59e0b';
-                banner.style.borderLeft = '4px solid #f59e0b';
-                banner.style.color = '#92400e';
+                toggle.style.display = 'none';
+                details.style.display = 'none';
+                details.innerHTML = '';
             }
-            textEl.textContent = msg;
+
             banner.style.display = 'flex';
         }
 
