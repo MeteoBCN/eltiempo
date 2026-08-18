@@ -806,7 +806,7 @@
         </script>
         <!-- ══════ FIN MENÚ NAVEGACIÓN ══════ -->
 
-        <div id="weather-alert-banner" style="display:none;flex-direction:column;gap:8px;padding:10px 20px;"></div>
+        <div id="weather-alert-banner" style="display:none;flex-direction:column;gap:0;padding:0;"></div>
 
 
 
@@ -2094,9 +2094,9 @@
 
         // Estilos por nivel de severidad: rojo = alarmante, amarillo = precaución, azul = informativo/neutro
         const ALERT_LEVEL_STYLES = {
-            red:    { bg: '#fee2e2', border: '#ef4444', text: '#991b1b', icon: '🔴' },
-            orange: { bg: '#ffedd5', border: '#f97316', text: '#9a3412', icon: '🟠' },
-            yellow: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', icon: '🟡' },
+            red:    { bg: '#fee2e2', border: '#ef4444', text: '#991b1b', icon: '⚠️' },
+            orange: { bg: '#ffedd5', border: '#f97316', text: '#9a3412', icon: '⚠️' },
+            yellow: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', icon: '⚠️' },
             blue:   { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af', icon: 'ℹ️' }
         };
 
@@ -2208,20 +2208,20 @@
 
             // CALOR DIURNO — temperatura real máxima (12h): Amarillo ≥33.3 · Naranja ≥35.3 · Rojo ≥38.3
             if (maxTemp >= 38.3) {
-                alerts.push({ level: 'red', cat: 'CALOR', msg: `Calor excepcional, hasta ${maxTemp.toFixed(1)}° hacia las ${String(maxTempHour).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'red', cat: 'CALOR', msg: `Calor excepcional, hasta ${Math.round(maxTemp)}° hacia las ${String(maxTempHour).padStart(2,'0')}:00.` });
             } else if (maxTemp >= 35.3) {
-                alerts.push({ level: 'orange', cat: 'CALOR', msg: `Hasta ${maxTemp.toFixed(1)}° hacia las ${String(maxTempHour).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'orange', cat: 'CALOR', msg: `Hasta ${Math.round(maxTemp)}° hacia las ${String(maxTempHour).padStart(2,'0')}:00.` });
             } else if (maxTemp >= 33.3) {
-                alerts.push({ level: 'yellow', cat: 'CALOR', msg: `Hasta ${maxTemp.toFixed(1)}° hacia las ${String(maxTempHour).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'yellow', cat: 'CALOR', msg: `Hasta ${Math.round(maxTemp)}° hacia las ${String(maxTempHour).padStart(2,'0')}:00.` });
             }
 
             // CALOR NOCTURNO — mínima que no baja lo suficiente (24h): Amarillo ≥25 · Naranja ≥27 · Rojo ≥29
             if (minTemp >= 29) {
-                alerts.push({ level: 'red', cat: 'NOCHE', msg: `Riesgo extremo para la salud, mínima de ${minTemp.toFixed(1)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'red', cat: 'NOCHE', msg: `Riesgo extremo para la salud, mínima de ${Math.round(minTemp)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
             } else if (minTemp >= 27) {
-                alerts.push({ level: 'orange', cat: 'NOCHE', msg: `Noche ultra-tórrida, mínima de ${minTemp.toFixed(1)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'orange', cat: 'NOCHE', msg: `Noche ultra-tórrida, mínima de ${Math.round(minTemp)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
             } else if (minTemp >= 25) {
-                alerts.push({ level: 'yellow', cat: 'NOCHE', msg: `Noche tórrida, mínima de ${minTemp.toFixed(1)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'yellow', cat: 'NOCHE', msg: `Noche tórrida, mínima de ${Math.round(minTemp)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
             }
 
             // FRÍO — temperatura real mínima (24h): Amarillo <2.0 · Naranja <-2.0 · Rojo <-6.0
@@ -2270,10 +2270,12 @@
 
             if (visibles.length === 0) { banner.style.display = 'none'; banner.innerHTML = ''; return; }
 
-            banner.innerHTML = visibles.map(a => {
+            banner.innerHTML = visibles.map((a, i) => {
                 const s = ALERT_LEVEL_STYLES[a.level];
                 const key = _weatherAlertKey(a);
-                return `<div data-key="${key.replace(/"/g,'&quot;')}" style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:8px;background:${s.bg};color:${s.text};border-left:4px solid ${s.border};font-size:12px;font-weight:600;line-height:1.4;">
+                const isFirst = i === 0;
+                const divider = isFirst ? '' : `border-top:1px solid rgba(0,0,0,0.08);`;
+                return `<div data-key="${key.replace(/"/g,'&quot;')}" style="display:flex;align-items:flex-start;gap:8px;padding:10px 20px;border-radius:0;background:${s.bg};color:${s.text};border-left:4px solid ${s.border};${divider}font-size:12px;font-weight:600;line-height:1.4;width:100%;box-sizing:border-box;">
                     <span style="font-size:15px;flex-shrink:0;">${s.icon}</span>
                     <span style="flex:1;">${a.cat} · ${a.msg}</span>
                     <button onclick="closeWeatherAlert('${key.replace(/'/g,"\\'")}')" aria-label="Cerrar aviso" title="Cerrar aviso" style="background:none;border:none;font-size:15px;font-weight:700;cursor:pointer;color:inherit;opacity:0.6;padding:0 0 0 4px;flex-shrink:0;line-height:1;">✕</button>
