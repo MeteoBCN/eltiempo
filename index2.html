@@ -2169,29 +2169,29 @@
             // Nivel de color = urgencia real: rojo (alarmante), amarillo (precaución), azul (informativo, sin alarmar).
             const alerts = [];
             if (peak && peak.probTorm >= 70) {
-                alerts.push({ level: 'red', msg: `Tormentas intensas previstas a partir de las ${String(peak.hora).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'red', cat: 'TORMENTA', msg: `Tormentas intensas previstas a partir de las ${String(peak.hora).padStart(2,'0')}:00.` });
             }
             if (maxWind >= 70) {
-                alerts.push({ level: 'red', msg: `Rachas de viento muy fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'red', cat: 'VIENTO', msg: `Rachas de viento muy fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.` });
             }
             if (maxFeels >= 38) {
-                alerts.push({ level: 'red', msg: `Bochorno, sensación térmica de hasta ${Math.round(maxFeels)}° hacia las ${String(maxFeelsHour).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'red', cat: 'CALOR', msg: `Sensación térmica de hasta ${Math.round(maxFeels)}° hacia las ${String(maxFeelsHour).padStart(2,'0')}:00.` });
             } else if (maxFeels >= 34) {
-                alerts.push({ level: 'yellow', msg: `Bochorno, sensación térmica de hasta ${Math.round(maxFeels)}° hacia las ${String(maxFeelsHour).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'yellow', cat: 'CALOR', msg: `Sensación térmica de hasta ${Math.round(maxFeels)}° hacia las ${String(maxFeelsHour).padStart(2,'0')}:00.` });
             }
             if (maxTemp >= 32) {
-                alerts.push({ level: 'yellow', msg: `Calor, hasta ${Math.round(maxTemp)}° hacia las ${String(maxTempHour).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'yellow', cat: 'CALOR', msg: `Hasta ${Math.round(maxTemp)}° hacia las ${String(maxTempHour).padStart(2,'0')}:00.` });
             }
             if (peak && peak.probTorm >= 40 && peak.probTorm < 70) {
-                alerts.push({ level: 'yellow', msg: `Posibles tormentas a partir de las ${String(peak.hora).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'yellow', cat: 'TORMENTA', msg: `Posibles tormentas a partir de las ${String(peak.hora).padStart(2,'0')}:00.` });
             }
             if (maxWind >= 50 && maxWind < 70) {
-                alerts.push({ level: 'yellow', msg: `Rachas de viento fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'yellow', cat: 'VIENTO', msg: `Rachas de viento fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.` });
             }
             if (lluviaAcum >= 50) {
-                alerts.push({ level: 'red', msg: `Lluvia intensa: acumulación prevista de ${lluviaAcum.toFixed(0)} mm en las próximas 24h.` });
+                alerts.push({ level: 'red', cat: 'LLUVIA', msg: `Acumulación prevista de ${lluviaAcum.toFixed(0)} mm en las próximas 24h.` });
             } else if (lluviaAcum >= 30) {
-                alerts.push({ level: 'yellow', msg: `Lluvia significativa: acumulación prevista de ${lluviaAcum.toFixed(0)} mm en las próximas 24h.` });
+                alerts.push({ level: 'yellow', cat: 'LLUVIA', msg: `Acumulación prevista de ${lluviaAcum.toFixed(0)} mm en las próximas 24h.` });
             }
 
             if (alerts.length === 0) { banner.style.display = 'none'; return; }
@@ -2202,12 +2202,11 @@
 
             const main = alerts[0];
             const style = ALERT_LEVEL_STYLES[main.level];
-            const prefix = main.level === 'blue' ? 'Info' : (main.level === 'red' ? 'Alerta' : 'Aviso');
 
             banner.style.background = style.bg;
             banner.style.color = style.text;
             iconEl.textContent = style.icon;
-            textEl.textContent = `${prefix}: ${main.msg}`;
+            textEl.textContent = `${main.cat} · ${main.msg}`;
 
             // Detalles adicionales (resto de avisos activos), colapsados por defecto
             if (alerts.length > 1) {
@@ -2216,10 +2215,9 @@
                 details.style.display = 'none';
                 details.innerHTML = alerts.slice(1).map(a => {
                     const s = ALERT_LEVEL_STYLES[a.level];
-                    const p = a.level === 'blue' ? 'Info' : (a.level === 'red' ? 'Alerta' : 'Aviso');
                     return `<div style="display:flex;align-items:flex-start;gap:6px;">
                         <span style="font-size:13px;flex-shrink:0;">${s.icon}</span>
-                        <span style="flex:1;font-weight:600;">${p}: ${a.msg}</span>
+                        <span style="flex:1;font-weight:600;">${a.cat} · ${a.msg}</span>
                     </div>`;
                 }).join('');
             } else {
