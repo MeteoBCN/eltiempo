@@ -806,14 +806,7 @@
         </script>
         <!-- ══════ FIN MENÚ NAVEGACIÓN ══════ -->
 
-        <div id="weather-alert-banner" style="display:none;flex-direction:column;padding:8px 20px;font-size:12px;font-weight:600;line-height:1.4;">
-            <div style="display:flex;align-items:center;gap:8px;">
-                <span id="weather-alert-icon" style="font-size:15px;flex-shrink:0;">⚠️</span>
-                <span id="weather-alert-text" style="flex:1;">Alerta meteorológica</span>
-                <button id="weather-alert-toggle" onclick="toggleWeatherAlertDetails()" style="display:none;background:none;border:none;font-size:11px;font-weight:700;text-decoration:underline;cursor:pointer;color:inherit;padding:0;flex-shrink:0;white-space:nowrap;">Ver más detalles</button>
-            </div>
-            <div id="weather-alert-details" style="display:none;flex-direction:column;gap:6px;padding-top:8px;margin-top:8px;border-top:1px solid rgba(0,0,0,0.15);"></div>
-        </div>
+        <div id="weather-alert-banner" style="display:none;flex-direction:column;gap:8px;padding:10px 20px;"></div>
 
 
 
@@ -2099,15 +2092,6 @@
             if(el){el.textContent=lvl(ac.european_aqi||0); el.style.color='#1E293B';}
         }
 
-        function toggleWeatherAlertDetails() {
-            const details = document.getElementById('weather-alert-details');
-            const toggle = document.getElementById('weather-alert-toggle');
-            if (!details || !toggle) return;
-            const abierto = details.style.display === 'flex';
-            details.style.display = abierto ? 'none' : 'flex';
-            toggle.textContent = abierto ? 'Ver más detalles' : 'Ocultar detalles';
-        }
-
         // Estilos por nivel de severidad: rojo = alarmante, amarillo = precaución, azul = informativo/neutro
         const ALERT_LEVEL_STYLES = {
             red:    { bg: '#fee2e2', border: '#ef4444', text: '#991b1b', icon: '🔴' },
@@ -2116,13 +2100,26 @@
             blue:   { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af', icon: 'ℹ️' }
         };
 
+        // Avisos cerrados manualmente por el visitante durante esta visita.
+        // Se reinicia cada vez que se recarga la página, así que al entrar de nuevo
+        // vuelven a mostrarse todos los avisos abiertos.
+        const _dismissedWeatherAlerts = new Set();
+
+        function _weatherAlertKey(a) {
+            return a.cat + '::' + a.msg;
+        }
+
+        function closeWeatherAlert(key) {
+            _dismissedWeatherAlerts.add(key);
+            const item = document.querySelector('#weather-alert-banner [data-key="' + CSS.escape(key) + '"]');
+            if (item) item.remove();
+            const banner = document.getElementById('weather-alert-banner');
+            if (banner && !banner.querySelector('[data-key]')) banner.style.display = 'none';
+        }
+
         function updateAlertBanner(hourly, daily) {
             const banner = document.getElementById('weather-alert-banner');
-            const textEl = document.getElementById('weather-alert-text');
-            const iconEl = document.getElementById('weather-alert-icon');
-            const toggle = document.getElementById('weather-alert-toggle');
-            const details = document.getElementById('weather-alert-details');
-            if (!banner || !textEl || !hourly?.time) return;
+            if (!banner || !hourly?.time) return;
 
             const now = new Date();
             // Ventanas de tiempo distintas según el tipo de fenómeno:
@@ -2229,11 +2226,11 @@
 
             // FRÍO — temperatura real mínima (24h): Amarillo <2.0 · Naranja <-2.0 · Rojo <-6.0
             if (minTemp < -6) {
-                alerts.push({ level: 'red', cat: 'FRÍO', msg: `Mínima de ${minTemp.toFixed(1)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'red', cat: 'FRÍO', msg: `Mínima de ${Math.round(minTemp)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
             } else if (minTemp < -2) {
-                alerts.push({ level: 'orange', cat: 'FRÍO', msg: `Mínima de ${minTemp.toFixed(1)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'orange', cat: 'FRÍO', msg: `Mínima de ${Math.round(minTemp)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
             } else if (minTemp < 2) {
-                alerts.push({ level: 'yellow', cat: 'FRÍO', msg: `Mínima de ${minTemp.toFixed(1)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+                alerts.push({ level: 'yellow', cat: 'FRÍO', msg: `Mínima de ${Math.round(minTemp)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
             }
 
             // FRÍO — sensación térmica / riesgo de congelación (24h): Amarillo -10 a -27 · Naranja -28 a -39 · Rojo ≤-40
@@ -2263,37 +2260,25 @@
                 alerts.push({ level: 'yellow', cat: 'LLUVIA', msg: `Acumulación prevista de ${lluviaAcum.toFixed(0)} mm en las próximas 24h.` });
             }
 
-            if (alerts.length === 0) { banner.style.display = 'none'; return; }
-
-            // Orden de severidad para decidir cuál se muestra como titular
+            // Orden de severidad: los avisos más graves aparecen primero
             const SEVERITY = { red: 0, orange: 1, yellow: 2, blue: 3 };
             alerts.sort((a, b) => SEVERITY[a.level] - SEVERITY[b.level]);
 
-            const main = alerts[0];
-            const style = ALERT_LEVEL_STYLES[main.level];
+            // Se muestran TODOS los avisos activos que el visitante no haya cerrado ya,
+            // cada uno como su propia tarjeta con opción de cerrarla individualmente.
+            const visibles = alerts.filter(a => !_dismissedWeatherAlerts.has(_weatherAlertKey(a)));
 
-            banner.style.background = style.bg;
-            banner.style.color = style.text;
-            iconEl.textContent = style.icon;
-            textEl.textContent = `${main.cat} · ${main.msg}`;
+            if (visibles.length === 0) { banner.style.display = 'none'; banner.innerHTML = ''; return; }
 
-            // Detalles adicionales (resto de avisos activos), colapsados por defecto
-            if (alerts.length > 1) {
-                toggle.style.display = 'block';
-                toggle.textContent = 'Ver más detalles';
-                details.style.display = 'none';
-                details.innerHTML = alerts.slice(1).map(a => {
-                    const s = ALERT_LEVEL_STYLES[a.level];
-                    return `<div style="display:flex;align-items:flex-start;gap:6px;">
-                        <span style="font-size:13px;flex-shrink:0;">${s.icon}</span>
-                        <span style="flex:1;font-weight:600;">${a.cat} · ${a.msg}</span>
-                    </div>`;
-                }).join('');
-            } else {
-                toggle.style.display = 'none';
-                details.style.display = 'none';
-                details.innerHTML = '';
-            }
+            banner.innerHTML = visibles.map(a => {
+                const s = ALERT_LEVEL_STYLES[a.level];
+                const key = _weatherAlertKey(a);
+                return `<div data-key="${key.replace(/"/g,'&quot;')}" style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:8px;background:${s.bg};color:${s.text};border-left:4px solid ${s.border};font-size:12px;font-weight:600;line-height:1.4;">
+                    <span style="font-size:15px;flex-shrink:0;">${s.icon}</span>
+                    <span style="flex:1;">${a.cat} · ${a.msg}</span>
+                    <button onclick="closeWeatherAlert('${key.replace(/'/g,"\\'")}')" aria-label="Cerrar aviso" title="Cerrar aviso" style="background:none;border:none;font-size:15px;font-weight:700;cursor:pointer;color:inherit;opacity:0.6;padding:0 0 0 4px;flex-shrink:0;line-height:1;">✕</button>
+                </div>`;
+            }).join('');
 
             banner.style.display = 'flex';
         }
