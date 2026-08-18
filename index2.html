@@ -2105,6 +2105,7 @@
             const now = new Date();
             const limite = new Date(now.getTime() + 18 * 60 * 60 * 1000); // próximas 18h
             let peak = null, maxWind = 0, maxWindHour = null, maxRainProb = 0, maxRainHour = null;
+            let maxTemp = -99, maxTempHour = null, maxFeels = -99, maxFeelsHour = null;
 
             for (let i = 0; i < hourly.time.length; i++) {
                 const h = new Date(hourly.time[i]);
@@ -2121,6 +2122,12 @@
                 if (gust > maxWind) { maxWind = gust; maxWindHour = h.getHours(); }
 
                 if (wcode >= 51 && prob > maxRainProb) { maxRainProb = prob; maxRainHour = h.getHours(); }
+
+                const temp = hourly.temperature_2m?.[i];
+                if (temp !== undefined && temp !== null && temp > maxTemp) { maxTemp = temp; maxTempHour = h.getHours(); }
+
+                const feels = hourly.apparent_temperature?.[i];
+                if (feels !== undefined && feels !== null && feels > maxFeels) { maxFeels = feels; maxFeelsHour = h.getHours(); }
             }
 
             let level = null, msg = '';
@@ -2130,6 +2137,12 @@
             } else if (maxWind >= 70) {
                 level = 'red';
                 msg = `Alerta: Rachas de viento muy fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.`;
+            } else if (maxFeels >= 35) {
+                level = 'red';
+                msg = `Alerta: Bochorno, sensación térmica de hasta ${Math.round(maxFeels)}° hacia las ${String(maxFeelsHour).padStart(2,'0')}:00.`;
+            } else if (maxTemp >= 32) {
+                level = 'yellow';
+                msg = `Aviso: Calor extremo, hasta ${Math.round(maxTemp)}° hacia las ${String(maxTempHour).padStart(2,'0')}:00.`;
             } else if (peak && peak.probTorm >= 40) {
                 level = 'yellow';
                 msg = `Aviso: Posibles tormentas a partir de las ${String(peak.hora).padStart(2,'0')}:00.`;
