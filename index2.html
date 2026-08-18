@@ -2110,8 +2110,9 @@
 
         // Estilos por nivel de severidad: rojo = alarmante, amarillo = precaución, azul = informativo/neutro
         const ALERT_LEVEL_STYLES = {
-            red:    { bg: '#fee2e2', border: '#ef4444', text: '#991b1b', icon: '⚠️' },
-            yellow: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', icon: '⚠️' },
+            red:    { bg: '#fee2e2', border: '#ef4444', text: '#991b1b', icon: '🔴' },
+            orange: { bg: '#ffedd5', border: '#f97316', text: '#9a3412', icon: '🟠' },
+            yellow: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', icon: '🟡' },
             blue:   { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af', icon: 'ℹ️' }
         };
 
@@ -2126,22 +2127,33 @@
             const now = new Date();
             // Ventanas de tiempo distintas según el tipo de fenómeno:
             const limiteTormentaViento = new Date(now.getTime() + 3 * 60 * 60 * 1000);  // 3h: fenómenos súbitos
-            const limiteCalor          = new Date(now.getTime() + 12 * 60 * 60 * 1000); // 12h: evolución lenta/predecible
-            const limiteLluvia         = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24h: acumulación total
+            const limiteCalorDiurno    = new Date(now.getTime() + 12 * 60 * 60 * 1000); // 12h: temperatura máxima
+            const limiteSensacionCalor = new Date(now.getTime() + 6 * 60 * 60 * 1000);  // 6h: sensación térmica de calor
+            const limite24             = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24h: nocturno, frío, acumulados
 
             let peak = null, maxWind = 0, maxWindHour = null;
-            let maxTemp = -99, maxTempHour = null, maxFeels = -99, maxFeelsHour = null;
-            let lluviaAcum = 0;
+            let maxTemp = -99, maxTempHour = null;             // calor diurno (temp. real)
+            let maxFeels = -99, maxFeelsHour = null;            // sensación térmica de calor
+            let minTemp = 99, minTempHour = null;               // mínima 24h (sirve para calor nocturno Y frío)
+            let minFeels = 99, minFeelsHour = null;             // sensación térmica mínima 24h (frío / wind chill)
+            let lluviaAcum = 0;                                 // acumulación 24h
+            let maxHourlyPrecip = 0, maxHourlyPrecipHour = null; // proxy de intensidad (aprox. 30min con dato horario)
 
             for (let i = 0; i < hourly.time.length; i++) {
                 const h = new Date(hourly.time[i]);
-                if (h < now || h > limiteLluvia) continue;
+                if (h < now || h > limite24) continue;
 
-                // Acumulación de lluvia (ventana 24h)
+                // Acumulación de lluvia y mínimas (ventana 24h)
                 const precip = hourly.precipitation?.[i] ?? 0;
                 lluviaAcum += precip;
 
-                // Tormenta y viento (ventana 3h)
+                const temp = hourly.temperature_2m?.[i];
+                if (temp !== undefined && temp !== null && temp < minTemp) { minTemp = temp; minTempHour = h.getHours(); }
+
+                const feels24 = hourly.apparent_temperature?.[i];
+                if (feels24 !== undefined && feels24 !== null && feels24 < minFeels) { minFeels = feels24; minFeelsHour = h.getHours(); }
+
+                // Tormenta, viento y lluvia intensa (ventana 3h)
                 if (h <= limiteTormentaViento) {
                     const wcode = hourly.weather_code?.[i] ?? 0;
                     const prob  = hourly.precipitation_probability?.[i] ?? 0;
@@ -2153,51 +2165,108 @@
 
                     const gust = hourly.wind_gusts_10m?.[i] ?? 0;
                     if (gust > maxWind) { maxWind = gust; maxWindHour = h.getHours(); }
+
+                    if (precip > maxHourlyPrecip) { maxHourlyPrecip = precip; maxHourlyPrecipHour = h.getHours(); }
                 }
 
-                // Calor y bochorno (ventana 12h)
-                if (h <= limiteCalor) {
-                    const temp = hourly.temperature_2m?.[i];
-                    if (temp !== undefined && temp !== null && temp > maxTemp) { maxTemp = temp; maxTempHour = h.getHours(); }
+                // Sensación térmica de calor (ventana 6h)
+                if (h <= limiteSensacionCalor) {
+                    if (feels24 !== undefined && feels24 !== null && feels24 > maxFeels) { maxFeels = feels24; maxFeelsHour = h.getHours(); }
+                }
 
-                    const feels = hourly.apparent_temperature?.[i];
-                    if (feels !== undefined && feels !== null && feels > maxFeels) { maxFeels = feels; maxFeelsHour = h.getHours(); }
+                // Calor diurno, temperatura real máxima (ventana 12h)
+                if (h <= limiteCalorDiurno) {
+                    if (temp !== undefined && temp !== null && temp > maxTemp) { maxTemp = temp; maxTempHour = h.getHours(); }
                 }
             }
 
             // Se recogen TODOS los avisos que se cumplan (no solo el primero), ordenados por severidad.
-            // Nivel de color = urgencia real: rojo (alarmante), amarillo (precaución), azul (informativo, sin alarmar).
+            // 🔴 Rojo = riesgo extremo · 🟠 Naranja = riesgo importante · 🟡 Amarillo = riesgo moderado · ℹ️ azul = informativo.
             const alerts = [];
+
+            // TORMENTA (3h) — sin tabla oficial de referencia, se mantienen umbrales propios
             if (peak && peak.probTorm >= 70) {
                 alerts.push({ level: 'red', cat: 'TORMENTA', msg: `Tormentas intensas previstas a partir de las ${String(peak.hora).padStart(2,'0')}:00.` });
-            }
-            if (maxWind >= 70) {
-                alerts.push({ level: 'red', cat: 'VIENTO', msg: `Rachas de viento muy fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.` });
-            }
-            if (maxFeels >= 38) {
-                alerts.push({ level: 'red', cat: 'CALOR', msg: `Sensación térmica de hasta ${Math.round(maxFeels)}° hacia las ${String(maxFeelsHour).padStart(2,'0')}:00.` });
-            } else if (maxFeels >= 34) {
-                alerts.push({ level: 'yellow', cat: 'CALOR', msg: `Sensación térmica de hasta ${Math.round(maxFeels)}° hacia las ${String(maxFeelsHour).padStart(2,'0')}:00.` });
-            }
-            if (maxTemp >= 32) {
-                alerts.push({ level: 'yellow', cat: 'CALOR', msg: `Hasta ${Math.round(maxTemp)}° hacia las ${String(maxTempHour).padStart(2,'0')}:00.` });
-            }
-            if (peak && peak.probTorm >= 40 && peak.probTorm < 70) {
+            } else if (peak && peak.probTorm >= 40) {
                 alerts.push({ level: 'yellow', cat: 'TORMENTA', msg: `Posibles tormentas a partir de las ${String(peak.hora).padStart(2,'0')}:00.` });
             }
-            if (maxWind >= 50 && maxWind < 70) {
-                alerts.push({ level: 'yellow', cat: 'VIENTO', msg: `Rachas de viento fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.` });
+
+            // VIENTO — rachas (3h): Amarillo ≥72 · Naranja ≥90 · Rojo ≥120 km/h
+            if (maxWind >= 120) {
+                alerts.push({ level: 'red', cat: 'VIENTO', msg: `Rachas de fuerza huracanada (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.` });
+            } else if (maxWind >= 90) {
+                alerts.push({ level: 'orange', cat: 'VIENTO', msg: `Rachas muy fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.` });
+            } else if (maxWind >= 72) {
+                alerts.push({ level: 'yellow', cat: 'VIENTO', msg: `Rachas fuertes (hasta ${Math.round(maxWind)} km/h) hacia las ${String(maxWindHour).padStart(2,'0')}:00.` });
             }
-            if (lluviaAcum >= 50) {
+
+            // SENSACIÓN TÉRMICA DE CALOR (6h): Amarillo 33-35 · Naranja 36-37 · Rojo ≥38
+            if (maxFeels >= 38) {
+                alerts.push({ level: 'red', cat: 'CALOR', msg: `Sensación térmica de hasta ${Math.round(maxFeels)}° hacia las ${String(maxFeelsHour).padStart(2,'0')}:00.` });
+            } else if (maxFeels >= 36) {
+                alerts.push({ level: 'orange', cat: 'CALOR', msg: `Sensación térmica de hasta ${Math.round(maxFeels)}° hacia las ${String(maxFeelsHour).padStart(2,'0')}:00.` });
+            } else if (maxFeels >= 33) {
+                alerts.push({ level: 'yellow', cat: 'CALOR', msg: `Sensación térmica de hasta ${Math.round(maxFeels)}° hacia las ${String(maxFeelsHour).padStart(2,'0')}:00.` });
+            }
+
+            // CALOR DIURNO — temperatura real máxima (12h): Amarillo ≥33.3 · Naranja ≥35.3 · Rojo ≥38.3
+            if (maxTemp >= 38.3) {
+                alerts.push({ level: 'red', cat: 'CALOR', msg: `Calor excepcional, hasta ${maxTemp.toFixed(1)}° hacia las ${String(maxTempHour).padStart(2,'0')}:00.` });
+            } else if (maxTemp >= 35.3) {
+                alerts.push({ level: 'orange', cat: 'CALOR', msg: `Hasta ${maxTemp.toFixed(1)}° hacia las ${String(maxTempHour).padStart(2,'0')}:00.` });
+            } else if (maxTemp >= 33.3) {
+                alerts.push({ level: 'yellow', cat: 'CALOR', msg: `Hasta ${maxTemp.toFixed(1)}° hacia las ${String(maxTempHour).padStart(2,'0')}:00.` });
+            }
+
+            // CALOR NOCTURNO — mínima que no baja lo suficiente (24h): Amarillo ≥25 · Naranja ≥27 · Rojo ≥29
+            if (minTemp >= 29) {
+                alerts.push({ level: 'red', cat: 'NOCHE', msg: `Riesgo extremo para la salud, mínima de ${minTemp.toFixed(1)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+            } else if (minTemp >= 27) {
+                alerts.push({ level: 'orange', cat: 'NOCHE', msg: `Noche ultra-tórrida, mínima de ${minTemp.toFixed(1)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+            } else if (minTemp >= 25) {
+                alerts.push({ level: 'yellow', cat: 'NOCHE', msg: `Noche tórrida, mínima de ${minTemp.toFixed(1)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+            }
+
+            // FRÍO — temperatura real mínima (24h): Amarillo <2.0 · Naranja <-2.0 · Rojo <-6.0
+            if (minTemp < -6) {
+                alerts.push({ level: 'red', cat: 'FRÍO', msg: `Mínima de ${minTemp.toFixed(1)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+            } else if (minTemp < -2) {
+                alerts.push({ level: 'orange', cat: 'FRÍO', msg: `Mínima de ${minTemp.toFixed(1)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+            } else if (minTemp < 2) {
+                alerts.push({ level: 'yellow', cat: 'FRÍO', msg: `Mínima de ${minTemp.toFixed(1)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+            }
+
+            // FRÍO — sensación térmica / riesgo de congelación (24h): Amarillo -10 a -27 · Naranja -28 a -39 · Rojo ≤-40
+            if (minFeels <= -40) {
+                alerts.push({ level: 'red', cat: 'FRÍO', msg: `Riesgo de congelación en menos de 5 min, sensación de ${Math.round(minFeels)}° hacia las ${String(minFeelsHour).padStart(2,'0')}:00.` });
+            } else if (minFeels <= -28) {
+                alerts.push({ level: 'orange', cat: 'FRÍO', msg: `Riesgo de congelación en 5-10 min, sensación de ${Math.round(minFeels)}° hacia las ${String(minFeelsHour).padStart(2,'0')}:00.` });
+            } else if (minFeels <= -10) {
+                alerts.push({ level: 'yellow', cat: 'FRÍO', msg: `Riesgo de congelación leve en exposición prolongada, sensación de ${Math.round(minFeels)}° hacia las ${String(minFeelsHour).padStart(2,'0')}:00.` });
+            }
+
+            // LLUVIA INTENSA — proxy con dato horario (3h): Amarillo ≥20mm · Naranja ≥40mm · Rojo ≥60mm (aprox. /30min)
+            if (maxHourlyPrecip >= 60) {
+                alerts.push({ level: 'red', cat: 'LLUVIA', msg: `Lluvia torrencial, hasta ${maxHourlyPrecip.toFixed(0)} mm/h hacia las ${String(maxHourlyPrecipHour).padStart(2,'0')}:00.` });
+            } else if (maxHourlyPrecip >= 40) {
+                alerts.push({ level: 'orange', cat: 'LLUVIA', msg: `Lluvia muy intensa, hasta ${maxHourlyPrecip.toFixed(0)} mm/h hacia las ${String(maxHourlyPrecipHour).padStart(2,'0')}:00.` });
+            } else if (maxHourlyPrecip >= 20) {
+                alerts.push({ level: 'yellow', cat: 'LLUVIA', msg: `Lluvia intensa, hasta ${maxHourlyPrecip.toFixed(0)} mm/h hacia las ${String(maxHourlyPrecipHour).padStart(2,'0')}:00.` });
+            }
+
+            // LLUVIA ACUMULADA (24h): Amarillo ≥100mm · Naranja ≥200mm · Rojo ≥250mm
+            if (lluviaAcum >= 250) {
                 alerts.push({ level: 'red', cat: 'LLUVIA', msg: `Acumulación prevista de ${lluviaAcum.toFixed(0)} mm en las próximas 24h.` });
-            } else if (lluviaAcum >= 30) {
+            } else if (lluviaAcum >= 200) {
+                alerts.push({ level: 'orange', cat: 'LLUVIA', msg: `Acumulación prevista de ${lluviaAcum.toFixed(0)} mm en las próximas 24h.` });
+            } else if (lluviaAcum >= 100) {
                 alerts.push({ level: 'yellow', cat: 'LLUVIA', msg: `Acumulación prevista de ${lluviaAcum.toFixed(0)} mm en las próximas 24h.` });
             }
 
             if (alerts.length === 0) { banner.style.display = 'none'; return; }
 
             // Orden de severidad para decidir cuál se muestra como titular
-            const SEVERITY = { red: 0, yellow: 1, blue: 2 };
+            const SEVERITY = { red: 0, orange: 1, yellow: 2, blue: 3 };
             alerts.sort((a, b) => SEVERITY[a.level] - SEVERITY[b.level]);
 
             const main = alerts[0];
