@@ -1149,7 +1149,9 @@
 
             <!-- ── RADAR RAINVIEWER — redondo, fijo, sin controles ── -->
             <div style="display:flex;flex-direction:column;align-items:center;padding:18px 16px;background:#ffffff;">
-                <div id="rv-map" style="width:calc(100% - 32px);max-width:600px;aspect-ratio:1/1;border-radius:50%;overflow:hidden;border:3px solid #2c4a6e;box-shadow:0 2px 10px rgba(0,0,0,0.18);pointer-events:none;"></div>
+                <div style="width:calc(100% - 32px);max-width:600px;aspect-ratio:1/1;border-radius:50%;overflow:hidden;border:3px solid #2c4a6e;box-shadow:0 2px 10px rgba(0,0,0,0.18);position:relative;">
+                    <div id="rv-map" style="width:100%;height:100%;transform:scale(1.35);transform-origin:center center;pointer-events:none;"></div>
+                </div>
                 <span id="rv-timestamp" style="margin-top:10px;font-size:9px;color:#64748b;letter-spacing:1px;"></span>
                 <span style="font-size:8px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Fuente: RainViewer</span>
             </div>
@@ -1191,7 +1193,7 @@
                         // Precargar todos los layers, ocultos
                         rvFrames.forEach((f, i) => {
                             const layer = L.tileLayer(
-                                rvApiHost + f.path + '/256/{z}/{x}/{y}/' + rvColor + '/1_1.png',
+                                rvApiHost + f.path + '/512/{z}/{x}/{y}/' + rvColor + '/1_1.png',
                                 { opacity: 0, zIndex: 10 }
                             ).addTo(rvMap);
                             rvLayers.push(layer);
