@@ -1156,6 +1156,20 @@
                 <span style="font-size:8px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Fuente: RainViewer</span>
             </div>
 
+        <style>
+            .rv-bcn-label {
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                font-size: 10px !important;
+                font-weight: 700 !important;
+                color: #2c4a6e !important;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+                padding: 0 !important;
+            }
+            .rv-bcn-label::before { display: none !important; }
+        </style>
         <script>
         // ── RAINVIEWER (radar circular fijo, sin interacción) ──────────
         (function() {
@@ -1179,10 +1193,19 @@
                     touchZoom: false,
                     tap: false
                 }).setView(BCN, 7);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
                     maxZoom: 18
                 }).addTo(rvMap);
                 L.circleMarker(BCN, { radius: 5, color: '#2c4a6e', fillColor: '#2c4a6e', fillOpacity: 1, weight: 2 })
+                    .addTo(rvMap);
+                L.tooltip({ permanent: true, direction: 'top', offset: [0, -6], className: 'rv-bcn-label' })
+                    .setContent('Barcelona')
+                    .setLatLng(BCN)
+                    .addTo(rvMap);
+                // Círculos de referencia de distancia (25 km y 50 km)
+                L.circle(BCN, { radius: 25000, color: '#2c4a6e', weight: 1, opacity: 0.35, fill: false, dashArray: '4,4' })
+                    .addTo(rvMap);
+                L.circle(BCN, { radius: 50000, color: '#2c4a6e', weight: 1, opacity: 0.25, fill: false, dashArray: '4,4' })
                     .addTo(rvMap);
                 fetch('https://api.rainviewer.com/public/weather-maps.json')
                     .then(r => r.json())
