@@ -6728,6 +6728,121 @@
                 // Iconos del tiempo encima del gráfico: eliminados
             }
 
+            // ── Gráfico de viento por horas (canvas) ─────────────────────────
+            function mar3DrawWindChart(canvasId, slots) {
+                window._mar3DrawWindChart = mar3DrawWindChart;
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+                const dpr = window.devicePixelRatio || 1;
+                let parentW = 0;
+                let _el = canvas.parentElement;
+                while (_el && parentW === 0) { parentW = _el.clientWidth; _el = _el.parentElement; }
+                if (!parentW) parentW = document.getElementById('mar3-top-section')?.clientWidth || document.body.clientWidth || 520;
+                const W = Math.round(parentW * 0.90);
+                const H = 110;
+                canvas.width  = W * dpr;
+                canvas.height = H * dpr;
+                canvas.style.width  = W + 'px';
+                canvas.style.height = H + 'px';
+                const ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
+
+                const TARGET_H = [8,9,10,11,12,13,14,15,16,17,18,19,20];
+                const pts = slots.filter(s => {
+                    const hh = new Date(s.time).getHours();
+                    return TARGET_H.includes(hh) && s.ws !== null && s.ws !== undefined;
+                });
+                if (pts.length < 2) { ctx.fillStyle='#f0fbf7'; ctx.fillRect(0,0,W,H); return; }
+
+                const PAD = { t: 14, r:12, b:22, l:8 };
+                const cw  = W - PAD.l - PAD.r;
+                const ch  = H - PAD.t - PAD.b;
+
+                const vals = pts.map(p => p.ws);
+                const vMin = 0;
+                const vMax = Math.max(...vals) * 1.3 || 1;
+                const xPos = i => PAD.l + (i / (pts.length - 1)) * cw;
+                const yPos = v => PAD.t + ch - ((v - vMin) / (vMax - vMin)) * ch;
+
+                ctx.fillStyle = '#f0fbf7';
+                ctx.fillRect(0, 0, W, H);
+
+                for (let n = 0; n <= 3; n++) {
+                    const v = (vMax / 3) * n;
+                    ctx.beginPath();
+                    ctx.moveTo(PAD.l, yPos(v));
+                    ctx.lineTo(PAD.l + cw, yPos(v));
+                    ctx.strokeStyle = n === 0 ? 'rgba(6,95,70,0.2)' : 'rgba(6,95,70,0.06)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash(n === 0 ? [] : [3,3]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+
+                const grad = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ch);
+                grad.addColorStop(0, 'rgba(5,150,105,0.5)');
+                grad.addColorStop(1, 'rgba(5,150,105,0.04)');
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yPos(vals[0]));
+                for (let i = 1; i < pts.length; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yPos(vals[i-1]), xc, yPos(vals[i]), xPos(i), yPos(vals[i]));
+                }
+                ctx.lineTo(xPos(pts.length-1), PAD.t + ch);
+                ctx.lineTo(xPos(0), PAD.t + ch);
+                ctx.closePath();
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 13px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(6,95,70,0.38)';
+                ctx.fillText('VIENTO KM/H', PAD.l + cw / 2, PAD.t + ch * 0.65);
+                ctx.restore();
+
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yPos(vals[0]));
+                for (let i = 1; i < pts.length; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yPos(vals[i-1]), xc, yPos(vals[i]), xPos(i), yPos(vals[i]));
+                }
+                ctx.strokeStyle = '#059669';
+                ctx.lineWidth   = 2.5;
+                ctx.lineJoin    = 'round';
+                ctx.stroke();
+
+                const keyHours = [8,10,12,14,16,18,20];
+                keyHours.forEach(kh => {
+                    const idx = pts.findIndex(p => new Date(p.time).getHours() === kh);
+                    if (idx === -1) return;
+                    const x = xPos(idx);
+                    const y = yPos(vals[idx]);
+                    ctx.beginPath();
+                    ctx.arc(x, y, 3, 0, Math.PI*2);
+                    ctx.fillStyle = '#059669';
+                    ctx.fill();
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    const label = Math.round(vals[idx]);
+                    ctx.font = 'bold 7.5px Inter,sans-serif';
+                    ctx.fillStyle = '#047857';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(label, x, y - 7);
+                });
+
+                ctx.textAlign = 'center';
+                ctx.font = '8px Inter,sans-serif';
+                keyHours.forEach(th => {
+                    const idx = pts.findIndex(p => new Date(p.time).getHours() === th);
+                    if (idx !== -1) {
+                        ctx.fillStyle = '#64748b';
+                        ctx.fillText(th + 'h', xPos(idx), H - 5);
+                    }
+                });
+            }
+
             // ── Celda de franja (galletas compactas) ─────────────────────
             function buildCell(slots, borderStyle, cellId) {
                 if (!slots.length) return `<div style="flex:1;${borderStyle}background:#ffffff;"></div>`;
@@ -6850,9 +6965,6 @@
 
             // ── Tarjeta de dia completa ─────────────────────────────────────
             function buildDayCard(diaSemana, hourlyDay, uviMax, isToday, cardId) {
-                const f1 = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8  && hh < 12; });
-                const f2 = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 12 && hh < 16; });
-                const f3 = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 16 && hh < 20; });
                 const diaSlots = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8 && hh <= 20; });
 
                 const headerBg = isToday
@@ -6863,14 +6975,18 @@
                 const allWH  = diaSlots.map(s=>s.wh).filter(v=>v!==null);
                 const allWS  = diaSlots.map(s=>s.ws).filter(v=>v!==null);
                 const allSST = diaSlots.map(s=>s.sst).filter(v=>v!==null);
+                const minWH  = allWH.length ? Math.min(...allWH) : null;
                 const maxWH  = allWH.length ? Math.max(...allWH) : null;
+                const avgWSday = allWS.length ? Math.round(avg(allWS)) : null;
                 const maxWS  = allWS.length ? Math.round(Math.max(...allWS)) : null;
                 const avgSST = allSST.length ? Math.round(allSST.reduce((a,b)=>a+b,0)/allSST.length) : null;
                 const wlMax  = waveLabel(maxWH ?? 0);
-                const wdlMax = windLabel(maxWS ?? 0);
+                const wdlAvg = windLabel(avgWSday ?? 0);
+                // Calidad de baño del dia (Ideal → No aconsejable), en base a la media del dia
+                const avgWHday = allWH.length ? avg(allWH) : null;
+                const bathDay  = bathLabel(avgWHday ?? 0, avgWSday ?? 0);
+                const bathEmojiDay = bathDay.txt === 'Ideal' ? '\u{1F3CA}' : bathDay.txt === 'Aceptable' ? '\u{1F30A}' : bathDay.txt === 'Precaucion' ? '\u26A0\uFE0F' : '\u26D4';
 
-                // ── 3 columnas como bloque unico ──
-                const bdr = 'border-right:1px solid #e2e8f0;';
                 const uviRedondeado = uviMax !== null ? Math.round(uviMax) : null;
 
                 const _uvi3 = uviInfo(uviMax);
@@ -6910,15 +7026,33 @@
                         <div style="padding:2px 8px 6px;background:#ffffff;display:flex;justify-content:center;">
                             <canvas id="wave-chart-${cardId}" style="display:block;max-width:100%;"></canvas>
                         </div>
-                        <div style="display:flex;border-bottom:1px solid #e2e8f0;border-top:1px solid #e2e8f0;">
-                            <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;border-right:1px solid #e2e8f0;font-size:10px;font-weight:700;color:#123653;letter-spacing:0.5px;">08 a 12H</div>
-                            <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;border-right:1px solid #e2e8f0;font-size:10px;font-weight:700;color:#123653;letter-spacing:0.5px;">12 a 16H</div>
-                            <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;font-size:10px;font-weight:700;color:#123653;letter-spacing:0.5px;">16 a 20H</div>
-                        </div>
-                        <div style="display:flex;">
-                            ${buildCell(f1, bdr, cardId + '-f1')}
-                            ${buildCell(f2, bdr, cardId + '-f2')}
-                            ${buildCell(f3, '', cardId + '-f3')}
+                        <!-- ═══ RESUMEN DEL DÍA (sustituye a las franjas horarias) ═══ -->
+                        <div style="border-top:1px solid #e2e8f0;padding:12px 16px 4px;display:flex;flex-direction:column;gap:10px;background:#ffffff;">
+                            <div style="display:flex;gap:10px;">
+                                <div style="flex:1;background:#f0f7fc;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;">
+                                    <span style="font-size:9px;font-weight:700;color:#6a8aab;text-transform:uppercase;letter-spacing:0.6px;">\u{1F30A} Oleaje m\u00EDn\u2013m\u00E1x</span>
+                                    <span style="font-size:15px;font-weight:900;color:${wlMax.color};">${minWH !== null && maxWH !== null ? minWH.toFixed(2)+'\u2013'+maxWH.toFixed(2)+' m' : '\u2014'}</span>
+                                    <span style="font-size:10px;font-weight:600;color:#64748b;">${wlMax.txt}</span>
+                                </div>
+                                <div style="flex:1;background:#f0fbf7;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;">
+                                    <span style="font-size:9px;font-weight:700;color:#3d8a6e;text-transform:uppercase;letter-spacing:0.6px;">\u{1F4A8} Viento medio</span>
+                                    <span style="font-size:15px;font-weight:900;color:${wdlAvg.color};">${avgWSday !== null ? avgWSday+' km/h' : '\u2014'}${maxWS !== null && avgWSday !== null && maxWS > avgWSday + 5 ? ' (m\u00E1x '+maxWS+')' : ''}</span>
+                                    <span style="font-size:10px;font-weight:600;color:#64748b;">${wdlAvg.txt}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size:9px;font-weight:700;color:#3d8a6e;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Viento por horas</div>
+                                <div style="display:flex;justify-content:center;">
+                                    <canvas id="wind-chart-${cardId}" style="display:block;max-width:100%;"></canvas>
+                                </div>
+                            </div>
+                            <div style="padding:10px 12px;border-radius:10px;background:${bathDay.color}18;border:1px solid ${bathDay.color}55;display:flex;align-items:center;gap:10px;">
+                                <span style="font-size:22px;line-height:1;flex-shrink:0;">${bathEmojiDay}</span>
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-size:12px;font-weight:900;color:${bathDay.color};text-transform:uppercase;letter-spacing:0.5px;">Ba\u00F1o: ${bathDay.txt}</div>
+                                    <div style="font-size:10.5px;color:#123653;margin-top:2px;line-height:1.4;">${bathDay.consejo}</div>
+                                </div>
+                            </div>
                         </div>
                         <div onclick="mar3ToggleCellInfo('${cardId}')" style="padding:7px 16px;background:#ffffff;border-top:1px solid #e2e8f0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;user-select:none;">
                             <span style="font-size:10.5px;font-weight:700;color:#123653;text-transform:uppercase;letter-spacing:0.6px;">Ampliar informaci\u00f3n</span>
@@ -7018,18 +7152,12 @@
             }
 
 
-            // ── Desplegar info ampliada de las 3 celdas (Baño) a la vez ─────
+            // ── Desplegar leyendas ampliadas (estado del mar + UVI) ──────────
             window.mar3ToggleCellInfo = function(cardId) {
-                const ids = [cardId + '-f1', cardId + '-f2', cardId + '-f3'];
-                const first = document.getElementById('cell-info-' + ids[0]);
-                if (!first) return;
-                const isOpen = first.style.display === 'flex';
-                ids.forEach(id => {
-                    const el = document.getElementById('cell-info-' + id);
-                    if (el) el.style.display = isOpen ? 'none' : 'flex';
-                });
                 const mar = document.getElementById('cell-info-mar-' + cardId);
-                if (mar) mar.style.display = isOpen ? 'none' : 'block';
+                if (!mar) return;
+                const isOpen = mar.style.display === 'block';
+                mar.style.display = isOpen ? 'none' : 'block';
                 const arrow = document.getElementById('cell-info-arrow-' + cardId);
                 if (arrow) arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
             };
@@ -7051,6 +7179,9 @@
                             const slots = window._mar3Slots && window._mar3Slots[cardId];
                             if (slots && window._mar3DrawChart) {
                                 window._mar3DrawChart('wave-chart-' + cardId, slots);
+                            }
+                            if (slots && window._mar3DrawWindChart) {
+                                window._mar3DrawWindChart('wind-chart-' + cardId, slots);
                             }
                         });
                     });
@@ -7170,6 +7301,10 @@
                                     if (slotsN && canvasEl && window._mar3DrawChart) {
                                         window._mar3DrawChart('wave-chart-day' + off, slotsN);
                                     }
+                                    const windCanvasEl = document.getElementById('wind-chart-day' + off);
+                                    if (slotsN && windCanvasEl && window._mar3DrawWindChart) {
+                                        window._mar3DrawWindChart('wind-chart-day' + off, slotsN);
+                                    }
                                 }
                             }, 80);
                         });
@@ -7204,9 +7339,13 @@
                                 const activeDay = window._mar3TopActiveDay || 0;
                                 const off = activeDay;
                                 const topCanvasId = 'wave-chart-top-day' + off;
+                                const topWindCanvasId = 'wind-chart-top-day' + off;
                                 const slots = window._mar3Slots && window._mar3Slots['day' + off];
                                 if (slots && window._mar3DrawChart) {
                                     window._mar3DrawChart(topCanvasId, slots);
+                                }
+                                if (slots && window._mar3DrawWindChart) {
+                                    window._mar3DrawWindChart(topWindCanvasId, slots);
                                 }
                             });
                         });
@@ -7281,13 +7420,15 @@
                     return;
                 }
 
-                // Sustituir id del canvas para que no colisione con el original
+                // Sustituir id de los canvas para que no colisionen con el original
                 const topCanvasId = 'wave-chart-top-day' + off;
+                const topWindCanvasId = 'wind-chart-top-day' + off;
                 html = html.replace(/id="wave-chart-day\d+"/, 'id="' + topCanvasId + '"');
+                html = html.replace(/id="wind-chart-day\d+"/, 'id="' + topWindCanvasId + '"');
 
                 contentEl.innerHTML = html;
 
-                // Dibujar el gráfico una vez el canvas está en el DOM y visible
+                // Dibujar los gráficos una vez el canvas está en el DOM y visible
                 // Doble rAF + timeout garantiza que el layout está calculado
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
@@ -7295,6 +7436,9 @@
                             const slots = window._mar3Slots && window._mar3Slots['day' + off];
                             if (slots && window._mar3DrawChart) {
                                 window._mar3DrawChart(topCanvasId, slots);
+                            }
+                            if (slots && window._mar3DrawWindChart) {
+                                window._mar3DrawWindChart(topWindCanvasId, slots);
                             }
                         }, 50);
                     });
