@@ -1157,11 +1157,12 @@
             </div>
 
         <script>
-        // ── OPENWEATHERMAP (radar circular fijo, sin interacción) ──────
+        // ── RAINVIEWER (radar circular fijo, sin interacción) ──────────
         (function() {
-            let rvMap = null, rvInited = false;
-            // ⚠️ Sustituye por tu API key gratuita de https://openweathermap.org/api
-            const OWM_API_KEY = 'fcd280dae017ea2269ed0e75064bd1f8';
+            let rvMap = null, rvFrames = [], rvIdx = 0, rvTimer = null;
+            let rvColor = 8, rvOpacity = 0.8;
+            let rvLayers = [], rvInited = false;
+            let rvApiHost = 'https://tilecache.rainviewer.com';
             const BCN = [41.385, 2.173];
 
             function rvInit() {
@@ -1178,24 +1179,57 @@
                     touchZoom: false,
                     tap: false
                 }).setView(BCN, 7);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                     maxZoom: 18
                 }).addTo(rvMap);
-                L.circleMarker(BCN, { radius: 5, color: '#6fcfe0', fillColor: '#6fcfe0', fillOpacity: 1, weight: 2 })
+                L.circleMarker(BCN, { radius: 5, color: '#2c4a6e', fillColor: '#2c4a6e', fillOpacity: 1, weight: 2 })
                     .addTo(rvMap);
-                // Capa de precipitación de OpenWeatherMap (imagen actual, sin animación)
-                L.tileLayer('https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=' + OWM_API_KEY, {
-                    opacity: 0.8,
-                    zIndex: 10
-                }).addTo(rvMap);
-                rvUpdateTimestamp();
+                fetch('https://api.rainviewer.com/public/weather-maps.json')
+                    .then(r => r.json())
+                    .then(data => {
+                        rvApiHost = data.host || rvApiHost;
+                        rvFrames = (data.radar?.past || []).concat(data.radar?.nowcast || []);
+                        if (!rvFrames.length) return;
+                        // Precargar todos los layers, ocultos
+                        rvFrames.forEach((f, i) => {
+                            const layer = L.tileLayer(
+                                rvApiHost + f.path + '/512/{z}/{x}/{y}/' + rvColor + '/1_1.png',
+                                { opacity: 0, zIndex: 10 }
+                            ).addTo(rvMap);
+                            rvLayers.push(layer);
+                        });
+                        // Mostrar el último (más reciente)
+                        rvIdx = rvFrames.length - 1;
+                        rvLayers[rvIdx].setOpacity(rvOpacity);
+                        rvUpdateTimestamp(rvIdx);
+                        // Arrancar animación (siempre activa, sin botón)
+                        rvStartPlay();
+                    })
+                    .catch(e => console.warn('RainViewer error:', e));
             }
 
-            function rvUpdateTimestamp() {
-                const d = new Date();
+            function rvShowFrame(i) {
+                if (!rvLayers.length) return;
+                // Ocultar frame anterior, mostrar el nuevo
+                rvLayers.forEach((l, idx) => l.setOpacity(idx === i ? rvOpacity : 0));
+                rvUpdateTimestamp(i);
+            }
+
+            function rvUpdateTimestamp(i) {
+                const f = rvFrames[i];
+                if (!f) return;
+                const d = new Date(f.time * 1000);
                 const ts = document.getElementById('rv-timestamp');
                 if (ts) ts.textContent = d.toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'short' })
                     + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+            }
+
+            function rvStartPlay() {
+                if (rvTimer) clearInterval(rvTimer);
+                rvTimer = setInterval(() => {
+                    rvIdx = (rvIdx + 1) % rvFrames.length;
+                    rvShowFrame(rvIdx);
+                }, 700);
             }
 
             // Init automático al cargar la página (espera a Leaflet)
