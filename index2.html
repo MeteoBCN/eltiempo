@@ -80,7 +80,7 @@
         .weather-circle-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
         .weather-circle { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(180deg, #1c4f78 0%, #123653 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(18,54,83,0.22); flex-shrink: 0; }
         .weather-circle i { color: #ffffff; font-size: 22px; }
-        .weather-circle-white { background: #ffffff; border: 1.5px solid rgba(18,54,83,0.16); box-shadow: 0 2px 8px rgba(18,54,83,0.10); }
+        .weather-circle-white { background: #ffffff; border: 1.5px solid #123653; box-shadow: 0 2px 8px rgba(18,54,83,0.10); }
         .weather-circle-white i { color: #123653; }
         .wc-wind-dir { color: #ffffff; text-align: center; line-height: 1.15; }
         .wc-wind-dir .arrow { display: block; font-size: 18px; }
@@ -884,7 +884,7 @@
 
                 <div id="paraguas-section" style="margin-top:16px;padding:12px 14px;background:#ffffff;border-radius:12px;">
                     <div style="font-size:9px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;text-align:center;">El paraguas</div>
-                    <div id="paraguas-circles" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px 4px;"></div>
+                    <div id="paraguas-circles" style="display:flex;justify-content:center;flex-wrap:wrap;gap:12px 14px;"></div>
                 </div>
 
                 </div>
@@ -1941,6 +1941,18 @@
             </svg>`;
         }
 
+        function umbrellaFoldedCrossedSvg(size=22, color='#123653') {
+            const s = size;
+            return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L15.2 6.5H8.8L12 2Z" fill="${color}"/>
+                <line x1="12" y1="4.5" x2="12" y2="19" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M12 19c0 1.4-1.2 2.4-2.6 2.1" stroke="${color}" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                <line x1="9" y1="9.3" x2="15" y2="9.3" stroke="${color}" stroke-width="1.3" stroke-linecap="round"/>
+                <line x1="9.4" y1="12" x2="14.6" y2="12" stroke="${color}" stroke-width="1.3" stroke-linecap="round"/>
+                <line x1="4" y1="21" x2="20" y2="3" stroke="${color}" stroke-width="1.7" stroke-linecap="round"/>
+            </svg>`;
+        }
+
         function updateParaguasSection(hourly) {
             const cont = document.getElementById('paraguas-circles');
             if (!cont || !hourly?.time) return;
@@ -1964,7 +1976,7 @@
                 } else if (pprob >= 40) {
                     iconHtml = umbrellaFoldedSvg(22, '#123653');
                 } else {
-                    iconHtml = getSvgIcon(wmo, 22, isNightTime(dt));
+                    iconHtml = umbrellaFoldedCrossedSvg(22, '#123653');
                 }
                 html += `
                     <div class="weather-circle-item">
