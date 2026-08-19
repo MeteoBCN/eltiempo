@@ -1147,6 +1147,10 @@
         ════════════════════════════════════════════ -->
         <div id="ahora-section" style="max-width:600px;margin:0 auto;">
 
+            <!-- ── AVISO DE LLUVIA CERCANA ── -->
+            <div id="rain-alert-banner" style="display:none;max-width:600px;margin:0 auto;padding:10px 16px;text-align:center;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">
+            </div>
+
             <!-- ── RADAR RAINVIEWER — redondo, fijo, sin controles ── -->
             <div style="display:flex;flex-direction:column;align-items:center;padding:18px 16px;background:#ffffff;">
                 <div style="width:calc(100% - 32px);max-width:600px;aspect-ratio:1/1;border-radius:50%;overflow:hidden;border:3px solid #2c4a6e;box-shadow:0 2px 10px rgba(0,0,0,0.18);position:relative;">
@@ -1155,6 +1159,82 @@
                 <span id="rv-timestamp" style="margin-top:10px;font-size:9px;color:#64748b;letter-spacing:1px;"></span>
                 <span style="font-size:8px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Fuente: RainViewer</span>
             </div>
+
+        <script>
+        // ── AVISO DE LLUVIA CERCANA (Open-Meteo) ────────────────────────
+        (function() {
+            const BCN_LAT = 41.385, BCN_LON = 2.173;
+
+            function offsetPoint(lat, lon, distKm, bearingDeg) {
+                const R = 6371; // radio de la Tierra en km
+                const brng = bearingDeg * Math.PI / 180;
+                const lat1 = lat * Math.PI / 180;
+                const lon1 = lon * Math.PI / 180;
+                const lat2 = Math.asin(Math.sin(lat1) * Math.cos(distKm / R) +
+                    Math.cos(lat1) * Math.sin(distKm / R) * Math.cos(brng));
+                const lon2 = lon1 + Math.atan2(
+                    Math.sin(brng) * Math.sin(distKm / R) * Math.cos(lat1),
+                    Math.cos(distKm / R) - Math.sin(lat1) * Math.sin(lat2)
+                );
+                return [lat2 * 180 / Math.PI, lon2 * 180 / Math.PI];
+            }
+
+            function buildRing(distKm, n) {
+                const pts = [];
+                for (let i = 0; i < n; i++) {
+                    pts.push(offsetPoint(BCN_LAT, BCN_LON, distKm, (360 / n) * i));
+                }
+                return pts;
+            }
+
+            const pts5km = buildRing(5, 8);
+            const pts10km = buildRing(10, 8);
+            const allPts = [[BCN_LAT, BCN_LON]].concat(pts5km, pts10km);
+            // Índices: 0 = centro, 1-8 = anillo 5km, 9-16 = anillo 10km
+            const idx5kmEnd = 8; // hasta el índice 8 inclusive (centro + anillo 5km)
+
+            function checkRainAlert() {
+                const lats = allPts.map(p => p[0].toFixed(4)).join(',');
+                const lons = allPts.map(p => p[1].toFixed(4)).join(',');
+                fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lats + '&longitude=' + lons + '&current=precipitation')
+                    .then(r => r.json())
+                    .then(data => {
+                        const results = Array.isArray(data) ? data : [data];
+                        let rain5km = false, rain10km = false;
+                        results.forEach((r, i) => {
+                            const p = r.current?.precipitation || 0;
+                            if (p > 0) {
+                                if (i <= idx5kmEnd) rain5km = true;
+                                else rain10km = true;
+                            }
+                        });
+                        updateBanner(rain5km, rain10km);
+                    })
+                    .catch(e => console.warn('Open-Meteo error:', e));
+            }
+
+            function updateBanner(rain5km, rain10km) {
+                const banner = document.getElementById('rain-alert-banner');
+                if (!banner) return;
+                if (rain5km) {
+                    banner.style.display = 'block';
+                    banner.style.background = '#fee2e2';
+                    banner.style.color = '#991b1b';
+                    banner.textContent = '🌧️ Lloviendo en Barcelona';
+                } else if (rain10km) {
+                    banner.style.display = 'block';
+                    banner.style.background = '#fef3c7';
+                    banner.style.color = '#92400e';
+                    banner.textContent = '⚠️ Lluvia a menos de 10 km de Barcelona';
+                } else {
+                    banner.style.display = 'none';
+                }
+            }
+
+            checkRainAlert();
+            setInterval(checkRainAlert, 10 * 60 * 1000); // cada 10 minutos
+        })();
+        </script>
 
         <style>
             .rv-bcn-label {
