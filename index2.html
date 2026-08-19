@@ -2216,12 +2216,17 @@
             }
 
             // CALOR NOCTURNO — mínima que no baja lo suficiente (24h): Amarillo ≥25 · Naranja ≥27 · Rojo ≥29
-            if (minTemp >= 29) {
-                alerts.push({ level: 'red', cat: 'NOCHE', msg: `Riesgo extremo para la salud, mínima de ${Math.round(minTemp)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
-            } else if (minTemp >= 27) {
-                alerts.push({ level: 'orange', cat: 'NOCHE', msg: `Noche ultra-tórrida, mínima de ${Math.round(minTemp)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
-            } else if (minTemp >= 25) {
-                alerts.push({ level: 'yellow', cat: 'NOCHE', msg: `Noche tórrida, mínima de ${Math.round(minTemp)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+            // Solo se muestra en horario nocturno (20:00 - 06:00); no tiene sentido a plena luz del día.
+            const horaActual = now.getHours();
+            const esHorarioNocturno = horaActual >= 20 || horaActual < 6;
+            if (esHorarioNocturno) {
+                if (minTemp >= 29) {
+                    alerts.push({ level: 'red', cat: 'NOCHE', msg: `Riesgo extremo para la salud, mínima de ${Math.round(minTemp)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+                } else if (minTemp >= 27) {
+                    alerts.push({ level: 'orange', cat: 'NOCHE', msg: `Noche ultra-tórrida, mínima de ${Math.round(minTemp)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+                } else if (minTemp >= 25) {
+                    alerts.push({ level: 'yellow', cat: 'NOCHE', msg: `Noche tórrida, mínima de ${Math.round(minTemp)}° hacia las ${String(minTempHour).padStart(2,'0')}:00.` });
+                }
             }
 
             // FRÍO — temperatura real mínima (24h): Amarillo <2.0 · Naranja <-2.0 · Rojo <-6.0
