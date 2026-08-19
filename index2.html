@@ -1143,86 +1143,49 @@
         </div>
 
         <!-- ═══════════════════════════════════════════
-             WEBCAM VILA OLÍMPICA (siempre visible)
-        ════════════════════════════════════════════ -->
-        <div id="webcam-olimpica-section" style="max-width:600px;width:calc(100% - 32px);margin:14px auto 0;border:2px solid #2c4a6e;border-radius:var(--border-radius);overflow:hidden;">
-            <div style="display:flex;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;">
-                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">VILA OLÍMPICA (WEBCAM)</span>
-            </div>
-            <div style="background:#000;overflow:hidden;">
-                <img src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg"
-                     alt="Vila Olímpica"
-                     style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover;"
-                     loading="lazy"
-                     onerror="this.style.background='#1a252f'"/>
-                <div style="background:#1e293b;padding:6px 12px;text-align:center;">
-                    <span style="font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">Fuente: Windy</span>
-                </div>
-            </div>
-        </div>
-
-        <div style="height:60px;background:#ffffff;"></div>
-
-
-
-        <!-- ═══════════════════════════════════════════
-             AHORA
+             RADAR DE LLUVIA (circular, fijo, siempre visible)
         ════════════════════════════════════════════ -->
         <div id="ahora-section" style="max-width:600px;margin:0 auto;">
 
-            <!-- ── Fila DIRECTO ── -->
+            <!-- ── Título ── -->
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;gap:3px;">
                 <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">RADAR LLUVIA & WEBCAMS</span>
             </div>
 
-            <!-- ── RADAR RAINVIEWER — desplegable ── -->
-            <div style="border-bottom:1px solid #e2e8f0;">
-                <div onclick="toggleExtraSection('radar-rainviewer')" style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#6fcfe0;cursor:pointer;user-select:none;">
-                    <span style="font-size:9px;font-weight:700;color:#123653;letter-spacing:2px;text-transform:uppercase;">RADAR DE LLUVIA</span>
-                    <span id="arrow-radar-rainviewer" style="font-size:12px;color:#123653;transition:transform 0.3s;">▼</span>
-                </div>
-            <div id="panel-radar-rainviewer" style="display:none;overflow:hidden;">
-                <div style="position:relative;width:100%;background:#0d1b2a;">
-                    <!-- Controles -->
-                    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#1a2a3a;flex-wrap:wrap;">
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <label style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;cursor:pointer;">
-                                <input id="rv-snow" type="checkbox" onchange="rvSetSnow(this.checked)" style="accent-color:#6fcfe0;"> Nieve
-                            </label>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <span style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;">Opacidad</span>
-                            <input id="rv-opacity" type="range" min="0.1" max="1" step="0.1" value="0.8" oninput="rvSetOpacity(this.value)" style="width:70px;accent-color:#6fcfe0;">
-                        </div>
-                        <button onclick="rvTogglePlay()" id="rv-playbtn" style="font-size:9px;font-weight:700;background:#6fcfe0;color:#123653;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;margin-left:auto;">▶ PLAY</button>
-                    </div>
-                    <!-- Mapa -->
-                    <div id="rv-map" style="width:100%;height:320px;"></div>
-                    <div style="background:#1a2a3a;padding:6px 12px;display:flex;align-items:center;justify-content:space-between;">
-                        <span id="rv-timestamp" style="font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1px;"></span>
-                        <span style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase;">Fuente: RainViewer</span>
-                    </div>
-                </div>
-            </div>
+            <!-- ── RADAR RAINVIEWER — redondo, fijo, sin controles ── -->
+            <div style="display:flex;flex-direction:column;align-items:center;padding:18px 16px;background:#ffffff;">
+                <div id="rv-map" style="width:230px;height:230px;border-radius:50%;overflow:hidden;border:3px solid #2c4a6e;box-shadow:0 2px 10px rgba(0,0,0,0.18);pointer-events:none;"></div>
+                <span id="rv-timestamp" style="margin-top:10px;font-size:9px;color:#64748b;letter-spacing:1px;"></span>
+                <span style="font-size:8px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Fuente: RainViewer</span>
             </div>
 
         <script>
-        // ── RAINVIEWER ────────────────────────────────────────────────
+        // ── RAINVIEWER (radar circular fijo, sin interacción) ──────────
         (function() {
             let rvMap = null, rvFrames = [], rvIdx = 0, rvTimer = null;
-            let rvColor = 8, rvOpacity = 0.8, rvSnow = false;
+            let rvColor = 8, rvOpacity = 0.8;
             let rvLayers = [], rvInited = false;
             let rvApiHost = 'https://tilecache.rainviewer.com';
+            const BCN = [41.385, 2.173];
 
             function rvInit() {
                 if (rvInited) return;
                 rvInited = true;
-                rvMap = L.map('rv-map', { zoomControl: true, attributionControl: false })
-                    .setView([41.385, 2.173], 5);
+                rvMap = L.map('rv-map', {
+                    zoomControl: false,
+                    attributionControl: false,
+                    dragging: false,
+                    scrollWheelZoom: false,
+                    doubleClickZoom: false,
+                    boxZoom: false,
+                    keyboard: false,
+                    touchZoom: false,
+                    tap: false
+                }).setView(BCN, 8);
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                     maxZoom: 18
                 }).addTo(rvMap);
-                L.circleMarker([41.385, 2.173], { radius: 5, color: '#6fcfe0', fillColor: '#6fcfe0', fillOpacity: 1, weight: 2 })
+                L.circleMarker(BCN, { radius: 5, color: '#6fcfe0', fillColor: '#6fcfe0', fillOpacity: 1, weight: 2 })
                     .addTo(rvMap);
                 fetch('https://api.rainviewer.com/public/weather-maps.json')
                     .then(r => r.json())
@@ -1242,7 +1205,7 @@
                         rvIdx = rvFrames.length - 1;
                         rvLayers[rvIdx].setOpacity(rvOpacity);
                         rvUpdateTimestamp(rvIdx);
-                        // Arrancar animación
+                        // Arrancar animación (siempre activa, sin botón)
                         rvStartPlay();
                     })
                     .catch(e => console.warn('RainViewer error:', e));
@@ -1270,30 +1233,48 @@
                     rvIdx = (rvIdx + 1) % rvFrames.length;
                     rvShowFrame(rvIdx);
                 }, 700);
-                const btn = document.getElementById('rv-playbtn');
-                if (btn) btn.textContent = '⏹ STOP';
             }
 
-            window.rvSetOpacity = v => {
-                rvOpacity = parseFloat(v);
-                if (rvLayers[rvIdx]) rvLayers[rvIdx].setOpacity(rvOpacity);
-            };
-            window.rvSetSnow = v => { rvSnow = v; };
-            window.rvTogglePlay = function() {
-                const btn = document.getElementById('rv-playbtn');
-                if (rvTimer) {
-                    clearInterval(rvTimer); rvTimer = null;
-                    if (btn) btn.textContent = '▶ PLAY';
+            // Init automático al cargar la página (espera a Leaflet)
+            function tryRvInit() {
+                if (typeof L !== 'undefined') {
+                    rvInit();
                 } else {
-                    rvStartPlay();
+                    setTimeout(tryRvInit, 100);
                 }
-            };
-
-            window.rvInit = rvInit;
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', tryRvInit);
+            } else {
+                tryRvInit();
+            }
         })();
         </script>
 
         </div>
+
+        <div style="height:20px;background:#ffffff;"></div>
+
+        <!-- ═══════════════════════════════════════════
+             WEBCAM VILA OLÍMPICA (siempre visible)
+        ════════════════════════════════════════════ -->
+        <div id="webcam-olimpica-section" style="max-width:600px;width:calc(100% - 32px);margin:0 auto 0;border:2px solid #2c4a6e;border-radius:var(--border-radius);overflow:hidden;">
+            <div style="display:flex;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;">
+                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">VILA OLÍMPICA (WEBCAM)</span>
+            </div>
+            <div style="background:#000;overflow:hidden;">
+                <img src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg"
+                     alt="Vila Olímpica"
+                     style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover;"
+                     loading="lazy"
+                     onerror="this.style.background='#1a252f'"/>
+                <div style="background:#1e293b;padding:6px 12px;text-align:center;">
+                    <span style="font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">Fuente: Windy</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="height:60px;background:#ffffff;"></div>
 
         <script>
         // ── EMBALSES ACA ───────────────────────────────────────────
@@ -1443,9 +1424,7 @@
             panel.style.display = isOpen ? 'none' : 'block';
             arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
             if (!isOpen && id === 'embalses') cargarEmbalses();
-            if (!isOpen && id === 'radar-rainviewer') {
-                setTimeout(function() { rvInit(); }, 150);
-            }        }
+        }
         </script>
 
         <script>
