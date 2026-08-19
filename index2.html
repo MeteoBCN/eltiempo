@@ -81,6 +81,7 @@
         .weather-circle { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(180deg, #1c4f78 0%, #123653 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(18,54,83,0.22); flex-shrink: 0; }
         .weather-circle i { color: #ffffff; font-size: 22px; }
         .weather-circle-white { background: #ffffff; border: 1.5px solid #123653; box-shadow: 0 2px 8px rgba(18,54,83,0.10); }
+        .weather-circle-small { width: 40px; height: 40px; }
         .weather-circle-white i { color: #123653; }
         .wc-wind-dir { color: #ffffff; text-align: center; line-height: 1.15; }
         .wc-wind-dir .arrow { display: block; font-size: 18px; }
@@ -884,7 +885,7 @@
 
                 <div id="paraguas-section" style="margin-top:16px;padding:12px 14px;background:#ffffff;border-radius:12px;">
                     <div style="font-size:9px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;text-align:center;">El paraguas</div>
-                    <div id="paraguas-circles" style="display:flex;justify-content:center;flex-wrap:wrap;gap:12px 14px;"></div>
+                    <div id="paraguas-circles" style="display:flex;justify-content:center;align-items:flex-start;gap:10px;"></div>
                 </div>
 
                 </div>
@@ -1953,6 +1954,14 @@
             </svg>`;
         }
 
+        function noRainDropSvg(size=18, color='#123653') {
+            const s = size;
+            return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2.5C12 2.5 5 11.2 5 15.6C5 19.6 8.13 22.5 12 22.5C15.87 22.5 19 19.6 19 15.6C19 11.2 12 2.5 12 2.5Z" stroke="${color}" stroke-width="1.6" fill="none"/>
+                <line x1="4" y1="21" x2="20" y2="3" stroke="${color}" stroke-width="1.7" stroke-linecap="round"/>
+            </svg>`;
+        }
+
         function updateParaguasSection(hourly) {
             const cont = document.getElementById('paraguas-circles');
             if (!cont || !hourly?.time) return;
@@ -1972,17 +1981,16 @@
                 const wmo = hourly.weather_code?.[idx] ?? 0;
                 let iconHtml;
                 if (pprob > 60) {
-                    iconHtml = umbrellaOpenSvg(22, '#123653');
+                    iconHtml = umbrellaOpenSvg(18, '#123653');
                 } else if (pprob >= 40) {
-                    iconHtml = umbrellaFoldedSvg(22, '#123653');
+                    iconHtml = umbrellaFoldedSvg(18, '#123653');
                 } else {
-                    iconHtml = umbrellaFoldedCrossedSvg(22, '#123653');
+                    iconHtml = noRainDropSvg(18, '#123653');
                 }
                 html += `
                     <div class="weather-circle-item">
-                        <div class="weather-circle weather-circle-white">${iconHtml}</div>
+                        <div class="weather-circle weather-circle-white weather-circle-small">${iconHtml}</div>
                         <div class="detail-value" style="font-size:11px;margin-top:0;">${label}</div>
-                        <div class="wc-label">${pprob}%</div>
                     </div>`;
             }
             cont.innerHTML = html;
