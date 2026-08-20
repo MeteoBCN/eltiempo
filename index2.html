@@ -1203,21 +1203,22 @@
             function checkRainAlert() {
                 const lats = allPts.map(p => p[0].toFixed(4)).join(',');
                 const lons = allPts.map(p => p[1].toFixed(4)).join(',');
-                // minutely_15: nowcast de alta resolución, más sensible a lluvia débil/local
-                fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lats + '&longitude=' + lons + '&minutely_15=precipitation&forecast_minutely_15=1')
+                // "current": dato horario más fiable fuera de Centroeuropa/Norteamérica
+                // (minutely_15 solo tiene resolución real allí; en España se interpola igualmente)
+                fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lats + '&longitude=' + lons + '&current=precipitation')
                     .then(r => r.json())
                     .then(data => {
                         const results = Array.isArray(data) ? data : [data];
                         let rain5km = false, rain10km = false;
                         results.forEach((r, i) => {
-                            const arr = r.minutely_15?.precipitation || [];
-                            const p = arr.length ? (arr[0] || 0) : 0;
+                            const p = r.current?.precipitation || 0;
                             if (p > 0) {
                                 if (i <= idx5kmEnd) rain5km = true;
                                 else rain10km = true;
                             }
                         });
                         updateBanner(rain5km, rain10km);
+                        console.log('[Aviso lluvia] 5km:', rain5km, '| 10km:', rain10km, '| hora:', new Date().toLocaleTimeString('es-ES'));
                     })
                     .catch(e => console.warn('Open-Meteo error:', e));
             }
@@ -1246,6 +1247,9 @@
         </script>
 
         <style>
+            .rv-basemap-fade {
+                filter: grayscale(35%) contrast(0.85) brightness(1.08) saturate(0.5);
+            }
             .rv-bcn-label {
                 background: transparent !important;
                 border: none !important;
@@ -1283,7 +1287,8 @@
                     tap: false
                 }).setView(BCN, 7);
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 18
+                    maxZoom: 18,
+                    className: 'rv-basemap-fade'
                 }).addTo(rvMap);
                 L.circleMarker(BCN, { radius: 5, color: '#2c4a6e', fillColor: '#2c4a6e', fillOpacity: 1, weight: 2 })
                     .addTo(rvMap);
