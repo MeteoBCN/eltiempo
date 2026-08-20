@@ -2381,6 +2381,24 @@
 
             const LINE_COLOR = '#1c4f78';
 
+            // Líneas verticales discontinuas sutiles cada 2 horas
+            ctx.save();
+            ctx.setLineDash([3, 3]);
+            ctx.strokeStyle = LINE_COLOR;
+            ctx.globalAlpha = 0.15;
+            ctx.lineWidth = 1;
+            slots.forEach((s, i) => {
+                if (s.h.getHours() % 2 === 0) {
+                    const x = xPos(i);
+                    ctx.beginPath();
+                    ctx.moveTo(x, PAD.top);
+                    ctx.lineTo(x, PAD.top + ch);
+                    ctx.stroke();
+                }
+            });
+            ctx.restore();
+            ctx.globalAlpha = 1;
+
             // Línea de temperatura, sutil
             ctx.beginPath();
             ctx.moveTo(xPos(0), yTemp(slots[0].temp));
