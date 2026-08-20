@@ -894,7 +894,7 @@
                     <div id="paraguas-chart-wrap" style="width:100vw;margin:28px 0 0 calc(50% - 50vw);background:#ffffff;padding:14px 0;border-top:1px solid rgba(28,79,120,0.3);border-bottom:1px solid rgba(28,79,120,0.3);">
                         <div style="font-size:12px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Tendencia próximas horas</div>
                         <div style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Temperatura · Precipitación</div>
-                        <div id="paraguas-umbrella-row" style="position:relative;height:20px;margin:0 0 2px;"></div>
+                        <div id="paraguas-rain-bar-row" style="position:relative;height:16px;margin:0 0 4px;border-radius:4px;overflow:hidden;background:#F1F5F9;"></div>
                         <div id="paraguas-hour-row" style="position:relative;height:12px;margin:0;"></div>
                         <canvas id="paraguas-hourly-chart" style="width:100%;display:block;"></canvas>
                         <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:8px;">
@@ -2479,18 +2479,19 @@
                 rainCat.push(isStrongRain ? 2 : (isLightRain ? 1 : 0));
             });
 
-            // ── Fila de paraguas (encima de la gráfica), alineada por hora ──
-            const umbrellaRow = document.getElementById('paraguas-umbrella-row');
-            if (umbrellaRow) {
-                let uHtml = '';
+            // ── Barra de posibilidad de lluvia (encima de la gráfica), un tramo por hora ──
+            const rainBarRow = document.getElementById('paraguas-rain-bar-row');
+            if (rainBarRow) {
+                const segW = cw / (slots.length - 1);
+                let bHtml = '';
                 slots.forEach((s, i) => {
                     if (rainCat[i] > 0) {
-                        const x = xPos(i);
-                        const opacity = rainCat[i] === 2 ? 0.9 : 0.4;
-                        uHtml += `<span style="position:absolute;left:${x}px;top:0;transform:translateX(-50%);opacity:${opacity};line-height:0;">${umbrellaOpenSvg(15, '#1c4f78')}</span>`;
+                        const left = PAD.left + i * segW - segW / 2;
+                        const bg = rainCat[i] === 2 ? 'rgba(28,79,120,0.55)' : 'rgba(59,130,246,0.30)';
+                        bHtml += `<div style="position:absolute;left:${left}px;top:0;width:${segW}px;height:100%;background:${bg};"></div>`;
                     }
                 });
-                umbrellaRow.innerHTML = uHtml;
+                rainBarRow.innerHTML = bHtml;
             }
 
             // ── Fila de horas (debajo de la gráfica), alineada por hora ──
