@@ -811,8 +811,7 @@
         <!-- ══════ FIN MENÚ NAVEGACIÓN ══════ -->
 
         <!-- ── AVISO DE LLUVIA CERCANA ── -->
-        <div id="rain-alert-banner" style="display:none;max-width:600px;margin:0 auto;padding:10px 16px;text-align:center;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">
-        </div>
+        <div id="rain-alert-banner" style="display:none;"></div>
 
         <div id="weather-alert-banner" style="display:none;flex-direction:column;gap:0;padding:0;"></div>
 
@@ -1374,32 +1373,33 @@
 
             const ETIQUETA_INTENSIDAD = { debil: 'débil', moderada: 'moderada', fuerte: 'fuerte' };
 
+            // Mismo azul que el interior de los círculos de datos del tiempo actual
+            // (weather-circle: linear-gradient(180deg, #1c4f78 0%, #123653 100%)), pero translúcido.
+            const RADAR_BANNER_BORDER = '#1c4f78';
+            const RADAR_BANNER_BG = 'rgba(28, 79, 120, 0.10)';
+            const RADAR_BANNER_TEXT = '#123653';
+
             function updateBanner(rain5km, rain10km, intensidad5, intensidad10) {
                 const banner = document.getElementById('rain-alert-banner');
                 if (!banner) return;
+                let msg = null;
                 if (rain5km) {
                     const txtIntensidad = ETIQUETA_INTENSIDAD[intensidad5] || 'débil';
-                    banner.style.display = 'block';
-                    if (intensidad5 === 'fuerte') {
-                        banner.style.background = '#2c4a6e';
-                        banner.style.color = '#ffffff';
-                    } else if (intensidad5 === 'moderada') {
-                        banner.style.background = '#3B82F6';
-                        banner.style.color = '#ffffff';
-                    } else {
-                        banner.style.background = '#6fcfe0';
-                        banner.style.color = '#123653';
-                    }
-                    banner.textContent = '🌧️ Lluvia ' + txtIntensidad + ' en Barcelona';
+                    msg = 'Lluvia ' + txtIntensidad + ' en Barcelona';
                 } else if (rain10km) {
                     const txtIntensidad = ETIQUETA_INTENSIDAD[intensidad10] || 'débil';
-                    banner.style.display = 'block';
-                    banner.style.background = '#d6f1f8';
-                    banner.style.color = '#12507a';
-                    banner.textContent = '⚠️ Lluvia ' + txtIntensidad + ' a menos de 10 km de Barcelona';
-                } else {
-                    banner.style.display = 'none';
+                    msg = 'Lluvia ' + txtIntensidad + ' a menos de 10 km de Barcelona';
                 }
+                if (!msg) {
+                    banner.style.display = 'none';
+                    banner.innerHTML = '';
+                    return;
+                }
+                banner.innerHTML = `<div style="display:flex;align-items:flex-start;gap:8px;padding:10px 20px;border-radius:0;background:${RADAR_BANNER_BG};color:${RADAR_BANNER_TEXT};border-left:8px solid ${RADAR_BANNER_BORDER};font-size:12px;font-weight:600;line-height:1.4;width:100%;box-sizing:border-box;">
+                    <span style="font-size:15px;flex-shrink:0;">🌧️</span>
+                    <span style="flex:1;">${msg}</span>
+                </div>`;
+                banner.style.display = 'block';
             }
 
             checkRainAlert();
@@ -2634,7 +2634,7 @@
                 const key = _weatherAlertKey(a);
                 const isFirst = i === 0;
                 const divider = isFirst ? '' : `border-top:1px solid rgba(0,0,0,0.08);`;
-                return `<div data-key="${key.replace(/"/g,'&quot;')}" style="display:flex;align-items:flex-start;gap:8px;padding:10px 20px;border-radius:0;background:${s.bg};color:${s.text};border-left:4px solid ${s.border};${divider}font-size:12px;font-weight:600;line-height:1.4;width:100%;box-sizing:border-box;">
+                return `<div data-key="${key.replace(/"/g,'&quot;')}" style="display:flex;align-items:flex-start;gap:8px;padding:10px 20px;border-radius:0;background:${s.bg};color:${s.text};border-left:8px solid ${s.border};${divider}font-size:12px;font-weight:600;line-height:1.4;width:100%;box-sizing:border-box;">
                     <span style="font-size:15px;flex-shrink:0;">${s.icon}</span>
                     <span style="flex:1;">${a.cat} · ${a.msg}</span>
                     <button onclick="closeWeatherAlert('${key.replace(/'/g,"\\'")}')" aria-label="Cerrar aviso" title="Cerrar aviso" style="background:none;border:none;font-size:15px;font-weight:700;cursor:pointer;color:inherit;opacity:0.6;padding:0 0 0 4px;flex-shrink:0;line-height:1;">✕</button>
