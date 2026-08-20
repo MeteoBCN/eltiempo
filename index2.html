@@ -910,11 +910,6 @@
                     </div>
 
                     <div id="paraguas-chart-wrap" style="width:100vw;margin:16px 0 0 calc(50% - 50vw);background:#ffffff;padding:10px 0 4px;">
-                        <div style="display:flex;justify-content:center;gap:16px;margin-bottom:2px;">
-                            <span style="display:flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:#F97316;letter-spacing:0.4px;text-transform:uppercase;"><span style="width:8px;height:8px;border-radius:50%;background:#F97316;display:inline-block;"></span>Temp.</span>
-                            <span style="display:flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:#3B82F6;letter-spacing:0.4px;text-transform:uppercase;"><span style="width:8px;height:8px;border-radius:2px;background:#3B82F6;display:inline-block;"></span>Lluvia</span>
-                            <span style="display:flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:#10B981;letter-spacing:0.4px;text-transform:uppercase;"><span style="width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block;"></span>Viento</span>
-                        </div>
                         <canvas id="paraguas-hourly-chart" style="width:100%;display:block;"></canvas>
                     </div>
                 </div>
@@ -2345,7 +2340,7 @@
             cont.innerHTML = html;
         }
 
-        // ── Gráfica combinada 12h: temperatura, lluvia y viento (fondo blanco) ──
+        // ── Gráfica 12h: temperatura (sutil, azul de los círculos) ──
         function drawParaguasHourlyChart(hourly) {
             const canvas = document.getElementById('paraguas-hourly-chart');
             if (!canvas || !hourly?.time) return;
@@ -2359,8 +2354,6 @@
                 slots.push({
                     h: ht,
                     temp: hourly.temperature_2m?.[i] ?? null,
-                    prob: hourly.precipitation_probability?.[i] ?? 0,
-                    wind: hourly.wind_speed_10m?.[i] ?? null,
                     label: String(ht.getHours()).padStart(2,'0') + 'h'
                 });
             }
@@ -2369,14 +2362,14 @@
             const dpr = window.devicePixelRatio || 1;
             const wrap = canvas.parentElement;
             const W = wrap.clientWidth;
-            const H = 172;
+            const H = 150;
             canvas.width = W * dpr; canvas.height = H * dpr;
             canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
             const ctx = canvas.getContext('2d');
             ctx.scale(dpr, dpr);
             ctx.clearRect(0, 0, W, H);
 
-            const PAD = { top: 22, bottom: 40, left: 26, right: 26 };
+            const PAD = { top: 26, bottom: 30, left: 26, right: 26 };
             const cw = W - PAD.left - PAD.right;
             const ch = H - PAD.top - PAD.bottom;
 
@@ -2386,63 +2379,31 @@
             const xPos = i => PAD.left + (i / (slots.length - 1)) * cw;
             const yTemp = t => PAD.top + ch - ((t - tMin) / (tMax - tMin)) * ch;
 
-            // Líneas guía suaves (escala de lluvia 0/50/100%)
-            [0, 50, 100].forEach(p => {
-                const y = PAD.top + ch - (p / 100) * ch;
-                ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + cw, y);
-                ctx.strokeStyle = 'rgba(18,54,83,0.06)'; ctx.lineWidth = 1; ctx.stroke();
-            });
+            const LINE_COLOR = '#1c4f78';
 
-            // Barras de probabilidad de lluvia
-            const barW = Math.max(4, cw / slots.length - 5);
-            slots.forEach((s, i) => {
-                if (!s.prob) return;
-                const barH = (s.prob / 100) * ch;
-                const x = xPos(i) - barW / 2;
-                const g = ctx.createLinearGradient(0, PAD.top + ch - barH, 0, PAD.top + ch);
-                g.addColorStop(0, 'rgba(59,130,246,0.55)');
-                g.addColorStop(1, 'rgba(59,130,246,0.10)');
-                ctx.fillStyle = g;
-                ctx.beginPath();
-                if (ctx.roundRect) ctx.roundRect(x, PAD.top + ch - barH, barW, barH, [3,3,0,0]);
-                else ctx.rect(x, PAD.top + ch - barH, barW, barH);
-                ctx.fill();
-            });
-
-            // Línea de temperatura
+            // Línea de temperatura, sutil
             ctx.beginPath();
             ctx.moveTo(xPos(0), yTemp(slots[0].temp));
             for (let i = 1; i < slots.length; i++) {
                 const xc = (xPos(i-1) + xPos(i)) / 2;
                 ctx.bezierCurveTo(xc, yTemp(slots[i-1].temp), xc, yTemp(slots[i].temp), xPos(i), yTemp(slots[i].temp));
             }
-            ctx.strokeStyle = '#F97316'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.stroke();
+            ctx.strokeStyle = LINE_COLOR; ctx.globalAlpha = 0.55; ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.stroke();
+            ctx.globalAlpha = 1;
 
-            // Puntos + etiquetas de temperatura y % lluvia (cada 2 franjas para no saturar)
-            const step = Math.max(1, Math.ceil(slots.length / 7));
+            // Puntos + etiquetas de temperatura y hora (cada 2 horas)
             ctx.textAlign = 'center';
             slots.forEach((s, i) => {
                 const x = xPos(i), y = yTemp(s.temp);
-                ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fillStyle = '#F97316'; ctx.fill();
-                if (i % step === 0 || i === slots.length - 1) {
+                ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI*2);
+                ctx.fillStyle = LINE_COLOR; ctx.globalAlpha = 0.55; ctx.fill(); ctx.globalAlpha = 1;
+
+                const hourNum = s.h.getHours();
+                if (hourNum % 2 === 0) {
                     ctx.fillStyle = '#123653'; ctx.font = 'bold 10px Inter,sans-serif';
                     ctx.fillText(Math.round(s.temp) + '°', x, y - 8);
-                    if (s.prob >= 10) {
-                        ctx.fillStyle = '#3B82F6'; ctx.font = 'bold 9px Inter,sans-serif';
-                        ctx.fillText(Math.round(s.prob) + '%', x, PAD.top + ch - (s.prob/100)*ch - 4);
-                    }
-                }
-            });
-
-            // Etiquetas eje X (hora) + viento debajo
-            slots.forEach((s, i) => {
-                if (i % step !== 0 && i !== slots.length - 1) return;
-                const x = xPos(i);
-                ctx.fillStyle = '#64748B'; ctx.font = '9px Inter,sans-serif'; ctx.textAlign = 'center';
-                ctx.fillText(s.label, x, H - 24);
-                if (s.wind !== null) {
-                    ctx.fillStyle = '#10B981'; ctx.font = 'bold 9px Inter,sans-serif';
-                    ctx.fillText(Math.round(s.wind) + ' km/h', x, H - 10);
+                    ctx.fillStyle = '#64748B'; ctx.font = '9px Inter,sans-serif';
+                    ctx.fillText(s.label, x, H - 8);
                 }
             });
         }
