@@ -2382,6 +2382,25 @@
 
             const LINE_COLOR = '#1c4f78';
 
+            // Escala de color según temperatura absoluta (frío→azul, cálido→naranja/rojo)
+            function tempToColor(t) {
+                const stops = [
+                    { t: 5,  c: [37, 99, 235] },   // azul (frío)
+                    { t: 15, c: [28, 79, 120] },   // azul oscuro sitio (templado-frío)
+                    { t: 24, c: [249, 115, 22] },  // naranja (templado-cálido)
+                    { t: 33, c: [220, 38, 38] }    // rojo (caluroso)
+                ];
+                if (t <= stops[0].t) return stops[0].c;
+                if (t >= stops[stops.length - 1].t) return stops[stops.length - 1].c;
+                for (let i = 0; i < stops.length - 1; i++) {
+                    if (t >= stops[i].t && t <= stops[i + 1].t) {
+                        const ratio = (t - stops[i].t) / (stops[i + 1].t - stops[i].t);
+                        return stops[i].c.map((v, idx) => Math.round(v + (stops[i + 1].c[idx] - v) * ratio));
+                    }
+                }
+                return [28, 79, 120];
+            }
+
             // Líneas verticales discontinuas sutiles cada 2 horas
             ctx.save();
             ctx.setLineDash([3, 3]);
@@ -2400,14 +2419,21 @@
             ctx.restore();
             ctx.globalAlpha = 1;
 
-            // Línea de temperatura, sutil
-            ctx.beginPath();
-            ctx.moveTo(xPos(0), yTemp(slots[0].temp));
+            // Línea de temperatura, sutil, con degradado real según el baremo (frío→cálido)
+            ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.globalAlpha = 0.6;
             for (let i = 1; i < slots.length; i++) {
-                const xc = (xPos(i-1) + xPos(i)) / 2;
-                ctx.bezierCurveTo(xc, yTemp(slots[i-1].temp), xc, yTemp(slots[i].temp), xPos(i), yTemp(slots[i].temp));
+                const x0 = xPos(i - 1), y0 = yTemp(slots[i - 1].temp);
+                const x1 = xPos(i), y1 = yTemp(slots[i].temp);
+                const xc = (x0 + x1) / 2;
+                ctx.beginPath();
+                ctx.moveTo(x0, y0);
+                ctx.bezierCurveTo(xc, y0, xc, y1, x1, y1);
+                const grad = ctx.createLinearGradient(x0, y0, x1, y1);
+                grad.addColorStop(0, `rgb(${tempToColor(slots[i - 1].temp).join(',')})`);
+                grad.addColorStop(1, `rgb(${tempToColor(slots[i].temp).join(',')})`);
+                ctx.strokeStyle = grad;
+                ctx.stroke();
             }
-            ctx.strokeStyle = LINE_COLOR; ctx.globalAlpha = 0.55; ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.stroke();
             ctx.globalAlpha = 1;
 
             // Puntos + etiquetas de temperatura y hora (cada 2 horas)
@@ -2415,7 +2441,7 @@
             slots.forEach((s, i) => {
                 const x = xPos(i), y = yTemp(s.temp);
                 ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI*2);
-                ctx.fillStyle = LINE_COLOR; ctx.globalAlpha = 0.55; ctx.fill(); ctx.globalAlpha = 1;
+                ctx.fillStyle = `rgb(${tempToColor(s.temp).join(',')})`; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
 
                 const hourNum = s.h.getHours();
                 if (hourNum % 2 === 0) {
