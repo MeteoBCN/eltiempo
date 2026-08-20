@@ -6601,7 +6601,6 @@
 
             // ── Grafico de olas (canvas) ────────────────────────────────────
             function mar3DrawChart(canvasId, slots) {
-                window._mar3DrawChart = mar3DrawChart;
                 const canvas = document.getElementById(canvasId);
                 if (!canvas) return;
                 const dpr = window.devicePixelRatio || 1;
@@ -6727,10 +6726,10 @@
 
                 // Iconos del tiempo encima del gráfico: eliminados
             }
+            window._mar3DrawChart = mar3DrawChart;
 
             // ── Gráfico de viento por horas (canvas) ─────────────────────────
             function mar3DrawWindChart(canvasId, slots) {
-                window._mar3DrawWindChart = mar3DrawWindChart;
                 const canvas = document.getElementById(canvasId);
                 if (!canvas) return;
                 const dpr = window.devicePixelRatio || 1;
@@ -6842,6 +6841,7 @@
                     }
                 });
             }
+            window._mar3DrawWindChart = mar3DrawWindChart;
 
             // ── Celda de franja (galletas compactas) ─────────────────────
             function buildCell(slots, borderStyle, cellId) {
