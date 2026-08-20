@@ -1162,12 +1162,16 @@
             </div>
 
         <script>
-        // ── AVISO DE LLUVIA CERCANA (Open-Meteo) ────────────────────────
+        // ── AVISO DE LLUVIA CERCANA (lee el radar RainViewer directamente,
+        //    con Open-Meteo como respaldo si el navegador bloquea la lectura) ──
         (function() {
             const BCN_LAT = 41.385, BCN_LON = 2.173;
+            const ZOOM = 7;        // mismo zoom que el radar visual (RainViewer no da más)
+            const TILE_SIZE = 256;
+            const RV_COLOR = 8;    // misma paleta que el radar visual
 
             function offsetPoint(lat, lon, distKm, bearingDeg) {
-                const R = 6371; // radio de la Tierra en km
+                const R = 6371;
                 const brng = bearingDeg * Math.PI / 180;
                 const lat1 = lat * Math.PI / 180;
                 const lon1 = lon * Math.PI / 180;
@@ -1188,47 +1192,117 @@
                 return pts;
             }
 
-            // Malla de puntos rellenando los dos discos (no solo el borde),
-            // para no perder chubascos que caigan entre dos puntos del anillo.
-            const zone5 = [].concat(
-                buildRing(2.5, 8),
-                buildRing(5, 12)
-            );
-            const zone10 = [].concat(
-                buildRing(7.5, 12),
-                buildRing(10, 12)
-            );
+            const zone5 = [].concat(buildRing(2.5, 8), buildRing(5, 12));
+            const zone10 = [].concat(buildRing(7.5, 12), buildRing(10, 12));
             const allPts = [[BCN_LAT, BCN_LON]].concat(zone5, zone10);
-            const idx5kmEnd = zone5.length; // 0 = centro, 1..idx5kmEnd = zona 5km
+            const idx5kmEnd = zone5.length;
 
-            function checkRainAlert() {
+            function latLonToTilePixel(lat, lon, zoom) {
+                const latRad = lat * Math.PI / 180;
+                const n = Math.pow(2, zoom);
+                const xtile = (lon + 180) / 360 * n;
+                const ytile = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n;
+                const tileX = Math.floor(xtile);
+                const tileY = Math.floor(ytile);
+                const pixelX = Math.min(TILE_SIZE - 1, Math.max(0, Math.floor((xtile - tileX) * TILE_SIZE)));
+                const pixelY = Math.min(TILE_SIZE - 1, Math.max(0, Math.floor((ytile - tileY) * TILE_SIZE)));
+                return { tileX, tileY, pixelX, pixelY };
+            }
+
+            function loadTileCanvasCtx(url) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => {
+                        try {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = TILE_SIZE;
+                            canvas.height = TILE_SIZE;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0);
+                            resolve(ctx);
+                        } catch (e) { reject(e); }
+                    };
+                    img.onerror = () => reject(new Error('No se pudo cargar el tile'));
+                    img.src = url;
+                });
+            }
+
+            // ── Método principal: leer los píxeles del radar RainViewer ──
+            async function checkRainAlertFromRadar() {
+                const mapsRes = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+                const mapsData = await mapsRes.json();
+                const host = mapsData.host || 'https://tilecache.rainviewer.com';
+                const frames = mapsData.radar?.past || [];
+                if (!frames.length) throw new Error('Sin frames de RainViewer');
+                const framePath = frames[frames.length - 1].path;
+
+                const pts = allPts.map((p, i) => ({ i, ...latLonToTilePixel(p[0], p[1], ZOOM) }));
+                const tileKeys = {};
+                pts.forEach(p => {
+                    const key = p.tileX + ',' + p.tileY;
+                    if (!tileKeys[key]) tileKeys[key] = { tileX: p.tileX, tileY: p.tileY };
+                });
+
+                const tileCtxByKey = {};
+                await Promise.all(Object.keys(tileKeys).map(async key => {
+                    const { tileX, tileY } = tileKeys[key];
+                    const url = host + framePath + '/' + TILE_SIZE + '/' + ZOOM + '/' + tileX + '/' + tileY + '/' + RV_COLOR + '/1_1.png';
+                    tileCtxByKey[key] = await loadTileCanvasCtx(url); // si falla CORS, lanza y se propaga
+                }));
+
+                let rain5km = false, rain10km = false;
+                pts.forEach(p => {
+                    const key = p.tileX + ',' + p.tileY;
+                    const ctx = tileCtxByKey[key];
+                    if (!ctx) return;
+                    const alpha = ctx.getImageData(p.pixelX, p.pixelY, 1, 1).data[3]; // si el canvas está "tainted", esto lanza SecurityError
+                    if (alpha > 15) {
+                        if (p.i <= idx5kmEnd) rain5km = true;
+                        else rain10km = true;
+                    }
+                });
+                return { rain5km, rain10km, fuente: 'radar' };
+            }
+
+            // ── Método de respaldo: Open-Meteo (por si el navegador bloquea la lectura) ──
+            async function checkRainAlertFromOpenMeteo() {
                 const lats = allPts.map(p => p[0].toFixed(4)).join(',');
                 const lons = allPts.map(p => p[1].toFixed(4)).join(',');
-                // "current": dato horario más fiable fuera de Centroeuropa/Norteamérica
-                // (minutely_15 solo tiene resolución real allí; en España se interpola igualmente)
-                fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lats + '&longitude=' + lons + '&current=precipitation')
-                    .then(r => r.json())
-                    .then(data => {
-                        const results = Array.isArray(data) ? data : [data];
-                        let rain5km = false, rain10km = false;
-                        results.forEach((r, i) => {
-                            const p = r.current?.precipitation || 0;
-                            if (p > 0) {
-                                if (i <= idx5kmEnd) rain5km = true;
-                                else rain10km = true;
-                            }
-                        });
-                        updateBanner(rain5km, rain10km);
-                        const debugEl = document.getElementById('rain-alert-debug');
-                        const horaCheck = new Date().toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
-                        if (debugEl) debugEl.textContent = 'Aviso comprobado ' + horaCheck + ' — 5km: ' + (rain5km ? 'Sí' : 'No') + ' · 10km: ' + (rain10km ? 'Sí' : 'No');
-                        console.log('[Aviso lluvia] 5km:', rain5km, '| 10km:', rain10km, '| hora:', new Date().toLocaleTimeString('es-ES'));
-                    })
-                    .catch(e => {
-                        console.warn('Open-Meteo error:', e);
-                        const debugEl = document.getElementById('rain-alert-debug');
-                        if (debugEl) debugEl.textContent = '⚠️ Error consultando Open-Meteo (ver consola)';
-                    });
+                const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lats + '&longitude=' + lons + '&current=precipitation');
+                const data = await r.json();
+                const results = Array.isArray(data) ? data : [data];
+                let rain5km = false, rain10km = false;
+                results.forEach((res, i) => {
+                    const p = res.current?.precipitation || 0;
+                    if (p > 0) {
+                        if (i <= idx5kmEnd) rain5km = true;
+                        else rain10km = true;
+                    }
+                });
+                return { rain5km, rain10km, fuente: 'modelo' };
+            }
+
+            async function checkRainAlert() {
+                const debugEl = document.getElementById('rain-alert-debug');
+                let resultado;
+                try {
+                    resultado = await checkRainAlertFromRadar();
+                } catch (e) {
+                    console.warn('Lectura de radar bloqueada, usando respaldo Open-Meteo:', e.message);
+                    try {
+                        resultado = await checkRainAlertFromOpenMeteo();
+                    } catch (e2) {
+                        console.warn('Open-Meteo también falló:', e2);
+                        if (debugEl) debugEl.textContent = '⚠️ No se pudo comprobar la lluvia (ver consola)';
+                        return;
+                    }
+                }
+                updateBanner(resultado.rain5km, resultado.rain10km);
+                const hora = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                const etiquetaFuente = resultado.fuente === 'radar' ? 'radar' : 'modelo (respaldo)';
+                if (debugEl) debugEl.textContent = 'Aviso (' + etiquetaFuente + ') ' + hora + ' — 5km: ' + (resultado.rain5km ? 'Sí' : 'No') + ' · 10km: ' + (resultado.rain10km ? 'Sí' : 'No');
+                console.log('[Aviso lluvia]', resultado, '| hora:', hora);
             }
 
             function updateBanner(rain5km, rain10km) {
@@ -1250,9 +1324,10 @@
             }
 
             checkRainAlert();
-            setInterval(checkRainAlert, 4 * 60 * 1000); // cada 4 minutos
+            setInterval(checkRainAlert, 4 * 60 * 1000);
         })();
         </script>
+
 
         <style>
             .rv-bcn-label {
