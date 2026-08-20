@@ -1158,6 +1158,7 @@
                 </div>
                 <span id="rv-timestamp" style="margin-top:10px;font-size:9px;color:#64748b;letter-spacing:1px;"></span>
                 <span style="font-size:8px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Fuente: RainViewer</span>
+                <span id="rain-alert-debug" style="margin-top:6px;font-size:8px;color:#b0b8c1;letter-spacing:0.5px;"></span>
             </div>
 
         <script>
@@ -1218,9 +1219,16 @@
                             }
                         });
                         updateBanner(rain5km, rain10km);
+                        const debugEl = document.getElementById('rain-alert-debug');
+                        const horaCheck = new Date().toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
+                        if (debugEl) debugEl.textContent = 'Aviso comprobado ' + horaCheck + ' — 5km: ' + (rain5km ? 'Sí' : 'No') + ' · 10km: ' + (rain10km ? 'Sí' : 'No');
                         console.log('[Aviso lluvia] 5km:', rain5km, '| 10km:', rain10km, '| hora:', new Date().toLocaleTimeString('es-ES'));
                     })
-                    .catch(e => console.warn('Open-Meteo error:', e));
+                    .catch(e => {
+                        console.warn('Open-Meteo error:', e);
+                        const debugEl = document.getElementById('rain-alert-debug');
+                        if (debugEl) debugEl.textContent = '⚠️ Error consultando Open-Meteo (ver consola)';
+                    });
             }
 
             function updateBanner(rain5km, rain10km) {
@@ -1247,9 +1255,6 @@
         </script>
 
         <style>
-            .rv-basemap-fade {
-                filter: grayscale(35%) contrast(0.85) brightness(1.08) saturate(0.5);
-            }
             .rv-bcn-label {
                 background: transparent !important;
                 border: none !important;
@@ -1286,9 +1291,10 @@
                     touchZoom: false,
                     tap: false
                 }).setView(BCN, 7);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 18,
-                    className: 'rv-basemap-fade'
+                // Mapa base "World Light Gray" de Esri: sin iconos de parques/bosques/POI,
+                // solo relieve de tierra/agua muy sutil.
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                    maxZoom: 16
                 }).addTo(rvMap);
                 L.circleMarker(BCN, { radius: 5, color: '#2c4a6e', fillColor: '#2c4a6e', fillOpacity: 1, weight: 2 })
                     .addTo(rvMap);
