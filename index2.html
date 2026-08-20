@@ -2422,14 +2422,14 @@
             ctx.globalAlpha = 1;
 
             // Línea de temperatura, sutil, con degradado real según el baremo (frío→cálido)
+            // Tramos RECTOS (no curvas) para que la línea pase exactamente por cada valor real.
             ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.globalAlpha = 0.6;
             for (let i = 1; i < slots.length; i++) {
                 const x0 = xPos(i - 1), y0 = yTemp(slots[i - 1].temp);
                 const x1 = xPos(i), y1 = yTemp(slots[i].temp);
-                const xc = (x0 + x1) / 2;
                 ctx.beginPath();
                 ctx.moveTo(x0, y0);
-                ctx.bezierCurveTo(xc, y0, xc, y1, x1, y1);
+                ctx.lineTo(x1, y1);
                 const grad = ctx.createLinearGradient(x0, y0, x1, y1);
                 grad.addColorStop(0, `rgb(${tempToColor(slots[i - 1].temp).join(',')})`);
                 grad.addColorStop(1, `rgb(${tempToColor(slots[i].temp).join(',')})`);
