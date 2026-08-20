@@ -1241,10 +1241,51 @@
                 return pts;
             }
 
-            const zone5 = [].concat(buildRing(2.5, 8), buildRing(5, 12));
-            const zone10 = [].concat(buildRing(7.5, 12), buildRing(10, 12));
-            const allPts = [[BCN_LAT, BCN_LON]].concat(zone5, zone10);
-            const idx5kmEnd = zone5.length;
+            // ── Zonas direccionales ampliadas (hasta 20 km) ──
+            // Permiten saber, además de si llueve, POR DÓNDE: litoral, área
+            // metropolitana sur, norte de la ciudad, etc. — para textos como
+            // "Lluvia débil aproximándose por el sur del área metropolitana".
+            const DIRECCIONES = [
+                { bearing: 0,   zona: 'el norte de la ciudad' },
+                { bearing: 45,  zona: 'el litoral norte' },
+                { bearing: 90,  zona: 'el litoral, frente a la costa' },
+                { bearing: 135, zona: 'el litoral sur' },
+                { bearing: 180, zona: 'el sur del área metropolitana' },
+                { bearing: 225, zona: 'el Baix Llobregat' },
+                { bearing: 270, zona: 'el oeste, zona de Collserola' },
+                { bearing: 315, zona: 'el noroeste' }
+            ];
+            const DIST_DIRECCIONALES = [8, 14, 20]; // km — radio ampliado para detectar lluvia que se acerca
+
+            function buildDirectionalPoints() {
+                const pts = [];
+                DIRECCIONES.forEach((d, di) => {
+                    DIST_DIRECCIONALES.forEach(dist => {
+                        pts.push({ ll: offsetPoint(BCN_LAT, BCN_LON, dist, d.bearing), kind: 'dir', dirIndex: di });
+                    });
+                });
+                return pts;
+            }
+
+            const zone5Pts = [[BCN_LAT, BCN_LON]].concat(buildRing(2.5, 8), buildRing(5, 12))
+                .map(ll => ({ ll, kind: 'core5' }));
+            const zone10Pts = [].concat(buildRing(7.5, 12), buildRing(10, 12))
+                .map(ll => ({ ll, kind: 'core10' }));
+            const dirPts = buildDirectionalPoints();
+            const allPts = zone5Pts.concat(zone10Pts, dirPts);
+
+            // De entre las direcciones con lluvia, elige la de mayor intensidad
+            // (y, en empate, la que tenga rango más cercano) para nombrarla en el aviso.
+            function pickZonaDominante(dirIntensidad) {
+                let best = null, bestRank = -1;
+                dirIntensidad.forEach((intensidad, i) => {
+                    if (!intensidad) return;
+                    const rank = INTENSIDAD_RANGO[intensidad];
+                    if (rank > bestRank) { bestRank = rank; best = i; }
+                });
+                if (best === null) return null;
+                return { zona: DIRECCIONES[best].zona, intensidad: dirIntensidad[best] };
+            }
 
             function latLonToTilePixel(lat, lon, zoom) {
                 const latRad = lat * Math.PI / 180;
@@ -1286,7 +1327,7 @@
                 if (!frames.length) throw new Error('Sin frames de RainViewer');
                 const framePath = frames[frames.length - 1].path;
 
-                const pts = allPts.map((p, i) => ({ i, ...latLonToTilePixel(p[0], p[1], ZOOM) }));
+                const pts = allPts.map(p => ({ ...p, ...latLonToTilePixel(p.ll[0], p.ll[1], ZOOM) }));
                 const tileKeys = {};
                 pts.forEach(p => {
                     const key = p.tileX + ',' + p.tileY;
@@ -1302,6 +1343,7 @@
 
                 let rain5km = false, rain10km = false;
                 let intensidad5 = 'debil', intensidad10 = 'debil';
+                const dirIntensidad = new Array(DIRECCIONES.length).fill(null);
                 pts.forEach(p => {
                     const key = p.tileX + ',' + p.tileY;
                     const ctx = tileCtxByKey[key];
@@ -1311,42 +1353,50 @@
                     if (alpha > 15) {
                         const dbz = estimateDbzFromPixel(r, g, b, alpha);
                         const intensidad = dbzToIntensidad(dbz);
-                        if (p.i <= idx5kmEnd) {
+                        if (p.kind === 'core5') {
                             rain5km = true;
                             intensidad5 = intensidadMax(intensidad5, intensidad);
-                        } else {
+                        } else if (p.kind === 'core10') {
                             rain10km = true;
                             intensidad10 = intensidadMax(intensidad10, intensidad);
+                        } else {
+                            const actual = dirIntensidad[p.dirIndex];
+                            dirIntensidad[p.dirIndex] = actual ? intensidadMax(actual, intensidad) : intensidad;
                         }
                     }
                 });
-                return { rain5km, rain10km, intensidad5, intensidad10, fuente: 'radar' };
+                return { rain5km, rain10km, intensidad5, intensidad10, zonaDominante: pickZonaDominante(dirIntensidad), fuente: 'radar' };
             }
 
             // ── Método de respaldo: Open-Meteo (por si el navegador bloquea la lectura) ──
             async function checkRainAlertFromOpenMeteo() {
-                const lats = allPts.map(p => p[0].toFixed(4)).join(',');
-                const lons = allPts.map(p => p[1].toFixed(4)).join(',');
+                const lats = allPts.map(p => p.ll[0].toFixed(4)).join(',');
+                const lons = allPts.map(p => p.ll[1].toFixed(4)).join(',');
                 const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lats + '&longitude=' + lons + '&current=precipitation');
                 const data = await r.json();
                 const results = Array.isArray(data) ? data : [data];
                 let rain5km = false, rain10km = false;
                 let intensidad5 = 'debil', intensidad10 = 'debil';
+                const dirIntensidad = new Array(DIRECCIONES.length).fill(null);
                 results.forEach((res, i) => {
-                    const p = res.current?.precipitation || 0;
-                    if (p > 0) {
+                    const precip = res.current?.precipitation || 0;
+                    if (precip > 0) {
                         // Mismos umbrales aprox. que el radar: <2mm/h débil, 2-15mm/h moderada, >15mm/h fuerte
-                        const intensidad = p >= 15 ? 'fuerte' : (p >= 2 ? 'moderada' : 'debil');
-                        if (i <= idx5kmEnd) {
+                        const intensidad = precip >= 15 ? 'fuerte' : (precip >= 2 ? 'moderada' : 'debil');
+                        const p = allPts[i];
+                        if (p.kind === 'core5') {
                             rain5km = true;
                             intensidad5 = intensidadMax(intensidad5, intensidad);
-                        } else {
+                        } else if (p.kind === 'core10') {
                             rain10km = true;
                             intensidad10 = intensidadMax(intensidad10, intensidad);
+                        } else {
+                            const actual = dirIntensidad[p.dirIndex];
+                            dirIntensidad[p.dirIndex] = actual ? intensidadMax(actual, intensidad) : intensidad;
                         }
                     }
                 });
-                return { rain5km, rain10km, intensidad5, intensidad10, fuente: 'modelo' };
+                return { rain5km, rain10km, intensidad5, intensidad10, zonaDominante: pickZonaDominante(dirIntensidad), fuente: 'modelo' };
             }
 
             async function checkRainAlert() {
@@ -1364,10 +1414,11 @@
                         return;
                     }
                 }
-                updateBanner(resultado.rain5km, resultado.rain10km, resultado.intensidad5, resultado.intensidad10);
+                updateBanner(resultado);
                 const hora = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
                 const etiquetaFuente = resultado.fuente === 'radar' ? 'radar' : 'modelo (respaldo)';
-                if (debugEl) debugEl.textContent = 'Aviso (' + etiquetaFuente + ') ' + hora + ' — 5km: ' + (resultado.rain5km ? resultado.intensidad5 : 'No') + ' · 10km: ' + (resultado.rain10km ? resultado.intensidad10 : 'No');
+                const txtZona = resultado.zonaDominante ? (' · zona: ' + resultado.zonaDominante.zona + ' (' + resultado.zonaDominante.intensidad + ')') : '';
+                if (debugEl) debugEl.textContent = 'Aviso (' + etiquetaFuente + ') ' + hora + ' — 5km: ' + (resultado.rain5km ? resultado.intensidad5 : 'No') + ' · 10km: ' + (resultado.rain10km ? resultado.intensidad10 : 'No') + txtZona;
                 console.log('[Aviso lluvia]', resultado, '| hora:', hora);
             }
 
@@ -1379,16 +1430,22 @@
             const RADAR_BANNER_BG = 'rgba(28, 79, 120, 0.10)';
             const RADAR_BANNER_TEXT = '#123653';
 
-            function updateBanner(rain5km, rain10km, intensidad5, intensidad10) {
+            function updateBanner(r) {
                 const banner = document.getElementById('rain-alert-banner');
                 if (!banner) return;
                 let msg = null;
-                if (rain5km) {
-                    const txtIntensidad = ETIQUETA_INTENSIDAD[intensidad5] || 'débil';
+                if (r.rain5km) {
+                    const txtIntensidad = ETIQUETA_INTENSIDAD[r.intensidad5] || 'débil';
                     msg = 'Lluvia ' + txtIntensidad + ' en algunos puntos de la ciudad';
-                } else if (rain10km) {
-                    const txtIntensidad = ETIQUETA_INTENSIDAD[intensidad10] || 'débil';
+                    if (r.zonaDominante) msg += ', más presente en ' + r.zonaDominante.zona;
+                } else if (r.rain10km) {
+                    const txtIntensidad = ETIQUETA_INTENSIDAD[r.intensidad10] || 'débil';
                     msg = 'Lluvia ' + txtIntensidad + ' a menos de 10 km de Barcelona';
+                    if (r.zonaDominante) msg += ', por ' + r.zonaDominante.zona;
+                } else if (r.zonaDominante) {
+                    // Lluvia detectada más lejos (hasta 20 km): aún no ha llegado, pero se acerca.
+                    const txtIntensidad = ETIQUETA_INTENSIDAD[r.zonaDominante.intensidad] || 'débil';
+                    msg = 'Lluvia ' + txtIntensidad + ' aproximándose por ' + r.zonaDominante.zona;
                 }
                 if (!msg) {
                     banner.style.display = 'none';
