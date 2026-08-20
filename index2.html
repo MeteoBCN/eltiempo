@@ -894,16 +894,16 @@
                     <div id="paraguas-chart-wrap" style="width:100vw;margin:28px 0 0 calc(50% - 50vw);background:#ffffff;padding:14px 0;border-top:1px solid rgba(28,79,120,0.3);border-bottom:1px solid rgba(28,79,120,0.3);">
                         <div style="font-size:12px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Tendencia próximas horas</div>
                         <div style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Temperatura · Precipitación</div>
-                        <div id="paraguas-hour-row" style="position:relative;height:12px;margin:6px 0 0 0;"></div>
+                        <div id="paraguas-hour-row" style="position:relative;height:12px;margin:14px 0 0 0;"></div>
                         <canvas id="paraguas-hourly-chart" style="width:100%;display:block;"></canvas>
-                        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:8px;">
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:2px;">
                             <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.65;">
                                 <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(59,130,246,0.35);border:1px solid rgba(59,130,246,0.5);flex-shrink:0;"></span>
-                                Posible lluvia
+                                Quizás necesites el paraguas en las próximas horas
                             </span>
                             <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
                                 <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(28,79,120,0.55);border:1px solid rgba(28,79,120,0.75);flex-shrink:0;"></span>
-                                Alta probabilidad de lluvia
+                                No te dejes el paraguas, se espera lluvia
                             </span>
                         </div>
                     </div>
@@ -2424,14 +2424,16 @@
 
             // Bandas de posibilidad de lluvia, dentro de la propia gráfica (muy sutiles, detrás de la línea)
             // Posible lluvia: azul claro · Alta probabilidad: azul más oscuro (mismo tono que la leyenda)
+            // Cada banda va de una hora en punto a la siguiente (ej. 02h→03h), no centrada en la hora.
             const RAIN_BAND_LOW = 'rgba(59,130,246,0.10)';
             const RAIN_BAND_HIGH = 'rgba(28,79,120,0.20)';
             const segW = cw / (slots.length - 1);
             slots.forEach((s, i) => {
                 if (rainCat[i] > 0) {
-                    const left = xPos(i) - segW / 2;
+                    const left = xPos(i);
+                    const right = (i < slots.length - 1) ? xPos(i + 1) : xPos(i) + segW;
                     ctx.fillStyle = rainCat[i] === 2 ? RAIN_BAND_HIGH : RAIN_BAND_LOW;
-                    ctx.fillRect(left, PAD.top, segW, ch);
+                    ctx.fillRect(left, PAD.top, right - left, ch);
                 }
             });
 
