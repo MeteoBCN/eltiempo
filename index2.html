@@ -2382,13 +2382,15 @@
 
             const LINE_COLOR = '#1c4f78';
 
-            // Escala de color según temperatura absoluta (frío→azul, cálido→naranja/rojo)
+            // Escala de color según temperatura absoluta (baremo personalizado)
             function tempToColor(t) {
                 const stops = [
-                    { t: 5,  c: [37, 99, 235] },   // azul (frío)
-                    { t: 15, c: [28, 79, 120] },   // azul oscuro sitio (templado-frío)
-                    { t: 24, c: [249, 115, 22] },  // naranja (templado-cálido)
-                    { t: 33, c: [220, 38, 38] }    // rojo (caluroso)
+                    { t: 9,  c: [30, 58, 138] },   // azul oscuro (≤9°)
+                    { t: 14, c: [59, 130, 246] },  // azul más claro (10-14°)
+                    { t: 19, c: [21, 128, 61] },   // verde oscuro (15-19°)
+                    { t: 23, c: [34, 197, 94] },   // verde (20-23°)
+                    { t: 27, c: [249, 115, 22] },  // naranja (24-27°)
+                    { t: 28, c: [220, 38, 38] }    // rojo (≥28°)
                 ];
                 if (t <= stops[0].t) return stops[0].c;
                 if (t >= stops[stops.length - 1].t) return stops[stops.length - 1].c;
