@@ -2385,22 +2385,32 @@
             const dpr = window.devicePixelRatio || 1;
             const wrap = canvas.parentElement;
             const W = wrap.clientWidth;
-            const H = 140;
+            const H = 116;
             canvas.width = W * dpr; canvas.height = H * dpr;
             canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
             const ctx = canvas.getContext('2d');
             ctx.scale(dpr, dpr);
             ctx.clearRect(0, 0, W, H);
 
-            const PAD = { top: 34, bottom: 20, left: 26, right: 26 };
+            const PAD = { top: 10, bottom: 20, left: 26, right: 26 };
             const cw = W - PAD.left - PAD.right;
             const ch = H - PAD.top - PAD.bottom;
 
+            // Colchón fijo en PÍXELES (no en grados) para que el margen visual
+            // sea siempre el mismo, incluso con saltos grandes de temperatura
+            // (ej. 32° a 10° en pocas horas) — evita que las etiquetas queden pegadas.
+            const LINE_GUTTER_TOP = 18;    // espacio reservado arriba para la etiqueta "32°"
+            const LINE_GUTTER_BOTTOM = 8;  // espacio reservado abajo
+
             const temps = slots.map(s => s.temp).filter(t => t !== null);
-            const tMin = Math.floor(Math.min(...temps)) - 2;
-            const tMax = Math.ceil(Math.max(...temps)) + 2;
+            const tMin = Math.floor(Math.min(...temps));
+            const tMax = Math.ceil(Math.max(...temps));
             const xPos = i => PAD.left + (i / (slots.length - 1)) * cw;
-            const yTemp = t => PAD.top + ch - ((t - tMin) / (tMax - tMin)) * ch;
+            const yTemp = t => {
+                if (tMax === tMin) return PAD.top + LINE_GUTTER_TOP + (ch - LINE_GUTTER_TOP - LINE_GUTTER_BOTTOM) / 2;
+                const innerCh = ch - LINE_GUTTER_TOP - LINE_GUTTER_BOTTOM;
+                return PAD.top + LINE_GUTTER_TOP + innerCh - ((t - tMin) / (tMax - tMin)) * innerCh;
+            };
 
             const LINE_COLOR = '#1c4f78';
 
