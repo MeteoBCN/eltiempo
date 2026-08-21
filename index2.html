@@ -950,16 +950,6 @@
                         <div id="paraguas-days-hour-row" style="position:relative;height:12px;margin:6px 0 -2px 0;"></div>
                         <canvas id="paraguas-days-chart" style="width:100%;display:block;"></canvas>
                         <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:2px;">
-                            <span style="display:flex;align-items:center;gap:12px;font-size:9px;color:#123653;opacity:0.8;">
-                                <span style="display:flex;align-items:center;gap:5px;">
-                                    <span style="display:inline-block;width:14px;height:0;border-top:2px solid #1c4f78;flex-shrink:0;"></span>
-                                    Máxima
-                                </span>
-                                <span style="display:flex;align-items:center;gap:5px;">
-                                    <span style="display:inline-block;width:14px;height:0;border-top:2px dashed #1c4f78;opacity:0.7;flex-shrink:0;"></span>
-                                    Mínima
-                                </span>
-                            </span>
                             <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.65;">
                                 <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(59,130,246,0.35);border:1px solid rgba(59,130,246,0.5);flex-shrink:0;"></span>
                                 Quizás necesites el paraguas
@@ -2850,9 +2840,6 @@
                 }
                 ctx.globalAlpha = 1;
             }
-            const lineValues = blocks.map(b => b.tMax);
-            drawTempLine(lineValues);
-
             // Agrupamos los bloques por día para saber, dentro de cada día, en qué
             // franja concreta cae la máxima y en cuál la mínima.
             const dayGroups = [];
@@ -2872,28 +2859,35 @@
                 minIdxOfDay[iMin] = true;
             });
 
-            // Puntos: se marca el punto de cada bloque sobre la línea (máxima del bloque),
-            // pero la cifra en grados solo se muestra en la franja donde se produce la
-            // máxima del día (encima) y en la franja donde se produce la mínima del día
-            // (debajo, en su propio punto más bajo). El resto de franjas no lleva cifra.
+            // Valor que sigue la línea en cada bloque: la máxima del bloque, salvo en la
+            // franja donde se produce la mínima del día, donde la línea baja hasta esa
+            // mínima — así el punto de la mínima queda siempre sobre la propia línea.
+            const lineValues = blocks.map((b, i) => minIdxOfDay[i] ? b.tMin : b.tMax);
+            drawTempLine(lineValues);
+
+            const MAX_COLOR = '#dc2626';
+            const MIN_COLOR = '#2563eb';
+
+            // Puntos: se marca el punto de cada bloque sobre la línea. La cifra en grados
+            // solo se muestra en la franja donde se produce la máxima del día (en rojo,
+            // encima del punto) y en la franja donde se produce la mínima del día (en
+            // azul, debajo del punto). El resto de franjas no lleva cifra.
             ctx.textAlign = 'center';
             blocks.forEach((b, i) => {
                 const x = xPos(i);
-                const y = yTemp(b.tMax);
+                const v = lineValues[i];
+                const y = yTemp(v);
                 ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-                ctx.fillStyle = `rgb(${tempToColor(b.tMax).join(',')})`; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
+                ctx.fillStyle = `rgb(${tempToColor(v).join(',')})`; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
 
                 if (maxIdxOfDay[i]) {
-                    ctx.fillStyle = '#123653'; ctx.font = 'bold 10px Inter,sans-serif';
-                    ctx.fillText(b.tMax + '°', x, y - 8);
+                    ctx.fillStyle = MAX_COLOR; ctx.font = 'bold 10px Inter,sans-serif';
+                    ctx.fillText(v + '°', x, y - 8);
                 }
 
                 if (minIdxOfDay[i]) {
-                    const yMin = yTemp(b.tMin);
-                    ctx.beginPath(); ctx.arc(x, yMin, 2.5, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgb(${tempToColor(b.tMin).join(',')})`; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
-                    ctx.fillStyle = '#64748B'; ctx.font = 'bold 10px Inter,sans-serif';
-                    ctx.fillText(b.tMin + '°', x, yMin + 15);
+                    ctx.fillStyle = MIN_COLOR; ctx.font = 'bold 10px Inter,sans-serif';
+                    ctx.fillText(v + '°', x, y + 15);
                 }
             });
 
