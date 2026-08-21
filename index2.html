@@ -945,9 +945,9 @@
 
                     <div id="paraguas-chart-wrap-days" style="width:calc(100% + (2 * var(--gutter)));margin:20px calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));background:#ffffff;padding:14px 0;border-bottom:1px solid rgba(28,79,120,0.3);">
                         <div style="font-size:12px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Tendencia próximos días</div>
-                        <div style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Temperaturas · Precipitación</div>
+                        <div style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Temperatura · Precipitación</div>
                         <div id="paraguas-days-day-row" style="position:relative;height:13px;margin:0;"></div>
-                        <div id="paraguas-days-icon-row" style="position:relative;height:24px;margin:4px 0 0 0;"></div>
+                        <div id="paraguas-days-icon-row" style="position:relative;height:24px;margin:10px 0 0 0;"></div>
                         <div id="paraguas-days-hour-row" style="position:relative;height:12px;margin:4px 0 -2px 0;"></div>
                         <canvas id="paraguas-days-chart" style="width:100%;display:block;"></canvas>
                         <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:2px;">
@@ -2804,7 +2804,7 @@
             const wrap = canvas.parentElement;
             const W = wrap.clientWidth;
             _paraguasDaysChartLastW = W;
-            const H = 128;
+            const H = 160;
             canvas.width = W * dpr; canvas.height = H * dpr;
             canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
             const ctx = canvas.getContext('2d');
@@ -3010,7 +3010,7 @@
                     // Solo "hoy" se muestra como texto especial; el resto de días,
                     // incluido mañana, muestran su nombre real (p. ej. "Sábado").
                     const label = (g.dateKey === todayStr) ? 'Hoy' : DIAS[g.date.getDay()];
-                    dHtml += `<span style="position:absolute;left:${xCenter}px;top:0;transform:translateX(-50%);font-size:10px;font-weight:700;color:#123653;font-family:Inter,sans-serif;white-space:nowrap;letter-spacing:0.3px;">${label}</span>`;
+                    dHtml += `<span style="position:absolute;left:${xCenter}px;top:0;transform:translateX(-50%);font-size:10px;font-weight:700;color:#123653;font-family:Inter,sans-serif;white-space:nowrap;letter-spacing:0.3px;text-transform:uppercase;">${label}</span>`;
                 });
                 dayRow.innerHTML = dHtml;
             }
