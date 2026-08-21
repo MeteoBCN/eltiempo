@@ -2727,6 +2727,8 @@
                     start: b.start,
                     tMin: b.temps.length ? Math.round(Math.min(...b.temps)) : null,
                     tMax: b.temps.length ? Math.round(Math.max(...b.temps)) : null,
+                    tMinRaw: b.temps.length ? Math.min(...b.temps) : null,
+                    tMaxRaw: b.temps.length ? Math.max(...b.temps) : null,
                     prob: b.probs.length ? Math.max(...b.probs) : 0,
                     mm: b.mms.reduce((a, c) => a + c, 0),
                     hourLabel: String(b.start.getHours()).padStart(2, '0') + 'h',
@@ -2823,20 +2825,62 @@
             ctx.globalAlpha = 1;
 
             // Línea de temperatura única, con el mismo degradado (frío→cálido) y el mismo
-            // trazo que la gráfica "Tendencia próximas horas".
+            // trazo que la gráfica "Tendencia próximas horas", pero suavizada con una curva
+            // Hermite monótona (Fritsch-Carlson). Este método evita el "overshoot" típico
+            // de una spline normal: la curva nunca se pasa por encima/debajo de los valores
+            // reales entre dos puntos, algo clave aquí porque el tramo de la mínima/máxima
+            // marcada dentro de un bloque forma un pico pronunciado.
+            function monotoneTangents(values) {
+                const n = values.length;
+                const d = new Array(n - 1);
+                for (let i = 0; i < n - 1; i++) d[i] = values[i + 1] - values[i];
+                const m = new Array(n);
+                m[0] = d[0];
+                m[n - 1] = d[n - 2];
+                for (let i = 1; i < n - 1; i++) {
+                    m[i] = (d[i - 1] * d[i] <= 0) ? 0 : (d[i - 1] + d[i]) / 2;
+                }
+                for (let i = 0; i < n - 1; i++) {
+                    if (d[i] === 0) { m[i] = 0; m[i + 1] = 0; continue; }
+                    const a = m[i] / d[i], b = m[i + 1] / d[i];
+                    const s = a * a + b * b;
+                    if (s > 9) {
+                        const t = 3 / Math.sqrt(s);
+                        m[i] = t * a * d[i];
+                        m[i + 1] = t * b * d[i];
+                    }
+                }
+                return m;
+            }
+            function hermiteAt(y0, y1, m0, m1, t) {
+                const t2 = t * t, t3 = t2 * t;
+                const h00 = 2 * t3 - 3 * t2 + 1;
+                const h10 = t3 - 2 * t2 + t;
+                const h01 = -2 * t3 + 3 * t2;
+                const h11 = t3 - t2;
+                return h00 * y0 + h10 * m0 + h01 * y1 + h11 * m1;
+            }
             function drawTempLine(values) {
                 ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.globalAlpha = 0.6;
+                const m = monotoneTangents(values);
+                const STEPS = 12; // sub-segmentos por tramo, para una curva fluida
                 for (let i = 1; i < blocks.length; i++) {
-                    const x0 = xPos(i - 1), y0 = yTemp(values[i - 1]);
-                    const x1 = xPos(i), y1 = yTemp(values[i]);
-                    ctx.beginPath();
-                    ctx.moveTo(x0, y0);
-                    ctx.lineTo(x1, y1);
-                    const grad = ctx.createLinearGradient(x0, y0, x1, y1);
-                    grad.addColorStop(0, `rgb(${tempToColor(values[i - 1]).join(',')})`);
-                    grad.addColorStop(1, `rgb(${tempToColor(values[i]).join(',')})`);
-                    ctx.strokeStyle = grad;
-                    ctx.stroke();
+                    let prevX = xPos(i - 1), prevY = yTemp(values[i - 1]), prevV = values[i - 1];
+                    for (let s = 1; s <= STEPS; s++) {
+                        const t = s / STEPS;
+                        const v = hermiteAt(values[i - 1], values[i], m[i - 1], m[i], t);
+                        const x = xPos(i - 1) + (xPos(i) - xPos(i - 1)) * t;
+                        const y = yTemp(v);
+                        ctx.beginPath();
+                        ctx.moveTo(prevX, prevY);
+                        ctx.lineTo(x, y);
+                        const grad = ctx.createLinearGradient(prevX, prevY, x, y);
+                        grad.addColorStop(0, `rgb(${tempToColor(prevV).join(',')})`);
+                        grad.addColorStop(1, `rgb(${tempToColor(v).join(',')})`);
+                        ctx.strokeStyle = grad;
+                        ctx.stroke();
+                        prevX = x; prevY = y; prevV = v;
+                    }
                 }
                 ctx.globalAlpha = 1;
             }
@@ -2852,8 +2896,8 @@
             dayGroups.forEach(g => {
                 let iMax = g.idxs[0], iMin = g.idxs[0];
                 g.idxs.forEach(i => {
-                    if (blocks[i].tMax > blocks[iMax].tMax) iMax = i;
-                    if (blocks[i].tMin < blocks[iMin].tMin) iMin = i;
+                    if (blocks[i].tMaxRaw > blocks[iMax].tMaxRaw) iMax = i;
+                    if (blocks[i].tMinRaw < blocks[iMin].tMinRaw) iMin = i;
                 });
                 maxIdxOfDay[iMax] = true;
                 minIdxOfDay[iMin] = true;
