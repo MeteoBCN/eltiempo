@@ -947,7 +947,7 @@
                         <div style="font-size:12px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Tendencia próximos días</div>
                         <div style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Temperatura mín/máx · Precipitación · Cada 6h</div>
                         <div id="paraguas-days-day-row" style="position:relative;height:13px;margin:0;"></div>
-                        <div id="paraguas-days-hour-row" style="position:relative;height:12px;margin:1px 0 0 0;"></div>
+                        <div id="paraguas-days-hour-row" style="position:relative;height:12px;margin:6px 0 -2px 0;"></div>
                         <canvas id="paraguas-days-chart" style="width:100%;display:block;"></canvas>
                         <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:2px;">
                             <span style="display:flex;align-items:center;gap:12px;font-size:9px;color:#123653;opacity:0.8;">
@@ -2756,15 +2756,16 @@
             ctx.scale(dpr, dpr);
             ctx.clearRect(0, 0, W, H);
 
-            const PAD = { top: 20, bottom: 20, left: 26, right: 26 };
+            const PAD = { top: 20, bottom: 26, left: 26, right: 26 };
             const cw = W - PAD.left - PAD.right;
             const ch = H - PAD.top - PAD.bottom;
 
             const LINE_GUTTER_TOP = 18;
-            const LINE_GUTTER_BOTTOM = 8;
+            const LINE_GUTTER_BOTTOM = 12;
 
-            // Una sola línea de temperatura: usamos la máxima de cada bloque de 6h
-            const allTemps = blocks.map(b => b.tMax);
+            // Dominio vertical: contempla tanto las máximas como las mínimas de cada
+            // bloque, para que el punto de la mínima del día también quepa en la gráfica.
+            const allTemps = blocks.flatMap(b => [b.tMin, b.tMax]);
             const tMin = Math.min(...allTemps);
             const tMax = Math.max(...allTemps);
             const xPos = i => PAD.left + (i / (blocks.length - 1)) * cw;
@@ -2852,9 +2853,29 @@
             const lineValues = blocks.map(b => b.tMax);
             drawTempLine(lineValues);
 
-            // Puntos: los dos primeros (inicio a las 06h, y la máxima a las 12h) llevan
-            // la cifra en grados; a partir de ahí (18h, 00h... hasta el final) solo se
-            // marca el punto sobre la línea, sin cifra.
+            // Agrupamos los bloques por día para saber, dentro de cada día, en qué
+            // franja concreta cae la máxima y en cuál la mínima.
+            const dayGroups = [];
+            blocks.forEach((b, i) => {
+                if (b.isNewDay || !dayGroups.length) dayGroups.push({ idxs: [] });
+                dayGroups[dayGroups.length - 1].idxs.push(i);
+            });
+            const maxIdxOfDay = new Array(blocks.length).fill(false);
+            const minIdxOfDay = new Array(blocks.length).fill(false);
+            dayGroups.forEach(g => {
+                let iMax = g.idxs[0], iMin = g.idxs[0];
+                g.idxs.forEach(i => {
+                    if (blocks[i].tMax > blocks[iMax].tMax) iMax = i;
+                    if (blocks[i].tMin < blocks[iMin].tMin) iMin = i;
+                });
+                maxIdxOfDay[iMax] = true;
+                minIdxOfDay[iMin] = true;
+            });
+
+            // Puntos: se marca el punto de cada bloque sobre la línea (máxima del bloque),
+            // pero la cifra en grados solo se muestra en la franja donde se produce la
+            // máxima del día (encima) y en la franja donde se produce la mínima del día
+            // (debajo, en su propio punto más bajo). El resto de franjas no lleva cifra.
             ctx.textAlign = 'center';
             blocks.forEach((b, i) => {
                 const x = xPos(i);
@@ -2862,9 +2883,17 @@
                 ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2);
                 ctx.fillStyle = `rgb(${tempToColor(b.tMax).join(',')})`; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
 
-                if (i < 2) {
+                if (maxIdxOfDay[i]) {
                     ctx.fillStyle = '#123653'; ctx.font = 'bold 10px Inter,sans-serif';
                     ctx.fillText(b.tMax + '°', x, y - 8);
+                }
+
+                if (minIdxOfDay[i]) {
+                    const yMin = yTemp(b.tMin);
+                    ctx.beginPath(); ctx.arc(x, yMin, 2.5, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgb(${tempToColor(b.tMin).join(',')})`; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
+                    ctx.fillStyle = '#64748B'; ctx.font = 'bold 10px Inter,sans-serif';
+                    ctx.fillText(b.tMin + '°', x, yMin + 15);
                 }
             });
 
@@ -2884,7 +2913,6 @@
             if (dayRow) {
                 const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
                 const todayStr = now.toDateString();
-                const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
                 const groups = [];
                 blocks.forEach((b, i) => {
                     if (b.isNewDay || !groups.length) groups.push({ dateKey: b.start.toDateString(), date: b.start, idxs: [] });
@@ -2894,10 +2922,9 @@
                 groups.forEach(g => {
                     const xs = g.idxs.map(i => xPos(i));
                     const xCenter = (xs[0] + xs[xs.length - 1]) / 2;
-                    let label;
-                    if (g.dateKey === todayStr) label = 'Hoy';
-                    else if (g.dateKey === tomorrow.toDateString()) label = 'Mañana';
-                    else label = DIAS[g.date.getDay()];
+                    // Solo "hoy" se muestra como texto especial; el resto de días,
+                    // incluido mañana, muestran su nombre real (p. ej. "Sábado").
+                    const label = (g.dateKey === todayStr) ? 'Hoy' : DIAS[g.date.getDay()];
                     dHtml += `<span style="position:absolute;left:${xCenter}px;top:0;transform:translateX(-50%);font-size:10px;font-weight:700;color:#123653;font-family:Inter,sans-serif;white-space:nowrap;letter-spacing:0.3px;">${label}</span>`;
                 });
                 dayRow.innerHTML = dHtml;
