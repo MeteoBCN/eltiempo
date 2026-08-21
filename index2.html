@@ -187,11 +187,23 @@
         .bbc-days-row-outer { position: relative; }
         .bbc-hourly-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         @media (hover: hover) and (pointer: fine) {
-            .bbc-days-row, .bbc-hourly-scroll { cursor: grab; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.35) transparent; }
+            .bbc-days-row, .bbc-hourly-scroll {
+                cursor: grab;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(255,255,255,0.16) transparent;
+                padding-bottom: 6px;
+                transition: scrollbar-color 0.25s ease;
+            }
+            .bbc-days-row:hover, .bbc-hourly-scroll:hover { scrollbar-color: rgba(255,255,255,0.42) transparent; }
             .bbc-days-row:active, .bbc-hourly-scroll:active { cursor: grabbing; }
-            .bbc-days-row::-webkit-scrollbar, .bbc-hourly-scroll::-webkit-scrollbar { display: block; height: 6px; }
-            .bbc-days-row::-webkit-scrollbar-thumb, .bbc-hourly-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.35); border-radius: 3px; }
+            .bbc-days-row::-webkit-scrollbar, .bbc-hourly-scroll::-webkit-scrollbar { display: block; height: 4px; }
             .bbc-days-row::-webkit-scrollbar-track, .bbc-hourly-scroll::-webkit-scrollbar-track { background: transparent; }
+            .bbc-days-row::-webkit-scrollbar-thumb, .bbc-hourly-scroll::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.16);
+                border-radius: 10px;
+                transition: background 0.25s ease;
+            }
+            .bbc-days-row:hover::-webkit-scrollbar-thumb, .bbc-hourly-scroll:hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.42); }
         }
         .bbc-hourly-scroll::-webkit-scrollbar { display: none; }
         .bbc-hourly-inner { display: flex; gap: 14px; padding-bottom: 2px; }
