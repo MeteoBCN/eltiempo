@@ -947,7 +947,7 @@
                         <div style="font-size:12px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Tendencia próximos días</div>
                         <div style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Temperaturas · Precipitación</div>
                         <div id="paraguas-days-day-row" style="position:relative;height:13px;margin:0;"></div>
-                        <div id="paraguas-days-icon-row" style="position:relative;height:22px;margin:4px 0 0 0;"></div>
+                        <div id="paraguas-days-icon-row" style="position:relative;height:24px;margin:4px 0 0 0;"></div>
                         <div id="paraguas-days-hour-row" style="position:relative;height:12px;margin:4px 0 -2px 0;"></div>
                         <canvas id="paraguas-days-chart" style="width:100%;display:block;"></canvas>
                         <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:2px;">
@@ -2987,7 +2987,7 @@
                     // El bloque de 00h (madrugada) se muestra siempre con icono nocturno;
                     // el resto de bloques (06h/12h/18h) con icono diurno.
                     const isNightBlock = b.start.getHours() === 0;
-                    const icon = getWiIcon(b.code, isNightBlock ? b.start : null, null, '1.3em');
+                    const icon = getSvgIcon(b.code, 22, isNightBlock);
                     iHtml += `<span style="position:absolute;left:${x}px;top:0;transform:translateX(-50%);line-height:1;white-space:nowrap;">${icon}</span>`;
                 });
                 iconRow.innerHTML = iHtml;
