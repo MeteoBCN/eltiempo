@@ -945,9 +945,10 @@
 
                     <div id="paraguas-chart-wrap-days" style="width:calc(100% + (2 * var(--gutter)));margin:20px calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));background:#ffffff;padding:14px 0;border-bottom:1px solid rgba(28,79,120,0.3);">
                         <div style="font-size:12px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Tendencia próximos días</div>
-                        <div style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Temperatura mín/máx · Precipitación · Cada 6h</div>
+                        <div style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Temperaturas · Precipitación</div>
                         <div id="paraguas-days-day-row" style="position:relative;height:13px;margin:0;"></div>
-                        <div id="paraguas-days-hour-row" style="position:relative;height:12px;margin:6px 0 -2px 0;"></div>
+                        <div id="paraguas-days-icon-row" style="position:relative;height:22px;margin:4px 0 0 0;"></div>
+                        <div id="paraguas-days-hour-row" style="position:relative;height:12px;margin:4px 0 -2px 0;"></div>
                         <canvas id="paraguas-days-chart" style="width:100%;display:block;"></canvas>
                         <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:2px;">
                             <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.65;">
@@ -2555,14 +2556,14 @@
             const wrap = canvas.parentElement;
             const W = wrap.clientWidth;
             _paraguasChartLastW = W;
-            const H = 116;
+            const H = 128;
             canvas.width = W * dpr; canvas.height = H * dpr;
             canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
             const ctx = canvas.getContext('2d');
             ctx.scale(dpr, dpr);
             ctx.clearRect(0, 0, W, H);
 
-            const PAD = { top: 10, bottom: 20, left: 26, right: 26 };
+            const PAD = { top: 10, bottom: 32, left: 26, right: 26 };
             const cw = W - PAD.left - PAD.right;
             const ch = H - PAD.top - PAD.bottom;
 
@@ -2728,6 +2729,19 @@
             });
         }
 
+        // Código de tiempo más repetido dentro de un bloque de horas (moda),
+        // usado para elegir el icono representativo de cada franja de 6h.
+        function modeCode(arr) {
+            if (!arr.length) return null;
+            const counts = {};
+            let best = arr[0], bestCount = 0;
+            arr.forEach(c => {
+                counts[c] = (counts[c] || 0) + 1;
+                if (counts[c] > bestCount) { bestCount = counts[c]; best = c; }
+            });
+            return best;
+        }
+
         function drawParaguasDaysChart(hourly) {
             const canvas = document.getElementById('paraguas-days-chart');
             if (!canvas || !hourly?.time) return;
@@ -2750,12 +2764,14 @@
                 const blockStart = new Date(ht.getFullYear(), ht.getMonth(), ht.getDate(), blockStartHour);
                 if (blockStart < todayStart) continue; // no interesan bloques anteriores a hoy 00h
                 const key = blockStart.getTime();
-                if (!blocksMap.has(key)) blocksMap.set(key, { start: blockStart, temps: [], probs: [], mms: [] });
+                if (!blocksMap.has(key)) blocksMap.set(key, { start: blockStart, temps: [], probs: [], mms: [], codes: [] });
                 const b = blocksMap.get(key);
                 const t = hourly.temperature_2m?.[i];
                 if (t !== null && t !== undefined) b.temps.push(t);
                 b.probs.push(hourly.precipitation_probability?.[i] ?? 0);
                 b.mms.push(hourly.precipitation?.[i] ?? 0);
+                const wc = hourly.weather_code?.[i];
+                if (wc !== null && wc !== undefined) b.codes.push(wc);
             }
 
             const keys = Array.from(blocksMap.keys()).sort((a, b) => a - b).slice(0, N_BLOCKS);
@@ -2775,6 +2791,7 @@
                     tMax: b.temps.length ? Math.round(Math.max(...b.temps)) : null,
                     tMinRaw: b.temps.length ? Math.min(...b.temps) : null,
                     tMaxRaw: b.temps.length ? Math.max(...b.temps) : null,
+                    code: modeCode(b.codes),
                     prob: b.probs.length ? Math.max(...b.probs) : 0,
                     mm: b.mms.reduce((a, c) => a + c, 0),
                     hourLabel: String(b.start.getHours()).padStart(2, '0') + 'h',
@@ -2787,14 +2804,14 @@
             const wrap = canvas.parentElement;
             const W = wrap.clientWidth;
             _paraguasDaysChartLastW = W;
-            const H = 116;
+            const H = 128;
             canvas.width = W * dpr; canvas.height = H * dpr;
             canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
             const ctx = canvas.getContext('2d');
             ctx.scale(dpr, dpr);
             ctx.clearRect(0, 0, W, H);
 
-            const PAD = { top: 20, bottom: 26, left: 26, right: 26 };
+            const PAD = { top: 20, bottom: 38, left: 26, right: 26 };
             const cw = W - PAD.left - PAD.right;
             const ch = H - PAD.top - PAD.bottom;
 
@@ -2958,6 +2975,22 @@
                     hHtml += `<span style="position:absolute;left:${x}px;top:0;transform:translateX(-50%);font-size:9px;font-weight:500;color:#64748B;font-family:Inter,sans-serif;white-space:nowrap;">${b.hourLabel}</span>`;
                 });
                 hourRow.innerHTML = hHtml;
+            }
+
+            // ── Fila de iconos: el más repetido (moda) entre las 6 horas de cada bloque ──
+            const iconRow = document.getElementById('paraguas-days-icon-row');
+            if (iconRow) {
+                let iHtml = '';
+                blocks.forEach((b, i) => {
+                    if (b.code === null || b.code === undefined) return;
+                    const x = xPos(i);
+                    // El bloque de 00h (madrugada) se muestra siempre con icono nocturno;
+                    // el resto de bloques (06h/12h/18h) con icono diurno.
+                    const isNightBlock = b.start.getHours() === 0;
+                    const icon = getWiIcon(b.code, isNightBlock ? b.start : null, null, '1.3em');
+                    iHtml += `<span style="position:absolute;left:${x}px;top:0;transform:translateX(-50%);line-height:1;white-space:nowrap;">${icon}</span>`;
+                });
+                iconRow.innerHTML = iHtml;
             }
 
             // ── Fila de días: una etiqueta centrada sobre cada grupo de bloques del mismo día ──
