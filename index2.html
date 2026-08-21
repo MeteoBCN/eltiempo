@@ -186,6 +186,13 @@
         .bbc-hourly-wrap { position: relative; }
         .bbc-days-row-outer { position: relative; }
         .bbc-hourly-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        @media (hover: hover) and (pointer: fine) {
+            .bbc-days-row, .bbc-hourly-scroll { cursor: grab; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.35) transparent; }
+            .bbc-days-row:active, .bbc-hourly-scroll:active { cursor: grabbing; }
+            .bbc-days-row::-webkit-scrollbar, .bbc-hourly-scroll::-webkit-scrollbar { display: block; height: 6px; }
+            .bbc-days-row::-webkit-scrollbar-thumb, .bbc-hourly-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.35); border-radius: 3px; }
+            .bbc-days-row::-webkit-scrollbar-track, .bbc-hourly-scroll::-webkit-scrollbar-track { background: transparent; }
+        }
         .bbc-hourly-scroll::-webkit-scrollbar { display: none; }
         .bbc-hourly-inner { display: flex; gap: 14px; padding-bottom: 2px; }
         .bbc-hour-col { flex: 0 0 auto; width: calc((min(100vw, 600px) - 74px) / 4); box-sizing: border-box; text-align: center; }
@@ -2370,6 +2377,51 @@
         }
 
         // ── Gráfica 12h: temperatura (sutil, azul de los círculos) ──
+        // ── Scroll horizontal con ratón (rueda y arrastre) para PC ──
+        // En móvil el scroll se hace por gesto táctil nativo; en PC no hay
+        // forma de deslizar estas filas sin esto, así que convertimos la
+        // rueda vertical en desplazamiento horizontal y permitimos arrastrar.
+        function enableMouseHorizontalScroll(el) {
+            if (!el || el._mouseScrollEnabled) return;
+            el._mouseScrollEnabled = true;
+
+            el.addEventListener('wheel', (e) => {
+                const absX = Math.abs(e.deltaX), absY = Math.abs(e.deltaY);
+                if (absY > absX) {
+                    // Solo interceptamos si hay contenido que desplazar horizontalmente
+                    if (el.scrollWidth > el.clientWidth) {
+                        el.scrollLeft += e.deltaY;
+                        e.preventDefault();
+                    }
+                }
+            }, { passive: false });
+
+            let isDown = false, startX = 0, startScroll = 0, moved = false;
+            el.addEventListener('mousedown', (e) => {
+                isDown = true; moved = false;
+                startX = e.pageX;
+                startScroll = el.scrollLeft;
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                const dx = e.pageX - startX;
+                if (Math.abs(dx) > 3) moved = true;
+                el.scrollLeft = startScroll - dx;
+            });
+            window.addEventListener('mouseup', () => { isDown = false; });
+            el.addEventListener('mouseleave', () => { isDown = false; });
+            // Evita que un arrastre se interprete como clic en una tarjeta de día/hora
+            el.addEventListener('click', (e) => {
+                if (moved) { e.stopPropagation(); e.preventDefault(); }
+            }, true);
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const daysRow = document.getElementById('bbc-days-row');
+            const hourlyScroll = document.getElementById('bbc-hourly-scroll');
+            if (daysRow) enableMouseHorizontalScroll(daysRow);
+            if (hourlyScroll) enableMouseHorizontalScroll(hourlyScroll);
+        });
+
         let _lastParaguasHourly = null;
         let _paraguasChartLastW = 0;
         function _redrawParaguasIfWidthChanged() {
