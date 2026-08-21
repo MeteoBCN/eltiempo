@@ -62,7 +62,11 @@
             min-height: 200px;
         }
         .header-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: transparent; z-index: 0; }
-        .content-section { background: #FFFFFF; padding: 0; }
+        @media (min-width: 601px) {
+            .current-weather { text-align: center !important; }
+            #current-icon-temp-row { justify-content: center; }
+        }
+        .content-section { background: #FFFFFF; padding: 0; --gutter: 0px; }
         .hero-zone { background: #ffffff; padding: 20px 24px 16px 24px; }
         .content-below { padding: 24px; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -128,8 +132,8 @@
            PREVISIÓN SEMANAL ESTILO BBC WEATHER
         ══════════════════════════════════════════════ */
         .bbc-week-container {
-            width: calc(100% + 48px);
-            margin: 18px -24px 0 -24px;
+            width: calc(100% + (2 * var(--gutter)));
+            margin: 18px calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));
             background: linear-gradient(180deg, #1c4f78 0%, #123653 100%);
             border-radius: 0;
             overflow: hidden;
@@ -621,7 +625,7 @@
 
         @media (max-width: 480px) {
             .header-section { padding: 0; min-height: 80px; }
-            .content-section { padding: 16px; }
+            .content-section { padding: 16px; --gutter: 16px; }
             body { overflow-x: hidden; max-width: 100vw; }
             .temperature { font-size: 64px; }
             .icon-large { font-size: 1.8em; }
@@ -824,7 +828,7 @@
             <div class="hero-zone">
                 <div class="current-weather" style="text-align:left;padding:20px 20px 18px;background:#ffffff;">
                 <div id="current-datetime" style="font-size:13px;font-weight:400;color:#123653;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px;">--</div>
-                <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+                <div id="current-icon-temp-row" style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
                     <div class="icon-large" id="current-icon" style="font-size:2em;margin:0;line-height:1;">🌧️</div>
                     <div class="temperature" id="current-temp" style="color:#123653;font-size:56px;font-weight:800;margin-bottom:0;display:inline-block;transform:scaleX(1.25);transform-origin:left center;">--°</div>
                 </div>
@@ -893,7 +897,7 @@
 
                 </div>
 
-                    <div id="paraguas-chart-wrap" style="width:calc(100% + 48px);margin:28px -24px 0 -24px;background:#ffffff;padding:14px 0;border-top:1px solid rgba(28,79,120,0.3);border-bottom:1px solid rgba(28,79,120,0.3);">
+                    <div id="paraguas-chart-wrap" style="width:calc(100% + (2 * var(--gutter)));margin:28px calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));background:#ffffff;padding:14px 0;border-top:1px solid rgba(28,79,120,0.3);border-bottom:1px solid rgba(28,79,120,0.3);">
                         <div style="font-size:12px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Tendencia próximas horas</div>
                         <div style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Temperatura · Precipitación</div>
                         <div id="paraguas-hour-row" style="position:relative;height:12px;margin:14px 0 0 0;"></div>
