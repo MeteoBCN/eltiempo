@@ -931,6 +931,34 @@
                         </div>
                     </div>
 
+                    <div id="paraguas-chart-wrap-days" style="width:calc(100% + (2 * var(--gutter)));margin:20px calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));background:#ffffff;padding:14px 0;border-bottom:1px solid rgba(28,79,120,0.3);">
+                        <div style="font-size:12px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Tendencia próximos días</div>
+                        <div style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Temperatura mín/máx · Precipitación · Cada 6h</div>
+                        <div id="paraguas-days-day-row" style="position:relative;height:13px;margin:0;"></div>
+                        <div id="paraguas-days-hour-row" style="position:relative;height:12px;margin:1px 0 0 0;"></div>
+                        <canvas id="paraguas-days-chart" style="width:100%;display:block;"></canvas>
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:2px;">
+                            <span style="display:flex;align-items:center;gap:12px;font-size:9px;color:#123653;opacity:0.8;">
+                                <span style="display:flex;align-items:center;gap:5px;">
+                                    <span style="display:inline-block;width:14px;height:0;border-top:2px solid #1c4f78;flex-shrink:0;"></span>
+                                    Máxima
+                                </span>
+                                <span style="display:flex;align-items:center;gap:5px;">
+                                    <span style="display:inline-block;width:14px;height:0;border-top:2px dashed #1c4f78;opacity:0.7;flex-shrink:0;"></span>
+                                    Mínima
+                                </span>
+                            </span>
+                            <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.65;">
+                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(59,130,246,0.35);border:1px solid rgba(59,130,246,0.5);flex-shrink:0;"></span>
+                                Quizás necesites el paraguas
+                            </span>
+                            <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
+                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(28,79,120,0.55);border:1px solid rgba(28,79,120,0.75);flex-shrink:0;"></span>
+                                No te dejes el paraguas, se espera lluvia
+                            </span>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div id="sun-countdown" style="text-align:center;margin-top:18px;font-size:13px;font-weight:600;color:#123653;letter-spacing:0.2px;"></div>
@@ -2470,9 +2498,16 @@
                 const ht = new Date(hourly.time[i]);
                 const diffH = (ht - now) / 3600000;
                 if (diffH < -0.5 || diffH > 12) continue;
+                const rawTemp = hourly.temperature_2m?.[i] ?? null;
                 slots.push({
                     h: ht,
-                    temp: hourly.temperature_2m?.[i] ?? null,
+                    // Redondeamos aquí, una sola vez, y usamos SIEMPRE este valor
+                    // (para la posición Y, el color y la etiqueta). Así, dos horas
+                    // que muestran el mismo número de grados quedan siempre a la
+                    // misma altura en la gráfica — antes la posición se calculaba
+                    // con el decimal real pero la etiqueta redondeaba, y por eso
+                    // dos "25°" podían aparecer a alturas distintas.
+                    temp: rawTemp !== null ? Math.round(rawTemp) : null,
                     prob: hourly.precipitation_probability?.[i] ?? 0,
                     mm: hourly.precipitation?.[i] ?? 0,
                     label: String(ht.getHours()).padStart(2,'0') + 'h'
@@ -2600,7 +2635,7 @@
                 const hourNum = s.h.getHours();
                 if (hourNum % 2 === 0) {
                     ctx.fillStyle = '#123653'; ctx.font = 'bold 10px Inter,sans-serif';
-                    ctx.fillText(Math.round(s.temp) + '°', x, y - 8);
+                    ctx.fillText(s.temp + '°', x, y - 8);
                 }
             });
 
@@ -2615,6 +2650,246 @@
                     }
                 });
                 hourRow.innerHTML = hHtml;
+            }
+        }
+
+        // ── Gráfica "Tendencia próximos días" (bloques de 6h, mín/máx) ──
+        let _lastParaguasDaysHourly = null;
+        let _paraguasDaysChartLastW = 0;
+        function _redrawParaguasDaysIfWidthChanged() {
+            const canvas = document.getElementById('paraguas-days-chart');
+            if (!canvas || !_lastParaguasDaysHourly) return;
+            const wrap = canvas.parentElement;
+            if (!wrap) return;
+            if (wrap.clientWidth > 0 && wrap.clientWidth !== _paraguasDaysChartLastW) {
+                drawParaguasDaysChart(_lastParaguasDaysHourly);
+            }
+        }
+        window.addEventListener('resize', () => {
+            clearTimeout(window._paraguasDaysResizeT);
+            window._paraguasDaysResizeT = setTimeout(_redrawParaguasDaysIfWidthChanged, 150);
+        });
+        window.addEventListener('load', () => {
+            setTimeout(_redrawParaguasDaysIfWidthChanged, 50);
+        });
+        if (typeof ResizeObserver !== 'undefined') {
+            const _paraguasDaysRO = new ResizeObserver(() => _redrawParaguasDaysIfWidthChanged());
+            document.addEventListener('DOMContentLoaded', () => {
+                const wrapEl = document.getElementById('paraguas-chart-wrap-days');
+                if (wrapEl) _paraguasDaysRO.observe(wrapEl);
+            });
+        }
+
+        function drawParaguasDaysChart(hourly) {
+            const canvas = document.getElementById('paraguas-days-chart');
+            if (!canvas || !hourly?.time) return;
+            _lastParaguasDaysHourly = hourly;
+
+            const BLOCK_H = 6;      // tamaño de cada bloque, en horas
+            const N_BLOCKS = 12;    // 12 bloques de 6h = 3 días
+
+            const now = new Date();
+
+            // Agrupamos las horas en bloques alineados a 00h/06h/12h/18h
+            const blocksMap = new Map();
+            for (let i = 0; i < hourly.time.length; i++) {
+                const ht = new Date(hourly.time[i]);
+                const blockStartHour = Math.floor(ht.getHours() / BLOCK_H) * BLOCK_H;
+                const blockStart = new Date(ht.getFullYear(), ht.getMonth(), ht.getDate(), blockStartHour);
+                const blockEnd = new Date(blockStart.getTime() + BLOCK_H * 3600000);
+                if (blockEnd <= now) continue; // bloque ya terminado, no interesa
+                const key = blockStart.getTime();
+                if (!blocksMap.has(key)) blocksMap.set(key, { start: blockStart, temps: [], probs: [], mms: [] });
+                const b = blocksMap.get(key);
+                const t = hourly.temperature_2m?.[i];
+                if (t !== null && t !== undefined) b.temps.push(t);
+                b.probs.push(hourly.precipitation_probability?.[i] ?? 0);
+                b.mms.push(hourly.precipitation?.[i] ?? 0);
+            }
+
+            const keys = Array.from(blocksMap.keys()).sort((a, b) => a - b).slice(0, N_BLOCKS);
+            if (keys.length < 2) return;
+
+            // Redondeamos UNA sola vez y usamos ese entero para todo (posición, color, etiqueta),
+            // igual que en la gráfica de horas, para que dos bloques con el mismo número
+            // mostrado queden siempre a la misma altura.
+            const blocks = keys.map((k, idx) => {
+                const b = blocksMap.get(k);
+                const prevKey = idx > 0 ? keys[idx - 1] : null;
+                const prevStart = prevKey !== null ? blocksMap.get(prevKey).start : null;
+                const isNewDay = !prevStart || prevStart.toDateString() !== b.start.toDateString();
+                return {
+                    start: b.start,
+                    tMin: b.temps.length ? Math.round(Math.min(...b.temps)) : null,
+                    tMax: b.temps.length ? Math.round(Math.max(...b.temps)) : null,
+                    prob: b.probs.length ? Math.max(...b.probs) : 0,
+                    mm: b.mms.reduce((a, c) => a + c, 0),
+                    hourLabel: String(b.start.getHours()).padStart(2, '0') + 'h',
+                    isNewDay
+                };
+            }).filter(bl => bl.tMin !== null && bl.tMax !== null);
+            if (blocks.length < 2) return;
+
+            const dpr = window.devicePixelRatio || 1;
+            const wrap = canvas.parentElement;
+            const W = wrap.clientWidth;
+            _paraguasDaysChartLastW = W;
+            const H = 116;
+            canvas.width = W * dpr; canvas.height = H * dpr;
+            canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, W, H);
+
+            const PAD = { top: 20, bottom: 20, left: 26, right: 26 };
+            const cw = W - PAD.left - PAD.right;
+            const ch = H - PAD.top - PAD.bottom;
+
+            const LINE_GUTTER_TOP = 18;
+            const LINE_GUTTER_BOTTOM = 18; // hueco extra abajo para la etiqueta de mínima
+
+            const allTemps = blocks.flatMap(b => [b.tMin, b.tMax]);
+            const tMin = Math.min(...allTemps);
+            const tMax = Math.max(...allTemps);
+            const xPos = i => PAD.left + (i / (blocks.length - 1)) * cw;
+            const yTemp = t => {
+                if (tMax === tMin) return PAD.top + LINE_GUTTER_TOP + (ch - LINE_GUTTER_TOP - LINE_GUTTER_BOTTOM) / 2;
+                const innerCh = ch - LINE_GUTTER_TOP - LINE_GUTTER_BOTTOM;
+                return PAD.top + LINE_GUTTER_TOP + innerCh - ((t - tMin) / (tMax - tMin)) * innerCh;
+            };
+
+            const LINE_COLOR = '#1c4f78';
+
+            // Misma categorización de lluvia que en la gráfica de horas, aplicada por bloque de 6h
+            const rainCat = blocks.map(b => {
+                const isStrongRain = b.prob >= 60 && b.mm >= 0.5;
+                const isLightRain  = !isStrongRain && (b.prob >= 40 || b.mm >= 0.2);
+                return isStrongRain ? 2 : (isLightRain ? 1 : 0);
+            });
+
+            const RAIN_BAND_LOW = 'rgba(59,130,246,0.10)';
+            const RAIN_BAND_HIGH = 'rgba(28,79,120,0.20)';
+            const segW = cw / (blocks.length - 1);
+            blocks.forEach((b, i) => {
+                if (rainCat[i] > 0) {
+                    const left = xPos(i);
+                    const right = (i < blocks.length - 1) ? xPos(i + 1) : xPos(i) + segW;
+                    ctx.fillStyle = rainCat[i] === 2 ? RAIN_BAND_HIGH : RAIN_BAND_LOW;
+                    ctx.fillRect(left, PAD.top, right - left, ch);
+                }
+            });
+
+            function tempToColor(t) {
+                const stops = [
+                    { t: 9,  c: [30, 58, 138] },
+                    { t: 14, c: [59, 130, 246] },
+                    { t: 19, c: [21, 128, 61] },
+                    { t: 23, c: [34, 197, 94] },
+                    { t: 27, c: [249, 115, 22] },
+                    { t: 28, c: [220, 38, 38] }
+                ];
+                if (t <= stops[0].t) return stops[0].c;
+                if (t >= stops[stops.length - 1].t) return stops[stops.length - 1].c;
+                for (let i = 0; i < stops.length - 1; i++) {
+                    if (t >= stops[i].t && t <= stops[i + 1].t) {
+                        const ratio = (t - stops[i].t) / (stops[i + 1].t - stops[i].t);
+                        return stops[i].c.map((v, idx) => Math.round(v + (stops[i + 1].c[idx] - v) * ratio));
+                    }
+                }
+                return [28, 79, 120];
+            }
+
+            // Líneas verticales: sutiles para cada bloque, más marcadas en el cambio de día
+            ctx.save();
+            blocks.forEach((b, i) => {
+                const x = xPos(i);
+                ctx.beginPath();
+                ctx.setLineDash(b.isNewDay ? [] : [3, 3]);
+                ctx.strokeStyle = LINE_COLOR;
+                ctx.globalAlpha = b.isNewDay ? 0.3 : 0.15;
+                ctx.lineWidth = 1;
+                ctx.moveTo(x, PAD.top);
+                ctx.lineTo(x, PAD.top + ch);
+                ctx.stroke();
+            });
+            ctx.restore();
+            ctx.globalAlpha = 1;
+
+            // Línea de MÁXIMA (sólida) y línea de MÍNIMA (discontinua), ambas con degradado según temperatura
+            function drawTempLine(values, dashed) {
+                ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+                ctx.globalAlpha = dashed ? 0.45 : 0.7;
+                ctx.setLineDash(dashed ? [4, 3] : []);
+                for (let i = 1; i < blocks.length; i++) {
+                    const x0 = xPos(i - 1), y0 = yTemp(values[i - 1]);
+                    const x1 = xPos(i), y1 = yTemp(values[i]);
+                    ctx.beginPath();
+                    ctx.moveTo(x0, y0);
+                    ctx.lineTo(x1, y1);
+                    const grad = ctx.createLinearGradient(x0, y0, x1, y1);
+                    grad.addColorStop(0, `rgb(${tempToColor(values[i - 1]).join(',')})`);
+                    grad.addColorStop(1, `rgb(${tempToColor(values[i]).join(',')})`);
+                    ctx.strokeStyle = grad;
+                    ctx.stroke();
+                }
+                ctx.setLineDash([]);
+                ctx.globalAlpha = 1;
+            }
+            drawTempLine(blocks.map(b => b.tMax), false);
+            drawTempLine(blocks.map(b => b.tMin), true);
+
+            // Puntos + etiquetas, para máxima (arriba de la línea) y mínima (debajo)
+            ctx.textAlign = 'center';
+            blocks.forEach((b, i) => {
+                const x = xPos(i);
+
+                const yMax = yTemp(b.tMax);
+                ctx.beginPath(); ctx.arc(x, yMax, 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = `rgb(${tempToColor(b.tMax).join(',')})`; ctx.globalAlpha = 0.8; ctx.fill(); ctx.globalAlpha = 1;
+                ctx.fillStyle = '#123653'; ctx.font = 'bold 10px Inter,sans-serif';
+                ctx.fillText(b.tMax + '°', x, yMax - 8);
+
+                const yMin = yTemp(b.tMin);
+                ctx.beginPath(); ctx.arc(x, yMin, 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = `rgb(${tempToColor(b.tMin).join(',')})`; ctx.globalAlpha = 0.5; ctx.fill(); ctx.globalAlpha = 1;
+                ctx.fillStyle = '#123653'; ctx.font = '600 9px Inter,sans-serif'; ctx.globalAlpha = 0.75;
+                ctx.fillText(b.tMin + '°', x, yMin + 15);
+                ctx.globalAlpha = 1;
+            });
+
+            // ── Fila de horas (00h/06h/12h/18h), alineada con cada bloque ──
+            const hourRow = document.getElementById('paraguas-days-hour-row');
+            if (hourRow) {
+                let hHtml = '';
+                blocks.forEach((b, i) => {
+                    const x = xPos(i);
+                    hHtml += `<span style="position:absolute;left:${x}px;top:0;transform:translateX(-50%);font-size:9px;font-weight:500;color:#64748B;font-family:Inter,sans-serif;white-space:nowrap;">${b.hourLabel}</span>`;
+                });
+                hourRow.innerHTML = hHtml;
+            }
+
+            // ── Fila de días: una etiqueta centrada sobre cada grupo de bloques del mismo día ──
+            const dayRow = document.getElementById('paraguas-days-day-row');
+            if (dayRow) {
+                const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+                const todayStr = now.toDateString();
+                const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+                const groups = [];
+                blocks.forEach((b, i) => {
+                    if (b.isNewDay || !groups.length) groups.push({ dateKey: b.start.toDateString(), date: b.start, idxs: [] });
+                    groups[groups.length - 1].idxs.push(i);
+                });
+                let dHtml = '';
+                groups.forEach(g => {
+                    const xs = g.idxs.map(i => xPos(i));
+                    const xCenter = (xs[0] + xs[xs.length - 1]) / 2;
+                    let label;
+                    if (g.dateKey === todayStr) label = 'Hoy';
+                    else if (g.dateKey === tomorrow.toDateString()) label = 'Mañana';
+                    else label = DIAS[g.date.getDay()];
+                    dHtml += `<span style="position:absolute;left:${xCenter}px;top:0;transform:translateX(-50%);font-size:10px;font-weight:700;color:#123653;font-family:Inter,sans-serif;white-space:nowrap;letter-spacing:0.3px;">${label}</span>`;
+                });
+                dayRow.innerHTML = dHtml;
             }
         }
 
@@ -5341,6 +5616,7 @@
                 updateRunningIndex(data.current, data.hourly, data.daily, aqData?.current ?? null);
                 updateParaguasSection(data.hourly);
                 drawParaguasHourlyChart(data.hourly);
+                drawParaguasDaysChart(data.hourly);
                 _hourlyCache = data.hourly;
                 window._hourlyCache = data.hourly;
                 window._dailyCache  = data.daily;
