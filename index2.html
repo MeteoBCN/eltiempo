@@ -2701,16 +2701,18 @@
             const N_BLOCKS = 12;    // 12 bloques de 6h = 3 días
 
             const now = new Date();
+            // Punto de partida fijo: las 00h de hoy. Así la gráfica muestra siempre
+            // el día completo desde el principio y no se va desplazando conforme
+            // avanzan las horas.
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
 
-            // Agrupamos las horas en bloques alineados a 00h/06h/12h/18h.
-            // El primer bloque es SIEMPRE el 00h del día de hoy: no se recorta según
-            // avanza la hora actual, para que la franja horaria no vaya cambiando a lo
-            // largo del día (solo cambia el día, a las 00h, de "Hoy" a "Mañana").
+            // Agrupamos las horas en bloques alineados a 00h/06h/12h/18h
             const blocksMap = new Map();
             for (let i = 0; i < hourly.time.length; i++) {
                 const ht = new Date(hourly.time[i]);
                 const blockStartHour = Math.floor(ht.getHours() / BLOCK_H) * BLOCK_H;
                 const blockStart = new Date(ht.getFullYear(), ht.getMonth(), ht.getDate(), blockStartHour);
+                if (blockStart < todayStart) continue; // no interesan bloques anteriores a hoy 00h
                 const key = blockStart.getTime();
                 if (!blocksMap.has(key)) blocksMap.set(key, { start: blockStart, temps: [], probs: [], mms: [] });
                 const b = blocksMap.get(key);
@@ -2723,7 +2725,7 @@
             const keys = Array.from(blocksMap.keys()).sort((a, b) => a - b).slice(0, N_BLOCKS);
             if (keys.length < 2) return;
 
-            // Redondeamos UNA sola vez y usamos ese entero para todo (posición y etiqueta),
+            // Redondeamos UNA sola vez y usamos ese entero para todo (posición, color, etiqueta),
             // igual que en la gráfica de horas, para que dos bloques con el mismo número
             // mostrado queden siempre a la misma altura.
             const blocks = keys.map((k, idx) => {
@@ -2743,27 +2745,6 @@
             }).filter(bl => bl.tMin !== null && bl.tMax !== null);
             if (blocks.length < 2) return;
 
-            // ── Agrupamos los bloques por día para sacar la MÁXIMA (marcada a las 12h)
-            // y la MÍNIMA (marcada a las 06h) de cada día ──
-            const dayGroups = [];
-            blocks.forEach((b, i) => {
-                const dateKey = b.start.toDateString();
-                let g = dayGroups.find(d => d.dateKey === dateKey);
-                if (!g) { g = { dateKey, date: b.start, idxs: [] }; dayGroups.push(g); }
-                g.idxs.push(i);
-            });
-
-            const maxPoints = []; // { idx, value } — un punto por día, en el bloque de las 12h
-            const minPoints = []; // { idx, value } — un punto por día, en el bloque de las 06h
-            dayGroups.forEach(g => {
-                const idxAt12 = g.idxs.find(i => blocks[i].start.getHours() === 12);
-                const idxAt06 = g.idxs.find(i => blocks[i].start.getHours() === 6);
-                const dayTMax = Math.max(...g.idxs.map(i => blocks[i].tMax));
-                const dayTMin = Math.min(...g.idxs.map(i => blocks[i].tMin));
-                if (idxAt12 !== undefined) maxPoints.push({ idx: idxAt12, value: dayTMax });
-                if (idxAt06 !== undefined) minPoints.push({ idx: idxAt06, value: dayTMin });
-            });
-
             const dpr = window.devicePixelRatio || 1;
             const wrap = canvas.parentElement;
             const W = wrap.clientWidth;
@@ -2780,9 +2761,10 @@
             const ch = H - PAD.top - PAD.bottom;
 
             const LINE_GUTTER_TOP = 18;
-            const LINE_GUTTER_BOTTOM = 18; // hueco extra abajo para la etiqueta de mínima
+            const LINE_GUTTER_BOTTOM = 8;
 
-            const allTemps = [...maxPoints.map(p => p.value), ...minPoints.map(p => p.value)];
+            // Una sola línea de temperatura: usamos la máxima de cada bloque de 6h
+            const allTemps = blocks.map(b => b.tMax);
             const tMin = Math.min(...allTemps);
             const tMax = Math.max(...allTemps);
             const xPos = i => PAD.left + (i / (blocks.length - 1)) * cw;
@@ -2793,11 +2775,8 @@
             };
 
             const LINE_COLOR = '#1c4f78';
-            const MAX_COLOR = '#DC2626'; // rojo — línea y etiqueta de máximas
-            const MIN_COLOR = '#2563EB'; // azul — línea y etiqueta de mínimas
 
             // Misma categorización de lluvia que en la gráfica de horas, aplicada por bloque de 6h
-            // (se mantienen las franjas de 6h para la lluvia: 4 por día)
             const rainCat = blocks.map(b => {
                 const isStrongRain = b.prob >= 60 && b.mm >= 0.5;
                 const isLightRain  = !isStrongRain && (b.prob >= 40 || b.mm >= 0.2);
@@ -2816,6 +2795,26 @@
                 }
             });
 
+            function tempToColor(t) {
+                const stops = [
+                    { t: 9,  c: [30, 58, 138] },
+                    { t: 14, c: [59, 130, 246] },
+                    { t: 19, c: [21, 128, 61] },
+                    { t: 23, c: [34, 197, 94] },
+                    { t: 27, c: [249, 115, 22] },
+                    { t: 28, c: [220, 38, 38] }
+                ];
+                if (t <= stops[0].t) return stops[0].c;
+                if (t >= stops[stops.length - 1].t) return stops[stops.length - 1].c;
+                for (let i = 0; i < stops.length - 1; i++) {
+                    if (t >= stops[i].t && t <= stops[i + 1].t) {
+                        const ratio = (t - stops[i].t) / (stops[i + 1].t - stops[i].t);
+                        return stops[i].c.map((v, idx) => Math.round(v + (stops[i + 1].c[idx] - v) * ratio));
+                    }
+                }
+                return [28, 79, 120];
+            }
+
             // Líneas verticales: sutiles para cada bloque, más marcadas en el cambio de día
             ctx.save();
             blocks.forEach((b, i) => {
@@ -2832,38 +2831,41 @@
             ctx.restore();
             ctx.globalAlpha = 1;
 
-            // Línea de MÁXIMA (roja): conecta el valor de las 12h de cada día
-            // Línea de MÍNIMA (azul): conecta el valor de las 06h de cada día
-            function drawSeriesLine(points, color) {
-                if (points.length < 2) return;
-                ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-                ctx.strokeStyle = color;
-                ctx.beginPath();
-                points.forEach((p, i) => {
-                    const x = xPos(p.idx), y = yTemp(p.value);
-                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-                });
-                ctx.stroke();
+            // Línea de temperatura única, con el mismo degradado (frío→cálido) y el mismo
+            // trazo que la gráfica "Tendencia próximas horas".
+            function drawTempLine(values) {
+                ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.globalAlpha = 0.6;
+                for (let i = 1; i < blocks.length; i++) {
+                    const x0 = xPos(i - 1), y0 = yTemp(values[i - 1]);
+                    const x1 = xPos(i), y1 = yTemp(values[i]);
+                    ctx.beginPath();
+                    ctx.moveTo(x0, y0);
+                    ctx.lineTo(x1, y1);
+                    const grad = ctx.createLinearGradient(x0, y0, x1, y1);
+                    grad.addColorStop(0, `rgb(${tempToColor(values[i - 1]).join(',')})`);
+                    grad.addColorStop(1, `rgb(${tempToColor(values[i]).join(',')})`);
+                    ctx.strokeStyle = grad;
+                    ctx.stroke();
+                }
+                ctx.globalAlpha = 1;
             }
-            drawSeriesLine(maxPoints, MAX_COLOR);
-            drawSeriesLine(minPoints, MIN_COLOR);
+            const lineValues = blocks.map(b => b.tMax);
+            drawTempLine(lineValues);
 
-            // Puntos + etiquetas: máxima en rojo (arriba de la línea, a las 12h),
-            // mínima en azul (debajo de la línea, a las 06h)
+            // Puntos: los dos primeros (inicio a las 06h, y la máxima a las 12h) llevan
+            // la cifra en grados; a partir de ahí (18h, 00h... hasta el final) solo se
+            // marca el punto sobre la línea, sin cifra.
             ctx.textAlign = 'center';
-            maxPoints.forEach(p => {
-                const x = xPos(p.idx), y = yTemp(p.value);
-                ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2);
-                ctx.fillStyle = MAX_COLOR; ctx.fill();
-                ctx.fillStyle = MAX_COLOR; ctx.font = 'bold 11px Inter,sans-serif';
-                ctx.fillText(p.value + '°', x, y - 9);
-            });
-            minPoints.forEach(p => {
-                const x = xPos(p.idx), y = yTemp(p.value);
-                ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2);
-                ctx.fillStyle = MIN_COLOR; ctx.fill();
-                ctx.fillStyle = MIN_COLOR; ctx.font = '600 10px Inter,sans-serif';
-                ctx.fillText(p.value + '°', x, y + 16);
+            blocks.forEach((b, i) => {
+                const x = xPos(i);
+                const y = yTemp(b.tMax);
+                ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = `rgb(${tempToColor(b.tMax).join(',')})`; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
+
+                if (i < 2) {
+                    ctx.fillStyle = '#123653'; ctx.font = 'bold 10px Inter,sans-serif';
+                    ctx.fillText(b.tMax + '°', x, y - 8);
+                }
             });
 
             // ── Fila de horas (00h/06h/12h/18h), alineada con cada bloque ──
@@ -2883,8 +2885,13 @@
                 const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
                 const todayStr = now.toDateString();
                 const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+                const groups = [];
+                blocks.forEach((b, i) => {
+                    if (b.isNewDay || !groups.length) groups.push({ dateKey: b.start.toDateString(), date: b.start, idxs: [] });
+                    groups[groups.length - 1].idxs.push(i);
+                });
                 let dHtml = '';
-                dayGroups.forEach(g => {
+                groups.forEach(g => {
                     const xs = g.idxs.map(i => xPos(i));
                     const xCenter = (xs[0] + xs[xs.length - 1]) / 2;
                     let label;
