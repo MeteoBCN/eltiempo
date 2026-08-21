@@ -35,6 +35,7 @@
             --border-radius-sm: 12px;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scrollbar-gutter: stable; }
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: var(--color-text-primary);
@@ -180,21 +181,6 @@
         .bbc-hourly-title { font-size: 13px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px; }
         .bbc-hourly-wrap { position: relative; }
         .bbc-days-row-outer { position: relative; }
-        .bbc-edge-triangle {
-            position: absolute;
-            right: 6px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 0;
-            height: 0;
-            border-top: 11px solid transparent;
-            border-bottom: 11px solid transparent;
-            border-left: 15px solid rgba(255,255,255,0.5);
-            cursor: pointer;
-            z-index: 3;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .bbc-edge-triangle:active { border-left-color: rgba(255,255,255,0.8); }
         .bbc-hourly-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .bbc-hourly-scroll::-webkit-scrollbar { display: none; }
         .bbc-hourly-inner { display: flex; gap: 14px; padding-bottom: 2px; }
@@ -939,7 +925,6 @@
                         <div class="bbc-days-row" id="bbc-days-row">
                             <div class="bbc-week-loading">Cargando previsión…</div>
                         </div>
-                        <span class="bbc-edge-triangle" role="button" aria-label="Ver más días" onclick="document.getElementById('bbc-days-row').scrollBy({left: document.getElementById('bbc-days-row').clientWidth * 0.85, behavior:'smooth'})"></span>
                     </div>
                     <div class="bbc-hourly-section">
                         <div class="bbc-hourly-header">
@@ -949,7 +934,6 @@
                             <div class="bbc-hourly-scroll" id="bbc-hourly-scroll">
                                 <div class="bbc-hourly-inner" id="bbc-hourly-inner"></div>
                             </div>
-                            <span class="bbc-edge-triangle" role="button" aria-label="Ver más horas" onclick="document.getElementById('bbc-hourly-scroll').scrollBy({left: document.getElementById('bbc-hourly-scroll').clientWidth * 0.85, behavior:'smooth'})"></span>
                         </div>
                     </div>
                     <div class="bbc-sun-uvi" id="bbc-sun-uvi"></div>
@@ -2382,9 +2366,37 @@
         }
 
         // ── Gráfica 12h: temperatura (sutil, azul de los círculos) ──
+        let _lastParaguasHourly = null;
+        let _paraguasChartLastW = 0;
+        function _redrawParaguasIfWidthChanged() {
+            const canvas = document.getElementById('paraguas-hourly-chart');
+            if (!canvas || !_lastParaguasHourly) return;
+            const wrap = canvas.parentElement;
+            if (!wrap) return;
+            if (wrap.clientWidth > 0 && wrap.clientWidth !== _paraguasChartLastW) {
+                drawParaguasHourlyChart(_lastParaguasHourly);
+            }
+        }
+        window.addEventListener('resize', () => {
+            clearTimeout(window._paraguasResizeT);
+            window._paraguasResizeT = setTimeout(_redrawParaguasIfWidthChanged, 150);
+        });
+        window.addEventListener('load', () => {
+            // Redibuja tras la carga completa (fuentes, scrollbar, etc.) por si el
+            // ancho del contenedor cambió respecto al momento del primer dibujado.
+            setTimeout(_redrawParaguasIfWidthChanged, 50);
+        });
+        if (typeof ResizeObserver !== 'undefined') {
+            const _paraguasRO = new ResizeObserver(() => _redrawParaguasIfWidthChanged());
+            document.addEventListener('DOMContentLoaded', () => {
+                const wrapEl = document.getElementById('paraguas-chart-wrap');
+                if (wrapEl) _paraguasRO.observe(wrapEl);
+            });
+        }
         function drawParaguasHourlyChart(hourly) {
             const canvas = document.getElementById('paraguas-hourly-chart');
             if (!canvas || !hourly?.time) return;
+            _lastParaguasHourly = hourly;
 
             const now = new Date();
             const slots = [];
@@ -2405,6 +2417,7 @@
             const dpr = window.devicePixelRatio || 1;
             const wrap = canvas.parentElement;
             const W = wrap.clientWidth;
+            _paraguasChartLastW = W;
             const H = 116;
             canvas.width = W * dpr; canvas.height = H * dpr;
             canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
