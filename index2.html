@@ -179,10 +179,22 @@
         .bbc-hourly-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
         .bbc-hourly-title { font-size: 13px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px; }
         .bbc-hourly-wrap { position: relative; }
-        .bbc-hourly-scroll-hint { pointer-events: none; opacity: 0.55; display: flex; align-items: center; justify-content: center; animation: bbcHintNudge 1.8s ease-in-out infinite; }
-        .bbc-hourly-scroll-hint svg { width: 16px; height: 16px; display: block; }
-        .bbc-hourly-hint-float { position: absolute; right: 2px; top: 96px; z-index: 2; }
-        @keyframes bbcHintNudge { 0%, 100% { transform: translateX(0); opacity: 0.4; } 50% { transform: translateX(4px); opacity: 0.7; } }
+        .bbc-days-row-outer { position: relative; }
+        .bbc-edge-triangle {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 11px solid transparent;
+            border-bottom: 11px solid transparent;
+            border-left: 15px solid rgba(255,255,255,0.5);
+            cursor: pointer;
+            z-index: 3;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .bbc-edge-triangle:active { border-left-color: rgba(255,255,255,0.8); }
         .bbc-hourly-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .bbc-hourly-scroll::-webkit-scrollbar { display: none; }
         .bbc-hourly-inner { display: flex; gap: 14px; padding-bottom: 2px; }
@@ -923,37 +935,22 @@
                      PREVISIÓN SEMANAL ESTILO BBC WEATHER
                 ════════════════════════════════════════════ -->
                 <div class="bbc-week-container" id="bbc-week-container">
-                    <div class="bbc-days-row" id="bbc-days-row">
-                        <div class="bbc-week-loading">Cargando previsión…</div>
+                    <div class="bbc-days-row-outer">
+                        <div class="bbc-days-row" id="bbc-days-row">
+                            <div class="bbc-week-loading">Cargando previsión…</div>
+                        </div>
+                        <span class="bbc-edge-triangle" role="button" aria-label="Ver más días" onclick="document.getElementById('bbc-days-row').scrollBy({left: document.getElementById('bbc-days-row').clientWidth * 0.85, behavior:'smooth'})"></span>
                     </div>
                     <div class="bbc-hourly-section">
                         <div class="bbc-hourly-header">
                             <span class="bbc-hourly-title">Previsión horaria</span>
-                            <span class="bbc-hourly-scroll-hint" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                            </span>
                         </div>
                         <div class="bbc-hourly-wrap">
                             <div class="bbc-hourly-scroll" id="bbc-hourly-scroll">
                                 <div class="bbc-hourly-inner" id="bbc-hourly-inner"></div>
                             </div>
-                            <span class="bbc-hourly-scroll-hint bbc-hourly-hint-float" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                            </span>
+                            <span class="bbc-edge-triangle" role="button" aria-label="Ver más horas" onclick="document.getElementById('bbc-hourly-scroll').scrollBy({left: document.getElementById('bbc-hourly-scroll').clientWidth * 0.85, behavior:'smooth'})"></span>
                         </div>
-                        <script>
-                            (function () {
-                                var sc = document.getElementById('bbc-hourly-scroll');
-                                if (!sc) return;
-                                sc.addEventListener('scroll', function onFirstScroll() {
-                                    document.querySelectorAll('.bbc-hourly-scroll-hint').forEach(function (el) {
-                                        el.style.transition = 'opacity 0.4s ease';
-                                        el.style.opacity = '0';
-                                    });
-                                    sc.removeEventListener('scroll', onFirstScroll);
-                                }, { passive: true });
-                            })();
-                        </script>
                     </div>
                     <div class="bbc-sun-uvi" id="bbc-sun-uvi"></div>
                 </div>
