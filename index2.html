@@ -943,12 +943,13 @@
                         </div>
                     </div>
 
-                    <div id="sport-section-wrap" style="width:calc(100% + (2 * var(--gutter)));margin:20px calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));background:#ffffff;padding:22px 0 26px 0;border-top:1px solid rgba(28,79,120,0.3);">
+                    <div id="sport-section-wrap" style="width:calc(100% + (2 * var(--gutter)));margin:32px calc(-1 * var(--gutter)) 32px calc(-1 * var(--gutter));background:#ffffff;padding:32px 0 36px 0;">
                         <div style="font-size:12px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">¿Pensando en salir a hacer deporte?</div>
                         <div style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Condiciones ahora y próximas horas</div>
                         <div id="sport-section-cards" style="display:flex;gap:8px;padding:0 2px;">
                             <div style="flex:1;text-align:center;padding:14px 6px;color:#94a3b8;font-size:11px;">Cargando…</div>
                         </div>
+                        <div id="sport-best-hour" style="display:none;text-align:center;margin-top:14px;font-size:11px;color:#123653;letter-spacing:0.2px;"></div>
                         <div style="text-align:center;margin-top:14px;">
                             <button id="sport-expand-btn" onclick="toggleSportDetails()" style="font-size:9px;font-weight:700;color:#123653;background:#ffffff;border:1px solid rgba(44,74,110,0.25);border-radius:6px;padding:5px 10px;cursor:pointer;letter-spacing:0.5px;text-transform:uppercase;transition:all 0.2s;">Detalles ↓</button>
                         </div>
@@ -6349,10 +6350,10 @@
             }
 
             var points = [
-                { label: 'Ahora', offset: 0 },
-                { label: '+1h',   offset: 1 },
-                { label: '+2h',   offset: 2 },
-                { label: '+3h',   offset: 3 }
+                { label: String(now.getHours()), offset: 0 },
+                { label: String((now.getHours()+1) % 24), offset: 1 },
+                { label: String((now.getHours()+2) % 24), offset: 2 },
+                { label: String((now.getHours()+3) % 24), offset: 3 }
             ];
 
             var cardsHTML = points.map(function(p) {
@@ -6383,14 +6384,49 @@
                 }
                 var score = _sportScoreAt(temp, hum, wind, uv, aqi, wmo);
                 var lvl = _sportLevel(score);
-                return '<div style="flex:1;min-width:0;text-align:center;background:' + lvl.bg + ';border-radius:10px;padding:12px 4px;">' +
-                    '<div style="font-size:9px;font-weight:700;color:#123653;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;opacity:0.75;">' + p.label + '</div>' +
+
+                return '<div style="flex:1;min-width:0;text-align:center;background:#ffffff;border-radius:10px;padding:12px 4px;">' +
+                    '<div style="font-size:9px;font-weight:700;color:#123653;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;opacity:0.75;">' + p.label + 'h</div>' +
                     '<div style="width:20px;height:20px;border-radius:50%;background:' + lvl.color + ';box-shadow:0 0 8px ' + lvl.color + '80, inset 0 2px 3px rgba(255,255,255,0.35);margin:0 auto 8px auto;"></div>' +
                     '<div style="font-size:9.5px;font-weight:700;color:' + lvl.color + ';line-height:1.2;">' + lvl.label + '</div>' +
                 '</div>';
             }).join('');
 
             wrap.innerHTML = cardsHTML;
+
+            // ── Mejor hora de HOY que aún está por llegar (no solo las próximas 3h) ──
+            var bestHour = null; // { label, score, lvl }
+            if (hourly?.time) {
+                var todayStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+                for (var i = 0; i < hourly.time.length; i++) {
+                    var t = hourly.time[i];
+                    if (!t.startsWith(todayStr)) continue;
+                    var hh = parseInt(t.substring(11, 13), 10);
+                    if (hh <= now.getHours()) continue; // solo horas futuras de hoy
+
+                    var hTemp = hourly.temperature_2m?.[i] ?? 20;
+                    var hHum  = hourly.relative_humidity_2m?.[i] ?? 50;
+                    var hWind = hourly.wind_speed_10m?.[i] ?? 0;
+                    var hWmo  = hourly.weather_code?.[i] ?? 0;
+                    var hUv   = hourly.uv_index?.[i] ?? 0;
+
+                    var hScore = _sportScoreAt(hTemp, hHum, hWind, hUv, aqi, hWmo);
+                    if (bestHour === null || hScore > bestHour.score) {
+                        bestHour = { label: String(hh), score: hScore, lvl: _sportLevel(hScore) };
+                    }
+                }
+            }
+
+            var bestEl = document.getElementById('sport-best-hour');
+            if (bestEl) {
+                if (bestHour) {
+                    bestEl.style.display = 'block';
+                    bestEl.innerHTML = 'Mejor momento: <span style="color:' + bestHour.lvl.color + ';font-weight:700;">' + bestHour.label + 'h — ' + bestHour.lvl.label + '</span>';
+                } else {
+                    bestEl.style.display = 'none';
+                    bestEl.innerHTML = '';
+                }
+            }
         }
 
         function updateRunningIndex(current, hourly, daily, aq) {
