@@ -951,7 +951,7 @@
                         </div>
                         <div id="sport-best-hour" style="display:none;text-align:center;margin-top:14px;font-size:11px;color:#123653;letter-spacing:0.2px;"></div>
                         <div style="text-align:center;margin-top:14px;">
-                            <button id="sport-expand-btn" onclick="toggleSportDetails()" style="font-size:9px;font-weight:700;color:#123653;background:#ffffff;border:1px solid rgba(44,74,110,0.25);border-radius:6px;padding:5px 10px;cursor:pointer;letter-spacing:0.5px;text-transform:uppercase;transition:all 0.2s;">Detalles ↓</button>
+                            <button id="sport-expand-btn" onclick="toggleSportDetails()" style="font-size:10px;font-weight:600;color:#64748b;background:transparent;border:none;padding:4px 6px;cursor:pointer;letter-spacing:0.3px;transition:color 0.2s;">Detalles ↓</button>
                         </div>
                         <div id="sport-details-panel" style="display:none;margin-top:14px;padding:0 24px;">
                             <div style="display:flex;flex-direction:column;gap:8px;">
@@ -969,7 +969,7 @@
                                 </div>
                                 <div style="display:flex;align-items:center;gap:10px;">
                                     <span style="width:14px;height:14px;border-radius:50%;background:#f97316;box-shadow:0 0 6px rgba(249,115,22,0.5);flex-shrink:0;"></span>
-                                    <span style="font-size:11px;color:#123653;line-height:1.4;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Precaución</span> — No recomendable.</span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Precaución</span> — Entrena con cuidado.</span>
                                 </div>
                                 <div style="display:flex;align-items:center;gap:10px;">
                                     <span style="width:14px;height:14px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,0.5);flex-shrink:0;"></span>
@@ -6394,8 +6394,10 @@
 
             wrap.innerHTML = cardsHTML;
 
-            // ── Mejor hora de HOY que aún está por llegar (no solo las próximas 3h) ──
-            var bestHour = null; // { label, score, lvl }
+            // ── Mejor hora (o franja) de HOY que aún está por llegar ──
+            var bestScore = null;
+            var bestHoursArr = []; // horas (enteros) con la puntuación máxima
+            var bestLvl = null;
             if (hourly?.time) {
                 var todayStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
                 for (var i = 0; i < hourly.time.length; i++) {
@@ -6411,17 +6413,33 @@
                     var hUv   = hourly.uv_index?.[i] ?? 0;
 
                     var hScore = _sportScoreAt(hTemp, hHum, hWind, hUv, aqi, hWmo);
-                    if (bestHour === null || hScore > bestHour.score) {
-                        bestHour = { label: String(hh), score: hScore, lvl: _sportLevel(hScore) };
+                    if (bestScore === null || hScore > bestScore) {
+                        bestScore = hScore;
+                        bestLvl = _sportLevel(hScore);
+                        bestHoursArr = [hh];
+                    } else if (hScore === bestScore) {
+                        bestHoursArr.push(hh);
                     }
                 }
             }
 
             var bestEl = document.getElementById('sport-best-hour');
             if (bestEl) {
-                if (bestHour) {
+                if (bestHoursArr.length > 0) {
                     bestEl.style.display = 'block';
-                    bestEl.innerHTML = 'Mejor hora del día: <span style="color:#123653;font-weight:700;">' + bestHour.label + 'h — ' + bestHour.lvl.label + '</span>';
+                    // ¿Son horas consecutivas? Si sí, mostramos franja; si no, solo la primera.
+                    bestHoursArr.sort(function(a,b){ return a-b; });
+                    var isConsecutive = true;
+                    for (var k = 1; k < bestHoursArr.length; k++) {
+                        if (bestHoursArr[k] !== bestHoursArr[k-1] + 1) { isConsecutive = false; break; }
+                    }
+                    if (bestHoursArr.length > 1 && isConsecutive) {
+                        var first = bestHoursArr[0];
+                        var last  = bestHoursArr[bestHoursArr.length - 1];
+                        bestEl.innerHTML = 'Mejor franja: <span style="color:#123653;font-weight:700;">' + first + 'h a ' + last + 'h — ' + bestLvl.label + '</span>';
+                    } else {
+                        bestEl.innerHTML = 'Mejor hora del día: <span style="color:#123653;font-weight:700;">' + bestHoursArr[0] + 'h — ' + bestLvl.label + '</span>';
+                    }
                 } else {
                     bestEl.style.display = 'none';
                     bestEl.innerHTML = '';
