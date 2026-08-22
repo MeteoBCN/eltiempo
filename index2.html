@@ -949,7 +949,6 @@
                         <div id="sport-section-cards" style="display:flex;gap:8px;padding:0 2px;">
                             <div style="flex:1;text-align:center;padding:14px 6px;color:#94a3b8;font-size:11px;">Cargando…</div>
                         </div>
-                        <div id="sport-best-hour" style="display:none;text-align:center;margin-top:14px;font-size:11px;color:#123653;letter-spacing:0.2px;"></div>
                         <div style="text-align:center;margin-top:14px;">
                             <button id="sport-expand-btn" onclick="toggleSportDetails()" style="font-size:11px;font-weight:700;color:#123653;background:#f0f6fa;border:1px solid rgba(18,54,83,0.15);border-radius:20px;padding:7px 16px;cursor:pointer;letter-spacing:0.3px;transition:all 0.2s;">Detalles ↓</button>
                         </div>
@@ -6395,58 +6394,6 @@
             }).join('');
 
             wrap.innerHTML = cardsHTML;
-
-            // ── Mejor hora (o franja) de HOY que aún está por llegar ──
-            var bestScore = null;
-            var bestHoursArr = []; // horas (enteros) con la puntuación máxima
-            var bestLvl = null;
-            if (hourly?.time) {
-                var todayStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-                for (var i = 0; i < hourly.time.length; i++) {
-                    var t = hourly.time[i];
-                    if (!t.startsWith(todayStr)) continue;
-                    var hh = parseInt(t.substring(11, 13), 10);
-                    if (hh <= now.getHours()) continue; // solo horas futuras de hoy
-
-                    var hTemp = hourly.temperature_2m?.[i] ?? 20;
-                    var hHum  = hourly.relative_humidity_2m?.[i] ?? 50;
-                    var hWind = hourly.wind_speed_10m?.[i] ?? 0;
-                    var hWmo  = hourly.weather_code?.[i] ?? 0;
-                    var hUv   = hourly.uv_index?.[i] ?? 0;
-
-                    var hScore = _sportScoreAt(hTemp, hHum, hWind, hUv, aqi, hWmo);
-                    if (bestScore === null || hScore > bestScore) {
-                        bestScore = hScore;
-                        bestLvl = _sportLevel(hScore);
-                        bestHoursArr = [hh];
-                    } else if (hScore === bestScore) {
-                        bestHoursArr.push(hh);
-                    }
-                }
-            }
-
-            var bestEl = document.getElementById('sport-best-hour');
-            if (bestEl) {
-                if (bestHoursArr.length > 0) {
-                    bestEl.style.display = 'block';
-                    // ¿Son horas consecutivas? Si sí, mostramos franja; si no, solo la primera.
-                    bestHoursArr.sort(function(a,b){ return a-b; });
-                    var isConsecutive = true;
-                    for (var k = 1; k < bestHoursArr.length; k++) {
-                        if (bestHoursArr[k] !== bestHoursArr[k-1] + 1) { isConsecutive = false; break; }
-                    }
-                    if (bestHoursArr.length > 1 && isConsecutive) {
-                        var first = bestHoursArr[0];
-                        var last  = bestHoursArr[bestHoursArr.length - 1];
-                        bestEl.innerHTML = 'Mejor franja: <span style="color:#123653;font-weight:700;">' + first + 'h a ' + last + 'h — ' + bestLvl.label + '</span>';
-                    } else {
-                        bestEl.innerHTML = 'Mejor hora del día: <span style="color:#123653;font-weight:700;">' + bestHoursArr[0] + 'h — ' + bestLvl.label + '</span>';
-                    }
-                } else {
-                    bestEl.style.display = 'none';
-                    bestEl.innerHTML = '';
-                }
-            }
         }
 
         function updateRunningIndex(current, hourly, daily, aq) {
