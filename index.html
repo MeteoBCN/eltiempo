@@ -911,7 +911,7 @@
                                 <span id="aqi-mini-value" style="font-size:24px;font-weight:900;color:#123653;font-family:monospace;line-height:1;">--</span>
                                 <span style="font-size:8px;color:#123653;opacity:0.7;">EAQI</span>
                             </div>
-                            <div id="aqi-mini-badge" style="display:inline-block;margin-top:5px;font-size:10px;font-weight:700;color:#123653;background:#f0f6fa;border:1px solid rgba(44,74,110,0.2);border-radius:8px;padding:2px 8px;">—</div>
+                            <div id="aqi-mini-badge" style="display:inline-block;margin-top:6px;font-size:15px;font-weight:800;color:#123653;background:#f0f6fa;border:1px solid rgba(44,74,110,0.2);border-radius:9px;padding:4px 12px;">—</div>
                         </div>
                         <div id="aqi-mini-advice" style="width:100%;text-align:center;font-size:12px;color:#123653;line-height:1.4;"></div>
                     </div>
@@ -943,7 +943,74 @@
                         </div>
                     </div>
 
-                    <div id="paraguas-chart-wrap-days" style="width:calc(100% + (2 * var(--gutter)));margin:20px calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));background:#ffffff;padding:14px 0;border-bottom:1px solid rgba(28,79,120,0.3);">
+                    <div id="sport-section-wrap" style="width:100vw;margin:75px calc(-50vw + 50%) 0 calc(-50vw + 50%);background:linear-gradient(180deg,#dceefb 60%,#123653 100%);padding:20px 0 20px 0;position:relative;overflow:hidden;">
+                        <!-- Siluetas deportivas decorativas (SVG inline, sin recursos externos) -->
+                        <div style="position:absolute;inset:0;pointer-events:none;z-index:0;">
+                            <svg style="position:absolute;top:8px;left:4%;width:52px;height:52px;opacity:0.22;" viewBox="0 0 64 64" fill="none" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="34" cy="10" r="5" fill="#ffffff" stroke="none"/>
+                                <path d="M34 15 L28 30 L20 24 M28 30 L36 40 L46 34 M28 30 L24 46 M36 40 L40 54"/>
+                            </svg>
+                            <svg style="position:absolute;top:14px;right:6%;width:64px;height:64px;opacity:0.2;" viewBox="0 0 80 64" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="18" cy="48" r="11"/>
+                                <circle cx="62" cy="48" r="11"/>
+                                <circle cx="46" cy="14" r="5" fill="#ffffff" stroke="none"/>
+                                <path d="M18 48 L34 30 L52 30 L62 48 M34 30 L40 18 M40 18 L46 18 M34 30 L26 40"/>
+                            </svg>
+                            <svg style="position:absolute;top:60px;left:38%;width:46px;height:46px;opacity:0.18;" viewBox="0 0 64 64" fill="none" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="32" cy="10" r="5" fill="#ffffff" stroke="none"/>
+                                <path d="M32 15 V32 M32 20 C22 20 20 30 22 36 M32 20 C42 20 44 30 42 36 M32 32 C24 40 24 50 30 54 M32 32 C40 40 40 50 34 54"/>
+                            </svg>
+                            <svg style="position:absolute;bottom:6px;left:14%;width:50px;height:50px;opacity:0.16;" viewBox="0 0 64 64" fill="none" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="30" cy="10" r="5" fill="#ffffff" stroke="none"/>
+                                <path d="M30 15 L32 30 L22 40 M32 30 L42 22 M32 22 L40 30"/>
+                            </svg>
+                            <svg style="position:absolute;bottom:2px;right:10%;width:58px;height:58px;opacity:0.16;" viewBox="0 0 80 64" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="18" cy="48" r="11"/>
+                                <circle cx="62" cy="48" r="11"/>
+                                <circle cx="46" cy="14" r="5" fill="#ffffff" stroke="none"/>
+                                <path d="M18 48 L34 30 L52 30 L62 48 M34 30 L40 18 M40 18 L46 18 M34 30 L26 40"/>
+                            </svg>
+                        </div>
+                        <div style="max-width:600px;margin:0 auto;position:relative;z-index:1;">
+                        <div style="font-size:12px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">¿Pensando en salir a hacer deporte?</div>
+                        <div id="sport-section-subtitle" style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Condiciones a las...</div>
+                        <div id="sport-section-cards" style="display:flex;gap:0;padding:14px 4px;background:rgba(255,255,255,0.7);border-radius:0;">
+                            <div style="flex:1;text-align:center;padding:14px 6px;color:#94a3b8;font-size:11px;">Cargando…</div>
+                        </div>
+                        <div style="text-align:center;margin-top:14px;">
+                            <button id="sport-expand-btn" onclick="toggleSportDetails()" style="font-size:11px;font-weight:700;color:#123653;background:#f0f6fa;border:1px solid rgba(18,54,83,0.15);border-radius:20px;padding:7px 16px;cursor:pointer;letter-spacing:0.3px;transition:all 0.2s;">Detalles ↓</button>
+                        </div>
+                        </div>
+                    </div>
+
+                    <div style="max-width:600px;margin:0 auto;background:#ffffff;">
+                        <div id="sport-details-panel" style="display:none;margin-top:14px;padding:16px 12px;background:#ffffff;border-radius:0;overflow-x:auto;">
+                            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;width:max-content;margin:0 auto;">
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#16a34a;box-shadow:0 0 6px rgba(22,163,74,0.5);flex-shrink:0;"></span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;white-space:nowrap;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Excelente</span> — Condiciones ideales.</span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#84cc16;box-shadow:0 0 6px rgba(132,204,22,0.5);flex-shrink:0;"></span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;white-space:nowrap;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Buena</span> — Buen momento para salir.</span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#f59e0b;box-shadow:0 0 6px rgba(245,158,11,0.5);flex-shrink:0;"></span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;white-space:nowrap;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Regular</span> — No es la hora perfecta.</span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#f97316;box-shadow:0 0 6px rgba(249,115,22,0.5);flex-shrink:0;"></span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;white-space:nowrap;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Precaución</span> — Entrena con cuidado.</span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,0.5);flex-shrink:0;"></span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;white-space:nowrap;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Mala</span> — Mejor entrena en interiores.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="paraguas-chart-wrap-days" style="width:calc(100% + (2 * var(--gutter)));margin:75px calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));background:#ffffff;padding:14px 0;border-top:1px solid rgba(28,79,120,0.3);border-bottom:1px solid rgba(28,79,120,0.3);">
                         <div style="font-size:12px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Tendencia próximos días</div>
                         <div style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Temperatura · Precipitación</div>
                         <div id="paraguas-days-day-row" style="position:relative;height:13px;margin:0;"></div>
@@ -4386,6 +4453,21 @@
             btn.textContent = isOpen ? '+ INFORMACIÓN' : '− INFORMACIÓN';
         }
 
+        function toggleSportDetails() {
+            const panel = document.getElementById('sport-details-panel');
+            const btn   = document.getElementById('sport-expand-btn');
+            if (!panel) return;
+            const isOpen = panel.style.display !== 'none';
+            if (isOpen) {
+                panel.style.display = 'none';
+                if (btn) btn.textContent = 'Detalles ↓';
+            } else {
+                panel.style.display = 'block';
+                if (btn) btn.textContent = 'Ocultar ↑';
+                requestAnimationFrame(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+            }
+        }
+
         function toggleAqiExpanded() {
             const panel = document.getElementById('aqi-expanded-panel');
             const btn   = document.getElementById('aqi-expand-btn');
@@ -5737,6 +5819,7 @@
                 updateDaysSummary(data.hourly, data.daily);
                 updateProximaLluvia(data.hourly);
                 updateRunningIndex(data.current, data.hourly, data.daily, aqData?.current ?? null);
+                updateSportSection(data.current, data.hourly, aqData?.current ?? null);
                 updateParaguasSection(data.hourly);
                 drawParaguasHourlyChart(data.hourly);
                 drawParaguasDaysChart(data.hourly);
@@ -6251,6 +6334,96 @@
             wrap.appendChild(head);
             wrap.appendChild(body);
             container.appendChild(wrap);
+        }
+
+        // ── Puntuación de condiciones para hacer deporte en un instante dado ──
+        function _sportScoreAt(temp, hum, wind, uv, aqi, wmo) {
+            var s = 100;
+            if      (temp < 5)  s -= 25; else if (temp < 10) s -= 10;
+            else if (temp > 30) s -= 45; else if (temp > 26) s -= 28;
+            else if (temp > 22) s -= 15; else if (temp > 18) s -= 5;
+            if      (hum > 85) s -= 28; else if (hum > 75) s -= 18; else if (hum > 65) s -= 8;
+            if      (wind > 35) s -= 18; else if (wind > 25) s -= 10; else if (wind > 15) s -= 5;
+            if      (uv >= 8) s -= 18; else if (uv >= 6) s -= 8;
+            if      (aqi > 80) s -= 30; else if (aqi > 60) s -= 20; else if (aqi > 40) s -= 10; else if (aqi > 20) s -= 4;
+            var isRain    = (wmo >= 51 && wmo <= 67) || (wmo >= 80 && wmo <= 82);
+            var isThunder = wmo >= 95;
+            var isSnow    = wmo >= 71 && wmo <= 77;
+            if      (isThunder) s -= 60;
+            else if (isRain)    s -= 30;
+            else if (isSnow)    s -= 20;
+            return Math.max(0, Math.min(100, Math.round(s)));
+        }
+
+        function _sportLevel(score) {
+            if (score >= 80) return { label:'Excelente', color:'#16a34a', bg:'#f0fdf4' };
+            if (score >= 60) return { label:'Buena',     color:'#84cc16', bg:'#f7fee7' };
+            if (score >= 40) return { label:'Regular',   color:'#f59e0b', bg:'#fffbeb' };
+            if (score >= 20) return { label:'Precaución',color:'#f97316', bg:'#fff7ed' };
+            return { label:'Mala', color:'#ef4444', bg:'#fef2f2' };
+        }
+
+        function updateSportSection(current, hourly, aq) {
+            var wrap = document.getElementById('sport-section-cards');
+            if (!wrap || !current) return;
+
+            var aqi = aq?.european_aqi ?? aq?.us_aqi ?? 0;
+            var now = new Date();
+
+            function findHourlyIdx(targetDate) {
+                if (!hourly?.time) return -1;
+                var ts = targetDate.getFullYear() + '-' + String(targetDate.getMonth()+1).padStart(2,'0') + '-' +
+                         String(targetDate.getDate()).padStart(2,'0') + 'T' + String(targetDate.getHours()).padStart(2,'0');
+                for (var i = 0; i < hourly.time.length; i++) {
+                    if (hourly.time[i].startsWith(ts)) return i;
+                }
+                return -1;
+            }
+
+            var points = [
+                { label: String(now.getHours()), offset: 0 },
+                { label: String((now.getHours()+1) % 24), offset: 1 },
+                { label: String((now.getHours()+2) % 24), offset: 2 },
+                { label: String((now.getHours()+3) % 24), offset: 3 }
+            ];
+
+            var cardsHTML = points.map(function(p) {
+                var temp, hum, wind, uv, wmo;
+                if (p.offset === 0) {
+                    temp = current.temperature_2m ?? 20;
+                    hum  = current.relative_humidity_2m ?? 50;
+                    wind = current.wind_speed_10m ?? 0;
+                    wmo  = current.weather_code ?? 0;
+                    var idxNow = findHourlyIdx(now);
+                    uv = idxNow !== -1 ? (hourly?.uv_index?.[idxNow] ?? 0) : 0;
+                } else {
+                    var future = new Date(now.getTime() + p.offset * 3600000);
+                    var idx = findHourlyIdx(future);
+                    if (idx === -1) {
+                        temp = current.temperature_2m ?? 20;
+                        hum  = current.relative_humidity_2m ?? 50;
+                        wind = current.wind_speed_10m ?? 0;
+                        wmo  = current.weather_code ?? 0;
+                        uv   = 0;
+                    } else {
+                        temp = hourly.temperature_2m?.[idx] ?? 20;
+                        hum  = hourly.relative_humidity_2m?.[idx] ?? 50;
+                        wind = hourly.wind_speed_10m?.[idx] ?? 0;
+                        wmo  = hourly.weather_code?.[idx] ?? 0;
+                        uv   = hourly.uv_index?.[idx] ?? 0;
+                    }
+                }
+                var score = _sportScoreAt(temp, hum, wind, uv, aqi, wmo);
+                var lvl = _sportLevel(score);
+
+                return '<div style="flex:1;min-width:0;text-align:center;background:transparent;border-radius:10px;padding:12px 4px;">' +
+                    '<div style="font-size:9px;font-weight:700;color:#123653;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;opacity:0.75;">' + p.label + 'h</div>' +
+                    '<div style="width:20px;height:20px;border-radius:50%;background:' + lvl.color + ';box-shadow:0 0 8px ' + lvl.color + '80, inset 0 2px 3px rgba(255,255,255,0.35);margin:0 auto 8px auto;"></div>' +
+                    '<div style="font-size:9.5px;font-weight:700;color:#123653;text-transform:uppercase;line-height:1.2;">' + lvl.label + '</div>' +
+                '</div>';
+            }).join('');
+
+            wrap.innerHTML = cardsHTML;
         }
 
         function updateRunningIndex(current, hourly, daily, aq) {
