@@ -949,6 +949,33 @@
                         <div id="sport-section-cards" style="display:flex;gap:8px;padding:0 2px;">
                             <div style="flex:1;text-align:center;padding:14px 6px;color:#94a3b8;font-size:11px;">Cargando…</div>
                         </div>
+                        <div style="text-align:center;margin-top:14px;">
+                            <button id="sport-expand-btn" onclick="toggleSportDetails()" style="font-size:9px;font-weight:700;color:#123653;background:#ffffff;border:1px solid rgba(44,74,110,0.25);border-radius:6px;padding:5px 10px;cursor:pointer;letter-spacing:0.5px;text-transform:uppercase;transition:all 0.2s;">Detalles ↓</button>
+                        </div>
+                        <div id="sport-details-panel" style="display:none;margin-top:14px;padding:0 24px;">
+                            <div style="display:flex;flex-direction:column;gap:8px;">
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#16a34a;box-shadow:0 0 6px rgba(22,163,74,0.5);flex-shrink:0;"></span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;">Aconsejable — condiciones buenas para hacer deporte sin restricciones.</span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#84cc16;box-shadow:0 0 6px rgba(132,204,22,0.5);flex-shrink:0;"></span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;">Bastante aconsejable — buen momento, con alguna pequeña salvedad.</span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#f59e0b;box-shadow:0 0 6px rgba(245,158,11,0.5);flex-shrink:0;"></span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;">Con precaución — practicable, pero modera intensidad y duración.</span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#f97316;box-shadow:0 0 6px rgba(249,115,22,0.5);flex-shrink:0;"></span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;">Poco aconsejable — mejor reducir el esfuerzo o buscar otro momento.</span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,0.5);flex-shrink:0;"></span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;">Desaconsejable — evita el deporte al aire libre en esta franja.</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div id="paraguas-chart-wrap-days" style="width:calc(100% + (2 * var(--gutter)));margin:20px calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));background:#ffffff;padding:14px 0;border-top:1px solid rgba(28,79,120,0.3);border-bottom:1px solid rgba(28,79,120,0.3);">
@@ -4394,6 +4421,21 @@
             btn.textContent = isOpen ? '+ INFORMACIÓN' : '− INFORMACIÓN';
         }
 
+        function toggleSportDetails() {
+            const panel = document.getElementById('sport-details-panel');
+            const btn   = document.getElementById('sport-expand-btn');
+            if (!panel) return;
+            const isOpen = panel.style.display !== 'none';
+            if (isOpen) {
+                panel.style.display = 'none';
+                if (btn) btn.textContent = 'Detalles ↓';
+            } else {
+                panel.style.display = 'block';
+                if (btn) btn.textContent = 'Ocultar ↑';
+                requestAnimationFrame(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+            }
+        }
+
         function toggleAqiExpanded() {
             const panel = document.getElementById('aqi-expanded-panel');
             const btn   = document.getElementById('aqi-expand-btn');
@@ -6341,9 +6383,9 @@
                 }
                 var score = _sportScoreAt(temp, hum, wind, uv, aqi, wmo);
                 var lvl = _sportLevel(score);
-                return '<div style="flex:1;min-width:0;text-align:center;background:' + lvl.bg + ';border-radius:10px;padding:10px 4px;">' +
-                    '<div style="font-size:9px;font-weight:700;color:#123653;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;opacity:0.75;">' + p.label + '</div>' +
-                    '<div style="font-size:19px;font-weight:900;color:' + lvl.color + ';line-height:1;margin-bottom:4px;">' + score + '</div>' +
+                return '<div style="flex:1;min-width:0;text-align:center;background:' + lvl.bg + ';border-radius:10px;padding:12px 4px;">' +
+                    '<div style="font-size:9px;font-weight:700;color:#123653;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;opacity:0.75;">' + p.label + '</div>' +
+                    '<div style="width:20px;height:20px;border-radius:50%;background:' + lvl.color + ';box-shadow:0 0 8px ' + lvl.color + '80, inset 0 2px 3px rgba(255,255,255,0.35);margin:0 auto 8px auto;"></div>' +
                     '<div style="font-size:9.5px;font-weight:700;color:' + lvl.color + ';line-height:1.2;">' + lvl.label + '</div>' +
                 '</div>';
             }).join('');
