@@ -957,23 +957,23 @@
                             <div style="display:flex;flex-direction:column;gap:8px;">
                                 <div style="display:flex;align-items:center;gap:10px;">
                                     <span style="width:14px;height:14px;border-radius:50%;background:#16a34a;box-shadow:0 0 6px rgba(22,163,74,0.5);flex-shrink:0;"></span>
-                                    <span style="font-size:11px;color:#123653;line-height:1.4;">Aconsejable — condiciones buenas para hacer deporte sin restricciones.</span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Excelente</span> — Condiciones ideales.</span>
                                 </div>
                                 <div style="display:flex;align-items:center;gap:10px;">
                                     <span style="width:14px;height:14px;border-radius:50%;background:#84cc16;box-shadow:0 0 6px rgba(132,204,22,0.5);flex-shrink:0;"></span>
-                                    <span style="font-size:11px;color:#123653;line-height:1.4;">Bastante aconsejable — buen momento, con alguna pequeña salvedad.</span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Buena</span> — Buen momento para salir.</span>
                                 </div>
                                 <div style="display:flex;align-items:center;gap:10px;">
                                     <span style="width:14px;height:14px;border-radius:50%;background:#f59e0b;box-shadow:0 0 6px rgba(245,158,11,0.5);flex-shrink:0;"></span>
-                                    <span style="font-size:11px;color:#123653;line-height:1.4;">Con precaución — practicable, pero modera intensidad y duración.</span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Regular</span> — No es la hora perfecta, pero se puede entrenar.</span>
                                 </div>
                                 <div style="display:flex;align-items:center;gap:10px;">
                                     <span style="width:14px;height:14px;border-radius:50%;background:#f97316;box-shadow:0 0 6px rgba(249,115,22,0.5);flex-shrink:0;"></span>
-                                    <span style="font-size:11px;color:#123653;line-height:1.4;">Poco aconsejable — mejor reducir el esfuerzo o buscar otro momento.</span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Precaución</span> — Factores adversos. Adapta tu ritmo y ruta.</span>
                                 </div>
                                 <div style="display:flex;align-items:center;gap:10px;">
                                     <span style="width:14px;height:14px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,0.5);flex-shrink:0;"></span>
-                                    <span style="font-size:11px;color:#123653;line-height:1.4;">Desaconsejable — evita el deporte al aire libre en esta franja.</span>
+                                    <span style="font-size:11px;color:#123653;line-height:1.4;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Mala</span> — Mejor entrena en interiores.</span>
                                 </div>
                             </div>
                         </div>
@@ -6325,11 +6325,11 @@
         }
 
         function _sportLevel(score) {
-            if (score >= 80) return { label:'Aconsejable',       color:'#16a34a', bg:'#f0fdf4' };
-            if (score >= 60) return { label:'Bastante aconsejable', color:'#84cc16', bg:'#f7fee7' };
-            if (score >= 40) return { label:'Con precaución',    color:'#f59e0b', bg:'#fffbeb' };
-            if (score >= 20) return { label:'Poco aconsejable',  color:'#f97316', bg:'#fff7ed' };
-            return { label:'Desaconsejable', color:'#ef4444', bg:'#fef2f2' };
+            if (score >= 80) return { label:'Excelente', color:'#16a34a', bg:'#f0fdf4' };
+            if (score >= 60) return { label:'Buena',     color:'#84cc16', bg:'#f7fee7' };
+            if (score >= 40) return { label:'Regular',   color:'#f59e0b', bg:'#fffbeb' };
+            if (score >= 20) return { label:'Precaución',color:'#f97316', bg:'#fff7ed' };
+            return { label:'Mala', color:'#ef4444', bg:'#fef2f2' };
         }
 
         function updateSportSection(current, hourly, aq) {
@@ -6388,7 +6388,7 @@
                 return '<div style="flex:1;min-width:0;text-align:center;background:#ffffff;border-radius:10px;padding:12px 4px;">' +
                     '<div style="font-size:9px;font-weight:700;color:#123653;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;opacity:0.75;">' + p.label + 'h</div>' +
                     '<div style="width:20px;height:20px;border-radius:50%;background:' + lvl.color + ';box-shadow:0 0 8px ' + lvl.color + '80, inset 0 2px 3px rgba(255,255,255,0.35);margin:0 auto 8px auto;"></div>' +
-                    '<div style="font-size:9.5px;font-weight:700;color:' + lvl.color + ';line-height:1.2;">' + lvl.label + '</div>' +
+                    '<div style="font-size:9.5px;font-weight:700;color:#123653;text-transform:uppercase;line-height:1.2;">' + lvl.label + '</div>' +
                 '</div>';
             }).join('');
 
@@ -6421,7 +6421,7 @@
             if (bestEl) {
                 if (bestHour) {
                     bestEl.style.display = 'block';
-                    bestEl.innerHTML = 'Mejor momento: <span style="color:' + bestHour.lvl.color + ';font-weight:700;">' + bestHour.label + 'h — ' + bestHour.lvl.label + '</span>';
+                    bestEl.innerHTML = 'Mejor hora del día: <span style="color:#123653;font-weight:700;">' + bestHour.label + 'h — ' + bestHour.lvl.label + '</span>';
                 } else {
                     bestEl.style.display = 'none';
                     bestEl.innerHTML = '';
