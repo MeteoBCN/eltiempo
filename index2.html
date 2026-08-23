@@ -5437,54 +5437,62 @@
             });
 
             // ══════════════════════════════════════════════
-            // Zona viento previsto + rachas máximas (km/h) — mapa de calor
+            // Zona viento previsto + rachas máximas (km/h) — dos líneas
             // ══════════════════════════════════════════════
             const windVals = rows.map(r => r.wind);
             const gustVals = rows.map(r => r.gusts);
+            const windHeadroom = 30; // deja aire entre el pico de línea/etiqueta y el título "VIENTO"
             const wMax = Math.max(...windVals, ...gustVals, 10) + 5;
+            const yWind = v => windTop + windH - (v / wMax) * (windH - windHeadroom);
 
-            // Título
+            // Título + leyenda (velocidad continua / rachas discontinua)
             ctx.textAlign = 'left'; ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
             ctx.fillText('VIENTO PREVISTO · RACHAS MÁXIMAS (km/h)', PAD.l, windTop - 24);
 
-            // Escala de color: verde (calma) → amarillo → naranja → rojo (fuerte)
-            const windStops = [[150,210,140],[240,210,90],[235,140,80],[220,70,70]];
-            const windColor = v => {
-                const t = Math.max(0, Math.min(1, v / wMax));
-                const idx = t * (windStops.length - 1);
-                const i0 = Math.floor(idx), i1 = Math.min(windStops.length - 1, i0 + 1);
-                const f = idx - i0;
-                const lerp = (a, b) => Math.round(a + (b - a) * f);
-                const c0 = windStops[i0], c1 = windStops[i1];
-                return `rgb(${lerp(c0[0],c1[0])},${lerp(c0[1],c1[1])},${lerp(c0[2],c1[2])})`;
+            ctx.font = 'bold 9px Inter,sans-serif';
+            ctx.textAlign = 'left';
+            ctx.beginPath(); ctx.moveTo(PAD.l, windTop - 12); ctx.lineTo(PAD.l + 14, windTop - 12);
+            ctx.setLineDash([]); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.1; ctx.stroke();
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(' Viento', PAD.l + 14, windTop - 9);
+            ctx.beginPath(); ctx.moveTo(PAD.l + 80, windTop - 12); ctx.lineTo(PAD.l + 94, windTop - 12);
+            ctx.strokeStyle = '#ffffff';
+            ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(' Rachas', PAD.l + 94, windTop - 9);
+
+            const drawWindLine = (vals, color, dashed) => {
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yWind(vals[0]));
+                for (let i = 1; i < n; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yWind(vals[i-1]), xc, yWind(vals[i]), xPos(i), yWind(vals[i]));
+                }
+                ctx.setLineDash(dashed ? [5, 4] : []);
+                ctx.strokeStyle = color; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.setLineDash([]);
             };
+            drawWindLine(gustVals, '#ffffff', true);
+            drawWindLine(windVals, '#ffffff', false);
 
-            const cellGap  = 4;
-            const cellW    = (cw - cellGap * (n - 1)) / n;
-            const rowGap   = 6;
-            const rowH     = (windH - rowGap) / 2;
+            windVals.forEach((v, i) => {
+                const x = xPos(i);
+                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
+                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                ctx.fillText(v, x, yWind(v) - 8);
+            });
+            gustVals.forEach((v, i) => {
+                const x = xPos(i);
+                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
+                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                ctx.fillText(v, x, yWind(v) - 8);
+            });
 
-            const drawWindRow = (vals, rowTop, label) => {
-                vals.forEach((v, i) => {
-                    const x = PAD.l + i * (cellW + cellGap);
-                    ctx.beginPath();
-                    if (ctx.roundRect) ctx.roundRect(x, rowTop, cellW, rowH, 5);
-                    else ctx.rect(x, rowTop, cellW, rowH);
-                    ctx.fillStyle = windColor(v);
-                    ctx.fill();
-
-                    ctx.textAlign = 'left'; ctx.font = 'bold 7px Inter,sans-serif';
-                    ctx.fillStyle = 'rgba(11,37,54,0.55)';
-                    ctx.fillText(label, x + 6, rowTop + 11);
-
-                    ctx.textAlign = 'center'; ctx.font = 'bold 12px Inter,sans-serif';
-                    ctx.fillStyle = '#0b2536';
-                    ctx.fillText(v, x + cellW / 2, rowTop + rowH / 2 + 10);
-                });
-            };
-            drawWindRow(windVals, windTop, 'VIENTO');
-            drawWindRow(gustVals, windTop + rowH + rowGap, 'RACHAS');
+            // Línea base
+            ctx.beginPath();
+            ctx.moveTo(PAD.l, windBottom); ctx.lineTo(PAD.l + cw, windBottom);
+            ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
 
             // Fila de días bajo el viento
             ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
