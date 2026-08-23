@@ -5374,6 +5374,22 @@
             ctx.fillText(' Mín', PAD.l + 74, PAD.t - 12);
         }
 
+        // Título de dos pesos tipo "METEOFLASH": parte fina (300) + parte en negrita (900),
+        // mismo tamaño/estilo que los títulos "METEOFLASH" / "Próximas HORAS" del HTML.
+        function _f7DrawSplitTitle(ctx, thinText, boldText, centerX, y, size) {
+            const thinFont = '300 ' + size + 'px Inter,sans-serif';
+            const boldFont = '900 ' + size + 'px Inter,sans-serif';
+            ctx.font = thinFont;
+            const wThin = ctx.measureText(thinText).width;
+            ctx.font = boldFont;
+            const wBold = ctx.measureText(boldText).width;
+            let x = centerX - (wThin + wBold) / 2;
+            ctx.textAlign = 'left'; ctx.fillStyle = '#ffffff';
+            ctx.font = thinFont; ctx.fillText(thinText, x, y);
+            x += wThin;
+            ctx.font = boldFont; ctx.fillText(boldText, x, y);
+        }
+
         // ── Canvas inferior: niveles 850hPa/500hPa (atmósfera libre) / cota de isocero ──
         function drawF7ChartBottom() {
             const levels = window._f7LevelData || [];
@@ -5497,6 +5513,9 @@
                     });
                 }
 
+                // Título grande estilo METEOFLASH: "7" fino + "DÍAS" en negrita
+                _f7DrawSplitTitle(ctx, '7', 'DÍAS', PAD.l + cw / 2, levelsTop - 95, 20);
+
                 // Título de sección "ATMÓSFERA LIBRE" (con espacio respecto a la fila de días de arriba)
                 ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.9)';
@@ -5530,7 +5549,8 @@
                 const cotaV = levels.map(l => l.cota);
                 const cMin = Math.min(...cotaV, 0);
                 const cMax = Math.max(...cotaV, 500);
-                const yIso = v => isoTop + isoH - ((v - cMin) / (cMax - cMin || 1)) * isoH;
+                const isoHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "COTA DE ISOCERO"
+                const yIso = v => isoTop + isoH - ((v - cMin) / (cMax - cMin || 1)) * (isoH - isoHeadroom);
 
                 // Área bajo la línea
                 ctx.beginPath();
@@ -5584,7 +5604,11 @@
                 const capeMaxScale = Math.max(...capeVS, 500);
                 const liMinV = Math.min(...liVS, -2);
                 const liMaxV = Math.max(...liVS, 2);
-                const yLi = v => liTop + liH - ((v - liMinV) / (liMaxV - liMinV || 1)) * liH;
+                const liHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "LIFTED INDEX"
+                const yLi = v => liTop + liH - ((v - liMinV) / (liMaxV - liMinV || 1)) * (liH - liHeadroom);
+
+                // Título grande estilo METEOFLASH: "3" fino + "DÍAS" en negrita
+                _f7DrawSplitTitle(ctx, '3', 'DÍAS', PAD.l + cw / 2, capeTop - 84, 20);
 
                 // Título general de la sección
                 ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
@@ -5594,12 +5618,13 @@
                 // ── Sub-zona CAPE: barras con color según intensidad ──
                 ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText('CAPE (J/kg)', PAD.l, capeTop - 8);
+                ctx.fillText('CAPE (J/kg)', PAD.l, capeTop - 12);
 
                 const capeBarW = cw / sN * 0.5;
+                const capeHeadroom = 16; // deja aire entre el pico de barra/etiqueta y el título "CAPE (J/kg)"
                 stormRows.forEach((r, j) => {
                     const v = r.cape;
-                    const barH = Math.max((v / capeMaxScale) * capeH, v > 0 ? 2 : 0);
+                    const barH = Math.max((v / capeMaxScale) * (capeH - capeHeadroom), v > 0 ? 2 : 0);
                     const x = xPosStorm(j) - capeBarW / 2;
                     // Colores tenues: naranja (igual tono que 850hPa) / amarillo / verde
                     const color = v >= 1500 ? 'rgba(255,138,101,0.72)' : v >= 500 ? 'rgba(250,204,21,0.65)' : 'rgba(52,211,153,0.55)';
@@ -5625,7 +5650,7 @@
                 // ── Sub-zona Lifted Index: línea (negativo = inestable) ──
                 ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText('LIFTED INDEX (°C)', PAD.l, liTop - 8);
+                ctx.fillText('LIFTED INDEX (°C)', PAD.l, liTop - 12);
 
                 // Línea guía en 0 (referencia estable/inestable)
                 if (liMinV < 0 && liMaxV > 0) {
