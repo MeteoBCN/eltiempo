@@ -5194,7 +5194,23 @@
             const accH       = 80;   // alto zona precipitación acumulada
             const accTop     = rainBottom + accGap;
             const accBottom  = accTop + accH;
-            const dayLabelY  = accBottom + 14;
+            const accDayLabelY = accBottom + 14;
+
+            // ── Zona presión a nivel del mar (hPa) ──
+            const gapPres    = 90;   // separación tras fila de días de precipitación → título "PRESIÓN"
+            const presH      = 90;   // alto zona presión
+            const presTop    = accDayLabelY + gapPres;
+            const presBottom = presTop + presH;
+            const presDayLabelY = presBottom + 14;
+
+            // ── Zona viento previsto + rachas máximas (km/h) ──
+            const gapWind    = 90;   // separación tras fila de días de presión → título "VIENTO"
+            const windH      = 90;   // alto zona viento
+            const windTop    = presDayLabelY + gapWind;
+            const windBottom = windTop + windH;
+            const windDayLabelY = windBottom + 14;
+
+            const dayLabelY  = windDayLabelY;
 
             // Altura del canvas calculada a partir de las zonas anteriores (se ajusta
             // sola si se añade, quita o redimensiona alguna zona/separación)
@@ -5353,7 +5369,129 @@
             ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
             rows.forEach((r, i) => {
                 const lbl = r.isToday ? 'HOY' : r.dayName;
-                ctx.fillText(lbl, xPos(i), accBottom + 14);
+                ctx.fillText(lbl, xPos(i), accDayLabelY);
+            });
+
+            // ══════════════════════════════════════════════
+            // Zona presión a nivel del mar (hPa) — área + línea
+            // ══════════════════════════════════════════════
+            const presVals = rows.map(r => r.pres);
+            const presHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "PRESIÓN"
+            const pMin = Math.floor(Math.min(...presVals)) - 1;
+            const pMax = Math.ceil(Math.max(...presVals)) + 1;
+            const yPres = v => presTop + presH - ((v - pMin) / (pMax - pMin || 1)) * (presH - presHeadroom);
+
+            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            ctx.fillText('PRESIÓN A NIVEL DEL MAR (hPa)', PAD.l, presTop - 10);
+
+            // Área
+            ctx.beginPath();
+            ctx.moveTo(xPos(0), yPres(presVals[0]));
+            for (let i = 1; i < n; i++) {
+                const xc = (xPos(i-1) + xPos(i)) / 2;
+                ctx.bezierCurveTo(xc, yPres(presVals[i-1]), xc, yPres(presVals[i]), xPos(i), yPres(presVals[i]));
+            }
+            ctx.lineTo(xPos(n-1), presBottom);
+            ctx.lineTo(xPos(0), presBottom);
+            ctx.closePath();
+            const gPres = ctx.createLinearGradient(0, presTop, 0, presBottom);
+            gPres.addColorStop(0, 'rgba(167,139,250,0.35)');
+            gPres.addColorStop(1, 'rgba(167,139,250,0)');
+            ctx.fillStyle = gPres; ctx.fill();
+
+            // Línea
+            ctx.beginPath();
+            ctx.moveTo(xPos(0), yPres(presVals[0]));
+            for (let i = 1; i < n; i++) {
+                const xc = (xPos(i-1) + xPos(i)) / 2;
+                ctx.bezierCurveTo(xc, yPres(presVals[i-1]), xc, yPres(presVals[i]), xPos(i), yPres(presVals[i]));
+            }
+            ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+
+            // Puntos + etiquetas
+            presVals.forEach((v, i) => {
+                const x = xPos(i), y = yPres(v);
+                ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fillStyle = '#a78bfa'; ctx.fill();
+                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                ctx.fillText(v, x, y - 8);
+            });
+
+            // Línea base
+            ctx.beginPath();
+            ctx.moveTo(PAD.l, presBottom); ctx.lineTo(PAD.l + cw, presBottom);
+            ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+
+            // Fila de días bajo la presión
+            ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+            rows.forEach((r, i) => {
+                const lbl = r.isToday ? 'HOY' : r.dayName;
+                ctx.fillText(lbl, xPos(i), presDayLabelY);
+            });
+
+            // ══════════════════════════════════════════════
+            // Zona viento previsto + rachas máximas (km/h) — dos líneas
+            // ══════════════════════════════════════════════
+            const windVals = rows.map(r => r.wind);
+            const gustVals = rows.map(r => r.gusts);
+            const windHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "VIENTO"
+            const wMax = Math.max(...windVals, ...gustVals, 10) + 5;
+            const yWind = v => windTop + windH - (v / wMax) * (windH - windHeadroom);
+
+            // Título + leyenda (velocidad continua / rachas discontinua)
+            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            ctx.fillText('VIENTO PREVISTO · RACHAS MÁXIMAS (KM/H)', PAD.l, windTop - 24);
+
+            ctx.font = 'bold 9px Inter,sans-serif';
+            ctx.textAlign = 'left';
+            ctx.beginPath(); ctx.moveTo(PAD.l, windTop - 12); ctx.lineTo(PAD.l + 14, windTop - 12);
+            ctx.setLineDash([]); ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillText(' Viento', PAD.l + 14, windTop - 9);
+            ctx.beginPath(); ctx.moveTo(PAD.l + 80, windTop - 12); ctx.lineTo(PAD.l + 94, windTop - 12);
+            ctx.strokeStyle = '#fb923c';
+            ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+            ctx.fillStyle = '#fb923c';
+            ctx.fillText(' Rachas', PAD.l + 94, windTop - 9);
+
+            const drawWindLine = (vals, color, dashed) => {
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yWind(vals[0]));
+                for (let i = 1; i < n; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yWind(vals[i-1]), xc, yWind(vals[i]), xPos(i), yWind(vals[i]));
+                }
+                ctx.setLineDash(dashed ? [5, 4] : []);
+                ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.setLineDash([]);
+            };
+            drawWindLine(gustVals, '#fb923c', true);
+            drawWindLine(windVals, '#38bdf8', false);
+
+            windVals.forEach((v, i) => {
+                const x = xPos(i);
+                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#38bdf8'; ctx.fill();
+                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#38bdf8';
+                ctx.fillText(v, x, yWind(v) - 8);
+            });
+            gustVals.forEach((v, i) => {
+                const x = xPos(i);
+                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#fb923c'; ctx.fill();
+                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#fb923c';
+                ctx.fillText(v, x, yWind(v) - 8);
+            });
+
+            // Línea base
+            ctx.beginPath();
+            ctx.moveTo(PAD.l, windBottom); ctx.lineTo(PAD.l + cw, windBottom);
+            ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+
+            // Fila de días bajo el viento
+            ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+            rows.forEach((r, i) => {
+                const lbl = r.isToday ? 'HOY' : r.dayName;
+                ctx.fillText(lbl, xPos(i), windDayLabelY);
             });
 
             // Título + leyenda de temperatura (línea continua = máx, discontinua = mín)
