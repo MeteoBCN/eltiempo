@@ -4638,7 +4638,7 @@
             const out = [];
             days.forEach(day => {
                 const ds = day.dateStr;
-                [['AM', 0, 12, 'Mañana'], ['PM', 12, 24, 'Tarde']].forEach(([period, hStart, hEnd, periodLabel]) => {
+                [['AM', 0, 12, '00-12'], ['PM', 12, 24, '12-24']].forEach(([period, hStart, hEnd, periodLabel]) => {
                     const capeV = _f7HalfDayAgg(hourly, 'cape', ds, hStart, hEnd, arr => Math.max(...arr));
                     const liV   = _f7HalfDayAgg(hourly, 'lifted_index', ds, hStart, hEnd, arr => Math.min(...arr));
                     const ppV   = _f7HalfDayAgg(hourly, 'precipitation_probability', ds, hStart, hEnd, arr => Math.max(...arr));
@@ -5642,12 +5642,12 @@
                 stormRows.forEach((r, j) => {
                     const x = xPosStorm(j), y = yLi(r.li);
                     ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
-                    ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                     ctx.fillText(r.li, x, y - 7);
                 });
 
-                // Etiquetas Mañana/Tarde de esta franja
-                ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                // Etiquetas 00-12/12-24 de esta franja
+                ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 stormRows.forEach((r, j) => { ctx.fillText(r.periodLabel, xPosStorm(j), liBottom + 24); });
 
                 // Fila de días (una etiqueta por día, centrada entre su punto de mañana y de tarde)
@@ -5683,7 +5683,7 @@
                         ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#FFFFFF'; ctx.textAlign = 'center';
                         ctx.fillText('⚠', x, yDot + 3.5);
                     }
-                    ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                     ctx.fillText(r.periodLabel, x, yDot + 24);
                     ctx.font = 'bold 7px Inter,sans-serif'; ctx.fillStyle = risk.color;
                     ctx.fillText(risk.level, x, yDot + 35);
