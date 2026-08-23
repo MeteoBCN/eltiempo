@@ -5196,10 +5196,17 @@
             const accBottom  = accTop + accH;
             const accDayLabelY = accBottom + 14;
 
+            // ── Zona humedad relativa máxima/mínima (%) ──
+            const gapHum     = 90;   // separación tras fila de días de precipitación → título "HUMEDAD"
+            const humH       = 90;   // alto zona humedad
+            const humTop     = accDayLabelY + gapHum;
+            const humBottom  = humTop + humH;
+            const humDayLabelY = humBottom + 14;
+
             // ── Zona presión a nivel del mar (hPa) ──
-            const gapPres    = 90;   // separación tras fila de días de precipitación → título "PRESIÓN"
+            const gapPres    = 90;   // separación tras fila de días de humedad → título "PRESIÓN"
             const presH      = 90;   // alto zona presión
-            const presTop    = accDayLabelY + gapPres;
+            const presTop    = humDayLabelY + gapPres;
             const presBottom = presTop + presH;
             const presDayLabelY = presBottom + 14;
 
@@ -5210,14 +5217,7 @@
             const windBottom = windTop + windH;
             const windDayLabelY = windBottom + 14;
 
-            // ── Zona humedad relativa máxima/mínima (%) ──
-            const gapHum     = 90;   // separación tras fila de días de viento → título "HUMEDAD"
-            const humH       = 90;   // alto zona humedad
-            const humTop     = windDayLabelY + gapHum;
-            const humBottom  = humTop + humH;
-            const humDayLabelY = humBottom + 14;
-
-            const dayLabelY  = humDayLabelY;
+            const dayLabelY  = windDayLabelY;
 
             // Altura del canvas calculada a partir de las zonas anteriores (se ajusta
             // sola si se añade, quita o redimensiona alguna zona/separación)
@@ -5453,13 +5453,13 @@
             ctx.font = 'bold 9px Inter,sans-serif';
             ctx.textAlign = 'left';
             ctx.beginPath(); ctx.moveTo(PAD.l, windTop - 12); ctx.lineTo(PAD.l + 14, windTop - 12);
-            ctx.setLineDash([]); ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.stroke();
-            ctx.fillStyle = '#38bdf8';
+            ctx.setLineDash([]); ctx.strokeStyle = '#86efac'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.fillStyle = '#86efac';
             ctx.fillText(' Viento', PAD.l + 14, windTop - 9);
             ctx.beginPath(); ctx.moveTo(PAD.l + 80, windTop - 12); ctx.lineTo(PAD.l + 94, windTop - 12);
-            ctx.strokeStyle = '#fb923c';
+            ctx.strokeStyle = '#86efac';
             ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
-            ctx.fillStyle = '#fb923c';
+            ctx.fillStyle = '#86efac';
             ctx.fillText(' Rachas', PAD.l + 94, windTop - 9);
 
             const drawWindLine = (vals, color, dashed) => {
@@ -5473,19 +5473,19 @@
                 ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
                 ctx.setLineDash([]);
             };
-            drawWindLine(gustVals, '#fb923c', true);
-            drawWindLine(windVals, '#38bdf8', false);
+            drawWindLine(gustVals, '#86efac', true);
+            drawWindLine(windVals, '#86efac', false);
 
             windVals.forEach((v, i) => {
                 const x = xPos(i);
-                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#38bdf8'; ctx.fill();
-                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#38bdf8';
+                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#86efac'; ctx.fill();
+                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#86efac';
                 ctx.fillText(v, x, yWind(v) - 8);
             });
             gustVals.forEach((v, i) => {
                 const x = xPos(i);
-                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#fb923c'; ctx.fill();
-                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#fb923c';
+                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#86efac'; ctx.fill();
+                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#86efac';
                 ctx.fillText(v, x, yWind(v) - 8);
             });
 
