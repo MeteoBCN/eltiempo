@@ -5376,14 +5376,14 @@
 
         // Título de dos pesos tipo "METEOFLASH": parte fina (300) + parte en negrita (900),
         // mismo tamaño/estilo que los títulos "METEOFLASH" / "Próximas HORAS" del HTML.
-        function _f7DrawSplitTitle(ctx, thinText, boldText, centerX, y, size) {
+        function _f7DrawSplitTitle(ctx, thinText, boldText, x0, y, size, align) {
             const thinFont = '300 ' + size + 'px Inter,sans-serif';
             const boldFont = '900 ' + size + 'px Inter,sans-serif';
             ctx.font = thinFont;
             const wThin = ctx.measureText(thinText).width;
             ctx.font = boldFont;
             const wBold = ctx.measureText(boldText).width;
-            let x = centerX - (wThin + wBold) / 2;
+            let x = (align === 'left') ? x0 : x0 - (wThin + wBold) / 2;
             ctx.textAlign = 'left'; ctx.fillStyle = '#ffffff';
             ctx.font = thinFont; ctx.fillText(thinText, x, y);
             x += wThin;
@@ -5513,8 +5513,8 @@
                     });
                 }
 
-                // Título grande estilo METEOFLASH: "7" fino + "DÍAS" en negrita
-                _f7DrawSplitTitle(ctx, '7', 'DÍAS', PAD.l + cw / 2, levelsTop - 95, 20);
+                // Título grande estilo METEOFLASH: "7" fino + "DÍAS" en negrita (alineado a la izquierda)
+                _f7DrawSplitTitle(ctx, '7', 'DÍAS', PAD.l, levelsTop - 95, 20, 'left');
 
                 // Título de sección "ATMÓSFERA LIBRE" (con espacio respecto a la fila de días de arriba)
                 ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
@@ -5607,8 +5607,8 @@
                 const liHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "LIFTED INDEX"
                 const yLi = v => liTop + liH - ((v - liMinV) / (liMaxV - liMinV || 1)) * (liH - liHeadroom);
 
-                // Título grande estilo METEOFLASH: "3" fino + "DÍAS" en negrita
-                _f7DrawSplitTitle(ctx, '3', 'DÍAS', PAD.l + cw / 2, capeTop - 84, 20);
+                // Título grande estilo METEOFLASH: "3" fino + "DÍAS" en negrita (alineado a la izquierda)
+                _f7DrawSplitTitle(ctx, '3', 'DÍAS', PAD.l, capeTop - 84, 20, 'left');
 
                 // Título general de la sección
                 ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
