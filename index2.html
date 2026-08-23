@@ -5276,7 +5276,7 @@
                     ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xPos(i), yTemp(vals[i]));
                 }
                 ctx.setLineDash(dashed ? [5, 4] : []);
-                ctx.strokeStyle = color; ctx.lineWidth = 1.7; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.strokeStyle = color; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
                 ctx.setLineDash([]);
                 vals.forEach((v, i) => {
                     ctx.beginPath(); ctx.arc(xPos(i), yTemp(v), 3.5, 0, Math.PI*2);
@@ -5297,7 +5297,7 @@
             });
 
             // ── Zona lluvia: título combinado + barras, ancladas abajo de su propia franja ──
-            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+            ctx.textAlign = 'left'; ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
             ctx.fillText('PROBABILIDAD DE LLUVIA · PRECIPITACIÓN ACUMULADA (MM)', PAD.l, rainTop - 6);
 
@@ -5357,7 +5357,7 @@
                 const xc = (xPos(i-1) + xPos(i)) / 2;
                 ctx.bezierCurveTo(xc, yAcc(precipVals[i-1]), xc, yAcc(precipVals[i]), xPos(i), yAcc(precipVals[i]));
             }
-            ctx.strokeStyle = '#8B5CF6'; ctx.lineWidth = 1.6; ctx.lineJoin = 'round'; ctx.stroke();
+            ctx.strokeStyle = '#8B5CF6'; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
 
             // Puntos + etiquetas
             precipVals.forEach((v, i) => {
@@ -5388,7 +5388,7 @@
             const pMax = Math.ceil(Math.max(...presVals)) + 1;
             const yPres = v => presTop + presH - ((v - pMin) / (pMax - pMin || 1)) * (presH - presHeadroom);
 
-            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+            ctx.textAlign = 'left'; ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
             ctx.fillText('PRESIÓN A NIVEL DEL MAR (hPa)', PAD.l, presTop - 10);
 
@@ -5414,7 +5414,7 @@
                 const xc = (xPos(i-1) + xPos(i)) / 2;
                 ctx.bezierCurveTo(xc, yPres(presVals[i-1]), xc, yPres(presVals[i]), xPos(i), yPres(presVals[i]));
             }
-            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.6; ctx.lineJoin = 'round'; ctx.stroke();
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
 
             // Puntos + etiquetas
             presVals.forEach((v, i) => {
@@ -5446,14 +5446,14 @@
             const yWind = v => windTop + windH - (v / wMax) * (windH - windHeadroom);
 
             // Título + leyenda (velocidad continua / rachas discontinua)
-            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+            ctx.textAlign = 'left'; ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
             ctx.fillText('VIENTO PREVISTO · RACHAS MÁXIMAS (KM/H)', PAD.l, windTop - 24);
 
             ctx.font = 'bold 9px Inter,sans-serif';
             ctx.textAlign = 'left';
             ctx.beginPath(); ctx.moveTo(PAD.l, windTop - 12); ctx.lineTo(PAD.l + 14, windTop - 12);
-            ctx.setLineDash([]); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.6; ctx.stroke();
+            ctx.setLineDash([]); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.1; ctx.stroke();
             ctx.fillStyle = '#ffffff';
             ctx.fillText(' Viento', PAD.l + 14, windTop - 9);
             ctx.beginPath(); ctx.moveTo(PAD.l + 80, windTop - 12); ctx.lineTo(PAD.l + 94, windTop - 12);
@@ -5470,7 +5470,7 @@
                     ctx.bezierCurveTo(xc, yWind(vals[i-1]), xc, yWind(vals[i]), xPos(i), yWind(vals[i]));
                 }
                 ctx.setLineDash(dashed ? [5, 4] : []);
-                ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.strokeStyle = color; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
                 ctx.setLineDash([]);
             };
             drawWindLine(gustVals, '#ffffff', true);
@@ -5513,14 +5513,14 @@
             const yHum = v => humTop + humH - ((v - hMin) / (hMax - hMin || 1)) * (humH - humHeadroom);
 
             // Título + leyenda (máxima continua / mínima discontinua)
-            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+            ctx.textAlign = 'left'; ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
             ctx.fillText('HUMEDAD RELATIVA (%)', PAD.l, humTop - 24);
 
             ctx.font = 'bold 9px Inter,sans-serif';
             ctx.textAlign = 'left';
             ctx.beginPath(); ctx.moveTo(PAD.l, humTop - 12); ctx.lineTo(PAD.l + 14, humTop - 12);
-            ctx.setLineDash([]); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.6; ctx.stroke();
+            ctx.setLineDash([]); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.1; ctx.stroke();
             ctx.fillStyle = '#ffffff';
             ctx.fillText(' Máx', PAD.l + 14, humTop - 9);
             ctx.beginPath(); ctx.moveTo(PAD.l + 60, humTop - 12); ctx.lineTo(PAD.l + 74, humTop - 12);
@@ -5537,7 +5537,7 @@
                     ctx.bezierCurveTo(xc, yHum(vals[i-1]), xc, yHum(vals[i]), xPos(i), yHum(vals[i]));
                 }
                 ctx.setLineDash(dashed ? [5, 4] : []);
-                ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.strokeStyle = color; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
                 ctx.setLineDash([]);
                 vals.forEach((v, i) => {
                     ctx.beginPath(); ctx.arc(xPos(i), yHum(v), 3, 0, Math.PI*2); ctx.fillStyle = color; ctx.fill();
@@ -5561,14 +5561,14 @@
             });
 
             // Título + leyenda de temperatura (línea continua = máx, discontinua = mín)
-            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+            ctx.textAlign = 'left'; ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
             ctx.fillText('TEMPERATURA', PAD.l, PAD.t - 30);
 
             ctx.font = 'bold 9px Inter,sans-serif';
             ctx.textAlign = 'left';
             ctx.beginPath(); ctx.moveTo(PAD.l, PAD.t - 15); ctx.lineTo(PAD.l + 14, PAD.t - 15);
-            ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 1.7; ctx.stroke();
+            ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 1.1; ctx.stroke();
             ctx.fillStyle = '#FF8A65';
             ctx.fillText(' Máx', PAD.l + 14, PAD.t - 12);
             ctx.beginPath(); ctx.moveTo(PAD.l + 60, PAD.t - 15); ctx.lineTo(PAD.l + 74, PAD.t - 15);
