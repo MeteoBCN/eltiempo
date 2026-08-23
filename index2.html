@@ -5210,7 +5210,14 @@
             const windBottom = windTop + windH;
             const windDayLabelY = windBottom + 14;
 
-            const dayLabelY  = windDayLabelY;
+            // ── Zona humedad relativa máxima/mínima (%) ──
+            const gapHum     = 90;   // separación tras fila de días de viento → título "HUMEDAD"
+            const humH       = 90;   // alto zona humedad
+            const humTop     = windDayLabelY + gapHum;
+            const humBottom  = humTop + humH;
+            const humDayLabelY = humBottom + 14;
+
+            const dayLabelY  = humDayLabelY;
 
             // Altura del canvas calculada a partir de las zonas anteriores (se ajusta
             // sola si se añade, quita o redimensiona alguna zona/separación)
@@ -5396,8 +5403,8 @@
             ctx.lineTo(xPos(0), presBottom);
             ctx.closePath();
             const gPres = ctx.createLinearGradient(0, presTop, 0, presBottom);
-            gPres.addColorStop(0, 'rgba(167,139,250,0.35)');
-            gPres.addColorStop(1, 'rgba(167,139,250,0)');
+            gPres.addColorStop(0, 'rgba(255,255,255,0.30)');
+            gPres.addColorStop(1, 'rgba(255,255,255,0)');
             ctx.fillStyle = gPres; ctx.fill();
 
             // Línea
@@ -5407,12 +5414,12 @@
                 const xc = (xPos(i-1) + xPos(i)) / 2;
                 ctx.bezierCurveTo(xc, yPres(presVals[i-1]), xc, yPres(presVals[i]), xPos(i), yPres(presVals[i]));
             }
-            ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
 
             // Puntos + etiquetas
             presVals.forEach((v, i) => {
                 const x = xPos(i), y = yPres(v);
-                ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fillStyle = '#a78bfa'; ctx.fill();
+                ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                 ctx.fillText(v, x, y - 8);
             });
@@ -5492,6 +5499,65 @@
             rows.forEach((r, i) => {
                 const lbl = r.isToday ? 'HOY' : r.dayName;
                 ctx.fillText(lbl, xPos(i), windDayLabelY);
+            });
+
+            // ══════════════════════════════════════════════
+            // Zona humedad relativa máxima/mínima (%) — dos líneas
+            // ══════════════════════════════════════════════
+            const humMaxVals = rows.map(r => r.humMax);
+            const humMinVals = rows.map(r => r.humMin);
+            const humHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "HUMEDAD"
+            const allHum = [...humMaxVals, ...humMinVals];
+            const hMin = Math.max(0, Math.floor(Math.min(...allHum)) - 5);
+            const hMax = Math.min(100, Math.ceil(Math.max(...allHum)) + 5);
+            const yHum = v => humTop + humH - ((v - hMin) / (hMax - hMin || 1)) * (humH - humHeadroom);
+
+            // Título + leyenda (máxima continua / mínima discontinua)
+            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            ctx.fillText('HUMEDAD RELATIVA (%)', PAD.l, humTop - 24);
+
+            ctx.font = 'bold 9px Inter,sans-serif';
+            ctx.textAlign = 'left';
+            ctx.beginPath(); ctx.moveTo(PAD.l, humTop - 12); ctx.lineTo(PAD.l + 14, humTop - 12);
+            ctx.setLineDash([]); ctx.strokeStyle = '#22d3ee'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.fillStyle = '#22d3ee';
+            ctx.fillText(' Máx', PAD.l + 14, humTop - 9);
+            ctx.beginPath(); ctx.moveTo(PAD.l + 60, humTop - 12); ctx.lineTo(PAD.l + 74, humTop - 12);
+            ctx.strokeStyle = '#a5f3fc';
+            ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+            ctx.fillStyle = '#a5f3fc';
+            ctx.fillText(' Mín', PAD.l + 74, humTop - 9);
+
+            const drawHumLine = (vals, color, dashed) => {
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yHum(vals[0]));
+                for (let i = 1; i < n; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yHum(vals[i-1]), xc, yHum(vals[i]), xPos(i), yHum(vals[i]));
+                }
+                ctx.setLineDash(dashed ? [5, 4] : []);
+                ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.setLineDash([]);
+                vals.forEach((v, i) => {
+                    ctx.beginPath(); ctx.arc(xPos(i), yHum(v), 3, 0, Math.PI*2); ctx.fillStyle = color; ctx.fill();
+                    ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = color;
+                    ctx.fillText(v + '%', xPos(i), yHum(v) - 8);
+                });
+            };
+            drawHumLine(humMaxVals, '#22d3ee', false);
+            drawHumLine(humMinVals, '#a5f3fc', true);
+
+            // Línea base
+            ctx.beginPath();
+            ctx.moveTo(PAD.l, humBottom); ctx.lineTo(PAD.l + cw, humBottom);
+            ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+
+            // Fila de días bajo la humedad
+            ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+            rows.forEach((r, i) => {
+                const lbl = r.isToday ? 'HOY' : r.dayName;
+                ctx.fillText(lbl, xPos(i), humDayLabelY);
             });
 
             // Título + leyenda de temperatura (línea continua = máx, discontinua = mín)
