@@ -5198,7 +5198,7 @@
 
             // ── Zona humedad relativa máxima/mínima (%) ──
             const gapHum     = 90;   // separación tras fila de días de precipitación → título "HUMEDAD"
-            const humH       = 90;   // alto zona humedad
+            const humH       = 130;  // alto zona humedad
             const humTop     = accDayLabelY + gapHum;
             const humBottom  = humTop + humH;
             const humDayLabelY = humBottom + 14;
@@ -5212,7 +5212,7 @@
 
             // ── Zona viento previsto + rachas máximas (km/h) ──
             const gapWind    = 90;   // separación tras fila de días de presión → título "VIENTO"
-            const windH      = 90;   // alto zona viento
+            const windH      = 130;  // alto zona viento
             const windTop    = presDayLabelY + gapWind;
             const windBottom = windTop + windH;
             const windDayLabelY = windBottom + 14;
@@ -5276,7 +5276,7 @@
                     ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xPos(i), yTemp(vals[i]));
                 }
                 ctx.setLineDash(dashed ? [5, 4] : []);
-                ctx.strokeStyle = color; ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.strokeStyle = color; ctx.lineWidth = 1.7; ctx.lineJoin = 'round'; ctx.stroke();
                 ctx.setLineDash([]);
                 vals.forEach((v, i) => {
                     ctx.beginPath(); ctx.arc(xPos(i), yTemp(v), 3.5, 0, Math.PI*2);
@@ -5357,7 +5357,7 @@
                 const xc = (xPos(i-1) + xPos(i)) / 2;
                 ctx.bezierCurveTo(xc, yAcc(precipVals[i-1]), xc, yAcc(precipVals[i]), xPos(i), yAcc(precipVals[i]));
             }
-            ctx.strokeStyle = '#8B5CF6'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+            ctx.strokeStyle = '#8B5CF6'; ctx.lineWidth = 1.6; ctx.lineJoin = 'round'; ctx.stroke();
 
             // Puntos + etiquetas
             precipVals.forEach((v, i) => {
@@ -5414,7 +5414,7 @@
                 const xc = (xPos(i-1) + xPos(i)) / 2;
                 ctx.bezierCurveTo(xc, yPres(presVals[i-1]), xc, yPres(presVals[i]), xPos(i), yPres(presVals[i]));
             }
-            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.6; ctx.lineJoin = 'round'; ctx.stroke();
 
             // Puntos + etiquetas
             presVals.forEach((v, i) => {
@@ -5453,13 +5453,13 @@
             ctx.font = 'bold 9px Inter,sans-serif';
             ctx.textAlign = 'left';
             ctx.beginPath(); ctx.moveTo(PAD.l, windTop - 12); ctx.lineTo(PAD.l + 14, windTop - 12);
-            ctx.setLineDash([]); ctx.strokeStyle = '#86efac'; ctx.lineWidth = 2; ctx.stroke();
-            ctx.fillStyle = '#86efac';
+            ctx.setLineDash([]); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.6; ctx.stroke();
+            ctx.fillStyle = '#ffffff';
             ctx.fillText(' Viento', PAD.l + 14, windTop - 9);
             ctx.beginPath(); ctx.moveTo(PAD.l + 80, windTop - 12); ctx.lineTo(PAD.l + 94, windTop - 12);
-            ctx.strokeStyle = '#86efac';
+            ctx.strokeStyle = '#ffffff';
             ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
-            ctx.fillStyle = '#86efac';
+            ctx.fillStyle = '#ffffff';
             ctx.fillText(' Rachas', PAD.l + 94, windTop - 9);
 
             const drawWindLine = (vals, color, dashed) => {
@@ -5470,22 +5470,22 @@
                     ctx.bezierCurveTo(xc, yWind(vals[i-1]), xc, yWind(vals[i]), xPos(i), yWind(vals[i]));
                 }
                 ctx.setLineDash(dashed ? [5, 4] : []);
-                ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.lineJoin = 'round'; ctx.stroke();
                 ctx.setLineDash([]);
             };
-            drawWindLine(gustVals, '#86efac', true);
-            drawWindLine(windVals, '#86efac', false);
+            drawWindLine(gustVals, '#ffffff', true);
+            drawWindLine(windVals, '#ffffff', false);
 
             windVals.forEach((v, i) => {
                 const x = xPos(i);
-                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#86efac'; ctx.fill();
-                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#86efac';
+                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
+                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                 ctx.fillText(v, x, yWind(v) - 8);
             });
             gustVals.forEach((v, i) => {
                 const x = xPos(i);
-                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#86efac'; ctx.fill();
-                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#86efac';
+                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
+                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                 ctx.fillText(v, x, yWind(v) - 8);
             });
 
@@ -5520,13 +5520,13 @@
             ctx.font = 'bold 9px Inter,sans-serif';
             ctx.textAlign = 'left';
             ctx.beginPath(); ctx.moveTo(PAD.l, humTop - 12); ctx.lineTo(PAD.l + 14, humTop - 12);
-            ctx.setLineDash([]); ctx.strokeStyle = '#22d3ee'; ctx.lineWidth = 2; ctx.stroke();
-            ctx.fillStyle = '#22d3ee';
+            ctx.setLineDash([]); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.6; ctx.stroke();
+            ctx.fillStyle = '#ffffff';
             ctx.fillText(' Máx', PAD.l + 14, humTop - 9);
             ctx.beginPath(); ctx.moveTo(PAD.l + 60, humTop - 12); ctx.lineTo(PAD.l + 74, humTop - 12);
-            ctx.strokeStyle = '#a5f3fc';
+            ctx.strokeStyle = '#ffffff';
             ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
-            ctx.fillStyle = '#a5f3fc';
+            ctx.fillStyle = '#ffffff';
             ctx.fillText(' Mín', PAD.l + 74, humTop - 9);
 
             const drawHumLine = (vals, color, dashed) => {
@@ -5537,7 +5537,7 @@
                     ctx.bezierCurveTo(xc, yHum(vals[i-1]), xc, yHum(vals[i]), xPos(i), yHum(vals[i]));
                 }
                 ctx.setLineDash(dashed ? [5, 4] : []);
-                ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.lineJoin = 'round'; ctx.stroke();
                 ctx.setLineDash([]);
                 vals.forEach((v, i) => {
                     ctx.beginPath(); ctx.arc(xPos(i), yHum(v), 3, 0, Math.PI*2); ctx.fillStyle = color; ctx.fill();
@@ -5545,8 +5545,8 @@
                     ctx.fillText(v + '%', xPos(i), yHum(v) - 8);
                 });
             };
-            drawHumLine(humMaxVals, '#22d3ee', false);
-            drawHumLine(humMinVals, '#a5f3fc', true);
+            drawHumLine(humMaxVals, '#ffffff', false);
+            drawHumLine(humMinVals, '#ffffff', true);
 
             // Línea base
             ctx.beginPath();
@@ -5568,7 +5568,7 @@
             ctx.font = 'bold 9px Inter,sans-serif';
             ctx.textAlign = 'left';
             ctx.beginPath(); ctx.moveTo(PAD.l, PAD.t - 15); ctx.lineTo(PAD.l + 14, PAD.t - 15);
-            ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 1.7; ctx.stroke();
             ctx.fillStyle = '#FF8A65';
             ctx.fillText(' Máx', PAD.l + 14, PAD.t - 12);
             ctx.beginPath(); ctx.moveTo(PAD.l + 60, PAD.t - 15); ctx.lineTo(PAD.l + 74, PAD.t - 15);
