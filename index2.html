@@ -5299,7 +5299,7 @@
             // ── Zona lluvia: título combinado + barras, ancladas abajo de su propia franja ──
             ctx.textAlign = 'left'; ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.fillText('PROBABILIDAD DE LLUVIA · PRECIPITACIÓN ACUMULADA (MM)', PAD.l, rainTop - 6);
+            ctx.fillText('Probabilidad de lluvia (%) · acumulación (mm)', PAD.l, rainTop - 6);
 
             const barW = cw / n * 0.5;
             rows.forEach((r, i) => {
@@ -5441,7 +5441,7 @@
             // ══════════════════════════════════════════════
             const windVals = rows.map(r => r.wind);
             const gustVals = rows.map(r => r.gusts);
-            const windHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "VIENTO"
+            const windHeadroom = 30; // deja aire entre el pico de línea/etiqueta y el título "VIENTO"
             const wMax = Math.max(...windVals, ...gustVals, 10) + 5;
             const yWind = v => windTop + windH - (v / wMax) * (windH - windHeadroom);
 
@@ -5506,7 +5506,7 @@
             // ══════════════════════════════════════════════
             const humMaxVals = rows.map(r => r.humMax);
             const humMinVals = rows.map(r => r.humMin);
-            const humHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "HUMEDAD"
+            const humHeadroom = 30; // deja aire entre el pico de línea/etiqueta y el título "HUMEDAD"
             const allHum = [...humMaxVals, ...humMinVals];
             const hMin = Math.max(0, Math.floor(Math.min(...allHum)) - 5);
             const hMax = Math.min(100, Math.ceil(Math.max(...allHum)) + 5);
