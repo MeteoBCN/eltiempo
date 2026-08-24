@@ -5235,6 +5235,13 @@
             const xPos  = i => PAD.l + (i / (n - 1)) * cw;
             const yTemp = v => tempTop + tempH - ((v - tMin) / (tMax - tMin)) * tempH;
 
+            // Posición "de banda": cada día ocupa un ancho igual (cw/n) del eje X,
+            // centrado en su propio tramo — igual que las barras de lluvia y la
+            // fila de días — en vez de la posición "de punto" xPos() (que deja
+            // el primer/último día pegados al borde, como si fuera el inicio del día).
+            const dayW  = cw / n;
+            const xBand = i => PAD.l + (i + 0.5) * dayW;
+
             ctx.clearRect(0, 0, W, H);
 
             // Líneas guía Y de la zona de temperatura (blancas translúcidas)
@@ -5249,13 +5256,13 @@
             // ── Zona temperatura: área + línea máxima/mínima ──
             const drawArea = (vals, fill) => {
                 ctx.beginPath();
-                ctx.moveTo(xPos(0), yTemp(vals[0]));
+                ctx.moveTo(xBand(0), yTemp(vals[0]));
                 for (let i = 1; i < n; i++) {
-                    const xc = (xPos(i-1) + xPos(i)) / 2;
-                    ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xPos(i), yTemp(vals[i]));
+                    const xc = (xBand(i-1) + xBand(i)) / 2;
+                    ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xBand(i), yTemp(vals[i]));
                 }
-                ctx.lineTo(xPos(n-1), tempBottom);
-                ctx.lineTo(xPos(0), tempBottom);
+                ctx.lineTo(xBand(n-1), tempBottom);
+                ctx.lineTo(xBand(0), tempBottom);
                 ctx.closePath();
                 const g = ctx.createLinearGradient(0, tempTop, 0, tempBottom);
                 g.addColorStop(0, fill);
@@ -5266,20 +5273,20 @@
 
             const drawLine = (vals, color, offset, dashed) => {
                 ctx.beginPath();
-                ctx.moveTo(xPos(0), yTemp(vals[0]));
+                ctx.moveTo(xBand(0), yTemp(vals[0]));
                 for (let i = 1; i < n; i++) {
-                    const xc = (xPos(i-1) + xPos(i)) / 2;
-                    ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xPos(i), yTemp(vals[i]));
+                    const xc = (xBand(i-1) + xBand(i)) / 2;
+                    ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xBand(i), yTemp(vals[i]));
                 }
                 ctx.setLineDash(dashed ? [5, 4] : []);
                 ctx.strokeStyle = color; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
                 ctx.setLineDash([]);
                 vals.forEach((v, i) => {
-                    ctx.beginPath(); ctx.arc(xPos(i), yTemp(v), 3.5, 0, Math.PI*2);
+                    ctx.beginPath(); ctx.arc(xBand(i), yTemp(v), 3.5, 0, Math.PI*2);
                     ctx.fillStyle = color; ctx.fill();
                     ctx.textAlign = 'center'; ctx.font = 'bold 10px Inter,sans-serif';
                     ctx.fillStyle = color;
-                    ctx.fillText(v + '°', xPos(i), yTemp(v) + offset);
+                    ctx.fillText(v + '°', xBand(i), yTemp(v) + offset);
                 });
             };
             drawLine(tmax, '#FF8A65', -9, false);
@@ -5289,18 +5296,12 @@
             ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
             rows.forEach((r, i) => {
                 const lbl = r.isToday ? 'HOY' : r.dayName;
-                ctx.fillText(lbl, xPos(i), tempBottom + 14);
+                ctx.fillText(lbl, xBand(i), tempBottom + 14);
             });
 
             // ── Zona lluvia: barras, ancladas abajo de su propia franja
-            //    (el título va fusionado con el de temperatura, arriba del todo) ──
-
-            // Posición "de banda": cada día ocupa un ancho igual (cw/n) del eje X,
-            // en vez de la posición "de punto" que usa xPos() para las líneas
-            // (con xPos, la barra quedaba centrada sobre el límite entre dos días:
-            // 50% del ancho antes y 50% después). Así la barra ocupa el ancho del día.
-            const dayW  = cw / n;
-            const xBand = i => PAD.l + (i + 0.5) * dayW;
+            //    (el título va fusionado con el de temperatura, arriba del todo;
+            //     xBand ya se definió arriba, junto a la fila de días) ──
             const barW  = dayW * 0.72;
             rows.forEach((r, i) => {
                 const v = r.pprob;
