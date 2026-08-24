@@ -1543,6 +1543,11 @@
                 const txtZona = resultado.zonaDominante ? (' · zona: ' + resultado.zonaDominante.zona + ' (' + resultado.zonaDominante.intensidad + ')') : '';
                 if (debugEl) debugEl.textContent = 'Aviso (' + etiquetaFuente + ') ' + hora + ' — 5km: ' + (resultado.rain5km ? resultado.intensidad5 : 'No') + ' · 10km: ' + (resultado.rain10km ? resultado.intensidad10 : 'No') + txtZona;
                 console.log('[Aviso lluvia]', resultado, '| hora:', hora);
+
+                // Guardar el resultado del radar para que el icono de "Tiempo Actual"
+                // pueda confirmar (o descartar) el código de lluvia del modelo.
+                window._radarLluviaActual = resultado;
+                if (window.refreshCurrentIconFromRadar) window.refreshCurrentIconFromRadar();
             }
 
             const ETIQUETA_INTENSIDAD = { debil: 'débil', moderada: 'moderada', fuerte: 'fuerte' };
@@ -2373,6 +2378,42 @@
             return cloudySvg();
         }
         // ══════ FIN SVG ICONOS ══════
+
+        // ══════ ICONO ACTUAL CONFIRMADO POR RADAR ══════
+        // El modelo (Open-Meteo) puede marcar código de lluvia sin que esté
+        // lloviendo realmente. Para los códigos de lluvia/llovizna/chubascos,
+        // solo se muestra el icono de lluvia si el radar (RainViewer, leído
+        // más arriba para el aviso de lluvia cercana) confirma precipitación
+        // a menos de 10 km. Si el radar dice que no llueve, se muestra el
+        // icono de nublado que corresponda según la nubosidad actual.
+        const RAIN_FAMILY_CODES = new Set([51,53,55,61,63,65,80,81,82]);
+
+        function cloudFallbackCode(cloudCoverPct) {
+            const rc = cloudCoverPct ?? 50;
+            if (rc < 10) return 1;
+            if (rc < 40) return 2;
+            return 3;
+        }
+
+        function resolveCurrentIconCode(wmo, cloudCoverPct) {
+            if (!RAIN_FAMILY_CODES.has(wmo)) return wmo;
+            const radar = window._radarLluviaActual;
+            if (!radar) return wmo; // todavía no hay lectura de radar: se mantiene el del modelo
+            if (radar.rain5km || radar.rain10km) return wmo; // el radar confirma lluvia cerca
+            return cloudFallbackCode(cloudCoverPct); // el radar no ve lluvia: se muestra nublado
+        }
+
+        window._pyCurrentIconCtx = null;
+        window.refreshCurrentIconFromRadar = function() {
+            const ctx = window._pyCurrentIconCtx;
+            if (!ctx) return;
+            const finalCode = resolveCurrentIconCode(ctx.wmo, ctx.cloudCoverPct);
+            const iconEl = document.getElementById('current-icon');
+            if (iconEl) iconEl.innerHTML = getSvgIcon(finalCode, 96, ctx.night);
+            const conditionEl = document.getElementById('condition-text');
+            if (conditionEl) conditionEl.textContent = weatherDescriptions[finalCode] || weatherDescriptions[ctx.wmo] || '';
+        };
+        // ══════ FIN ICONO ACTUAL CONFIRMADO POR RADAR ══════
 
         // ── Iconos de paraguas (abierto / plegado) para sección "El paraguas" ──
         function umbrellaOpenSvg(size=22, color='#123653') {
@@ -6104,15 +6145,23 @@
                 cloud_cover_mid: hourly.cloud_cover_mid?.[closestIdx],
                 cloud_cover_high: hourly.cloud_cover_high?.[closestIdx]
             } : {cloud_cover: current.cloud_cover};
-            document.getElementById('current-icon').innerHTML=getSvgIcon(weatherCode, 96, isNightTime(now));
+            // El icono de "Tiempo Actual" se resuelve confirmando con el radar
+            // (ver window.refreshCurrentIconFromRadar) para no mostrar lluvia
+            // cuando el modelo la predice pero el radar no la detecta.
+            window._pyCurrentIconCtx = { wmo: weatherCode, night: isNightTime(now), cloudCoverPct: current.cloud_cover };
+            if (window.refreshCurrentIconFromRadar) {
+                window.refreshCurrentIconFromRadar();
+            } else {
+                document.getElementById('current-icon').innerHTML=getSvgIcon(weatherCode, 96, isNightTime(now));
+                const conditionElFallback = document.getElementById('condition-text');
+                if (conditionElFallback) conditionElFallback.textContent = weatherDescriptions[weatherCode] || '';
+            }
             const pressureEl = document.getElementById('pressure');
             if (pressureEl) pressureEl.textContent=Math.round(current.pressure_msl)+' hPa';
             document.getElementById('humidity').textContent=current.relative_humidity_2m+'%';
             document.getElementById('wind').textContent=Math.round(current.wind_speed_10m)+' km/h';
             const gustsEl = document.getElementById('wind-gusts');
             if (gustsEl) gustsEl.textContent=Math.round(current.wind_gusts_10m ?? current.wind_speed_10m ?? 0)+' km/h';
-            const conditionEl = document.getElementById('condition-text');
-            if (conditionEl) conditionEl.textContent = weatherDescriptions[weatherCode] || '';
             // Dirección del viento desde datos horarios (current no incluye wind_direction)
             if (hourly?.time && hourly?.wind_direction_10m) {
                 const idxWd = hourly.time.findIndex(t => Math.abs(new Date(t) - nowMs) < 30*60*1000);
