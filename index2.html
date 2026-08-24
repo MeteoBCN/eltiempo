@@ -931,22 +931,17 @@
                         <div style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Temperatura · Precipitación</div>
                         <div id="paraguas-hour-row" style="position:relative;height:12px;margin:14px 0 0 0;"></div>
                         <canvas id="paraguas-hourly-chart" style="width:100%;display:block;"></canvas>
-                        <div id="paraguas-umbrella-row" style="position:relative;height:18px;margin:3px 0 0 0;"></div>
-                        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-top:8px;padding-left:24px;">
+                        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-top:2px;padding-left:24px;">
                             <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
-                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(59,130,246,0.10);border:1px solid rgba(59,130,246,0.5);flex-shrink:0;"></span>
-                                <span style="display:inline-flex;align-items:center;gap:1px;">
-                                    <svg width="7" height="9" viewBox="0 0 24 24"><path d="M12 2C12 2 4.5 12 4.5 17a7.5 7.5 0 0015 0C19.5 12 12 2 12 2Z" fill="#1c4f78"/></svg>
-                                </span>
+                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#f7f8fa;border:1px solid rgba(18,54,83,0.3);flex-shrink:0;"></span>
+                                <span style="text-transform:uppercase;font-weight:400;">No se espera lluvia</span>
+                            </span>
+                            <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
+                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(59,130,246,0.35);border:1px solid rgba(59,130,246,0.5);flex-shrink:0;"></span>
                                 <span style="text-transform:uppercase;font-weight:400;">Cuidado, podría llover</span>
                             </span>
                             <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
-                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(28,79,120,0.20);border:1px solid rgba(28,79,120,0.75);flex-shrink:0;"></span>
-                                <span style="display:inline-flex;align-items:center;gap:1px;">
-                                    <svg width="6" height="8" viewBox="0 0 24 24"><path d="M12 2C12 2 4.5 12 4.5 17a7.5 7.5 0 0015 0C19.5 12 12 2 12 2Z" fill="#1c4f78"/></svg>
-                                    <svg width="6" height="8" viewBox="0 0 24 24"><path d="M12 2C12 2 4.5 12 4.5 17a7.5 7.5 0 0015 0C19.5 12 12 2 12 2Z" fill="#1c4f78"/></svg>
-                                    <svg width="6" height="8" viewBox="0 0 24 24"><path d="M12 2C12 2 4.5 12 4.5 17a7.5 7.5 0 0015 0C19.5 12 12 2 12 2Z" fill="#1c4f78"/></svg>
-                                </span>
+                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(28,79,120,0.55);border:1px solid rgba(28,79,120,0.75);flex-shrink:0;"></span>
                                 <span style="text-transform:uppercase;font-weight:400;">No olvides el paraguas</span>
                             </span>
                         </div>
@@ -2630,14 +2625,14 @@
             const wrap = canvas.parentElement;
             const W = wrap.clientWidth;
             _paraguasChartLastW = W;
-            const H = 106;
+            const H = 128;
             canvas.width = W * dpr; canvas.height = H * dpr;
             canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
             const ctx = canvas.getContext('2d');
             ctx.scale(dpr, dpr);
             ctx.clearRect(0, 0, W, H);
 
-            const PAD = { top: 10, bottom: 10, left: 3, right: 3 };
+            const PAD = { top: 10, bottom: 32, left: 26, right: 26 };
             const cw = W - PAD.left - PAD.right;
             const ch = H - PAD.top - PAD.bottom;
 
@@ -2773,33 +2768,6 @@
                     }
                 });
                 hourRow.innerHTML = hHtml;
-            }
-
-            // ── Fila de gotas (debajo de la gráfica), centrada en su franja horaria ──
-            // Misma lógica de posicionamiento "de banda" que las barras de probabilidad
-            // del meteograma semanal (xBand: centrado en el tramo, no en el punto).
-            // Reutiliza la misma categoría de lluvia (rainCat) calculada arriba para las bandas:
-            //   1 = posible (1 gota) · 2 = riesgo alto (3 gotas) — ambas en #1c4f78
-            const DROP_PATH = 'M12 2C12 2 4.5 12 4.5 17a7.5 7.5 0 0015 0C19.5 12 12 2 12 2Z';
-            function dropSVG(w, h) {
-                return `<svg width="${w}" height="${h}" viewBox="0 0 24 24" style="display:inline-block;"><path d="${DROP_PATH}" fill="#1c4f78"/></svg>`;
-            }
-            const umbrellaRow = document.getElementById('paraguas-umbrella-row');
-            if (umbrellaRow) {
-                let uHtml = '';
-                slots.forEach((s, i) => {
-                    const cat = rainCat[i];
-                    if (cat === 0) return;
-                    const left = xPos(i);
-                    const right = (i < slots.length - 1) ? xPos(i + 1) : xPos(i) + segW;
-                    const xBandCenter = (left + right) / 2;
-                    const drops = cat === 2
-                        ? dropSVG(6, 8) + dropSVG(6, 8) + dropSVG(6, 8)
-                        : dropSVG(7, 9);
-                    const title = cat === 2 ? `Riesgo alto de lluvia a las ${s.label}` : `Podría llover a las ${s.label}`;
-                    uHtml += `<span style="position:absolute;left:${xBandCenter}px;top:0;transform:translateX(-50%);display:inline-flex;align-items:center;gap:1px;white-space:nowrap;" title="${title}">${drops}</span>`;
-                });
-                umbrellaRow.innerHTML = uHtml;
             }
         }
 
