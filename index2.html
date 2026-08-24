@@ -5301,11 +5301,17 @@
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
             ctx.fillText('PROBABILIDAD DE LLUVIA (%) · ACUMULACIÓN (mm)', PAD.l, rainTop - 6);
 
-            const barW = cw / n * 0.5;
+            // Posición "de banda": cada día ocupa un ancho igual (cw/n) del eje X,
+            // en vez de la posición "de punto" que usa xPos() para las líneas
+            // (con xPos, la barra quedaba centrada sobre el límite entre dos días:
+            // 50% del ancho antes y 50% después). Así la barra ocupa el ancho del día.
+            const dayW  = cw / n;
+            const xBand = i => PAD.l + (i + 0.5) * dayW;
+            const barW  = dayW * 0.72;
             rows.forEach((r, i) => {
                 const v = r.pprob;
                 const barH = (v / 100) * rainH;
-                const x  = xPos(i) - barW / 2;
+                const x  = xBand(i) - barW / 2;
                 const g = ctx.createLinearGradient(0, rainBottom - barH, 0, rainBottom);
                 g.addColorStop(0, 'rgba(56,189,248,0.85)');
                 g.addColorStop(1, 'rgba(56,189,248,0.25)');
@@ -5319,7 +5325,7 @@
                 ctx.fill();
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif';
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText(v + '%', xPos(i), rainBottom - barH - 5);
+                ctx.fillText(v + '%', xBand(i), rainBottom - barH - 5);
             });
             // Línea base de la zona de lluvia
             ctx.beginPath();
