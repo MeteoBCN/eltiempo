@@ -5373,20 +5373,46 @@
                 ctx.fillText('1013', PAD.l + cw, yCenter - 3);
             }
 
-            // Área
+            // Área diverging: el relleno se reparte a partir de la línea de 1013,
+            // no desde el fondo de la gráfica — así lo que está por encima de
+            // 1013 se ve como una zona cálida por ENCIMA de la línea, y lo que
+            // está por debajo se ve como una zona fría por DEBAJO de la línea.
+            const yCenterFill = yPres(presCenter);
+            const buildPresAreaPath = () => {
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yPres(presVals[0]));
+                for (let i = 1; i < n; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yPres(presVals[i-1]), xc, yPres(presVals[i]), xPos(i), yPres(presVals[i]));
+                }
+                ctx.lineTo(xPos(n-1), yCenterFill);
+                ctx.lineTo(xPos(0), yCenterFill);
+                ctx.closePath();
+            };
+
+            // Parte por ENCIMA de 1013 (altas presiones) — tono cálido
+            ctx.save();
             ctx.beginPath();
-            ctx.moveTo(xPos(0), yPres(presVals[0]));
-            for (let i = 1; i < n; i++) {
-                const xc = (xPos(i-1) + xPos(i)) / 2;
-                ctx.bezierCurveTo(xc, yPres(presVals[i-1]), xc, yPres(presVals[i]), xPos(i), yPres(presVals[i]));
-            }
-            ctx.lineTo(xPos(n-1), presBottom);
-            ctx.lineTo(xPos(0), presBottom);
-            ctx.closePath();
-            const gPres = ctx.createLinearGradient(0, presTop, 0, presBottom);
-            gPres.addColorStop(0, 'rgba(255,255,255,0.30)');
-            gPres.addColorStop(1, 'rgba(255,255,255,0)');
-            ctx.fillStyle = gPres; ctx.fill();
+            ctx.rect(PAD.l, presTop, cw, Math.max(0, yCenterFill - presTop));
+            ctx.clip();
+            buildPresAreaPath();
+            const gPresUp = ctx.createLinearGradient(0, presTop, 0, yCenterFill);
+            gPresUp.addColorStop(0, 'rgba(255,159,67,0.38)');
+            gPresUp.addColorStop(1, 'rgba(255,159,67,0.05)');
+            ctx.fillStyle = gPresUp; ctx.fill();
+            ctx.restore();
+
+            // Parte por DEBAJO de 1013 (bajas presiones) — tono frío
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(PAD.l, yCenterFill, cw, Math.max(0, presBottom - yCenterFill));
+            ctx.clip();
+            buildPresAreaPath();
+            const gPresDown = ctx.createLinearGradient(0, yCenterFill, 0, presBottom);
+            gPresDown.addColorStop(0, 'rgba(56,189,248,0.05)');
+            gPresDown.addColorStop(1, 'rgba(56,189,248,0.38)');
+            ctx.fillStyle = gPresDown; ctx.fill();
+            ctx.restore();
 
             // Línea
             ctx.beginPath();
