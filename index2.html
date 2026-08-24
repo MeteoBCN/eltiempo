@@ -5183,7 +5183,7 @@
             // ── Zonas apiladas: temperatura / lluvia / precipitación acumulada,
             //    separadas por huecos con divisor sutil ──
             const tempH   = 140;   // alto zona temperatura
-            const gap     = 85;    // separación entre zonas (fila de días bajo temperatura → título "PROBABILIDAD DE LLUVIA" = 65px reales)
+            const gap     = 120;   // separación entre zona de temperatura y zona de lluvia
             const rainH   = 72;    // alto zona lluvia
 
             const tempTop    = PAD.t;
@@ -5193,7 +5193,7 @@
             const accValueY  = rainBottom + 20;   // fila con la cifra de acumulación (mm), justo debajo de las barras de lluvia
 
             // ── Zona humedad relativa máxima/mínima (%) ──
-            const gapHum     = 70;   // separación tras la cifra de acumulación → título "HUMEDAD"
+            const gapHum     = 140;  // separación tras la cifra de acumulación → título "HUMEDAD" (doble de la anterior)
             const humH       = 130;  // alto zona humedad
             const humTop     = accValueY + gapHum;
             const humBottom  = humTop + humH;
@@ -5331,7 +5331,7 @@
             ctx.textAlign = 'center'; ctx.font = 'bold 9.5px Inter,sans-serif';
             rows.forEach((r, i) => {
                 const mm = Math.round((r.precip ?? 0) * 10) / 10;
-                ctx.fillStyle = 'rgba(139,92,246,0.95)';
+                ctx.fillStyle = mm === 0 ? 'rgba(255,255,255,0.85)' : 'rgba(56,189,248,0.95)';
                 ctx.fillText(mm + ' mm', xBand(i), accValueY);
             });
 
