@@ -5190,16 +5190,12 @@
             const tempBottom = tempTop + tempH;
             const rainTop    = tempBottom + gap;
             const rainBottom = rainTop + rainH;
-            const accGap     = 40;   // separación entre barras de lluvia y gráfico acumulado
-            const accH       = 80;   // alto zona precipitación acumulada
-            const accTop     = rainBottom + accGap;
-            const accBottom  = accTop + accH;
-            const accDayLabelY = accBottom + 14;
+            const accValueY  = rainBottom + 20;   // fila con la cifra de acumulación (mm), justo debajo de las barras de lluvia
 
             // ── Zona humedad relativa máxima/mínima (%) ──
-            const gapHum     = 90;   // separación tras fila de días de precipitación → título "HUMEDAD"
+            const gapHum     = 70;   // separación tras la cifra de acumulación → título "HUMEDAD"
             const humH       = 130;  // alto zona humedad
-            const humTop     = accDayLabelY + gapHum;
+            const humTop     = accValueY + gapHum;
             const humBottom  = humTop + humH;
             const humDayLabelY = humBottom + 14;
 
@@ -5296,10 +5292,8 @@
                 ctx.fillText(lbl, xPos(i), tempBottom + 14);
             });
 
-            // ── Zona lluvia: título combinado + barras, ancladas abajo de su propia franja ──
-            ctx.textAlign = 'left'; ctx.font = 'bold 10.5px Inter,sans-serif';
-            ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.fillText('PROBABILIDAD DE LLUVIA (%) · ACUMULACIÓN (mm)', PAD.l, rainTop - 6);
+            // ── Zona lluvia: barras, ancladas abajo de su propia franja
+            //    (el título va fusionado con el de temperatura, arriba del todo) ──
 
             // Posición "de banda": cada día ocupa un ancho igual (cw/n) del eje X,
             // en vez de la posición "de punto" que usa xPos() para las líneas
@@ -5333,56 +5327,12 @@
             ctx.lineTo(PAD.l + cw, rainBottom);
             ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
 
-            // ══════════════════════════════════════════════
-            // Zona precipitación acumulada (mm) — área + línea
-            // (justo debajo de la barra de probabilidad de lluvia; título ya incluido arriba)
-            // ══════════════════════════════════════════════
-            const precipVals = rows.map(r => r.precip);
-            const accMax = Math.max(...precipVals, 1);
-            const yAcc = v => accTop + accH - (v / accMax) * accH;
-
-            // Área bajo la línea
-            ctx.beginPath();
-            ctx.moveTo(xPos(0), yAcc(precipVals[0]));
-            for (let i = 1; i < n; i++) {
-                const xc = (xPos(i-1) + xPos(i)) / 2;
-                ctx.bezierCurveTo(xc, yAcc(precipVals[i-1]), xc, yAcc(precipVals[i]), xPos(i), yAcc(precipVals[i]));
-            }
-            ctx.lineTo(xPos(n-1), accBottom);
-            ctx.lineTo(xPos(0), accBottom);
-            ctx.closePath();
-            const gAcc = ctx.createLinearGradient(0, accTop, 0, accBottom);
-            gAcc.addColorStop(0, 'rgba(139,92,246,0.40)');
-            gAcc.addColorStop(1, 'rgba(139,92,246,0)');
-            ctx.fillStyle = gAcc; ctx.fill();
-
-            // Línea
-            ctx.beginPath();
-            ctx.moveTo(xPos(0), yAcc(precipVals[0]));
-            for (let i = 1; i < n; i++) {
-                const xc = (xPos(i-1) + xPos(i)) / 2;
-                ctx.bezierCurveTo(xc, yAcc(precipVals[i-1]), xc, yAcc(precipVals[i]), xPos(i), yAcc(precipVals[i]));
-            }
-            ctx.strokeStyle = '#8B5CF6'; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
-
-            // Puntos + etiquetas
-            precipVals.forEach((v, i) => {
-                const x = xPos(i), y = yAcc(v);
-                ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fillStyle = '#8B5CF6'; ctx.fill();
-                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                ctx.fillText(v, x, y - 8);
-            });
-
-            // Línea base
-            ctx.beginPath();
-            ctx.moveTo(PAD.l, accBottom); ctx.lineTo(PAD.l + cw, accBottom);
-            ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
-
-            // Fila de días, ahora debajo del gráfico de precipitación acumulada
-            ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+            // ── Cifra de acumulación prevista (mm), justo debajo de las barras de lluvia ──
+            ctx.textAlign = 'center'; ctx.font = 'bold 9.5px Inter,sans-serif';
             rows.forEach((r, i) => {
-                const lbl = r.isToday ? 'HOY' : r.dayName;
-                ctx.fillText(lbl, xPos(i), accDayLabelY);
+                const mm = Math.round((r.precip ?? 0) * 10) / 10;
+                ctx.fillStyle = 'rgba(139,92,246,0.95)';
+                ctx.fillText(mm + ' mm', xBand(i), accValueY);
             });
 
             // ══════════════════════════════════════════════
@@ -5569,7 +5519,7 @@
             // Título + leyenda de temperatura (línea continua = máx, discontinua = mín)
             ctx.textAlign = 'left'; ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.fillText('TEMPERATURA', PAD.l, PAD.t - 30);
+            ctx.fillText('TEMPERATURA / PROB. LLUVIA (%) · ACUMULADO (mm)', PAD.l, PAD.t - 30);
 
             ctx.font = 'bold 9px Inter,sans-serif';
             ctx.textAlign = 'left';
