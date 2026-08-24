@@ -5423,12 +5423,17 @@
             }
             ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
 
-            // Puntos + etiquetas
+            // Puntos + etiquetas (la cifra se coloca al lado contrario de la línea
+            // de 1013: por encima de 1013 la etiqueta va arriba del punto,
+            // por debajo de 1013 la etiqueta va abajo del punto)
             presVals.forEach((v, i) => {
                 const x = xPos(i), y = yPres(v);
                 ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                ctx.fillText(v, x, y - 8);
+                const labelOffset = v < presCenter ? 14 : -8;
+                ctx.textBaseline = v < presCenter ? 'top' : 'alphabetic';
+                ctx.fillText(v, x, y + labelOffset);
+                ctx.textBaseline = 'alphabetic';
             });
 
             // Línea base
