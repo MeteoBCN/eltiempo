@@ -5662,13 +5662,15 @@
                 ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 levels.forEach((l, j) => { ctx.fillText(l.hour === 0 ? '00h' : '12h', xPos2(j), levelsBottom + 24); });
 
-                // Fila de días, alineada justo bajo la hora 00h de cada día
+                // Fila de días, cada etiqueta inicia (alineada a la izquierda) a la altura de las 06h de ese día
                 if (rows) {
-                    ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'left'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                     rows.forEach((r, i) => {
                         const lbl = r.isToday ? 'HOY' : r.dayName;
                         const j00 = levels.findIndex(l => l.dateStr === r.dateStr && l.hour === 0);
-                        const x = j00 !== -1 ? xPos2(j00) : xPos(i);
+                        const j12 = levels.findIndex(l => l.dateStr === r.dateStr && l.hour === 12);
+                        const x06 = (j00 !== -1 && j12 !== -1) ? (xPos2(j00) + xPos2(j12)) / 2 : null;
+                        const x = x06 !== null ? x06 : (j00 !== -1 ? xPos2(j00) : xPos(i));
                         ctx.fillText(lbl, x, levelsBottom + 40);
                     });
                 }
