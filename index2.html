@@ -5200,7 +5200,7 @@
 
             // ── Zona presión a nivel del mar (hPa) ──
             const gapPres    = 90;   // separación tras fila de días de humedad → título "PRESIÓN"
-            const presH      = 90;   // alto zona presión
+            const presH      = 110;  // alto zona presión
             const presTop    = humDayLabelY + gapPres;
             const presBottom = presTop + presH;
             const presDayLabelY = presBottom + 14;
@@ -5339,7 +5339,7 @@
             // Zona presión a nivel del mar (hPa) — área + línea
             // ══════════════════════════════════════════════
             const presVals = rows.map(r => r.pres);
-            const presHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "PRESIÓN"
+            const presHeadroom = 22; // aire simétrico arriba y abajo, para que ni los picos ni los valles rocen el título ni la línea base
             // Eje Y simétrico centrado siempre en 1013 hPa (presión media):
             // se toma el dato de la semana más alejado de 1013 y se usa esa
             // misma distancia hacia arriba y hacia abajo, para que 1013 quede
@@ -5351,7 +5351,9 @@
             );
             const pMin = presCenter - presSpan;
             const pMax = presCenter + presSpan;
-            const yPres = v => presTop + presH - ((v - pMin) / (pMax - pMin || 1)) * (presH - presHeadroom);
+            // headroom aplicado por igual arriba y abajo: el pico más alto de la
+            // semana no toca el título y el valle más bajo no toca la línea base
+            const yPres = v => presTop + presHeadroom + (1 - (v - pMin) / (pMax - pMin || 1)) * (presH - presHeadroom * 2);
 
             ctx.textAlign = 'left'; ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
@@ -5435,11 +5437,6 @@
                 ctx.fillText(v, x, y + labelOffset);
                 ctx.textBaseline = 'alphabetic';
             });
-
-            // Línea base
-            ctx.beginPath();
-            ctx.moveTo(PAD.l, presBottom); ctx.lineTo(PAD.l + cw, presBottom);
-            ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
 
             // Fila de días bajo la presión
             ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
