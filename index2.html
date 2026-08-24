@@ -3052,11 +3052,10 @@
                 let iHtml = '';
                 blocks.forEach((b, i) => {
                     if (b.code === null || b.code === undefined) return;
+                    // El bloque de 00h (madrugada) no lleva icono de estado del cielo.
+                    if (b.start.getHours() === 0) return;
                     const x = xPos(i);
-                    // El bloque de 00h (madrugada) se muestra siempre con icono nocturno;
-                    // el resto de bloques (06h/12h/18h) con icono diurno.
-                    const isNightBlock = b.start.getHours() === 0;
-                    const icon = getSvgIcon(b.code, 22, isNightBlock);
+                    const icon = getSvgIcon(b.code, 22, false);
                     iHtml += `<span style="position:absolute;left:${x}px;top:0;transform:translateX(-50%);line-height:1;white-space:nowrap;">${icon}</span>`;
                 });
                 iconRow.innerHTML = iHtml;
