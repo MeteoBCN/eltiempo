@@ -226,6 +226,9 @@
         .bbc-daypart-col-temp { font-size: 18px; font-weight: 800; color: #ffffff; line-height: 1; }
         .bbc-daypart-col-temp.es-min { color: #7ec8e3; }
         .bbc-daypart-col-temp.es-max { color: #ff7c7c; }
+        .bbc-daypart-col-temp.es-media { color: rgba(255,255,255,0.55); font-weight: 500; }
+        .bbc-daypart-col-data { margin-top: 8px; font-size: 10px; color: rgba(255,255,255,0.85); line-height: 1.9; }
+        .bbc-daypart-col-data span { display: block; white-space: nowrap; }
         .bbc-hour-col { flex: 0 0 auto; width: calc((min(100vw, 600px) - 74px) / 4); box-sizing: border-box; text-align: center; }
         .bbc-hour-time { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); margin-bottom: 14px; }
         .bbc-hour-icon { width: 42px; height: 42px; margin: 0 auto 14px; }
@@ -1083,7 +1086,7 @@
                         </div>
                         <div class="bbc-daypart-wrap" id="bbc-daypart-semanal"></div>
                     </div>
-                    <div class="bbc-sun-uvi" id="bbc-sun-uvi-semanal"></div>
+
                 </div>
                 <!-- ═══════════════════════════════════════════
                      FIN PREVISIÓN SEMANAL ESTILO BBC WEATHER
@@ -4983,6 +4986,12 @@
                     minSlotIdx = libres[0];
                 }
 
+                const fmtHora = (iso) => iso ? new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                const sunriseTxt = fmtHora(bbcDaily?.sunrise?.[idx]);
+                const sunsetTxt = fmtHora(bbcDaily?.sunset?.[idx]);
+
+                function windDirTxt(deg) { return ['N','NE','E','SE','S','SO','O','NO'][Math.round((deg||0)/45)%8]; }
+
                 box.innerHTML = '<div class="bbc-daypart-grid">' + BBC_SEMANAL_SLOTS.map((slot, i) => {
                     const wmo = bbcModeWmoRange(row.dateStr, bbcHourly, slot.h0, slot.h1 - 1, row.wmo);
                     const icon = getSvgIcon(wmo, 38, false);
@@ -4997,13 +5006,55 @@
                     } else {
                         const vals = hoursData.filter(e => e.h >= slot.h0 && e.h < slot.h1).map(e => e.t);
                         tempValue = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : '--';
-                        tempClass = '';
+                        tempClass = 'es-media';
                     }
+
+                    // Índices horarios de bbcHourly dentro de esta franja
+                    const idxSlot = [];
+                    for (let j = 0; j < bbcHourly.time.length; j++) {
+                        if (!bbcHourly.time[j].startsWith(row.dateStr)) continue;
+                        const h = parseInt(bbcHourly.time[j].slice(11, 13), 10);
+                        if (h >= slot.h0 && h < slot.h1) idxSlot.push(j);
+                    }
+                    const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+                    const max = arr => arr.length ? Math.max(...arr) : null;
+                    const sum = arr => arr.length ? arr.reduce((a, b) => a + b, 0) : null;
+
+                    const pprobVals = idxSlot.map(j => bbcHourly.precipitation_probability?.[j]).filter(v => v !== undefined && v !== null);
+                    const precipVals = idxSlot.map(j => bbcHourly.precipitation?.[j]).filter(v => v !== undefined && v !== null);
+                    const windVals = idxSlot.map(j => bbcHourly.wind_speed_10m?.[j]).filter(v => v !== undefined && v !== null);
+                    const windDirVals = idxSlot.map(j => bbcHourly.wind_direction_10m?.[j]).filter(v => v !== undefined && v !== null);
+                    const gustVals = idxSlot.map(j => bbcHourly.wind_gusts_10m?.[j]).filter(v => v !== undefined && v !== null);
+                    const humVals = idxSlot.map(j => bbcHourly.relative_humidity_2m?.[j]).filter(v => v !== undefined && v !== null);
+                    const uviVals = idxSlot.map(j => bbcHourly.uv_index?.[j]).filter(v => v !== undefined && v !== null);
+                    const presVals = idxSlot.map(j => bbcHourly.pressure_msl?.[j]).filter(v => v !== undefined && v !== null);
+
+                    const pprobMax = max(pprobVals);
+                    const precipSum = sum(precipVals);
+                    const windAvg = avg(windVals);
+                    const windDirAvg = avg(windDirVals);
+                    const gustMax = max(gustVals);
+                    const humAvg = avg(humVals);
+                    const uviMax = max(uviVals);
+                    const presAvg = avg(presVals);
+
+                    let dataHtml = '<div class="bbc-daypart-col-data">';
+                    dataHtml += `<span>Lluvia: ${pprobMax !== null ? Math.round(pprobMax) + '%' : '--'}</span>`;
+                    dataHtml += `<span>Acum.: ${precipSum !== null ? precipSum.toFixed(1) + ' mm' : '--'}</span>`;
+                    dataHtml += `<span>Viento: ${windAvg !== null ? Math.round(windAvg) + ' km/h ' + windDirTxt(windDirAvg) : '--'}</span>`;
+                    dataHtml += `<span>Racha máx.: ${gustMax !== null ? Math.round(gustMax) + ' km/h' : '--'}</span>`;
+                    dataHtml += `<span>Humedad: ${humAvg !== null ? Math.round(humAvg) + '%' : '--'}</span>`;
+                    dataHtml += `<span>UVI: ${uviMax !== null ? Math.round(uviMax) : '--'}</span>`;
+                    dataHtml += `<span>Presión: ${presAvg !== null ? Math.round(presAvg) + ' hPa' : '--'}</span>`;
+                    if (i === 0) dataHtml += `<span>Amanecer: ${sunriseTxt}</span>`;
+                    if (i === 2) dataHtml += `<span>Atardecer: ${sunsetTxt}</span>`;
+                    dataHtml += '</div>';
 
                     return `<div class="bbc-daypart-col">
                         <div class="bbc-daypart-col-label">${slot.label}<span class="bbc-daypart-col-hour">${slot.hourTxt}</span></div>
                         <div class="bbc-daypart-col-icon">${icon}</div>
                         <div class="bbc-daypart-col-temp ${tempClass}">${tempValue}°</div>
+                        ${dataHtml}
                     </div>`;
                 }).join('') + '</div>';
             }
@@ -5071,7 +5122,6 @@
                 bbcSemanalSelectedIdx = idx;
                 document.querySelectorAll('#bbc-days-row-semanal .bbc-day-cell').forEach(c => c.classList.toggle('selected', parseInt(c.dataset.idx, 10) === idx));
                 renderBBCDaypartSemanal(idx);
-                renderBBCSunUvi('bbc-sun-uvi-semanal', idx);
             };
 
             window.renderBBCWeek = function(daily, hourly) {
@@ -5102,7 +5152,6 @@
                 renderBBCHourlyInto('bbc-hourly-inner-48h', bbc48hSelectedIdx);
                 renderBBCDaypartSemanal(bbcSemanalSelectedIdx);
                 renderBBCSunUvi('bbc-sun-uvi-48h', bbc48hSelectedIdx);
-                renderBBCSunUvi('bbc-sun-uvi-semanal', bbcSemanalSelectedIdx);
             };
         })();
 
