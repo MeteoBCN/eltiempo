@@ -4829,8 +4829,8 @@
             let bbcDailyRows = [];
             let bbcHourly = null;
             let bbcDaily = null;
-            let bbc48hSelectedIdx = 0;      // 0 = hoy, 1 = mañana
-            let bbcSemanalSelectedIdx = 2;  // índice absoluto dentro de bbcDailyRows (día 3 al 7)
+            let bbc48hSelectedIdx = 0;      // 0 = hoy, 1 = mañana, 2 = pasado mañana
+            let bbcSemanalSelectedIdx = 3;  // índice absoluto dentro de bbcDailyRows (día 4 al 8)
 
             // ── Previsión 48h con datos Open-Meteo (iconos SVG propios) ──
 
@@ -4881,11 +4881,11 @@
             }
 
             function renderBBCDays48h() {
-                renderBBCDaysRow('bbc-days-row-48h', 0, 2, bbc48hSelectedIdx, 'bbcSelectDay48h');
+                renderBBCDaysRow('bbc-days-row-48h', 0, 3, bbc48hSelectedIdx, 'bbcSelectDay48h');
             }
 
             function renderBBCDaysSemanal() {
-                renderBBCDaysRow('bbc-days-row-semanal', 2, 7, bbcSemanalSelectedIdx, 'bbcSelectDaySemanal');
+                renderBBCDaysRow('bbc-days-row-semanal', 3, 8, bbcSemanalSelectedIdx, 'bbcSelectDaySemanal');
             }
 
             function renderBBCHourCol(h, i, ht) {
@@ -5166,9 +5166,9 @@
                         wmo: bbcModeWmo(ds, hourly, fallbackWmo),
                     };
                 });
-                if (bbc48hSelectedIdx > 1 || bbc48hSelectedIdx >= bbcDailyRows.length) bbc48hSelectedIdx = 0;
-                if (bbcSemanalSelectedIdx < 2 || bbcSemanalSelectedIdx >= bbcDailyRows.length) {
-                    bbcSemanalSelectedIdx = Math.min(2, bbcDailyRows.length - 1);
+                if (bbc48hSelectedIdx > 2 || bbc48hSelectedIdx >= bbcDailyRows.length) bbc48hSelectedIdx = 0;
+                if (bbcSemanalSelectedIdx < 3 || bbcSemanalSelectedIdx >= bbcDailyRows.length) {
+                    bbcSemanalSelectedIdx = Math.min(3, bbcDailyRows.length - 1);
                 }
                 // El bloque de 48h (pestañas Hoy/Mañana + tarjetas horarias) se
                 // renderiza siempre con datos de Open-Meteo.
@@ -5180,14 +5180,14 @@
                 updateSemanalDateRange();
             };
 
-            // Subtítulo dinámico "jueves 27 a lunes 31" con el rango de días
-            // que cubre la previsión semanal (día 3 al día 7), actualizándose
+            // Subtítulo dinámico "viernes 28 a martes 01" con el rango de días
+            // que cubre la previsión semanal (día 4 al día 8), actualizándose
             // solo conforme avanzan los días.
             const DIAS_LARGO_BBC = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
             function updateSemanalDateRange() {
                 const el = document.getElementById('semanal-date-range');
                 if (!el) return;
-                const rango = bbcDailyRows.slice(2, 7);
+                const rango = bbcDailyRows.slice(3, 8);
                 if (!rango.length) { el.textContent = ''; return; }
                 const primero = rango[0];
                 const ultimo = rango[rango.length - 1];
@@ -6248,7 +6248,7 @@
             // const PROXY_BASE = 'https://tiempo-bcn-proxy.tunombre.workers.dev';
             const PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
 
-            const url=`${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_850hPa,temperature_500hPa,freezing_level_height,cape,lifted_index,convective_inhibition&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean,cape_max&timezone=Europe/Madrid&forecast_days=7`;
+            const url=`${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_850hPa,temperature_500hPa,freezing_level_height,cape,lifted_index,convective_inhibition&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean,cape_max&timezone=Europe/Madrid&forecast_days=8`;
             const aqUrl=`${PROXY_BASE}/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&hourly=pm10&forecast_days=2&timezone=Europe/Madrid`;
             const marineUrl=`${PROXY_BASE}/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
 
@@ -6329,7 +6329,7 @@
                         if (!daily?.time) return;
                         const todayStr = new Date().toISOString().slice(0,10);
                         const DIAS_ES  = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
-                        const rows = daily.time.map((ds, i) => {
+                        const rows = daily.time.slice(0, 7).map((ds, i) => {
                             const dt = new Date(ds + 'T12:00:00');
                             const liMin = _f7DayAgg(hourly, 'lifted_index', ds, arr => Math.min(...arr));
                             const cinMin = _f7DayAgg(hourly, 'convective_inhibition', ds, arr => Math.min(...arr));
