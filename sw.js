@@ -2,7 +2,7 @@
    SERVICE WORKER — Tiempo Barcelona PWA
    ═══════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'tiempo-bcn-v7';
+const CACHE_NAME = 'tiempo-bcn-v8';
 
 // Archivos que se guardan en caché para funcionamiento offline
 const PRECACHE_ASSETS = [
@@ -63,8 +63,7 @@ self.addEventListener('fetch', event => {
       }, 10000);
 
       fetch(event.request.url, {
-        cache: 'no-store',
-        headers: { 'Cache-Control': 'no-cache' }
+        cache: 'no-store'
       })
         .then(response => {
           clearTimeout(timeout);
