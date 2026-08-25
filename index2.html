@@ -1075,6 +1075,11 @@
                 <!-- ═══ separador entre las dos previsiones ═══ -->
                 <div style="height:18px;background:#ffffff;"></div>
 
+                <div style="width:calc(100% + (2 * var(--gutter)));margin:0 calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));padding:20px 0 0;background:#ffffff;">
+                    <div style="font-size:20px;font-weight:300;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Próximos<span style="font-weight:900;">días</span></div>
+                    <div style="font-size:10px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:0;" id="semanal-date-range">Cargando…</div>
+                </div>
+
                 <!-- ═══════════════════════════════════════════
                      PREVISIÓN SEMANAL (DÍA 3 AL 7)
                 ════════════════════════════════════════════ -->
@@ -5167,7 +5172,26 @@
                 renderBBCHourlyInto('bbc-hourly-inner-48h', bbc48hSelectedIdx);
                 renderBBCDaypartSemanal(bbcSemanalSelectedIdx);
                 renderBBCSunUvi('bbc-sun-uvi-48h', bbc48hSelectedIdx);
+                updateSemanalDateRange();
             };
+
+            // Subtítulo dinámico "jueves 27 a lunes 31" con el rango de días
+            // que cubre la previsión semanal (día 3 al día 7), actualizándose
+            // solo conforme avanzan los días.
+            const DIAS_LARGO_BBC = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+            function updateSemanalDateRange() {
+                const el = document.getElementById('semanal-date-range');
+                if (!el) return;
+                const rango = bbcDailyRows.slice(2, 7);
+                if (!rango.length) { el.textContent = ''; return; }
+                const primero = rango[0];
+                const ultimo = rango[rango.length - 1];
+                const fmt = (r) => {
+                    const dt = new Date(r.dateStr + 'T12:00:00');
+                    return DIAS_LARGO_BBC[dt.getDay()] + ' ' + dt.getDate();
+                };
+                el.textContent = rango.length > 1 ? (fmt(primero) + ' a ' + fmt(ultimo)) : fmt(primero);
+            }
         })();
 
         /* ── Abre el detalle de un día en el panel inferior de f7 ── */
