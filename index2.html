@@ -232,7 +232,9 @@
         .bbc-dp-icon svg, .bbc-dp-arrow svg { width: 15px; height: 15px; display: block; }
         .bbc-dp-value { font-size: 11px; font-weight: 700; color: #ffffff; margin-top: 5px; }
         .bbc-dp-value-sub { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.75); margin-top: 3px; }
-        .bbc-dp-label { font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 9px; }
+        .bbc-dp-label { font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 16px; }
+        .bbc-dp-label-sun { font-size: 9px; font-weight: 600; color: #e8a878; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 26px; }
+        .bbc-dp-value-sun { font-size: 11px; font-weight: 700; color: #f2c19b; margin-top: 5px; }
         .bbc-hour-col { flex: 0 0 auto; width: calc((min(100vw, 600px) - 74px) / 4); box-sizing: border-box; text-align: center; }
         .bbc-hour-time { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); margin-bottom: 14px; }
         .bbc-hour-icon { width: 42px; height: 42px; margin: 0 auto 14px; }
@@ -1060,9 +1062,6 @@
                         </div>
                     </div>
                     <div class="bbc-hourly-section">
-                        <div class="bbc-hourly-header">
-                            <span class="bbc-hourly-title">Previsión 48 horas</span>
-                        </div>
                         <div class="bbc-hourly-wrap">
                             <div class="bbc-hourly-scroll" id="bbc-hourly-scroll-48h">
                                 <div class="bbc-hourly-inner" id="bbc-hourly-inner-48h"></div>
@@ -1085,9 +1084,6 @@
                         </div>
                     </div>
                     <div class="bbc-hourly-section">
-                        <div class="bbc-hourly-header">
-                            <span class="bbc-hourly-title">Previsión semanal</span>
-                        </div>
                         <div class="bbc-daypart-wrap" id="bbc-daypart-semanal"></div>
                     </div>
 
@@ -5061,10 +5057,10 @@
                     dataHtml += `<div class="bbc-dp-value">${presAvg !== null ? Math.round(presAvg) + ' hPa' : '--'}</div>`;
                     // Amanecer / atardecer solo en mañana y tarde
                     if (i === 0) {
-                        dataHtml += `<div class="bbc-dp-label">Amanecer</div><div class="bbc-dp-value">${sunriseTxt}</div>`;
+                        dataHtml += `<div class="bbc-dp-label-sun">Amanecer</div><div class="bbc-dp-value-sun">${sunriseTxt}</div>`;
                     }
                     if (i === 2) {
-                        dataHtml += `<div class="bbc-dp-label">Atardecer</div><div class="bbc-dp-value">${sunsetTxt}</div>`;
+                        dataHtml += `<div class="bbc-dp-label-sun">Atardecer</div><div class="bbc-dp-value-sun">${sunsetTxt}</div>`;
                     }
                     dataHtml += '</div>';
 
