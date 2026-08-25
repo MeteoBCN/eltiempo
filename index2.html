@@ -214,6 +214,18 @@
         .bbc-daypart-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .bbc-daypart-icon svg { width: 100%; height: 100%; }
         .bbc-daypart-desc { font-size: 12px; color: rgba(255,255,255,0.75); font-weight: 500; min-width: 60px; text-align: right; }
+        /* ── Previsión semanal: 3 franjas horarias (08-12 / 12-16 / 16-20) ── */
+        .bbc-daypart-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
+        .bbc-daypart-col { text-align: center; padding: 10px 4px 14px; border-right: 1px solid rgba(255,255,255,0.14); }
+        .bbc-daypart-col:last-child { border-right: none; }
+        .bbc-daypart-col-label { font-size: 11px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px; text-transform: uppercase; }
+        .bbc-daypart-col-hour { display: block; font-size: 8px; font-weight: 500; color: rgba(255,255,255,0.5); letter-spacing: 0.3px; text-transform: none; margin-top: 2px; }
+        .bbc-daypart-col-icon { width: 38px; height: 38px; margin: 8px auto 6px; display: flex; align-items: center; justify-content: center; }
+        .bbc-daypart-col-icon svg { width: 100%; height: 100%; }
+        .bbc-daypart-col-tlabel { font-size: 8px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px; }
+        .bbc-daypart-col-temp { font-size: 18px; font-weight: 800; color: #ffffff; line-height: 1; }
+        .bbc-daypart-col-temp.es-min { color: #7ec8e3; }
+        .bbc-daypart-col-temp.es-max { color: #ff7c7c; }
         .bbc-hour-col { flex: 0 0 auto; width: calc((min(100vw, 600px) - 74px) / 4); box-sizing: border-box; text-align: center; }
         .bbc-hour-time { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); margin-bottom: 14px; }
         .bbc-hour-icon { width: 42px; height: 42px; margin: 0 auto 14px; }
@@ -4917,30 +4929,87 @@
                 inner.innerHTML = slots.map(({ h, i, ht }) => renderBBCHourCol(h, i, ht)).join('');
             }
 
-            // Bloque semanal (día 3 al 7): sin franja horaria, solo icono de
-            // mañana (08h-13h) y tarde (13h-20h) con el código más repetido.
+            // Bloque semanal (día 3 al 7): 3 franjas horarias fijas —
+            // 08-12h (Mañana), 12-16h (Mediodía) y 16-20h (Tarde).
+            // En una franja se muestra la mínima del día, en otra la máxima,
+            // y en la restante la media de esa franja. Si la mínima cae fuera
+            // de estas horas (madrugada/noche), se asigna a la franja de la mañana.
+            const BBC_SEMANAL_SLOTS = [
+                { label: 'Mañana',   hourTxt: '08-12h', h0: 8,  h1: 12 },
+                { label: 'Mediodía', hourTxt: '12-16h', h0: 12, h1: 16 },
+                { label: 'Tarde',    hourTxt: '16-20h', h0: 16, h1: 20 },
+            ];
+
             function renderBBCDaypartSemanal(idx) {
                 const box = document.getElementById('bbc-daypart-semanal');
                 if (!box || !bbcHourly) return;
                 const row = bbcDailyRows[idx];
                 if (!row) return;
-                const wmoManana = bbcModeWmoRange(row.dateStr, bbcHourly, 8, 13, row.wmo);
-                const wmoTarde = bbcModeWmoRange(row.dateStr, bbcHourly, 13, 20, row.wmo);
-                const iconManana = getSvgIcon(wmoManana, 44, false);
-                const iconTarde = getSvgIcon(wmoTarde, 44, false);
-                const descManana = weatherDescriptions[wmoManana] || '';
-                const descTarde = weatherDescriptions[wmoTarde] || '';
-                box.innerHTML = `
-                    <div class="bbc-daypart-item">
-                        <div class="bbc-daypart-label">Mañana</div>
-                        <div class="bbc-daypart-icon">${iconManana}</div>
-                        <div class="bbc-daypart-desc">${descManana}</div>
-                    </div>
-                    <div class="bbc-daypart-item">
-                        <div class="bbc-daypart-label">Tarde</div>
-                        <div class="bbc-daypart-icon">${iconTarde}</div>
-                        <div class="bbc-daypart-desc">${descTarde}</div>
+
+                // Temperaturas horarias del día
+                const hoursData = [];
+                for (let i = 0; i < bbcHourly.time.length; i++) {
+                    if (!bbcHourly.time[i].startsWith(row.dateStr)) continue;
+                    const h = parseInt(bbcHourly.time[i].slice(11, 13), 10);
+                    const t = bbcHourly.temperature_2m?.[i];
+                    if (t === undefined || t === null) continue;
+                    hoursData.push({ h, t });
+                }
+
+                let minEntry = null, maxEntry = null;
+                hoursData.forEach(e => {
+                    if (!minEntry || e.t < minEntry.t) minEntry = e;
+                    if (!maxEntry || e.t > maxEntry.t) maxEntry = e;
+                });
+
+                function slotIndexForHour(h) {
+                    for (let s = 0; s < BBC_SEMANAL_SLOTS.length; s++) {
+                        if (h >= BBC_SEMANAL_SLOTS[s].h0 && h < BBC_SEMANAL_SLOTS[s].h1) return s;
+                    }
+                    return -1;
+                }
+
+                // Mínima: si cae fuera de 08-20h, va a la franja de la mañana
+                let minSlotIdx = minEntry ? slotIndexForHour(minEntry.h) : -1;
+                if (minSlotIdx === -1) minSlotIdx = 0;
+
+                // Máxima: si cae fuera de 08-20h, va a la franja más cercana (mañana o tarde)
+                let maxSlotIdx = maxEntry ? slotIndexForHour(maxEntry.h) : -1;
+                if (maxSlotIdx === -1) maxSlotIdx = (maxEntry && maxEntry.h < 8) ? 0 : 2;
+
+                // Si por casualidad coinciden en la misma franja, se libera otra para la mínima
+                if (minSlotIdx === maxSlotIdx) {
+                    const libres = [0, 1, 2].filter(s => s !== maxSlotIdx);
+                    minSlotIdx = libres[0];
+                }
+
+                box.innerHTML = '<div class="bbc-daypart-grid">' + BBC_SEMANAL_SLOTS.map((slot, i) => {
+                    const wmo = bbcModeWmoRange(row.dateStr, bbcHourly, slot.h0, slot.h1 - 1, row.wmo);
+                    const icon = getSvgIcon(wmo, 38, false);
+
+                    let tempLabel, tempValue, tempClass;
+                    if (i === minSlotIdx) {
+                        tempLabel = 'Mínima';
+                        tempValue = Math.round(row.tmin);
+                        tempClass = 'es-min';
+                    } else if (i === maxSlotIdx) {
+                        tempLabel = 'Máxima';
+                        tempValue = Math.round(row.tmax);
+                        tempClass = 'es-max';
+                    } else {
+                        const vals = hoursData.filter(e => e.h >= slot.h0 && e.h < slot.h1).map(e => e.t);
+                        tempValue = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : '--';
+                        tempLabel = 'Media';
+                        tempClass = '';
+                    }
+
+                    return `<div class="bbc-daypart-col">
+                        <div class="bbc-daypart-col-label">${slot.label}<span class="bbc-daypart-col-hour">(${slot.hourTxt})</span></div>
+                        <div class="bbc-daypart-col-icon">${icon}</div>
+                        <div class="bbc-daypart-col-tlabel">${tempLabel}</div>
+                        <div class="bbc-daypart-col-temp ${tempClass}">${tempValue}°</div>
                     </div>`;
+                }).join('') + '</div>';
             }
 
             function renderBBCSunUvi(boxId, idx) {
