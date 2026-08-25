@@ -4987,26 +4987,22 @@
                     const wmo = bbcModeWmoRange(row.dateStr, bbcHourly, slot.h0, slot.h1 - 1, row.wmo);
                     const icon = getSvgIcon(wmo, 38, false);
 
-                    let tempLabel, tempValue, tempClass;
+                    let tempValue, tempClass;
                     if (i === minSlotIdx) {
-                        tempLabel = 'Mínima';
                         tempValue = Math.round(row.tmin);
                         tempClass = 'es-min';
                     } else if (i === maxSlotIdx) {
-                        tempLabel = 'Máxima';
                         tempValue = Math.round(row.tmax);
                         tempClass = 'es-max';
                     } else {
                         const vals = hoursData.filter(e => e.h >= slot.h0 && e.h < slot.h1).map(e => e.t);
                         tempValue = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : '--';
-                        tempLabel = 'Media';
                         tempClass = '';
                     }
 
                     return `<div class="bbc-daypart-col">
-                        <div class="bbc-daypart-col-label">${slot.label}<span class="bbc-daypart-col-hour">(${slot.hourTxt})</span></div>
+                        <div class="bbc-daypart-col-label">${slot.label}<span class="bbc-daypart-col-hour">${slot.hourTxt}</span></div>
                         <div class="bbc-daypart-col-icon">${icon}</div>
-                        <div class="bbc-daypart-col-tlabel">${tempLabel}</div>
                         <div class="bbc-daypart-col-temp ${tempClass}">${tempValue}°</div>
                     </div>`;
                 }).join('') + '</div>';
