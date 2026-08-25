@@ -6355,24 +6355,40 @@
         }
 
         // Intento 1: One Call 4.0 (endpoints modulares — el que has activado)
+        //
+        // Formato real de la API 4.0 (según documentación oficial):
+        //  - /onecall/current      → { lat, lon, ..., data: [ {temp, weather, ...} ] }   (1 solo registro, NO "current")
+        //  - /onecall/timeline/1h  → { lat, lon, ..., data: [ {...}, ... ], next, prev } (máx. 20 registros/página)
+        // El timeline de 1h solo trae 20h por respuesta, así que para cubrir 48h hay
+        // que seguir el enlace "next" hasta reunir suficientes horas.
         async function fetchOpenWeather40() {
             const curUrl  = `https://api.openweathermap.org/data/4.0/onecall/current?lat=${LAT}&lon=${LON}&units=metric&lang=es&appid=${OPENWEATHER_KEY}`;
             const hourUrl = `https://api.openweathermap.org/data/4.0/onecall/timeline/1h?lat=${LAT}&lon=${LON}&units=metric&lang=es&appid=${OPENWEATHER_KEY}`;
             const [curJson, hourJson] = await Promise.all([owSafeFetch(curUrl), owSafeFetch(hourUrl)]);
-            if (!curJson?.current) return null;
-            // La respuesta de /timeline/1h es una API muy reciente; contemplamos las
-            // formas más probables en que puede venir el array de horas.
-            let hourlyArr = null;
-            if (Array.isArray(hourJson)) hourlyArr = hourJson;
-            else if (Array.isArray(hourJson?.hourly)) hourlyArr = hourJson.hourly;
-            else if (Array.isArray(hourJson?.data)) hourlyArr = hourJson.data;
-            else if (Array.isArray(hourJson?.list)) hourlyArr = hourJson.list;
+
+            const current = Array.isArray(curJson?.data) ? curJson.data[0] : null;
+            if (!current) return null;
+
+            let hourlyArr = Array.isArray(hourJson?.data) ? hourJson.data.slice() : null;
             if (!hourlyArr || !hourlyArr.length) return null;
+
+            // Paginar con "next" hasta cubrir 48h o hasta que no haya más páginas
+            // (límite de seguridad de 4 páginas extra para no disparar llamadas de más).
+            let nextUrl = hourJson.next;
+            let pageGuard = 0;
+            while (nextUrl && hourlyArr.length < 48 && pageGuard < 4) {
+                const nextJson = await owSafeFetch(nextUrl);
+                pageGuard++;
+                if (!nextJson || !Array.isArray(nextJson.data) || !nextJson.data.length) break;
+                hourlyArr = hourlyArr.concat(nextJson.data);
+                nextUrl = nextJson.next;
+            }
+
             // Nos quedamos solo con horas futuras (por si el timeline incluye histórico)
             const nowSec = Date.now() / 1000;
             hourlyArr = hourlyArr.filter(h => (h.dt ?? 0) >= nowSec - 1800).slice(0, 48);
             if (!hourlyArr.length) return null;
-            return { current: curJson.current, hourly: hourlyArr };
+            return { current, hourly: hourlyArr };
         }
 
         // Intento 2: One Call 3.0 (por si la cuenta tuviera esa suscripción en vez de la 4.0)
