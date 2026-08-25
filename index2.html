@@ -232,6 +232,7 @@
         .bbc-dp-icon svg, .bbc-dp-arrow svg { width: 15px; height: 15px; display: block; }
         .bbc-dp-value { font-size: 11px; font-weight: 700; color: #ffffff; margin-top: 5px; }
         .bbc-dp-value-sub { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.75); margin-top: 3px; }
+        .bbc-dp-value-wind { font-size: 11px; font-weight: 700; color: #cfe8f7; margin-top: 5px; }
         .bbc-dp-label { font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 16px; }
         .bbc-dp-label-sun { font-size: 9px; font-weight: 600; color: #e8a878; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 26px; }
         .bbc-dp-value-sun { font-size: 11px; font-weight: 700; color: #f2c19b; margin-top: 5px; }
@@ -5044,11 +5045,11 @@
                     // Acumulado: solo la cifra
                     dataHtml += `<div class="bbc-dp-value-sub">${precipSum !== null ? precipSum.toFixed(1) + ' mm' : '--'}</div>`;
                     // Viento: flecha con dirección + dato de viento debajo, luego racha máx.
-                    const arrowDeg = windDirVals.length ? (windDirAvg + 180) % 360 : 0;
+                    const arrowDeg = windDirVals.length ? windDirAvg % 360 : 0;
                     dataHtml += `<div class="bbc-dp-row"><div class="bbc-dp-arrow" style="transform:rotate(${arrowDeg}deg);"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L6 20l6-4 6 4L12 2z" fill="#cfe8f7"/></svg></div></div>`;
-                    dataHtml += `<div class="bbc-dp-value">${windAvg !== null ? Math.round(windAvg) + ' km/h' : '--'}</div>`;
+                    dataHtml += `<div class="bbc-dp-value-wind">${windAvg !== null ? Math.round(windAvg) + ' km/h' : '--'}</div>`;
                     dataHtml += `<div class="bbc-dp-label">Racha máx.</div>`;
-                    dataHtml += `<div class="bbc-dp-value">${gustMax !== null ? Math.round(gustMax) + ' km/h' : '--'}</div>`;
+                    dataHtml += `<div class="bbc-dp-value-wind">${gustMax !== null ? Math.round(gustMax) + ' km/h' : '--'}</div>`;
                     // Humedad: máxima y mínima de la franja
                     dataHtml += `<div class="bbc-dp-label">Humedad</div>`;
                     dataHtml += `<div class="bbc-dp-value">${humMax !== null ? Math.round(humMax) + '% / ' + Math.round(humMin) + '%' : '--'}</div>`;
