@@ -227,8 +227,12 @@
         .bbc-daypart-col-temp.es-min { color: #7ec8e3; }
         .bbc-daypart-col-temp.es-max { color: #ff7c7c; }
         .bbc-daypart-col-temp.es-media { color: rgba(255,255,255,0.55); font-weight: 500; }
-        .bbc-daypart-col-data { margin-top: 8px; font-size: 10px; color: rgba(255,255,255,0.85); line-height: 1.9; }
-        .bbc-daypart-col-data span { display: block; white-space: nowrap; }
+        .bbc-daypart-col-data { margin-top: 16px; font-size: 10px; color: rgba(255,255,255,0.9); }
+        .bbc-dp-row { display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 9px; }
+        .bbc-dp-icon svg, .bbc-dp-arrow svg { width: 15px; height: 15px; display: block; }
+        .bbc-dp-value { font-size: 11px; font-weight: 700; color: #ffffff; margin-top: 5px; }
+        .bbc-dp-value-sub { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.75); margin-top: 3px; }
+        .bbc-dp-label { font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 9px; }
         .bbc-hour-col { flex: 0 0 auto; width: calc((min(100vw, 600px) - 74px) / 4); box-sizing: border-box; text-align: center; }
         .bbc-hour-time { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); margin-bottom: 14px; }
         .bbc-hour-icon { width: 42px; height: 42px; margin: 0 auto 14px; }
@@ -5026,7 +5030,6 @@
                     const windDirVals = idxSlot.map(j => bbcHourly.wind_direction_10m?.[j]).filter(v => v !== undefined && v !== null);
                     const gustVals = idxSlot.map(j => bbcHourly.wind_gusts_10m?.[j]).filter(v => v !== undefined && v !== null);
                     const humVals = idxSlot.map(j => bbcHourly.relative_humidity_2m?.[j]).filter(v => v !== undefined && v !== null);
-                    const uviVals = idxSlot.map(j => bbcHourly.uv_index?.[j]).filter(v => v !== undefined && v !== null);
                     const presVals = idxSlot.map(j => bbcHourly.pressure_msl?.[j]).filter(v => v !== undefined && v !== null);
 
                     const pprobMax = max(pprobVals);
@@ -5034,20 +5037,35 @@
                     const windAvg = avg(windVals);
                     const windDirAvg = avg(windDirVals);
                     const gustMax = max(gustVals);
-                    const humAvg = avg(humVals);
-                    const uviMax = max(uviVals);
+                    const humMax = max(humVals);
+                    const humMin = humVals.length ? Math.min(...humVals) : null;
                     const presAvg = avg(presVals);
 
                     let dataHtml = '<div class="bbc-daypart-col-data">';
-                    dataHtml += `<span>Lluvia: ${pprobMax !== null ? Math.round(pprobMax) + '%' : '--'}</span>`;
-                    dataHtml += `<span>Acum.: ${precipSum !== null ? precipSum.toFixed(1) + ' mm' : '--'}</span>`;
-                    dataHtml += `<span>Viento: ${windAvg !== null ? Math.round(windAvg) + ' km/h ' + windDirTxt(windDirAvg) : '--'}</span>`;
-                    dataHtml += `<span>Racha máx.: ${gustMax !== null ? Math.round(gustMax) + ' km/h' : '--'}</span>`;
-                    dataHtml += `<span>Humedad: ${humAvg !== null ? Math.round(humAvg) + '%' : '--'}</span>`;
-                    dataHtml += `<span>UVI: ${uviMax !== null ? Math.round(uviMax) : '--'}</span>`;
-                    dataHtml += `<span>Presión: ${presAvg !== null ? Math.round(presAvg) + ' hPa' : '--'}</span>`;
-                    if (i === 0) dataHtml += `<span>Amanecer: ${sunriseTxt}</span>`;
-                    if (i === 2) dataHtml += `<span>Atardecer: ${sunsetTxt}</span>`;
+                    // Lluvia: icono paraguas + % debajo
+                    dataHtml += `<div class="bbc-dp-row"><div class="bbc-dp-icon">${umbrellaOpenSvg(15, '#ffffff')}</div></div>`;
+                    dataHtml += `<div class="bbc-dp-value">${pprobMax !== null ? Math.round(pprobMax) + '%' : '--'}</div>`;
+                    // Acumulado: solo la cifra
+                    dataHtml += `<div class="bbc-dp-value-sub">${precipSum !== null ? precipSum.toFixed(1) + ' mm' : '--'}</div>`;
+                    // Viento: flecha con dirección + dato de viento debajo, luego racha máx.
+                    const arrowDeg = windDirVals.length ? (windDirAvg + 180) % 360 : 0;
+                    dataHtml += `<div class="bbc-dp-row"><div class="bbc-dp-arrow" style="transform:rotate(${arrowDeg}deg);"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L6 20l6-4 6 4L12 2z" fill="#cfe8f7"/></svg></div></div>`;
+                    dataHtml += `<div class="bbc-dp-value">${windAvg !== null ? Math.round(windAvg) + ' km/h' : '--'}</div>`;
+                    dataHtml += `<div class="bbc-dp-label">Racha máx.</div>`;
+                    dataHtml += `<div class="bbc-dp-value">${gustMax !== null ? Math.round(gustMax) + ' km/h' : '--'}</div>`;
+                    // Humedad: máxima y mínima de la franja
+                    dataHtml += `<div class="bbc-dp-label">Humedad</div>`;
+                    dataHtml += `<div class="bbc-dp-value">${humMax !== null ? Math.round(humMax) + '% / ' + Math.round(humMin) + '%' : '--'}</div>`;
+                    // Presión
+                    dataHtml += `<div class="bbc-dp-label">Presión</div>`;
+                    dataHtml += `<div class="bbc-dp-value">${presAvg !== null ? Math.round(presAvg) + ' hPa' : '--'}</div>`;
+                    // Amanecer / atardecer solo en mañana y tarde
+                    if (i === 0) {
+                        dataHtml += `<div class="bbc-dp-label">Amanecer</div><div class="bbc-dp-value">${sunriseTxt}</div>`;
+                    }
+                    if (i === 2) {
+                        dataHtml += `<div class="bbc-dp-label">Atardecer</div><div class="bbc-dp-value">${sunsetTxt}</div>`;
+                    }
                     dataHtml += '</div>';
 
                     return `<div class="bbc-daypart-col">
