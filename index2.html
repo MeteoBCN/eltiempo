@@ -1033,14 +1033,29 @@
                     </div>
                     <div class="bbc-hourly-section">
                         <div class="bbc-hourly-header">
-                            <span class="bbc-hourly-title">Previsión horaria</span>
+                            <span class="bbc-hourly-title">Previsión 48 horas</span>
                         </div>
                         <div class="bbc-hourly-wrap">
-                            <div class="bbc-hourly-scroll" id="bbc-hourly-scroll">
-                                <div class="bbc-hourly-inner" id="bbc-hourly-inner"></div>
+                            <div class="bbc-hourly-scroll" id="bbc-hourly-scroll-48h">
+                                <div class="bbc-hourly-inner" id="bbc-hourly-inner-48h"></div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- ═══ separador entre las dos previsiones horarias ═══ -->
+                    <div style="height:1px;background:rgba(255,255,255,0.14);margin:4px 16px;"></div>
+
+                    <div class="bbc-hourly-section">
+                        <div class="bbc-hourly-header">
+                            <span class="bbc-hourly-title">Previsión semanal</span>
+                        </div>
+                        <div class="bbc-hourly-wrap">
+                            <div class="bbc-hourly-scroll" id="bbc-hourly-scroll-semanal">
+                                <div class="bbc-hourly-inner" id="bbc-hourly-inner-semanal"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="bbc-sun-uvi" id="bbc-sun-uvi"></div>
                 </div>
                 <!-- ═══════════════════════════════════════════
@@ -2527,9 +2542,11 @@
         }
         document.addEventListener('DOMContentLoaded', () => {
             const daysRow = document.getElementById('bbc-days-row');
-            const hourlyScroll = document.getElementById('bbc-hourly-scroll');
+            const hourlyScroll = document.getElementById('bbc-hourly-scroll-48h');
+            const hourlyScroll2 = document.getElementById('bbc-hourly-scroll-semanal');
             if (daysRow) enableMouseHorizontalScroll(daysRow);
             if (hourlyScroll) enableMouseHorizontalScroll(hourlyScroll);
+            if (hourlyScroll2) enableMouseHorizontalScroll(hourlyScroll2);
         });
 
         let _lastParaguasHourly = null;
@@ -4817,9 +4834,59 @@
                 }).join('');
             }
 
-            function renderBBCHourly(idx) {
-                const inner = document.getElementById('bbc-hourly-inner');
+            function renderBBCHourCol(h, i, ht) {
+                const isNight = isNightTime(ht);
+                const wmo = bbcHourly.weather_code?.[i] ?? 0;
+                const pp = Math.round(bbcHourly.precipitation_probability?.[i] ?? 0);
+                const isFog = (wmo === 45 || wmo === 48);
+                const isRain = (wmo >= 51 && wmo <= 82) || (wmo >= 85 && wmo <= 86) || (wmo >= 95 && wmo <= 99);
+                let eWmo = wmo;
+                if (!isFog) { if (!isRain && pp >= 50) eWmo = 80; else if (isRain && pp < 50) eWmo = 3; }
+                const icon = getSvgIcon(isFog ? 45 : eWmo, 42, isNight);
+                const temp = bbcHourly.temperature_2m?.[i] !== undefined ? Math.round(bbcHourly.temperature_2m[i]) + '°' : '--';
+                const hum = bbcHourly.relative_humidity_2m?.[i] !== undefined ? Math.round(bbcHourly.relative_humidity_2m[i]) + '%' : '--';
+                const ws = Math.round(bbcHourly.wind_speed_10m?.[i] ?? 0);
+                const wd = bbcHourly.wind_direction_10m?.[i] ?? 0;
+                return `<div class="bbc-hour-col">
+                    <div class="bbc-hour-time">${bbcHourLabel(h)}</div>
+                    <div class="bbc-hour-icon">${icon}</div>
+                    <div class="bbc-hour-temp">${temp}</div>
+                    <div class="bbc-hour-humidity">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-13-7-13z" fill="#ffffff"/></svg>
+                        <span>${hum}</span>
+                    </div>
+                    <div class="bbc-hour-precip">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a9 9 0 0 0-9 9h18a9 9 0 0 0-9-9z" fill="#ffffff"/><line x1="12" y1="11" x2="12" y2="19" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/><path d="M12 19a2 2 0 1 0 4 0" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+                        <span>${pp}%</span>
+                    </div>
+                    <div class="bbc-hour-wind">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(${(wd + 180) % 360}deg)"><path d="M12 2L6 20l6-4 6 4L12 2z" fill="#cfe8f7"/></svg>
+                        <span>${ws}km/h</span>
+                    </div>
+                </div>`;
+            }
+
+            // Bloque "48 horas": siempre las próximas 48 h desde ahora (hoy + mañana),
+            // independiente del día seleccionado en el selector semanal.
+            function renderBBC48h() {
+                const inner = document.getElementById('bbc-hourly-inner-48h');
                 if (!inner || !bbcHourly) return;
+                const now = new Date();
+                const limite = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+                const slots = [];
+                for (let i = 0; i < bbcHourly.time.length; i++) {
+                    const ht = new Date(bbcHourly.time[i]);
+                    if (ht < now || ht > limite) continue;
+                    slots.push({ h: ht.getHours(), i, ht });
+                }
+                slots.sort((a, b) => a.ht - b.ht);
+                inner.innerHTML = slots.map(({ h, i, ht }) => renderBBCHourCol(h, i, ht)).join('');
+            }
+
+            // Bloque "semanal": horas del día elegido en el selector de 7 días.
+            function renderBBCHourlySemanal(idx) {
+                const inner2 = document.getElementById('bbc-hourly-inner-semanal');
+                if (!inner2 || !bbcHourly) return;
                 const row = bbcDailyRows[idx];
                 if (!row) return;
                 const nowHour = new Date().getHours();
@@ -4832,37 +4899,7 @@
                     slots.push({ h, i, ht });
                 }
                 slots.sort((a, b) => a.h - b.h);
-                inner.innerHTML = slots.map(({ h, i, ht }) => {
-                    const isNight = isNightTime(ht);
-                    const wmo = bbcHourly.weather_code?.[i] ?? 0;
-                    const pp = Math.round(bbcHourly.precipitation_probability?.[i] ?? 0);
-                    const isFog = (wmo === 45 || wmo === 48);
-                    const isRain = (wmo >= 51 && wmo <= 82) || (wmo >= 85 && wmo <= 86) || (wmo >= 95 && wmo <= 99);
-                    let eWmo = wmo;
-                    if (!isFog) { if (!isRain && pp >= 50) eWmo = 80; else if (isRain && pp < 50) eWmo = 3; }
-                    const icon = getSvgIcon(isFog ? 45 : eWmo, 42, isNight);
-                    const temp = bbcHourly.temperature_2m?.[i] !== undefined ? Math.round(bbcHourly.temperature_2m[i]) + '°' : '--';
-                    const hum = bbcHourly.relative_humidity_2m?.[i] !== undefined ? Math.round(bbcHourly.relative_humidity_2m[i]) + '%' : '--';
-                    const ws = Math.round(bbcHourly.wind_speed_10m?.[i] ?? 0);
-                    const wd = bbcHourly.wind_direction_10m?.[i] ?? 0;
-                    return `<div class="bbc-hour-col">
-                        <div class="bbc-hour-time">${bbcHourLabel(h)}</div>
-                        <div class="bbc-hour-icon">${icon}</div>
-                        <div class="bbc-hour-temp">${temp}</div>
-                        <div class="bbc-hour-humidity">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-13-7-13z" fill="#ffffff"/></svg>
-                            <span>${hum}</span>
-                        </div>
-                        <div class="bbc-hour-precip">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a9 9 0 0 0-9 9h18a9 9 0 0 0-9-9z" fill="#ffffff"/><line x1="12" y1="11" x2="12" y2="19" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/><path d="M12 19a2 2 0 1 0 4 0" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
-                            <span>${pp}%</span>
-                        </div>
-                        <div class="bbc-hour-wind">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(${(wd + 180) % 360}deg)"><path d="M12 2L6 20l6-4 6 4L12 2z" fill="#cfe8f7"/></svg>
-                            <span>${ws}km/h</span>
-                        </div>
-                    </div>`;
-                }).join('');
+                inner2.innerHTML = slots.map(({ h, i, ht }) => renderBBCHourCol(h, i, ht)).join('');
             }
 
             function renderBBCSunUvi(idx) {
@@ -4918,9 +4955,9 @@
             window.bbcSelectDay = function(idx) {
                 bbcSelectedIdx = idx;
                 document.querySelectorAll('.bbc-day-cell').forEach(c => c.classList.toggle('selected', parseInt(c.dataset.idx, 10) === idx));
-                const scrollEl = document.getElementById('bbc-hourly-scroll');
-                if (scrollEl) scrollEl.scrollLeft = 0;
-                renderBBCHourly(idx);
+                const scrollEl2 = document.getElementById('bbc-hourly-scroll-semanal');
+                if (scrollEl2) scrollEl2.scrollLeft = 0;
+                renderBBCHourlySemanal(idx);
                 renderBBCSunUvi(idx);
             };
 
@@ -4944,7 +4981,8 @@
                 });
                 if (bbcSelectedIdx >= bbcDailyRows.length) bbcSelectedIdx = 0;
                 renderBBCDays();
-                renderBBCHourly(bbcSelectedIdx);
+                renderBBC48h();
+                renderBBCHourlySemanal(bbcSelectedIdx);
                 renderBBCSunUvi(bbcSelectedIdx);
             };
         })();
