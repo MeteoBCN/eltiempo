@@ -214,28 +214,25 @@
         .bbc-daypart-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .bbc-daypart-icon svg { width: 100%; height: 100%; }
         .bbc-daypart-desc { font-size: 12px; color: rgba(255,255,255,0.75); font-weight: 500; min-width: 60px; text-align: right; }
-        /* ── Previsión semanal: 3 franjas horarias (08-12 / 12-16 / 16-20) ── */
-        .bbc-daypart-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
-        .bbc-daypart-col { text-align: center; padding: 10px 4px 14px; border-right: 1px solid rgba(255,255,255,0.14); }
-        .bbc-daypart-col:last-child { border-right: none; }
-        .bbc-daypart-col-label { font-size: 11px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px; text-transform: uppercase; }
-        .bbc-daypart-col-hour { display: block; font-size: 8px; font-weight: 500; color: rgba(255,255,255,0.5); letter-spacing: 0.3px; text-transform: none; margin-top: 2px; }
-        .bbc-daypart-col-icon { width: 38px; height: 38px; margin: 8px auto 6px; display: flex; align-items: center; justify-content: center; }
-        .bbc-daypart-col-icon svg { width: 100%; height: 100%; }
-        .bbc-daypart-col-tlabel { font-size: 8px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px; }
-        .bbc-daypart-col-temp { font-size: 18px; font-weight: 800; color: #ffffff; line-height: 1; }
-        .bbc-daypart-col-temp.es-min { color: #7ec8e3; }
-        .bbc-daypart-col-temp.es-max { color: #ff7c7c; }
-        .bbc-daypart-col-temp.es-media { color: rgba(255,255,255,0.55); font-weight: 500; }
-        .bbc-daypart-col-data { margin-top: 16px; font-size: 10px; color: rgba(255,255,255,0.9); }
-        .bbc-dp-row { display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 9px; }
-        .bbc-dp-icon svg, .bbc-dp-arrow svg { width: 15px; height: 15px; display: block; }
-        .bbc-dp-value { font-size: 11px; font-weight: 700; color: #ffffff; margin-top: 5px; }
-        .bbc-dp-value-sub { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.75); margin-top: 3px; }
-        .bbc-dp-value-wind { font-size: 11px; font-weight: 700; color: #cfe8f7; margin-top: 5px; }
-        .bbc-dp-label { font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 16px; }
-        .bbc-dp-label-sun { font-size: 9px; font-weight: 600; color: #e8a878; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 26px; }
-        .bbc-dp-value-sun { font-size: 11px; font-weight: 700; color: #f2c19b; margin-top: 5px; }
+        /* ── Previsión semanal: 4 franjas horarias horizontales (00-06 / 06-12 / 12-18 / 18-24) + fila de sol ── */
+        .bbc-daypart-rows { display: flex; flex-direction: column; }
+        .bbc-dprow { display: flex; align-items: center; gap: 10px; padding: 11px 4px; border-bottom: 1px solid rgba(255,255,255,0.14); }
+        .bbc-dprow:last-child { border-bottom: none; }
+        .bbc-dprow-time { flex: 0 0 58px; font-size: 11px; font-weight: 700; color: #ffffff; line-height: 1.3; }
+        .bbc-dprow-period { display: block; font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 1px; }
+        .bbc-dprow-body { flex: 1; min-width: 0; display: flex; align-items: center; flex-wrap: wrap; row-gap: 4px; column-gap: 7px; }
+        .bbc-dprow-icon { width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+        .bbc-dprow-icon svg { width: 100%; height: 100%; }
+        .bbc-dprow-temp { font-size: 15px; font-weight: 800; color: #ffffff; line-height: 1; }
+        .bbc-dprow-temp.es-min { color: #7ec8e3; }
+        .bbc-dprow-temp.es-max { color: #ff7c7c; }
+        .bbc-dprow-temp.es-media { color: rgba(255,255,255,0.6); font-weight: 600; }
+        .bbc-dprow-sep { color: rgba(255,255,255,0.28); font-size: 11px; }
+        .bbc-dprow-item { font-size: 11px; font-weight: 600; color: #ffffff; white-space: nowrap; }
+        .bbc-dprow-sub { font-size: 10px; font-weight: 400; color: rgba(255,255,255,0.65); margin-left: 3px; }
+        .bbc-dprow-sun { background: rgba(255,255,255,0.04); }
+        .bbc-dprow-sun .bbc-dprow-item { color: #f2c19b; }
+        .bbc-dprow-sun .bbc-dprow-sub { color: rgba(242,193,155,0.75); }
         .bbc-hour-col { flex: 0 0 auto; width: calc((min(100vw, 600px) - 74px) / 4); box-sizing: border-box; text-align: center; }
         .bbc-hour-time { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); margin-bottom: 14px; }
         .bbc-hour-icon { width: 42px; height: 42px; margin: 0 auto 14px; }
@@ -4941,15 +4938,17 @@
                 inner.innerHTML = slots.map(({ h, i, ht }) => renderBBCHourCol(h, i, ht)).join('');
             }
 
-            // Bloque semanal (día 4 al 8): 3 franjas horarias fijas —
-            // 06-12h (Mañana), 12-18h (Tarde) y 18-24h (Noche).
-            // La mínima del día se muestra siempre en la Mañana, la máxima
-            // siempre en la Tarde, y en la Noche se muestra la media de
-            // temperatura calculada solo entre las 20h y las 24h.
+            // Bloque semanal (día 4 al 8): 4 franjas horarias fijas, en filas
+            // horizontales — 00-06h (Madrugada), 06-12h (Mañana), 12-18h (Tarde)
+            // y 18-24h (Noche) — más una fila final con datos de sol (amanecer/
+            // atardecer). La mínima del día se muestra siempre en la Mañana, la
+            // máxima siempre en la Tarde; Madrugada y Noche muestran la media de
+            // temperatura de su franja (Noche solo con las horas 20h-24h).
             const BBC_SEMANAL_SLOTS = [
-                { label: 'Mañana', hourTxt: '06-12h', h0: 6,  h1: 12 },
-                { label: 'Tarde',  hourTxt: '12-18h', h0: 12, h1: 18 },
-                { label: 'Noche',  hourTxt: '18-24h', h0: 18, h1: 24 },
+                { label: 'Madrugada', h0: 0,  h1: 6  },
+                { label: 'Mañana',    h0: 6,  h1: 12 },
+                { label: 'Tarde',     h0: 12, h1: 18 },
+                { label: 'Noche',     h0: 18, h1: 24 },
             ];
 
             function renderBBCDaypartSemanal(idx) {
@@ -4967,24 +4966,23 @@
                     if (t === undefined || t === null) continue;
                     hoursData.push({ h, t });
                 }
+                const avgOf = vals => vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : '--';
 
-                // Mínima siempre en Mañana (0), máxima siempre en Tarde (1)
-                const minSlotIdx = 0;
-                const maxSlotIdx = 1;
+                // Mínima siempre en Mañana, máxima siempre en Tarde
+                const minSlotIdx = 1;
+                const maxSlotIdx = 2;
 
-                // Media de la Noche: solo con las horas entre 20h y 24h (exclusive)
-                const nocheTempVals = hoursData.filter(e => e.h >= 20 && e.h < 24).map(e => e.t);
-                const nocheTempValue = nocheTempVals.length ? Math.round(nocheTempVals.reduce((a, b) => a + b, 0) / nocheTempVals.length) : '--';
+                // Madrugada: media de 00h-06h. Noche: media solo de 20h-24h.
+                const madrugadaTempValue = avgOf(hoursData.filter(e => e.h >= 0 && e.h < 6).map(e => e.t));
+                const nocheTempValue = avgOf(hoursData.filter(e => e.h >= 20 && e.h < 24).map(e => e.t));
 
                 const fmtHora = (iso) => iso ? new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
                 const sunriseTxt = fmtHora(bbcDaily?.sunrise?.[idx]);
                 const sunsetTxt = fmtHora(bbcDaily?.sunset?.[idx]);
 
-                function windDirTxt(deg) { return ['N','NE','E','SE','S','SO','O','NO'][Math.round((deg||0)/45)%8]; }
-
-                box.innerHTML = '<div class="bbc-daypart-grid">' + BBC_SEMANAL_SLOTS.map((slot, i) => {
+                const rowsHtml = BBC_SEMANAL_SLOTS.map((slot, i) => {
                     const wmo = bbcModeWmoRange(row.dateStr, bbcHourly, slot.h0, slot.h1 - 1, row.wmo);
-                    const icon = getSvgIcon(wmo, 38, false);
+                    const icon = getSvgIcon(wmo, 26, false);
 
                     let tempValue, tempClass;
                     if (i === minSlotIdx) {
@@ -4993,6 +4991,9 @@
                     } else if (i === maxSlotIdx) {
                         tempValue = Math.round(row.tmax);
                         tempClass = 'es-max';
+                    } else if (slot.label === 'Madrugada') {
+                        tempValue = madrugadaTempValue;
+                        tempClass = 'es-media';
                     } else {
                         tempValue = nocheTempValue;
                         tempClass = 'es-media';
@@ -5012,54 +5013,41 @@
                     const pprobVals = idxSlot.map(j => bbcHourly.precipitation_probability?.[j]).filter(v => v !== undefined && v !== null);
                     const precipVals = idxSlot.map(j => bbcHourly.precipitation?.[j]).filter(v => v !== undefined && v !== null);
                     const windVals = idxSlot.map(j => bbcHourly.wind_speed_10m?.[j]).filter(v => v !== undefined && v !== null);
-                    const windDirVals = idxSlot.map(j => bbcHourly.wind_direction_10m?.[j]).filter(v => v !== undefined && v !== null);
                     const gustVals = idxSlot.map(j => bbcHourly.wind_gusts_10m?.[j]).filter(v => v !== undefined && v !== null);
-                    const humVals = idxSlot.map(j => bbcHourly.relative_humidity_2m?.[j]).filter(v => v !== undefined && v !== null);
                     const presVals = idxSlot.map(j => bbcHourly.pressure_msl?.[j]).filter(v => v !== undefined && v !== null);
 
                     const pprobMax = max(pprobVals);
                     const precipSum = sum(precipVals);
                     const windAvg = avg(windVals);
-                    const windDirAvg = avg(windDirVals);
                     const gustMax = max(gustVals);
-                    const humMax = max(humVals);
-                    const humMin = humVals.length ? Math.min(...humVals) : null;
                     const presAvg = avg(presVals);
 
-                    let dataHtml = '<div class="bbc-daypart-col-data">';
-                    // Lluvia: icono paraguas + % debajo
-                    dataHtml += `<div class="bbc-dp-row"><div class="bbc-dp-icon">${umbrellaOpenSvg(15, '#ffffff')}</div></div>`;
-                    dataHtml += `<div class="bbc-dp-value">${pprobMax !== null ? Math.round(pprobMax) + '%' : '--'}</div>`;
-                    // Acumulado: solo la cifra
-                    dataHtml += `<div class="bbc-dp-value-sub">${precipSum !== null ? precipSum.toFixed(1) + ' mm' : '--'}</div>`;
-                    // Viento: flecha con dirección + dato de viento debajo, luego racha máx.
-                    const arrowDeg = windDirVals.length ? windDirAvg % 360 : 0;
-                    dataHtml += `<div class="bbc-dp-row"><div class="bbc-dp-arrow" style="transform:rotate(${arrowDeg}deg);"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L6 20l6-4 6 4L12 2z" fill="#cfe8f7"/></svg></div></div>`;
-                    dataHtml += `<div class="bbc-dp-value-wind">${windAvg !== null ? Math.round(windAvg) + ' km/h' : '--'}</div>`;
-                    dataHtml += `<div class="bbc-dp-label">Racha máx.</div>`;
-                    dataHtml += `<div class="bbc-dp-value-wind">${gustMax !== null ? Math.round(gustMax) + ' km/h' : '--'}</div>`;
-                    // Humedad: máxima y mínima de la franja
-                    dataHtml += `<div class="bbc-dp-label">Humedad</div>`;
-                    dataHtml += `<div class="bbc-dp-value">${humMax !== null ? Math.round(humMax) + '% / ' + Math.round(humMin) + '%' : '--'}</div>`;
-                    // Presión
-                    dataHtml += `<div class="bbc-dp-label">Presión</div>`;
-                    dataHtml += `<div class="bbc-dp-value">${presAvg !== null ? Math.round(presAvg) + ' hPa' : '--'}</div>`;
-                    // Amanecer / atardecer en mañana y noche
-                    if (i === 0) {
-                        dataHtml += `<div class="bbc-dp-label-sun">Amanecer</div><div class="bbc-dp-value-sun">${sunriseTxt}</div>`;
-                    }
-                    if (i === 2) {
-                        dataHtml += `<div class="bbc-dp-label-sun">Atardecer</div><div class="bbc-dp-value-sun">${sunsetTxt}</div>`;
-                    }
-                    dataHtml += '</div>';
+                    const hourTxt = `${String(slot.h0).padStart(2, '0')} - ${String(slot.h1).padStart(2, '0')}h`;
 
-                    return `<div class="bbc-daypart-col">
-                        <div class="bbc-daypart-col-label">${slot.label}<span class="bbc-daypart-col-hour">${slot.hourTxt}</span></div>
-                        <div class="bbc-daypart-col-icon">${icon}</div>
-                        <div class="bbc-daypart-col-temp ${tempClass}">${tempValue}°</div>
-                        ${dataHtml}
+                    return `<div class="bbc-dprow">
+                        <div class="bbc-dprow-time">${hourTxt}<span class="bbc-dprow-period">${slot.label}</span></div>
+                        <div class="bbc-dprow-body">
+                            <span class="bbc-dprow-icon">${icon}</span><span class="bbc-dprow-temp ${tempClass}">${tempValue}°</span>
+                            <span class="bbc-dprow-sep">|</span>
+                            <span class="bbc-dprow-item">💧 ${pprobMax !== null ? Math.round(pprobMax) + '%' : '--'}<span class="bbc-dprow-sub">(${precipSum !== null ? precipSum.toFixed(1) : '0.0'} mm)</span></span>
+                            <span class="bbc-dprow-sep">|</span>
+                            <span class="bbc-dprow-item">💨 ${windAvg !== null ? Math.round(windAvg) + ' km/h' : '--'}<span class="bbc-dprow-sub">(Máx ${gustMax !== null ? Math.round(gustMax) : '--'})</span></span>
+                            <span class="bbc-dprow-sep">|</span>
+                            <span class="bbc-dprow-item">📍 ${presAvg !== null ? Math.round(presAvg) + ' hPa' : '--'}</span>
+                        </div>
                     </div>`;
-                }).join('') + '</div>';
+                }).join('');
+
+                const sunRowHtml = `<div class="bbc-dprow bbc-dprow-sun">
+                    <div class="bbc-dprow-time">Sol</div>
+                    <div class="bbc-dprow-body">
+                        <span class="bbc-dprow-item">🌅 Amanecer<span class="bbc-dprow-sub">${sunriseTxt}</span></span>
+                        <span class="bbc-dprow-sep">|</span>
+                        <span class="bbc-dprow-item">🌇 Atardecer<span class="bbc-dprow-sub">${sunsetTxt}</span></span>
+                    </div>
+                </div>`;
+
+                box.innerHTML = '<div class="bbc-daypart-rows">' + rowsHtml + sunRowHtml + '</div>';
             }
 
             function renderBBCSunUvi(boxId, idx) {
