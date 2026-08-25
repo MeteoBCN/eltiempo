@@ -6354,7 +6354,28 @@
             } catch (e) { console.warn('OpenWeather fetch error:', u, e); return null; }
         }
 
-        // Intento 1: One Call 3.0 (da "current" + "hourly" horario real de 48h en una sola llamada)
+        // Intento 1: One Call 4.0 (endpoints modulares — el que has activado)
+        async function fetchOpenWeather40() {
+            const curUrl  = `https://api.openweathermap.org/data/4.0/onecall/current?lat=${LAT}&lon=${LON}&units=metric&lang=es&appid=${OPENWEATHER_KEY}`;
+            const hourUrl = `https://api.openweathermap.org/data/4.0/onecall/timeline/1h?lat=${LAT}&lon=${LON}&units=metric&lang=es&appid=${OPENWEATHER_KEY}`;
+            const [curJson, hourJson] = await Promise.all([owSafeFetch(curUrl), owSafeFetch(hourUrl)]);
+            if (!curJson?.current) return null;
+            // La respuesta de /timeline/1h es una API muy reciente; contemplamos las
+            // formas más probables en que puede venir el array de horas.
+            let hourlyArr = null;
+            if (Array.isArray(hourJson)) hourlyArr = hourJson;
+            else if (Array.isArray(hourJson?.hourly)) hourlyArr = hourJson.hourly;
+            else if (Array.isArray(hourJson?.data)) hourlyArr = hourJson.data;
+            else if (Array.isArray(hourJson?.list)) hourlyArr = hourJson.list;
+            if (!hourlyArr || !hourlyArr.length) return null;
+            // Nos quedamos solo con horas futuras (por si el timeline incluye histórico)
+            const nowSec = Date.now() / 1000;
+            hourlyArr = hourlyArr.filter(h => (h.dt ?? 0) >= nowSec - 1800).slice(0, 48);
+            if (!hourlyArr.length) return null;
+            return { current: curJson.current, hourly: hourlyArr };
+        }
+
+        // Intento 2: One Call 3.0 (por si la cuenta tuviera esa suscripción en vez de la 4.0)
         async function fetchOpenWeatherOneCall() {
             const url = `https://api.openweathermap.org/data/3.0/onecall?lat=${LAT}&lon=${LON}&units=metric&lang=es&exclude=minutely,daily,alerts&appid=${OPENWEATHER_KEY}`;
             const json = await owSafeFetch(url);
@@ -6362,9 +6383,7 @@
             return { current: json.current, hourly: json.hourly };
         }
 
-        // Fallback: API clásica (weather + forecast 3h) por si la cuenta no tiene
-        // activado One Call 3.0. Expande cada bloque de 3h a horas individuales
-        // para cubrir igualmente las 48 horas.
+        // Fallback: API clásica (weather + forecast 3h) por si nada de lo anterior funciona.
         async function fetchOpenWeatherFallback() {
             const curUrl  = `https://api.openweathermap.org/data/2.5/weather?lat=${LAT}&lon=${LON}&units=metric&lang=es&appid=${OPENWEATHER_KEY}`;
             const foreUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${LAT}&lon=${LON}&units=metric&lang=es&appid=${OPENWEATHER_KEY}`;
@@ -6406,7 +6425,8 @@
         }
 
         async function loadOpenWeatherData() {
-            let ow = await fetchOpenWeatherOneCall();
+            let ow = await fetchOpenWeather40();
+            if (!ow) ow = await fetchOpenWeatherOneCall();
             if (!ow) ow = await fetchOpenWeatherFallback();
             window._owAvailable = !!ow;
             return ow;
