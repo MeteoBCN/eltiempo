@@ -2210,6 +2210,9 @@
     <script>
         const LAT = 41.3851;
         const LON = 2.1734;
+        // ── OpenWeather: usado solo para Tiempo Actual (con iconos) y previsión horaria 48h ──
+        const OPENWEATHER_KEY = 'fcd280dae017ea2269ed0e75064bd1f8';
+        function owIconUrl(code, size2x) { return `https://openweathermap.org/img/wn/${code || '01d'}${size2x ? '@2x' : ''}.png`; }
 
         // Fecha automática del artículo
         (function() {
@@ -4831,6 +4834,94 @@
             let bbc48hSelectedIdx = 0;      // 0 = hoy, 1 = mañana
             let bbcSemanalSelectedIdx = 2;  // índice absoluto dentro de bbcDailyRows (día 3 al 7)
 
+            // ── Previsión 48h con datos e iconos de OpenWeather ──
+            let owDailyRows48h = [];        // [{dateStr, isToday, label, tmax, tmin, icon, entries:[{h,d}]}]
+
+            function buildOWDailyRows(owHourly) {
+                if (!owHourly || !owHourly.length) return [];
+                const now = new Date();
+                const todayStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+                const byDate = {};
+                owHourly.forEach(h => {
+                    const d = new Date(h.dt * 1000);
+                    const dateStr = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+                    (byDate[dateStr] = byDate[dateStr] || []).push({ h, d });
+                });
+                const dateKeys = Object.keys(byDate).sort().slice(0, 2); // hoy y mañana
+                return dateKeys.map(dateStr => {
+                    const entries = byDate[dateStr].sort((a, b) => a.d - b.d);
+                    const temps = entries.map(e => e.h.temp).filter(t => t != null);
+                    const tmax = temps.length ? Math.round(Math.max(...temps)) : null;
+                    const tmin = temps.length ? Math.round(Math.min(...temps)) : null;
+                    const midday = entries.find(e => e.d.getHours() >= 12 && e.d.getHours() <= 15) || entries[Math.floor(entries.length / 2)];
+                    const icon = midday?.h.weather?.[0]?.icon || '01d';
+                    const isToday = dateStr === todayStr;
+                    const dt0 = new Date(dateStr + 'T12:00:00');
+                    return {
+                        dateStr, isToday, entries,
+                        label: isToday ? 'Hoy' : (DIAS_CORTO_BBC[dt0.getDay()] + ' ' + dt0.getDate()),
+                        tmax, tmin, icon
+                    };
+                });
+            }
+
+            function renderOWDays48h() {
+                const row = document.getElementById('bbc-days-row-48h');
+                if (!row) return;
+                row.innerHTML = owDailyRows48h.map((r, i) => {
+                    return `<div class="bbc-day-cell${i === bbc48hSelectedIdx ? ' selected' : ''}" data-idx="${i}" onclick="window.bbcSelectDay48h(${i})">
+                        <div class="bbc-day-name">${r.label}</div>
+                        <div class="bbc-day-icon"><img src="${owIconUrl(r.icon)}" alt="" style="width:28px;height:28px;display:block;margin:0 auto;"></div>
+                        <div class="bbc-day-temps"><span class="tmax">${r.tmax ?? '--'}°</span><span class="tmin">${r.tmin ?? '--'}°</span></div>
+                    </div>`;
+                }).join('');
+            }
+
+            function renderOWHourlyInto(containerId, idx) {
+                const inner = document.getElementById(containerId);
+                const row = owDailyRows48h[idx];
+                if (!inner || !row) return;
+                const now = new Date();
+                const entries = row.entries.filter(e => !row.isToday || e.d >= new Date(now.getTime() - 30 * 60000));
+                inner.innerHTML = entries.map(({ h, d }) => {
+                    const hourLabel = String(d.getHours()).padStart(2, '0') + ':00';
+                    const w = h.weather?.[0] || {};
+                    const temp = h.temp != null ? Math.round(h.temp) + '°' : '--';
+                    const hum = h.humidity != null ? Math.round(h.humidity) + '%' : '--';
+                    const pp = h.pop != null ? Math.round(h.pop * 100) : 0;
+                    const ws = Math.round((h.wind_speed || 0) * 3.6);
+                    const wd = h.wind_deg || 0;
+                    return `<div class="bbc-hour-col">
+                        <div class="bbc-hour-time">${hourLabel}</div>
+                        <div class="bbc-hour-icon"><img src="${owIconUrl(w.icon)}" alt="" style="width:42px;height:42px;display:block;margin:0 auto;"></div>
+                        <div class="bbc-hour-temp">${temp}</div>
+                        <div class="bbc-hour-humidity">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-13-7-13z" fill="#ffffff"/></svg>
+                            <span>${hum}</span>
+                        </div>
+                        <div class="bbc-hour-precip">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a9 9 0 0 0-9 9h18a9 9 0 0 0-9-9z" fill="#ffffff"/><line x1="12" y1="11" x2="12" y2="19" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/><path d="M12 19a2 2 0 1 0 4 0" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+                            <span>${pp}%</span>
+                        </div>
+                        <div class="bbc-hour-wind">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(${(wd + 180) % 360}deg)"><path d="M12 2L6 20l6-4 6 4L12 2z" fill="#cfe8f7"/></svg>
+                            <span>${ws}km/h</span>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            // Llamado desde loadWeatherData() cuando llegan los datos de OpenWeather.
+            window.renderOW48h = function(owData) {
+                if (!owData?.hourly) return;
+                owDailyRows48h = buildOWDailyRows(owData.hourly);
+                if (bbc48hSelectedIdx >= owDailyRows48h.length) bbc48hSelectedIdx = 0;
+                renderOWDays48h();
+                renderOWHourlyInto('bbc-hourly-inner-48h', bbc48hSelectedIdx);
+            };
+
+
+
             function bbcHourLabel(h) {
                 return String(h).padStart(2, '0') + ':00';
             }
@@ -5134,7 +5225,11 @@
                 document.querySelectorAll('#bbc-days-row-48h .bbc-day-cell').forEach(c => c.classList.toggle('selected', parseInt(c.dataset.idx, 10) === idx));
                 const scrollEl = document.getElementById('bbc-hourly-scroll-48h');
                 if (scrollEl) scrollEl.scrollLeft = 0;
-                renderBBCHourlyInto('bbc-hourly-inner-48h', idx);
+                if (window._owAvailable && owDailyRows48h.length) {
+                    renderOWHourlyInto('bbc-hourly-inner-48h', idx);
+                } else {
+                    renderBBCHourlyInto('bbc-hourly-inner-48h', idx);
+                }
                 renderBBCSunUvi('bbc-sun-uvi-48h', idx);
             };
 
@@ -5167,9 +5262,15 @@
                 if (bbcSemanalSelectedIdx < 2 || bbcSemanalSelectedIdx >= bbcDailyRows.length) {
                     bbcSemanalSelectedIdx = Math.min(2, bbcDailyRows.length - 1);
                 }
-                renderBBCDays48h();
+                // El bloque de 48h (pestañas Hoy/Mañana + tarjetas horarias) se
+                // renderiza aparte con datos de OpenWeather vía window.renderOW48h,
+                // llamado desde loadWeatherData(). Aquí solo se actualiza si OW
+                // no está disponible (ver renderOW48hFallback).
+                if (!window._owAvailable) {
+                    renderBBCDays48h();
+                    renderBBCHourlyInto('bbc-hourly-inner-48h', bbc48hSelectedIdx);
+                }
                 renderBBCDaysSemanal();
-                renderBBCHourlyInto('bbc-hourly-inner-48h', bbc48hSelectedIdx);
                 renderBBCDaypartSemanal(bbcSemanalSelectedIdx);
                 renderBBCSunUvi('bbc-sun-uvi-48h', bbc48hSelectedIdx);
                 updateSemanalDateRange();
@@ -6236,6 +6337,81 @@
                 </div>`;
         }
 
+        // ═══════════════════════════════════════════════════════════════
+        // OPENWEATHER — Tiempo actual + previsión horaria 48h (con iconos)
+        // El resto de la app sigue usando Open-Meteo.
+        // ═══════════════════════════════════════════════════════════════
+        window._owAvailable = false;
+
+        async function owSafeFetch(u) {
+            try {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 10000);
+                const r = await fetch(u, { cache: 'no-store', signal: controller.signal });
+                clearTimeout(timer);
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return await r.json();
+            } catch (e) { console.warn('OpenWeather fetch error:', u, e); return null; }
+        }
+
+        // Intento 1: One Call 3.0 (da "current" + "hourly" horario real de 48h en una sola llamada)
+        async function fetchOpenWeatherOneCall() {
+            const url = `https://api.openweathermap.org/data/3.0/onecall?lat=${LAT}&lon=${LON}&units=metric&lang=es&exclude=minutely,daily,alerts&appid=${OPENWEATHER_KEY}`;
+            const json = await owSafeFetch(url);
+            if (!json || !json.current || !Array.isArray(json.hourly)) return null;
+            return { current: json.current, hourly: json.hourly };
+        }
+
+        // Fallback: API clásica (weather + forecast 3h) por si la cuenta no tiene
+        // activado One Call 3.0. Expande cada bloque de 3h a horas individuales
+        // para cubrir igualmente las 48 horas.
+        async function fetchOpenWeatherFallback() {
+            const curUrl  = `https://api.openweathermap.org/data/2.5/weather?lat=${LAT}&lon=${LON}&units=metric&lang=es&appid=${OPENWEATHER_KEY}`;
+            const foreUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${LAT}&lon=${LON}&units=metric&lang=es&appid=${OPENWEATHER_KEY}`;
+            const [curJson, foreJson] = await Promise.all([owSafeFetch(curUrl), owSafeFetch(foreUrl)]);
+            if (!curJson || !foreJson?.list) return null;
+            const current = {
+                dt: curJson.dt,
+                temp: curJson.main?.temp,
+                feels_like: curJson.main?.feels_like,
+                pressure: curJson.main?.pressure,
+                humidity: curJson.main?.humidity,
+                uvi: null,
+                clouds: curJson.clouds?.all,
+                wind_speed: curJson.wind?.speed,
+                wind_deg: curJson.wind?.deg,
+                wind_gust: curJson.wind?.gust,
+                weather: curJson.weather
+            };
+            const hourly = [];
+            foreJson.list.forEach(block => {
+                for (let k = 0; k < 3; k++) {
+                    hourly.push({
+                        dt: block.dt + k * 3600,
+                        temp: block.main?.temp,
+                        feels_like: block.main?.feels_like,
+                        pressure: block.main?.pressure,
+                        humidity: block.main?.humidity,
+                        clouds: block.clouds?.all,
+                        wind_speed: block.wind?.speed,
+                        wind_deg: block.wind?.deg,
+                        wind_gust: block.wind?.gust,
+                        pop: block.pop,
+                        rain: block.rain,
+                        weather: block.weather
+                    });
+                }
+            });
+            return { current, hourly: hourly.slice(0, 48) };
+        }
+
+        async function loadOpenWeatherData() {
+            let ow = await fetchOpenWeatherOneCall();
+            if (!ow) ow = await fetchOpenWeatherFallback();
+            window._owAvailable = !!ow;
+            return ow;
+        }
+
         async function loadWeatherData() {
             // ── Peticiones independientes: si una falla, las demás siguen ──
             // ── PROXY Cloudflare Worker (evita bloqueos 503 en móvil) ──────────
@@ -6264,12 +6440,15 @@
             window._mainDataPromise   = safeFetch(url);
             window._aqDataPromise     = safeFetch(aqUrl);
             window._marineDataPromise = safeFetch(marineUrl);
+            window._owDataPromise     = loadOpenWeatherData();
 
-            const [data, aqData, marineData] = await Promise.all([
+            const [data, aqData, marineData, owData] = await Promise.all([
                 window._mainDataPromise,
                 window._aqDataPromise,
-                window._marineDataPromise
+                window._marineDataPromise,
+                window._owDataPromise
             ]);
+            window._owData = owData;
 
             if (!data?.hourly || !data?.daily) { console.error('No se pudieron cargar datos principales'); return; }
 
@@ -6287,7 +6466,16 @@
                         if(ht.getDate()===now.getDate()&&ht.getMonth()===now.getMonth()&&ht<=now) precipToday+=data.hourly.precipitation[i]||0;
                     }
                 }
-                updateCurrentWeather(data.current, data.current.weather_code, precipToday, data.hourly);
+                // Tiempo actual (temperatura, icono, viento, presión, humedad, UVI...) → OpenWeather.
+                // Si OpenWeather falla por completo, se usa Open-Meteo como respaldo para no dejar la UI vacía.
+                if (owData?.current) {
+                    updateCurrentWeather(owData.current);
+                } else {
+                    updateCurrentWeatherOpenMeteoFallback(data.current, data.current.weather_code, data.hourly);
+                }
+                // Previsión horaria de 48h (pestañas Hoy/Mañana + tarjetas por hora) → OpenWeather.
+                // Si OpenWeather no responde, window.renderBBCWeek() más abajo usa Open-Meteo como respaldo.
+                if (owData?.hourly && window.renderOW48h) window.renderOW48h(owData);
                 updateTemp24hChart(data.hourly, data.daily);
                 updateRainSemaphore(data.hourly);
                 updateRainProb6h(data.hourly);
@@ -6387,21 +6575,53 @@
             } catch(e) { console.error('Error procesando datos:',e); }
         }
 
-        function updateCurrentWeather(current, weatherCode, precipToday, hourly) {
+        // Tiempo actual con datos e icono de OpenWeather.
+        function updateCurrentWeather(owCurrent) {
+            if (!owCurrent) return;
+            if (owCurrent.temp != null) {
+                document.getElementById('current-temp').textContent = Math.round(owCurrent.temp) + '°';
+            }
+            const owWeather = owCurrent.weather?.[0] || {};
+            const iconEl = document.getElementById('current-icon');
+            if (iconEl) {
+                iconEl.innerHTML = `<img src="${owIconUrl(owWeather.icon, true)}" alt="${owWeather.description || ''}" style="width:96px;height:96px;display:block;">`;
+            }
+            const pressureEl = document.getElementById('pressure');
+            if (pressureEl && owCurrent.pressure != null) pressureEl.textContent = Math.round(owCurrent.pressure) + ' hPa';
+            const humEl = document.getElementById('humidity');
+            if (humEl && owCurrent.humidity != null) humEl.textContent = Math.round(owCurrent.humidity) + '%';
+            const windEl = document.getElementById('wind');
+            if (windEl && owCurrent.wind_speed != null) windEl.textContent = Math.round(owCurrent.wind_speed * 3.6) + ' km/h';
+            const gustsEl = document.getElementById('wind-gusts');
+            if (gustsEl) gustsEl.textContent = Math.round((owCurrent.wind_gust ?? owCurrent.wind_speed ?? 0) * 3.6) + ' km/h';
+            const conditionEl = document.getElementById('condition-text');
+            if (conditionEl && owWeather.description) {
+                conditionEl.textContent = owWeather.description.charAt(0).toUpperCase() + owWeather.description.slice(1);
+            }
+            if (owCurrent.wind_deg != null) {
+                // 16 puntos cardinales: índice 0=N, 1=NNE ... 15=NNO
+                const dirs  = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+                // Flecha indica hacia donde SOPLA el viento (opuesto al origen)
+                const arrows = ['↓','↙','↙','↙','←','↖','↖','↖','↑','↗','↗','↗','→','↘','↘','↘'];
+                const idx16 = Math.round(owCurrent.wind_deg / 22.5) % 16;
+                const wdEl = document.getElementById('wind-direction');
+                if (wdEl) wdEl.innerHTML = '<span class="arrow">' + arrows[idx16] + '</span><span class="letters">' + dirs[idx16] + '</span>';
+            }
+            const feelsEl = document.getElementById('feels-like');
+            if (feelsEl && owCurrent.feels_like != null) feelsEl.textContent = Math.round(owCurrent.feels_like) + '°';
+            if (owCurrent.uvi != null) {
+                const uviValEl = document.getElementById('uvi-value');
+                const uviLvlEl = document.getElementById('uvi-level');
+                if (uviValEl) uviValEl.textContent = Math.round(owCurrent.uvi);
+                if (uviLvlEl && typeof uviLevel === 'function') uviLvlEl.textContent = uviLevel(owCurrent.uvi).lbl;
+            }
+        }
+
+        // Respaldo con Open-Meteo por si OpenWeather no responde (para no dejar la UI vacía).
+        function updateCurrentWeatherOpenMeteoFallback(current, weatherCode, hourly) {
             const now=new Date();
             document.getElementById('current-temp').textContent=Math.round(current.temperature_2m)+'°';
-            // Buscar índice horario más cercano para obtener desglose de nubosidad
             const nowMs = now.getTime();
-            let closestIdx = 0, minDiff = Infinity;
-            if (hourly?.time) {
-                hourly.time.forEach((t, i) => { const d = Math.abs(new Date(t) - nowMs); if (d < minDiff) { minDiff = d; closestIdx = i; } });
-            }
-            const cloudNow = hourly ? {
-                cloud_cover: current.cloud_cover,
-                cloud_cover_low: hourly.cloud_cover_low?.[closestIdx],
-                cloud_cover_mid: hourly.cloud_cover_mid?.[closestIdx],
-                cloud_cover_high: hourly.cloud_cover_high?.[closestIdx]
-            } : {cloud_cover: current.cloud_cover};
             document.getElementById('current-icon').innerHTML=getSvgIcon(weatherCode, 96, isNightTime(now));
             const pressureEl = document.getElementById('pressure');
             if (pressureEl) pressureEl.textContent=Math.round(current.pressure_msl)+' hPa';
@@ -6411,15 +6631,11 @@
             if (gustsEl) gustsEl.textContent=Math.round(current.wind_gusts_10m ?? current.wind_speed_10m ?? 0)+' km/h';
             const conditionEl = document.getElementById('condition-text');
             if (conditionEl) conditionEl.textContent = weatherDescriptions[weatherCode] || '';
-            // Dirección del viento desde datos horarios (current no incluye wind_direction)
             if (hourly?.time && hourly?.wind_direction_10m) {
                 const idxWd = hourly.time.findIndex(t => Math.abs(new Date(t) - nowMs) < 30*60*1000);
                 const deg = idxWd !== -1 ? hourly.wind_direction_10m[idxWd] : null;
                 if (deg != null) {
-                    // 16 puntos cardinales: índice 0=N, 1=NNE ... 15=NNO
                     const dirs  = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
-                    // Flecha indica hacia donde SOPLA el viento (opuesto al origen)
-                    // N(0°)→↓, NE(45°)→↙, E(90°)→←, SE(135°)→↖, S(180°)→↑, SO(225°)→↗, O(270°)→→, NO(315°)→↘
                     const arrows = ['↓','↙','↙','↙','←','↖','↖','↖','↑','↗','↗','↗','→','↘','↘','↘'];
                     const idx16 = Math.round(deg / 22.5) % 16;
                     const wdEl = document.getElementById('wind-direction');
@@ -6434,7 +6650,6 @@
                     document.getElementById('feels-like').textContent=Math.round(hourly.apparent_temperature[idx2])+'°';
                 }
             }
-
             if (hourly?.time && hourly?.uv_index) {
                 const idxUvi=hourly.time.findIndex(t=>Math.abs(new Date(t)-now)<30*60*1000);
                 if (idxUvi!==-1&&hourly.uv_index[idxUvi]!==undefined) {
