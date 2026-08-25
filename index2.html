@@ -160,6 +160,8 @@
         }
         .bbc-day-cell:last-child { border-right: none; }
         .bbc-day-cell:hover { background: rgba(255,255,255,0.05); }
+        #bbc-days-row-48h { overflow-x: visible; }
+        #bbc-days-row-48h .bbc-day-cell { flex: 0 0 50%; }
         .bbc-day-cell.selected {
             background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.55);
@@ -205,6 +207,13 @@
         }
         .bbc-hourly-scroll::-webkit-scrollbar { display: none; }
         .bbc-hourly-inner { display: flex; gap: 14px; padding-bottom: 2px; }
+        .bbc-daypart-wrap { display: flex; flex-direction: column; gap: 16px; }
+        .bbc-daypart-item { display: flex; align-items: center; gap: 14px; padding: 6px 4px; }
+        .bbc-daypart-item + .bbc-daypart-item { border-top: 1px solid rgba(255,255,255,0.14); padding-top: 16px; }
+        .bbc-daypart-label { flex: 1; font-size: 14px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px; text-transform: uppercase; }
+        .bbc-daypart-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .bbc-daypart-icon svg { width: 100%; height: 100%; }
+        .bbc-daypart-desc { font-size: 12px; color: rgba(255,255,255,0.75); font-weight: 500; min-width: 60px; text-align: right; }
         .bbc-hour-col { flex: 0 0 auto; width: calc((min(100vw, 600px) - 74px) / 4); box-sizing: border-box; text-align: center; }
         .bbc-hour-time { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); margin-bottom: 14px; }
         .bbc-hour-icon { width: 42px; height: 42px; margin: 0 auto 14px; }
@@ -1060,11 +1069,7 @@
                         <div class="bbc-hourly-header">
                             <span class="bbc-hourly-title">Previsión semanal</span>
                         </div>
-                        <div class="bbc-hourly-wrap">
-                            <div class="bbc-hourly-scroll" id="bbc-hourly-scroll-semanal">
-                                <div class="bbc-hourly-inner" id="bbc-hourly-inner-semanal"></div>
-                            </div>
-                        </div>
+                        <div class="bbc-daypart-wrap" id="bbc-daypart-semanal"></div>
                     </div>
                     <div class="bbc-sun-uvi" id="bbc-sun-uvi-semanal"></div>
                 </div>
@@ -2554,11 +2559,9 @@
             const daysRow48h = document.getElementById('bbc-days-row-48h');
             const daysRowSemanal = document.getElementById('bbc-days-row-semanal');
             const hourlyScroll = document.getElementById('bbc-hourly-scroll-48h');
-            const hourlyScroll2 = document.getElementById('bbc-hourly-scroll-semanal');
             if (daysRow48h) enableMouseHorizontalScroll(daysRow48h);
             if (daysRowSemanal) enableMouseHorizontalScroll(daysRowSemanal);
             if (hourlyScroll) enableMouseHorizontalScroll(hourlyScroll);
-            if (hourlyScroll2) enableMouseHorizontalScroll(hourlyScroll2);
         });
 
         let _lastParaguasHourly = null;
@@ -4811,16 +4814,16 @@
                 return String(h).padStart(2, '0') + ':00';
             }
 
-            // Código de tiempo más repetido del día (08h-20h), en vez del
-            // código "representativo" que da la API (que puede no coincidir
-            // con lo que más se repite a lo largo del día).
-            function bbcModeWmo(dateStr, hourly, fallback) {
+            // Código de tiempo más repetido en el rango de horas [hStart, hEnd] (inclusive),
+            // en vez del código "representativo" que da la API (que puede no coincidir
+            // con lo que más se repite a lo largo del rango).
+            function bbcModeWmoRange(dateStr, hourly, hStart, hEnd, fallback) {
                 if (!hourly?.time) return fallback;
                 const freq = {};
                 for (let i = 0; i < hourly.time.length; i++) {
                     if (!hourly.time[i].startsWith(dateStr)) continue;
                     const h = parseInt(hourly.time[i].slice(11, 13), 10);
-                    if (h < 8 || h > 20) continue;
+                    if (h < hStart || h > hEnd) continue;
                     const wmoRaw = hourly.weather_code?.[i] ?? 0;
                     const pp = hourly.precipitation_probability?.[i] ?? 0;
                     const isRain = (wmoRaw >= 51 && wmoRaw <= 82) || (wmoRaw >= 85 && wmoRaw <= 86) || (wmoRaw >= 95 && wmoRaw <= 99);
@@ -4832,6 +4835,10 @@
                 const keys = Object.keys(freq);
                 if (!keys.length) return fallback;
                 return Number(keys.reduce((a, b) => freq[a] >= freq[b] ? a : b));
+            }
+
+            function bbcModeWmo(dateStr, hourly, fallback) {
+                return bbcModeWmoRange(dateStr, hourly, 8, 20, fallback);
             }
 
             // Renderiza una fila de "días" genérica dentro de rowId, usando solo
@@ -4910,6 +4917,32 @@
                 inner.innerHTML = slots.map(({ h, i, ht }) => renderBBCHourCol(h, i, ht)).join('');
             }
 
+            // Bloque semanal (día 3 al 7): sin franja horaria, solo icono de
+            // mañana (08h-13h) y tarde (13h-20h) con el código más repetido.
+            function renderBBCDaypartSemanal(idx) {
+                const box = document.getElementById('bbc-daypart-semanal');
+                if (!box || !bbcHourly) return;
+                const row = bbcDailyRows[idx];
+                if (!row) return;
+                const wmoManana = bbcModeWmoRange(row.dateStr, bbcHourly, 8, 13, row.wmo);
+                const wmoTarde = bbcModeWmoRange(row.dateStr, bbcHourly, 13, 20, row.wmo);
+                const iconManana = getSvgIcon(wmoManana, 44, false);
+                const iconTarde = getSvgIcon(wmoTarde, 44, false);
+                const descManana = weatherDescriptions[wmoManana] || '';
+                const descTarde = weatherDescriptions[wmoTarde] || '';
+                box.innerHTML = `
+                    <div class="bbc-daypart-item">
+                        <div class="bbc-daypart-label">Mañana</div>
+                        <div class="bbc-daypart-icon">${iconManana}</div>
+                        <div class="bbc-daypart-desc">${descManana}</div>
+                    </div>
+                    <div class="bbc-daypart-item">
+                        <div class="bbc-daypart-label">Tarde</div>
+                        <div class="bbc-daypart-icon">${iconTarde}</div>
+                        <div class="bbc-daypart-desc">${descTarde}</div>
+                    </div>`;
+            }
+
             function renderBBCSunUvi(boxId, idx) {
                 const box = document.getElementById(boxId);
                 if (!box || !bbcDaily) return;
@@ -4972,9 +5005,7 @@
             window.bbcSelectDaySemanal = function(idx) {
                 bbcSemanalSelectedIdx = idx;
                 document.querySelectorAll('#bbc-days-row-semanal .bbc-day-cell').forEach(c => c.classList.toggle('selected', parseInt(c.dataset.idx, 10) === idx));
-                const scrollEl = document.getElementById('bbc-hourly-scroll-semanal');
-                if (scrollEl) scrollEl.scrollLeft = 0;
-                renderBBCHourlyInto('bbc-hourly-inner-semanal', idx);
+                renderBBCDaypartSemanal(idx);
                 renderBBCSunUvi('bbc-sun-uvi-semanal', idx);
             };
 
@@ -5004,7 +5035,7 @@
                 renderBBCDays48h();
                 renderBBCDaysSemanal();
                 renderBBCHourlyInto('bbc-hourly-inner-48h', bbc48hSelectedIdx);
-                renderBBCHourlyInto('bbc-hourly-inner-semanal', bbcSemanalSelectedIdx);
+                renderBBCDaypartSemanal(bbcSemanalSelectedIdx);
                 renderBBCSunUvi('bbc-sun-uvi-48h', bbc48hSelectedIdx);
                 renderBBCSunUvi('bbc-sun-uvi-semanal', bbcSemanalSelectedIdx);
             };
