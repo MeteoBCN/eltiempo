@@ -218,7 +218,7 @@
         .bbc-daypart-rows { display: flex; flex-direction: column; }
         .bbc-dprow {
             display: grid;
-            grid-template-columns: 64px 50px 56px 1fr;
+            grid-template-columns: 64px 60px 46px 1fr;
             align-items: center;
             column-gap: 12px;
             padding: 14px 6px;
@@ -228,18 +228,18 @@
         .bbc-dprow-label { min-width: 0; }
         .bbc-dprow-period { font-size: 11px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.15; }
         .bbc-dprow-hour { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.55); margin-top: 2px; }
-        .bbc-dprow-icon { width: 42px; height: 42px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+        .bbc-dprow-icon { width: 50px; height: 50px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
         .bbc-dprow-icon svg { width: 100%; height: 100%; }
-        .bbc-dprow-temp { font-size: 23px; font-weight: 800; color: #ffffff; line-height: 1; text-align: right; }
+        .bbc-dprow-temp { font-size: 18px; font-weight: 800; color: #ffffff; line-height: 1; text-align: right; }
         .bbc-dprow-temp.es-min { color: #7ec8e3; }
         .bbc-dprow-temp.es-max { color: #ff7c7c; }
-        .bbc-dprow-temp.es-media { color: rgba(255,255,255,0.6); font-weight: 600; }
+        .bbc-dprow-temp.es-media { color: rgba(255,255,255,0.55); font-weight: 300; }
         .bbc-dprow-data { min-width: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
         .bbc-dprow-rain, .bbc-dprow-wind { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #ffffff; white-space: nowrap; }
         .bbc-dprow-rain-icon { display: flex; align-items: center; }
         .bbc-dprow-rain-icon svg { width: 16px; height: 16px; display: block; }
         .bbc-dprow-sub { font-size: 10px; font-weight: 400; color: rgba(255,255,255,0.65); margin-left: 2px; }
-        .bbc-dprow-sun { background: rgba(255,255,255,0.04); }
+        .bbc-dprow-sun { background: transparent; }
         .bbc-dprow-sun-data { grid-column: 2 / -1; display: flex; justify-content: flex-start; align-items: center; gap: 24px; }
         .bbc-dprow-sun-item { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.65); white-space: nowrap; }
         .bbc-dprow-sun-item .bbc-dprow-sub { color: rgba(255,255,255,0.45); }
@@ -4992,7 +4992,8 @@
 
                 const rowsHtml = BBC_SEMANAL_SLOTS.map((slot, i) => {
                     const wmo = bbcModeWmoRange(row.dateStr, bbcHourly, slot.h0, slot.h1 - 1, row.wmo);
-                    const icon = getSvgIcon(wmo, 42, false);
+                    const isNightSlot = (slot.label === 'Madrugada' || slot.label === 'Noche');
+                    const icon = getSvgIcon(wmo, 50, isNightSlot);
 
                     let tempValue, tempClass;
                     if (i === minSlotIdx) {
