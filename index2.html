@@ -4941,15 +4941,15 @@
                 inner.innerHTML = slots.map(({ h, i, ht }) => renderBBCHourCol(h, i, ht)).join('');
             }
 
-            // Bloque semanal (día 3 al 7): 3 franjas horarias fijas —
-            // 08-12h (Mañana), 12-16h (Mediodía) y 16-20h (Tarde).
-            // En una franja se muestra la mínima del día, en otra la máxima,
-            // y en la restante la media de esa franja. Si la mínima cae fuera
-            // de estas horas (madrugada/noche), se asigna a la franja de la mañana.
+            // Bloque semanal (día 4 al 8): 3 franjas horarias fijas —
+            // 06-12h (Mañana), 12-18h (Tarde) y 18-24h (Noche).
+            // La mínima del día se muestra siempre en la Mañana, la máxima
+            // siempre en la Tarde, y en la Noche se muestra la media de
+            // temperatura calculada solo entre las 20h y las 24h.
             const BBC_SEMANAL_SLOTS = [
-                { label: 'Mañana',   hourTxt: '08-12h', h0: 8,  h1: 12 },
-                { label: 'Mediodía', hourTxt: '12-16h', h0: 12, h1: 16 },
-                { label: 'Tarde',    hourTxt: '16-20h', h0: 16, h1: 20 },
+                { label: 'Mañana', hourTxt: '06-12h', h0: 6,  h1: 12 },
+                { label: 'Tarde',  hourTxt: '12-18h', h0: 12, h1: 18 },
+                { label: 'Noche',  hourTxt: '18-24h', h0: 18, h1: 24 },
             ];
 
             function renderBBCDaypartSemanal(idx) {
@@ -4968,32 +4968,13 @@
                     hoursData.push({ h, t });
                 }
 
-                let minEntry = null, maxEntry = null;
-                hoursData.forEach(e => {
-                    if (!minEntry || e.t < minEntry.t) minEntry = e;
-                    if (!maxEntry || e.t > maxEntry.t) maxEntry = e;
-                });
+                // Mínima siempre en Mañana (0), máxima siempre en Tarde (1)
+                const minSlotIdx = 0;
+                const maxSlotIdx = 1;
 
-                function slotIndexForHour(h) {
-                    for (let s = 0; s < BBC_SEMANAL_SLOTS.length; s++) {
-                        if (h >= BBC_SEMANAL_SLOTS[s].h0 && h < BBC_SEMANAL_SLOTS[s].h1) return s;
-                    }
-                    return -1;
-                }
-
-                // Mínima: si cae fuera de 08-20h, va a la franja de la mañana
-                let minSlotIdx = minEntry ? slotIndexForHour(minEntry.h) : -1;
-                if (minSlotIdx === -1) minSlotIdx = 0;
-
-                // Máxima: si cae fuera de 08-20h, va a la franja más cercana (mañana o tarde)
-                let maxSlotIdx = maxEntry ? slotIndexForHour(maxEntry.h) : -1;
-                if (maxSlotIdx === -1) maxSlotIdx = (maxEntry && maxEntry.h < 8) ? 0 : 2;
-
-                // Si por casualidad coinciden en la misma franja, se libera otra para la mínima
-                if (minSlotIdx === maxSlotIdx) {
-                    const libres = [0, 1, 2].filter(s => s !== maxSlotIdx);
-                    minSlotIdx = libres[0];
-                }
+                // Media de la Noche: solo con las horas entre 20h y 24h (exclusive)
+                const nocheTempVals = hoursData.filter(e => e.h >= 20 && e.h < 24).map(e => e.t);
+                const nocheTempValue = nocheTempVals.length ? Math.round(nocheTempVals.reduce((a, b) => a + b, 0) / nocheTempVals.length) : '--';
 
                 const fmtHora = (iso) => iso ? new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
                 const sunriseTxt = fmtHora(bbcDaily?.sunrise?.[idx]);
@@ -5013,8 +4994,7 @@
                         tempValue = Math.round(row.tmax);
                         tempClass = 'es-max';
                     } else {
-                        const vals = hoursData.filter(e => e.h >= slot.h0 && e.h < slot.h1).map(e => e.t);
-                        tempValue = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : '--';
+                        tempValue = nocheTempValue;
                         tempClass = 'es-media';
                     }
 
@@ -5064,7 +5044,7 @@
                     // Presión
                     dataHtml += `<div class="bbc-dp-label">Presión</div>`;
                     dataHtml += `<div class="bbc-dp-value">${presAvg !== null ? Math.round(presAvg) + ' hPa' : '--'}</div>`;
-                    // Amanecer / atardecer solo en mañana y tarde
+                    // Amanecer / atardecer en mañana y noche
                     if (i === 0) {
                         dataHtml += `<div class="bbc-dp-label-sun">Amanecer</div><div class="bbc-dp-value-sun">${sunriseTxt}</div>`;
                     }
