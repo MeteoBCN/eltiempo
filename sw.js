@@ -2,7 +2,7 @@
    SERVICE WORKER — Tiempo Barcelona PWA
    ═══════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'tiempo-bcn-v8';
+const CACHE_NAME = 'tiempo-bcn-v9';
 
 // Archivos que se guardan en caché para funcionamiento offline
 const PRECACHE_ASSETS = [
@@ -52,7 +52,6 @@ self.addEventListener('fetch', event => {
     url.includes('marine-api.open-meteo.com') ||
     url.includes('air-quality-api.open-meteo.com') ||
     url.includes('aemet') ||
-    url.includes('openweathermap') ||
     url.includes('gstatic.com/firebasejs');
 
   if (isApiRequest) {
