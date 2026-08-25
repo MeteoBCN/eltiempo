@@ -216,26 +216,33 @@
         .bbc-daypart-desc { font-size: 12px; color: rgba(255,255,255,0.75); font-weight: 500; min-width: 60px; text-align: right; }
         /* ── Previsión semanal: 4 franjas horarias horizontales (00-06 / 06-12 / 12-18 / 18-24) + fila de sol ── */
         .bbc-daypart-rows { display: flex; flex-direction: column; }
-        .bbc-dprow { display: flex; align-items: center; gap: 12px; padding: 14px 6px; border-bottom: 1px solid rgba(255,255,255,0.14); }
+        .bbc-dprow {
+            display: grid;
+            grid-template-columns: 64px 50px 56px 1fr;
+            align-items: center;
+            column-gap: 12px;
+            padding: 14px 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.14);
+        }
         .bbc-dprow:last-child { border-bottom: none; }
-        .bbc-dprow-label { flex: 0 0 64px; }
+        .bbc-dprow-label { min-width: 0; }
         .bbc-dprow-period { font-size: 11px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.15; }
         .bbc-dprow-hour { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.55); margin-top: 2px; }
-        .bbc-dprow-icon { width: 42px; height: 42px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .bbc-dprow-icon { width: 42px; height: 42px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
         .bbc-dprow-icon svg { width: 100%; height: 100%; }
-        .bbc-dprow-temp { font-size: 23px; font-weight: 800; color: #ffffff; flex-shrink: 0; width: 48px; text-align: center; line-height: 1; }
+        .bbc-dprow-temp { font-size: 23px; font-weight: 800; color: #ffffff; line-height: 1; text-align: right; }
         .bbc-dprow-temp.es-min { color: #7ec8e3; }
         .bbc-dprow-temp.es-max { color: #ff7c7c; }
         .bbc-dprow-temp.es-media { color: rgba(255,255,255,0.6); font-weight: 600; }
-        .bbc-dprow-data { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+        .bbc-dprow-data { min-width: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
         .bbc-dprow-rain, .bbc-dprow-wind { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #ffffff; white-space: nowrap; }
         .bbc-dprow-rain-icon { display: flex; align-items: center; }
         .bbc-dprow-rain-icon svg { width: 16px; height: 16px; display: block; }
         .bbc-dprow-sub { font-size: 10px; font-weight: 400; color: rgba(255,255,255,0.65); margin-left: 2px; }
         .bbc-dprow-sun { background: rgba(255,255,255,0.04); }
-        .bbc-dprow-sun-data { flex: 1; display: flex; justify-content: space-around; align-items: center; }
-        .bbc-dprow-sun-item { font-size: 12px; font-weight: 600; color: #f2c19b; white-space: nowrap; }
-        .bbc-dprow-sun-item .bbc-dprow-sub { color: rgba(242,193,155,0.75); }
+        .bbc-dprow-sun-data { grid-column: 2 / -1; display: flex; justify-content: flex-start; align-items: center; gap: 24px; }
+        .bbc-dprow-sun-item { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.65); white-space: nowrap; }
+        .bbc-dprow-sun-item .bbc-dprow-sub { color: rgba(255,255,255,0.45); }
         .bbc-hour-col { flex: 0 0 auto; width: calc((min(100vw, 600px) - 74px) / 4); box-sizing: border-box; text-align: center; }
         .bbc-hour-time { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); margin-bottom: 14px; }
         .bbc-hour-icon { width: 42px; height: 42px; margin: 0 auto 14px; }
