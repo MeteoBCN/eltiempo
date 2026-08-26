@@ -255,9 +255,6 @@
         .bbc-dprow-dim .bbc-dprow-sub {
             color: rgba(255,255,255,0.55) !important;
         }
-        .bbc-dprow-dim .bbc-dprow-icon svg {
-            filter: grayscale(1) opacity(0.55);
-        }
         .bbc-hour-col { flex: 0 0 auto; width: calc((min(100vw, 600px) - 74px) / 4); box-sizing: border-box; text-align: center; }
         .bbc-hour-time { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); margin-bottom: 14px; }
         .bbc-hour-icon { width: 42px; height: 42px; margin: 0 auto 14px; }
@@ -2320,6 +2317,11 @@
 
 
         // ══════ SVG ICONOS (estilo ilustración moderna, día/noche) ══════
+        function maskedIconHtml(svgMarkup, size, color) {
+            const encoded = encodeURIComponent(svgMarkup);
+            return `<div style="width:${size}px;height:${size}px;background-color:${color};-webkit-mask-image:url(data:image/svg+xml;utf8,${encoded});mask-image:url(data:image/svg+xml;utf8,${encoded});-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;"></div>`;
+        }
+
         function getSvgIcon(wmo, size=48, night=false) {
             const s = size, h = s/2;
             const svg = (content, vb=`0 0 ${s} ${s}`) =>
@@ -5009,6 +5011,7 @@
                     const wmo = bbcModeWmoRange(row.dateStr, bbcHourly, slot.h0, slot.h1 - 1, row.wmo);
                     const isNightSlot = (slot.label === 'Madrugada' || slot.label === 'Noche');
                     const icon = getSvgIcon(wmo, 50, isNightSlot);
+                    const iconHtml = isNightSlot ? maskedIconHtml(icon, 50, 'rgba(255,255,255,0.55)') : icon;
 
                     let tempValue, tempClass;
                     if (i === minSlotIdx) {
@@ -5049,14 +5052,14 @@
                     const hourTxt = `${String(slot.h0).padStart(2, '0')} - ${String(slot.h1).padStart(2, '0')}h`;
 
                     const rowDimClass = isNightSlot ? ' bbc-dprow-dim' : '';
-                    const rainIconColor = isNightSlot ? '#8f8f8f' : '#ffffff';
+                    const rainIconColor = isNightSlot ? 'rgba(255,255,255,0.55)' : '#ffffff';
 
                     return `<div class="bbc-dprow${rowDimClass}">
                         <div class="bbc-dprow-label">
                             <div class="bbc-dprow-period">${slot.label}</div>
                             <div class="bbc-dprow-hour">${hourTxt}</div>
                         </div>
-                        <div class="bbc-dprow-icon">${icon}</div>
+                        <div class="bbc-dprow-icon">${iconHtml}</div>
                         <div class="bbc-dprow-temp ${tempClass}">${tempValue}°</div>
                         <div class="bbc-dprow-data">
                             <div class="bbc-dprow-rain"><span class="bbc-dprow-rain-icon">${umbrellaOpenSvg(16, rainIconColor)}</span>${pprobMax !== null ? Math.round(pprobMax) + '%' : '--'}<span class="bbc-dprow-sub">(${precipSum !== null ? precipSum.toFixed(1) : '0.0'} mm)</span></div>
