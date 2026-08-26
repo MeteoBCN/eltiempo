@@ -5605,12 +5605,9 @@
             const xPos  = i => PAD.l + (i / (n - 1)) * cw;
             const yTemp = v => tempTop + tempH - ((v - tMin) / (tMax - tMin)) * tempH;
 
-            // Posición "de banda": cada día ocupa un ancho igual (cw/n) del eje X,
-            // centrado en su propio tramo — igual que las barras de lluvia y la
-            // fila de días — en vez de la posición "de punto" xPos() (que deja
-            // el primer/último día pegados al borde, como si fuera el inicio del día).
+            // Ancho de "carril" por día, usado solo para el grosor de las barras
+            // de lluvia (su centro va en xPos(i), igual que el resto del gráfico).
             const dayW  = cw / n;
-            const xBand = i => PAD.l + (i + 0.5) * dayW;
 
             ctx.clearRect(0, 0, W, H);
 
@@ -5671,14 +5668,20 @@
                 ctx.fillText(lbl, xPos(i), tempBottom + 14);
             });
 
-            // ── Zona lluvia: barras, ancladas abajo de su propia franja
-            //    (el título va fusionado con el de temperatura, arriba del todo;
-            //     xBand ya se definió arriba, junto a la fila de días) ──
+            // ── Zona lluvia: barras, centradas en xPos(i) — el mismo eje que la
+            //    fila de días y los puntos de temperatura, para que cada barra
+            //    quede justo debajo de su día. Se recorta al área del gráfico
+            //    para que las barras de los extremos (primer/último día) no
+            //    se salgan del panel. ──
             const barW  = dayW * 0.72;
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(PAD.l, rainTop, cw, rainBottom - rainTop);
+            ctx.clip();
             rows.forEach((r, i) => {
                 const v = r.pprob;
                 const barH = (v / 100) * rainH;
-                const x  = xBand(i) - barW / 2;
+                const x  = xPos(i) - barW / 2;
                 const g = ctx.createLinearGradient(0, rainBottom - barH, 0, rainBottom);
                 g.addColorStop(0, 'rgba(56,189,248,0.85)');
                 g.addColorStop(1, 'rgba(56,189,248,0.25)');
@@ -5690,9 +5693,14 @@
                     ctx.rect(x, rainBottom - barH, barW, Math.max(barH, 2));
                 }
                 ctx.fill();
+            });
+            ctx.restore();
+            rows.forEach((r, i) => {
+                const v = r.pprob;
+                const barH = (v / 100) * rainH;
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif';
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText(v + '%', xBand(i), rainBottom - barH - 5);
+                ctx.fillText(v + '%', xPos(i), rainBottom - barH - 5);
             });
             // Línea base de la zona de lluvia
             ctx.beginPath();
@@ -5705,7 +5713,7 @@
             rows.forEach((r, i) => {
                 const mm = Math.round((r.precip ?? 0) * 10) / 10;
                 ctx.fillStyle = mm === 0 ? 'rgba(255,255,255,0.85)' : 'rgba(56,189,248,0.95)';
-                ctx.fillText(mm + ' mm', xBand(i), accValueY);
+                ctx.fillText(mm + ' mm', xPos(i), accValueY);
             });
 
             // ══════════════════════════════════════════════
