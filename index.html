@@ -160,6 +160,8 @@
         }
         .bbc-day-cell:last-child { border-right: none; }
         .bbc-day-cell:hover { background: rgba(255,255,255,0.05); }
+        #bbc-days-row-48h { overflow-x: visible; }
+        #bbc-days-row-48h .bbc-day-cell { flex: 0 0 33.3333%; }
         .bbc-day-cell.selected {
             background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.55);
@@ -205,6 +207,54 @@
         }
         .bbc-hourly-scroll::-webkit-scrollbar { display: none; }
         .bbc-hourly-inner { display: flex; gap: 14px; padding-bottom: 2px; }
+        .bbc-daypart-wrap { display: flex; flex-direction: column; gap: 16px; }
+        .bbc-daypart-item { display: flex; align-items: center; gap: 14px; padding: 6px 4px; }
+        .bbc-daypart-item + .bbc-daypart-item { border-top: 1px solid rgba(255,255,255,0.14); padding-top: 16px; }
+        .bbc-daypart-label { flex: 1; font-size: 14px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px; text-transform: uppercase; }
+        .bbc-daypart-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .bbc-daypart-icon svg { width: 100%; height: 100%; }
+        .bbc-daypart-desc { font-size: 12px; color: rgba(255,255,255,0.75); font-weight: 500; min-width: 60px; text-align: right; }
+        /* ── Previsión semanal: 4 franjas horarias horizontales (00-06 / 06-12 / 12-18 / 18-24) + fila de sol ── */
+        .bbc-daypart-rows { display: flex; flex-direction: column; }
+        .bbc-dprow {
+            display: grid;
+            grid-template-columns: 64px 60px 46px 1fr;
+            align-items: center;
+            column-gap: 12px;
+            padding: 14px 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.14);
+        }
+        .bbc-dprow:last-child { border-bottom: none; }
+        .bbc-dprow-label { min-width: 0; }
+        .bbc-dprow-period { font-size: 11px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.15; }
+        .bbc-dprow-hour { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.55); margin-top: 2px; }
+        .bbc-dprow-icon { width: 50px; height: 50px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+        .bbc-dprow-icon svg { width: 100%; height: 100%; }
+        .bbc-dprow-temp { font-size: 18px; font-weight: 800; color: #ffffff; line-height: 1; text-align: right; }
+        .bbc-dprow-temp.es-min { color: #7ec8e3; }
+        .bbc-dprow-temp.es-max { color: #ff7c7c; }
+        .bbc-dprow-temp.es-media { color: rgba(255,255,255,0.55); font-weight: 300; }
+        .bbc-dprow-data { min-width: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+        .bbc-dprow-rain, .bbc-dprow-wind { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #ffffff; white-space: nowrap; }
+        .bbc-dprow-rain-icon { display: flex; align-items: center; }
+        .bbc-dprow-rain-icon svg { width: 16px; height: 16px; display: block; }
+        .bbc-dprow-sub { font-size: 10px; font-weight: 400; color: rgba(255,255,255,0.65); margin-left: 2px; }
+        .bbc-dprow-sun { background: transparent; padding-top: 16px; padding-bottom: 16px; }
+        .bbc-dprow-sun-data { grid-column: 2 / -1; display: flex; justify-content: flex-start; align-items: center; gap: 24px; align-self: center; }
+        .bbc-dprow-sun-item { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.65); white-space: nowrap; line-height: 1.3; }
+        .bbc-dprow-sun-item .bbc-dprow-sub { color: rgba(255,255,255,0.45); line-height: 1.3; }
+
+        /* Madrugada y Noche atenuadas para resaltar Mañana/Tarde */
+        .bbc-dprow-dim .bbc-dprow-period,
+        .bbc-dprow-dim .bbc-dprow-hour,
+        .bbc-dprow-dim .bbc-dprow-temp,
+        .bbc-dprow-dim .bbc-dprow-temp.es-min,
+        .bbc-dprow-dim .bbc-dprow-temp.es-max,
+        .bbc-dprow-dim .bbc-dprow-rain,
+        .bbc-dprow-dim .bbc-dprow-wind,
+        .bbc-dprow-dim .bbc-dprow-sub {
+            color: rgba(255,255,255,0.55) !important;
+        }
         .bbc-hour-col { flex: 0 0 auto; width: calc((min(100vw, 600px) - 74px) / 4); box-sizing: border-box; text-align: center; }
         .bbc-hour-time { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); margin-bottom: 14px; }
         .bbc-hour-icon { width: 42px; height: 42px; margin: 0 auto 14px; }
@@ -926,23 +976,23 @@
 
                 </div>
 
-                    <div id="paraguas-chart-wrap" style="width:calc(100% + (2 * var(--gutter)));margin:28px calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));background:#ffffff;padding:14px 0;border-top:1px solid rgba(28,79,120,0.3);border-bottom:1px solid rgba(28,79,120,0.3);">
+                    <div id="paraguas-chart-wrap" style="width:calc(100% + (2 * var(--gutter)));margin:28px calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));background:#f7f8fa;padding:14px 0;border-top:1px solid rgba(28,79,120,0.3);border-bottom:1px solid rgba(28,79,120,0.3);">
                         <div style="font-size:20px;font-weight:300;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Próximas<span style="font-weight:900;">horas</span></div>
                         <div style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Temperatura · Precipitación</div>
                         <div id="paraguas-hour-row" style="position:relative;height:12px;margin:14px 0 0 0;"></div>
                         <canvas id="paraguas-hourly-chart" style="width:100%;display:block;"></canvas>
                         <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-top:2px;padding-left:24px;">
                             <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
-                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#ffffff;border:1px solid rgba(18,54,83,0.3);flex-shrink:0;"></span>
-                                <span style="text-transform:uppercase;font-weight:800;">No se espera lluvia</span>
-                            </span>
-                            <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.65;">
-                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(59,130,246,0.35);border:1px solid rgba(59,130,246,0.5);flex-shrink:0;"></span>
-                                <span style="text-transform:uppercase;font-weight:800;">Cuidado, podría llover</span>
+                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#f7f8fa;flex-shrink:0;"></span>
+                                <span style="text-transform:uppercase;font-weight:400;">No se espera lluvia</span>
                             </span>
                             <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
-                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(28,79,120,0.55);border:1px solid rgba(28,79,120,0.75);flex-shrink:0;"></span>
-                                <span style="text-transform:uppercase;font-weight:800;">No olvides el paraguas</span>
+                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(59,130,246,0.10);flex-shrink:0;"></span>
+                                <span style="text-transform:uppercase;font-weight:400;">Cuidado, podría llover</span>
+                            </span>
+                            <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
+                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(28,79,120,0.20);flex-shrink:0;"></span>
+                                <span style="text-transform:uppercase;font-weight:400;">No olvides el paraguas</span>
                             </span>
                         </div>
                     </div>
@@ -987,7 +1037,7 @@
                         </div>
                     </div>
 
-                    <div id="paraguas-chart-wrap-days" style="width:calc(100% + (2 * var(--gutter)));margin:75px calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));background:#ffffff;padding:8px 0 14px;border-top:1px solid rgba(28,79,120,0.3);border-bottom:1px solid rgba(28,79,120,0.3);">
+                    <div id="paraguas-chart-wrap-days" style="width:calc(100% + (2 * var(--gutter)));margin:75px calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));background:#f7f8fa;padding:8px 0 14px;border-top:1px solid rgba(28,79,120,0.3);border-bottom:1px solid rgba(28,79,120,0.3);">
                         <div style="font-size:20px;font-weight:300;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">METEO<span style="font-weight:900;">FLASH</span></div>
                         <div style="font-size:10px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:26px;">Avance próximos días</div>
                         <div id="paraguas-days-day-row" style="position:relative;height:13px;margin:0;"></div>
@@ -996,16 +1046,16 @@
                         <canvas id="paraguas-days-chart" style="width:100%;display:block;"></canvas>
                         <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-top:2px;padding-left:24px;">
                             <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
-                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#ffffff;border:1px solid rgba(18,54,83,0.3);flex-shrink:0;"></span>
-                                <span style="text-transform:uppercase;font-weight:800;">No se espera lluvia</span>
-                            </span>
-                            <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.65;">
-                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(59,130,246,0.35);border:1px solid rgba(59,130,246,0.5);flex-shrink:0;"></span>
-                                <span style="text-transform:uppercase;font-weight:800;">Cuidado, podría llover</span>
+                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#f7f8fa;flex-shrink:0;"></span>
+                                <span style="text-transform:uppercase;font-weight:400;">No se espera lluvia</span>
                             </span>
                             <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
-                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(28,79,120,0.55);border:1px solid rgba(28,79,120,0.75);flex-shrink:0;"></span>
-                                <span style="text-transform:uppercase;font-weight:800;">No olvides el paraguas</span>
+                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(59,130,246,0.10);flex-shrink:0;"></span>
+                                <span style="text-transform:uppercase;font-weight:400;">Cuidado, podría llover</span>
+                            </span>
+                            <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
+                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(28,79,120,0.20);flex-shrink:0;"></span>
+                                <span style="text-transform:uppercase;font-weight:400;">No olvides el paraguas</span>
                             </span>
                         </div>
                     </div>
@@ -1017,31 +1067,51 @@
 
                 </div><!-- fin current-weather -->
 
-                <div style="padding:20px 0 0;background:#ffffff;">
-                    <div style="font-size:20px;font-weight:300;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Previsión<span style="font-weight:900;">detallada</span></div>
-                    <div style="font-size:10px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:0;">Próximos 7 días</div>
+                <div style="width:calc(100% + (2 * var(--gutter)));margin:0 calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));padding:20px 0 0;background:#ffffff;border-top:1px solid rgba(28,79,120,0.3);">
+                    <div style="font-size:20px;font-weight:300;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Previsión<span style="font-weight:900;">3días</span></div>
+                    <div style="font-size:10px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:0;">Hora a hora</div>
                 </div>
 
                 <!-- ═══════════════════════════════════════════
-                     PREVISIÓN SEMANAL ESTILO BBC WEATHER
+                     PREVISIÓN 48 HORAS (HOY Y MAÑANA)
                 ════════════════════════════════════════════ -->
-                <div class="bbc-week-container" id="bbc-week-container">
+                <div class="bbc-week-container" id="bbc-week-container-48h">
                     <div class="bbc-days-row-outer">
-                        <div class="bbc-days-row" id="bbc-days-row">
+                        <div class="bbc-days-row" id="bbc-days-row-48h">
                             <div class="bbc-week-loading">Cargando previsión…</div>
                         </div>
                     </div>
                     <div class="bbc-hourly-section">
-                        <div class="bbc-hourly-header">
-                            <span class="bbc-hourly-title">Previsión horaria</span>
-                        </div>
                         <div class="bbc-hourly-wrap">
-                            <div class="bbc-hourly-scroll" id="bbc-hourly-scroll">
-                                <div class="bbc-hourly-inner" id="bbc-hourly-inner"></div>
+                            <div class="bbc-hourly-scroll" id="bbc-hourly-scroll-48h">
+                                <div class="bbc-hourly-inner" id="bbc-hourly-inner-48h"></div>
                             </div>
                         </div>
                     </div>
-                    <div class="bbc-sun-uvi" id="bbc-sun-uvi"></div>
+                    <div class="bbc-sun-uvi" id="bbc-sun-uvi-48h"></div>
+                </div>
+
+                <!-- ═══ separador entre las dos previsiones ═══ -->
+                <div style="height:18px;background:#ffffff;"></div>
+
+                <div style="width:calc(100% + (2 * var(--gutter)));margin:0 calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));padding:20px 0 0;background:#ffffff;">
+                    <div style="font-size:20px;font-weight:300;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Próximos<span style="font-weight:900;">días</span></div>
+                    <div style="font-size:10px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:0;" id="semanal-date-range">Cargando…</div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════
+                     PREVISIÓN SEMANAL (DÍA 3 AL 7)
+                ════════════════════════════════════════════ -->
+                <div class="bbc-week-container" id="bbc-week-container-semanal">
+                    <div class="bbc-days-row-outer">
+                        <div class="bbc-days-row" id="bbc-days-row-semanal">
+                            <div class="bbc-week-loading">Cargando previsión…</div>
+                        </div>
+                    </div>
+                    <div class="bbc-hourly-section">
+                        <div class="bbc-daypart-wrap" id="bbc-daypart-semanal"></div>
+                    </div>
+
                 </div>
                 <!-- ═══════════════════════════════════════════
                      FIN PREVISIÓN SEMANAL ESTILO BBC WEATHER
@@ -1086,7 +1156,7 @@
         <div style="height:60px;background:#ffffff;"></div>
 
         <!-- ═══════════════════════════════════════════
-             GRÁFICOS SEMANA (METEOGRAMA)
+             GRÁFICOS SEMANA (METEOGRAMA) — SECCIÓN 1: TEMPERATURA/LLUVIA
         ════════════════════════════════════════════ -->
         <div id="forecast7-charts-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
             <!-- Cabecera -->
@@ -1094,21 +1164,23 @@
                 <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">METEOGRAMA SEMANAL</span>
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
-                <!-- Panel superior: temperatura / probabilidad de lluvia / acumulado -->
+                <!-- Panel superior: temperatura / probabilidad de lluvia / acumulado / humedad / presión
+                     (un único canvas con las 4 gráficas apiladas). Las leyendas de cada gráfica se
+                     colocan en posición absoluta, justo debajo de su propia franja dentro del canvas. -->
                 <div id="f7-panel-wrap-top" style="position:relative;height:502px;">
                 <div id="f7-panel-combo-top" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-top" style="display:block;width:100%;"></canvas>
                 </div>
-                </div>
 
-                <!-- Botón + desplegable: por qué probabilidad y acumulado se muestran por separado -->
-                <div style="padding:0 16px 0px;">
-                    <button id="f7-info-toggle" onclick="toggleF7InfoPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
-                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">¿Por qué mostramos la probabilidad y el acumulado por separado?</span>
-                        <span id="f7-info-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
-                    </button>
+                <!-- Leyenda + enlace: por qué probabilidad y acumulado se muestran por separado
+                     (justo debajo de la franja de temperatura/lluvia) -->
+                <div style="position:absolute;left:16px;right:16px;top:336px;">
+                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
+                        Por qué mostramos la probabilidad y el acumulado por separado.
+                        <span id="f7-info-toggle-label" data-open-text="SABER +" onclick="toggleF7InfoPanel()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7InfoPanel()" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
+                    </div>
                     <div id="f7-info-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
-                        <div style="padding:12px 2px 2px;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,0.9);">
+                        <div style="margin-top:8px;padding:12px;border-radius:8px;background:rgba(9,32,52,0.96);font-size:12px;line-height:1.5;color:rgba(255,255,255,0.9);">
                             En Barcelona, especialmente con las tormentas de verano y otoño, el tiempo puede ser muy local. Imagina una nube de tormenta pequeña pero muy intensa sobre la ciudad:
                             <br><br>
                             <strong>La Probabilidad (en %)</strong> te dice qué tan fácil es que la nube pase exactamente por tu barrio (por ejemplo, un 20% porque es una tormenta muy localizada).
@@ -1120,21 +1192,93 @@
                     </div>
                 </div>
 
+                <!-- Leyenda + enlace: HUMEDAD (justo debajo de la franja de humedad) -->
+                <div style="position:absolute;left:16px;right:16px;top:676px;">
+                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
+                        ¿Cuánto agua flota en el aire? Descubre si el ambiente estará seco o húmedo.
+                        <span id="f7-humedad-toggle-label" data-open-text="SABER +" onclick="toggleF7SimplePanel('f7-humedad-panel','f7-humedad-toggle-label')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7SimplePanel('f7-humedad-panel','f7-humedad-toggle-label')" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
+                    </div>
+                    <div id="f7-humedad-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
+                        <div style="margin-top:8px;padding:12px;border-radius:8px;background:rgba(9,32,52,0.96);font-size:12px;line-height:1.5;color:rgba(255,255,255,0.9);">
+                            Aunque no lo veas, en el aire siempre flotan gotitas de agua invisibles. A eso lo llamamos humedad.
+                            <br><br>
+                            <strong>Si la gráfica sube al 70% o más:</strong> ¡El aire está llenito de agua! Es lo que pasa por la noche o cuando va a llover. Si hace calor, sudas mucho más y la ropa tarda un montón en secarse. Si hace frío, se te mete en los huesos.
+                            <br><br>
+                            <strong>Si la gráfica baja al 30% o menos:</strong> ¡El aire está súper seco! El sol se ha "bebido" el agua del ambiente. Sentirás más sed, se te secarán los labios y la piel te picará un poquito. ¡Es buen día para tender la ropa porque se secará volando!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leyenda + enlace: PRESIÓN (justo debajo de la franja de presión) -->
+                <div style="position:absolute;left:16px;right:16px;top:960px;">
+                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
+                        ¿El aire pesa mucho o poco? Averigua si viene sol o tormenta.
+                        <span id="f7-presion-toggle-label" data-open-text="SABER +" onclick="toggleF7SimplePanel('f7-presion-panel','f7-presion-toggle-label')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7SimplePanel('f7-presion-panel','f7-presion-toggle-label')" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
+                    </div>
+                    <div id="f7-presion-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
+                        <div style="margin-top:8px;padding:12px;border-radius:8px;background:rgba(9,32,52,0.96);font-size:12px;line-height:1.5;color:rgba(255,255,255,0.9);">
+                            ¿Sabías que el aire pesa? Aunque no lo sientas, una capa gigante de aire nos aplasta suavemente. Para medir ese "peso", los científicos usan como regla una playa a nivel del mar, donde el peso normal es de 1013 unidades (hPa).
+                            <br><br>
+                            <strong>Si baja de 1013 (Bajas presiones):</strong> El aire se vuelve ligero y "flota" hacia arriba como un globo de gas. Al subir, se fabrican nubes gigantes, se levanta viento y es muy probable que necesites el paraguas porque se prepara una tormenta.
+                            <br><br>
+                            <strong>Si sube de 1013 (Altas presiones):</strong> El aire pesa mucho y empuja con fuerza hacia abajo. Ese peso "aplasta" las nubes y las borra del mapa. Por eso, cuando el número es alto, casi siempre tenemos un día hermoso, soleado y sin una sola nube.
+                        </div>
+                    </div>
+                </div>
+                </div>
+
+                <!-- Leyenda + enlace: VIENTO (justo debajo de la franja de viento, última del canvas) -->
+                <div style="padding:0 16px 14px;">
+                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
+                        ¿Cuánto sopla el viento? Mira la fuerza de las rachas.
+                        <span id="f7-viento-toggle-label" data-open-text="SABER +" onclick="toggleF7SimplePanel('f7-viento-panel','f7-viento-toggle-label')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7SimplePanel('f7-viento-panel','f7-viento-toggle-label')" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
+                    </div>
+                    <div id="f7-viento-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
+                        <div style="margin-top:8px;padding:12px;border-radius:8px;background:rgba(9,32,52,0.96);font-size:12px;line-height:1.5;color:rgba(255,255,255,0.9);">
+                            Aquí ves dos cosas: el viento que sopla todo el tiempo (la línea de abajo) y las rachas más fuertes, que se llaman rachas (la línea de arriba). La pantalla cambia de color para avisarte si es peligroso salir a la calle:
+                            <br><br>
+                            <strong>Menos de 40 km/h (Color normal):</strong> El viento juega suave. Mueve las hojas de los árboles y te despeina un poco, pero puedes jugar en el parque sin problemas.
+                            <br><br>
+                            <strong>A partir de 40 km/h:</strong> ¡Ya tiene fuerza! Cuesta un poco caminar en línea recta, los paraguas se dan la vuelta y hay que agarrar bien el manillar de la bici.
+                            <br><br>
+                            <strong>Más de 60 km/h:</strong> El fondo se vuelve naranja porque el viento ya está enfadado. Puede tirar cosas de los balcones, arrastrar cubos de basura por la calle y romper ramas de los árboles. ¡Mucho cuidado!
+                            <br><br>
+                            <strong>Más de 80 km/h:</strong> El fondo se enciende en rojo. ¡Es un viento peligroso! Puede arrancar árboles enteros o tirar tejados. Lo mejor es quedarse en casa o refugiado.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ═══════════════════════════════════════════
+             FIN SECCIÓN 1: TEMPERATURA/LLUVIA
+        ════════════════════════════════════════════ -->
+
+        <div style="height:28px;background:#ffffff;"></div>
+
+        <!-- ═══════════════════════════════════════════
+             GRÁFICOS SEMANA (METEOGRAMA) — SECCIÓN 2: ATMÓSFERA LIBRE
+        ════════════════════════════════════════════ -->
+        <div id="forecast7-charts-section-2" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <!-- Cabecera -->
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);gap:3px;">
+                <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">ATMÓSFERA LIBRE</span>
+            </div>
+            <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <!-- Panel inferior: niveles 850hPa/500hPa (atmósfera libre) / cota de isocero -->
                 <div id="f7-panel-wrap-bottom" style="position:relative;height:582px;">
-                <div id="f7-panel-combo-bottom" style="padding:0 16px 18px;position:absolute;inset:0;display:block;">
+                <div id="f7-panel-combo-bottom" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-bottom" style="display:block;width:100%;"></canvas>
                 </div>
                 </div>
 
-                <!-- Botón + desplegable: último radiosondeo (UB/SMC) -->
+                <!-- Leyenda + enlace: último radiosondeo (UB/SMC), justo debajo de su gráfica -->
                 <div style="padding:0 16px 14px;">
-                    <button id="f7-radiosondeo-toggle" onclick="toggleF7RadiosondeoPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
-                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Último radiosondeo (UB/SMC)</span>
-                        <span id="f7-radiosondeo-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
-                    </button>
+                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
+                        Último radiosondeo (UB/SMC), la última medición real de la atmósfera sobre Barcelona.
+                        <span id="f7-radiosondeo-toggle-label" data-open-text="SABER +" onclick="toggleF7RadiosondeoPanel()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7RadiosondeoPanel()" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
+                    </div>
                     <div id="f7-radiosondeo-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
-                        <div style="padding:12px 2px 2px;">
+                        <div style="margin-top:8px;padding:12px;border-radius:8px;background:rgba(9,32,52,0.96);">
                             <img src="https://static-m.meteo.cat/content/radiosondatge/images/ultim.png"
                                  alt="Último radiosondeo Barcelona"
                                  style="width:100%;display:block;border-radius:8px;"
@@ -2143,6 +2287,7 @@
     <script>
         const LAT = 41.3851;
         const LON = 2.1734;
+        // OpenWeather eliminado: toda la app usa Open-Meteo (tiempo actual, previsión 48h, gráficas, etc.)
 
         // Fecha automática del artículo
         (function() {
@@ -2230,6 +2375,11 @@
 
 
         // ══════ SVG ICONOS (estilo ilustración moderna, día/noche) ══════
+        function maskedIconHtml(svgMarkup, size, color) {
+            const encoded = encodeURIComponent(svgMarkup);
+            return `<div style="width:${size}px;height:${size}px;background-color:${color};-webkit-mask-image:url(data:image/svg+xml;utf8,${encoded});mask-image:url(data:image/svg+xml;utf8,${encoded});-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;"></div>`;
+        }
+
         function getSvgIcon(wmo, size=48, night=false) {
             const s = size, h = s/2;
             const svg = (content, vb=`0 0 ${s} ${s}`) =>
@@ -2510,9 +2660,11 @@
             }, true);
         }
         document.addEventListener('DOMContentLoaded', () => {
-            const daysRow = document.getElementById('bbc-days-row');
-            const hourlyScroll = document.getElementById('bbc-hourly-scroll');
-            if (daysRow) enableMouseHorizontalScroll(daysRow);
+            const daysRow48h = document.getElementById('bbc-days-row-48h');
+            const daysRowSemanal = document.getElementById('bbc-days-row-semanal');
+            const hourlyScroll = document.getElementById('bbc-hourly-scroll-48h');
+            if (daysRow48h) enableMouseHorizontalScroll(daysRow48h);
+            if (daysRowSemanal) enableMouseHorizontalScroll(daysRowSemanal);
             if (hourlyScroll) enableMouseHorizontalScroll(hourlyScroll);
         });
 
@@ -3036,11 +3188,10 @@
                 let iHtml = '';
                 blocks.forEach((b, i) => {
                     if (b.code === null || b.code === undefined) return;
+                    // El bloque de 00h (madrugada) no lleva icono de estado del cielo.
+                    if (b.start.getHours() === 0) return;
                     const x = xPos(i);
-                    // El bloque de 00h (madrugada) se muestra siempre con icono nocturno;
-                    // el resto de bloques (06h/12h/18h) con icono diurno.
-                    const isNightBlock = b.start.getHours() === 0;
-                    const icon = getSvgIcon(b.code, 22, isNightBlock);
+                    const icon = getSvgIcon(b.code, 22, false);
                     iHtml += `<span style="position:absolute;left:${x}px;top:0;transform:translateX(-50%);line-height:1;white-space:nowrap;">${icon}</span>`;
                 });
                 iconRow.innerHTML = iHtml;
@@ -4339,27 +4490,54 @@
             const xPos = i => PAD.left+(i/(slots.length-1))*cw;
             const yV   = v => PAD.top+ch-((v-vMin)/(vMax-vMin))*ch;
 
-            // Área rachas (fondo naranja suave)
-            ctx.beginPath(); ctx.moveTo(xPos(0), yV(slots[0].wg ?? 0));
-            for (let i=1; i<slots.length; i++) {
-                const xc=(xPos(i-1)+xPos(i))/2;
-                ctx.bezierCurveTo(xc,yV(slots[i-1].wg??0),xc,yV(slots[i].wg??0),xPos(i),yV(slots[i].wg??0));
-            }
-            ctx.lineTo(xPos(slots.length-1),PAD.top+ch); ctx.lineTo(xPos(0),PAD.top+ch); ctx.closePath();
-            const gG = ctx.createLinearGradient(0,PAD.top,0,PAD.top+ch);
-            gG.addColorStop(0,'rgba(251,146,60,0.25)'); gG.addColorStop(1,'rgba(251,146,60,0.03)');
-            ctx.fillStyle=gG; ctx.fill();
+            // Umbral a partir del cual se dibuja la sombra (no por debajo)
+            const SHADE_THRESHOLD = 40;
+            const buildWindHourlyAreaPath = (getVal) => {
+                ctx.beginPath(); ctx.moveTo(xPos(0), yV(getVal(0)));
+                for (let i=1; i<slots.length; i++) {
+                    const xc=(xPos(i-1)+xPos(i))/2;
+                    ctx.bezierCurveTo(xc,yV(getVal(i-1)),xc,yV(getVal(i)),xPos(i),yV(getVal(i)));
+                }
+                ctx.lineTo(xPos(slots.length-1),PAD.top+ch); ctx.lineTo(xPos(0),PAD.top+ch); ctx.closePath();
+            };
+            if (SHADE_THRESHOLD <= vMax) {
+                const yThreshold = yV(SHADE_THRESHOLD);
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(PAD.left, PAD.top, cw, Math.max(0, yThreshold - PAD.top));
+                ctx.clip();
 
-            // Área velocidad (azul)
-            ctx.beginPath(); ctx.moveTo(xPos(0), yV(slots[0].ws ?? 0));
-            for (let i=1; i<slots.length; i++) {
-                const xc=(xPos(i-1)+xPos(i))/2;
-                ctx.bezierCurveTo(xc,yV(slots[i-1].ws??0),xc,yV(slots[i].ws??0),xPos(i),yV(slots[i].ws??0));
+                // Área rachas (fondo naranja suave), solo por encima de 40 km/h
+                buildWindHourlyAreaPath(i => slots[i].wg ?? 0);
+                const gG = ctx.createLinearGradient(0,PAD.top,0,PAD.top+ch);
+                gG.addColorStop(0,'rgba(251,146,60,0.25)'); gG.addColorStop(1,'rgba(251,146,60,0.03)');
+                ctx.fillStyle=gG; ctx.fill();
+
+                // Área velocidad (azul), solo por encima de 40 km/h
+                buildWindHourlyAreaPath(i => slots[i].ws ?? 0);
+                const gW = ctx.createLinearGradient(0,PAD.top,0,PAD.top+ch);
+                gW.addColorStop(0,'rgba(56,189,248,0.35)'); gW.addColorStop(1,'rgba(56,189,248,0.04)');
+                ctx.fillStyle=gW; ctx.fill();
+
+                ctx.restore();
             }
-            ctx.lineTo(xPos(slots.length-1),PAD.top+ch); ctx.lineTo(xPos(0),PAD.top+ch); ctx.closePath();
-            const gW = ctx.createLinearGradient(0,PAD.top,0,PAD.top+ch);
-            gW.addColorStop(0,'rgba(56,189,248,0.35)'); gW.addColorStop(1,'rgba(56,189,248,0.04)');
-            ctx.fillStyle=gW; ctx.fill();
+
+            // Líneas de referencia por umbral (40 / 60 / 80 km/h), solo si entran en la escala visible
+            const windHourlyThresholds = [
+                { v: 40, color: 'rgba(255,214,10,0.9)' },
+                { v: 60, color: 'rgba(255,149,0,0.9)'  },
+                { v: 80, color: 'rgba(255,59,48,0.9)'  },
+            ];
+            windHourlyThresholds.forEach(({ v, color }) => {
+                if (v > vMax) return;
+                const y = yV(v);
+                ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left+cw, y);
+                ctx.setLineDash([3,4]); ctx.strokeStyle='rgba(255,255,255,0.22)'; ctx.lineWidth=1; ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.textAlign='right'; ctx.font='8.5px Inter,sans-serif';
+                ctx.fillStyle=color;
+                ctx.fillText(v+' km/h', PAD.left+cw, y-3);
+            });
 
             // Línea rachas (naranja)
             ctx.beginPath(); ctx.moveTo(xPos(0),yV(slots[0].wg??0));
@@ -4622,7 +4800,7 @@
             const out = [];
             days.forEach(day => {
                 const ds = day.dateStr;
-                [['AM', 0, 12, 'Mañana'], ['PM', 12, 24, 'Tarde']].forEach(([period, hStart, hEnd, periodLabel]) => {
+                [['AM', 0, 12, '00-12'], ['PM', 12, 24, '12-24']].forEach(([period, hStart, hEnd, periodLabel]) => {
                     const capeV = _f7HalfDayAgg(hourly, 'cape', ds, hStart, hEnd, arr => Math.max(...arr));
                     const liV   = _f7HalfDayAgg(hourly, 'lifted_index', ds, hStart, hEnd, arr => Math.min(...arr));
                     const ppV   = _f7HalfDayAgg(hourly, 'precipitation_probability', ds, hStart, hEnd, arr => Math.max(...arr));
@@ -4760,22 +4938,25 @@
             let bbcDailyRows = [];
             let bbcHourly = null;
             let bbcDaily = null;
-            let bbcSelectedIdx = 0;
+            let bbc48hSelectedIdx = 0;      // 0 = hoy, 1 = mañana, 2 = pasado mañana
+            let bbcSemanalSelectedIdx = 3;  // índice absoluto dentro de bbcDailyRows (día 4 al 8)
+
+            // ── Previsión 48h con datos Open-Meteo (iconos SVG propios) ──
 
             function bbcHourLabel(h) {
                 return String(h).padStart(2, '0') + ':00';
             }
 
-            // Código de tiempo más repetido del día (08h-20h), en vez del
-            // código "representativo" que da la API (que puede no coincidir
-            // con lo que más se repite a lo largo del día).
-            function bbcModeWmo(dateStr, hourly, fallback) {
+            // Código de tiempo más repetido en el rango de horas [hStart, hEnd] (inclusive),
+            // en vez del código "representativo" que da la API (que puede no coincidir
+            // con lo que más se repite a lo largo del rango).
+            function bbcModeWmoRange(dateStr, hourly, hStart, hEnd, fallback) {
                 if (!hourly?.time) return fallback;
                 const freq = {};
                 for (let i = 0; i < hourly.time.length; i++) {
                     if (!hourly.time[i].startsWith(dateStr)) continue;
                     const h = parseInt(hourly.time[i].slice(11, 13), 10);
-                    if (h < 8 || h > 20) continue;
+                    if (h < hStart || h > hEnd) continue;
                     const wmoRaw = hourly.weather_code?.[i] ?? 0;
                     const pp = hourly.precipitation_probability?.[i] ?? 0;
                     const isRain = (wmoRaw >= 51 && wmoRaw <= 82) || (wmoRaw >= 85 && wmoRaw <= 86) || (wmoRaw >= 95 && wmoRaw <= 99);
@@ -4789,12 +4970,18 @@
                 return Number(keys.reduce((a, b) => freq[a] >= freq[b] ? a : b));
             }
 
-            function renderBBCDays() {
-                const row = document.getElementById('bbc-days-row');
+            function bbcModeWmo(dateStr, hourly, fallback) {
+                return bbcModeWmoRange(dateStr, hourly, 8, 20, fallback);
+            }
+
+            // Renderiza una fila de "días" genérica dentro de rowId, usando solo
+            // el subconjunto de bbcDailyRows indicado por (startIdx, endIdxExcl).
+            function renderBBCDaysRow(rowId, startIdx, endIdxExcl, selectedIdx, selectFnName) {
+                const row = document.getElementById(rowId);
                 if (!row) return;
-                row.innerHTML = bbcDailyRows.map((r, idx) => {
+                row.innerHTML = bbcDailyRows.slice(startIdx, endIdxExcl).map((r) => {
                     const icon = getSvgIcon(r.wmo, 28, false);
-                    return `<div class="bbc-day-cell${idx === bbcSelectedIdx ? ' selected' : ''}" data-idx="${idx}" onclick="window.bbcSelectDay(${idx})">
+                    return `<div class="bbc-day-cell${r.idx === selectedIdx ? ' selected' : ''}" data-idx="${r.idx}" onclick="window.${selectFnName}(${r.idx})">
                         <div class="bbc-day-name">${r.label}</div>
                         <div class="bbc-day-icon">${icon}</div>
                         <div class="bbc-day-temps"><span class="tmax">${r.tmax}°</span><span class="tmin">${r.tmin}°</span></div>
@@ -4802,8 +4989,51 @@
                 }).join('');
             }
 
-            function renderBBCHourly(idx) {
-                const inner = document.getElementById('bbc-hourly-inner');
+            function renderBBCDays48h() {
+                renderBBCDaysRow('bbc-days-row-48h', 0, 3, bbc48hSelectedIdx, 'bbcSelectDay48h');
+            }
+
+            function renderBBCDaysSemanal() {
+                renderBBCDaysRow('bbc-days-row-semanal', 3, 8, bbcSemanalSelectedIdx, 'bbcSelectDaySemanal');
+            }
+
+            function renderBBCHourCol(h, i, ht) {
+                const isNight = isNightTime(ht);
+                const wmo = bbcHourly.weather_code?.[i] ?? 0;
+                const pp = Math.round(bbcHourly.precipitation_probability?.[i] ?? 0);
+                const isFog = (wmo === 45 || wmo === 48);
+                const isRain = (wmo >= 51 && wmo <= 82) || (wmo >= 85 && wmo <= 86) || (wmo >= 95 && wmo <= 99);
+                let eWmo = wmo;
+                if (!isFog) { if (!isRain && pp >= 50) eWmo = 80; else if (isRain && pp < 50) eWmo = 3; }
+                const icon = getSvgIcon(isFog ? 45 : eWmo, 42, isNight);
+                const temp = bbcHourly.temperature_2m?.[i] !== undefined ? Math.round(bbcHourly.temperature_2m[i]) + '°' : '--';
+                const hum = bbcHourly.relative_humidity_2m?.[i] !== undefined ? Math.round(bbcHourly.relative_humidity_2m[i]) + '%' : '--';
+                const ws = Math.round(bbcHourly.wind_speed_10m?.[i] ?? 0);
+                const wd = bbcHourly.wind_direction_10m?.[i] ?? 0;
+                return `<div class="bbc-hour-col">
+                    <div class="bbc-hour-time">${bbcHourLabel(h)}</div>
+                    <div class="bbc-hour-icon">${icon}</div>
+                    <div class="bbc-hour-temp">${temp}</div>
+                    <div class="bbc-hour-humidity">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-13-7-13z" fill="#ffffff"/></svg>
+                        <span>${hum}</span>
+                    </div>
+                    <div class="bbc-hour-precip">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a9 9 0 0 0-9 9h18a9 9 0 0 0-9-9z" fill="#ffffff"/><line x1="12" y1="11" x2="12" y2="19" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/><path d="M12 19a2 2 0 1 0 4 0" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+                        <span>${pp}%</span>
+                    </div>
+                    <div class="bbc-hour-wind">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(${(wd + 180) % 360}deg)"><path d="M12 2L6 20l6-4 6 4L12 2z" fill="#cfe8f7"/></svg>
+                        <span>${ws}km/h</span>
+                    </div>
+                </div>`;
+            }
+
+            // Renderiza las horas del día `idx` (índice absoluto en bbcDailyRows)
+            // dentro del contenedor `containerId`. Si es hoy, arranca desde la
+            // hora actual; el resto de días muestra el día completo.
+            function renderBBCHourlyInto(containerId, idx) {
+                const inner = document.getElementById(containerId);
                 if (!inner || !bbcHourly) return;
                 const row = bbcDailyRows[idx];
                 if (!row) return;
@@ -4817,41 +5047,127 @@
                     slots.push({ h, i, ht });
                 }
                 slots.sort((a, b) => a.h - b.h);
-                inner.innerHTML = slots.map(({ h, i, ht }) => {
-                    const isNight = isNightTime(ht);
-                    const wmo = bbcHourly.weather_code?.[i] ?? 0;
-                    const pp = Math.round(bbcHourly.precipitation_probability?.[i] ?? 0);
-                    const isFog = (wmo === 45 || wmo === 48);
-                    const isRain = (wmo >= 51 && wmo <= 82) || (wmo >= 85 && wmo <= 86) || (wmo >= 95 && wmo <= 99);
-                    let eWmo = wmo;
-                    if (!isFog) { if (!isRain && pp >= 50) eWmo = 80; else if (isRain && pp < 50) eWmo = 3; }
-                    const icon = getSvgIcon(isFog ? 45 : eWmo, 42, isNight);
-                    const temp = bbcHourly.temperature_2m?.[i] !== undefined ? Math.round(bbcHourly.temperature_2m[i]) + '°' : '--';
-                    const hum = bbcHourly.relative_humidity_2m?.[i] !== undefined ? Math.round(bbcHourly.relative_humidity_2m[i]) + '%' : '--';
-                    const ws = Math.round(bbcHourly.wind_speed_10m?.[i] ?? 0);
-                    const wd = bbcHourly.wind_direction_10m?.[i] ?? 0;
-                    return `<div class="bbc-hour-col">
-                        <div class="bbc-hour-time">${bbcHourLabel(h)}</div>
-                        <div class="bbc-hour-icon">${icon}</div>
-                        <div class="bbc-hour-temp">${temp}</div>
-                        <div class="bbc-hour-humidity">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-13-7-13z" fill="#ffffff"/></svg>
-                            <span>${hum}</span>
+                inner.innerHTML = slots.map(({ h, i, ht }) => renderBBCHourCol(h, i, ht)).join('');
+            }
+
+            // Bloque semanal (día 4 al 8): 4 franjas horarias fijas, en filas
+            // horizontales — 00-06h (Madrugada), 06-12h (Mañana), 12-18h (Tarde)
+            // y 18-24h (Noche) — más una fila final con datos de sol (amanecer/
+            // atardecer). La mínima del día se muestra siempre en la Mañana, la
+            // máxima siempre en la Tarde; Madrugada y Noche muestran la media de
+            // temperatura de su franja (Noche solo con las horas 20h-24h).
+            const BBC_SEMANAL_SLOTS = [
+                { label: 'Madrugada', h0: 0,  h1: 6  },
+                { label: 'Mañana',    h0: 6,  h1: 12 },
+                { label: 'Tarde',     h0: 12, h1: 18 },
+                { label: 'Noche',     h0: 18, h1: 24 },
+            ];
+
+            function renderBBCDaypartSemanal(idx) {
+                const box = document.getElementById('bbc-daypart-semanal');
+                if (!box || !bbcHourly) return;
+                const row = bbcDailyRows[idx];
+                if (!row) return;
+
+                // Temperaturas horarias del día
+                const hoursData = [];
+                for (let i = 0; i < bbcHourly.time.length; i++) {
+                    if (!bbcHourly.time[i].startsWith(row.dateStr)) continue;
+                    const h = parseInt(bbcHourly.time[i].slice(11, 13), 10);
+                    const t = bbcHourly.temperature_2m?.[i];
+                    if (t === undefined || t === null) continue;
+                    hoursData.push({ h, t });
+                }
+                const avgOf = vals => vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : '--';
+
+                // Mínima siempre en Mañana, máxima siempre en Tarde
+                const minSlotIdx = 1;
+                const maxSlotIdx = 2;
+
+                // Madrugada: media de 00h-06h. Noche: media solo de 20h-24h.
+                const madrugadaTempValue = avgOf(hoursData.filter(e => e.h >= 0 && e.h < 6).map(e => e.t));
+                const nocheTempValue = avgOf(hoursData.filter(e => e.h >= 20 && e.h < 24).map(e => e.t));
+
+                const fmtHora = (iso) => iso ? new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                const sunriseTxt = fmtHora(bbcDaily?.sunrise?.[idx]);
+                const sunsetTxt = fmtHora(bbcDaily?.sunset?.[idx]);
+
+                const rowsHtml = BBC_SEMANAL_SLOTS.map((slot, i) => {
+                    const wmo = bbcModeWmoRange(row.dateStr, bbcHourly, slot.h0, slot.h1 - 1, row.wmo);
+                    const isNightSlot = (slot.label === 'Madrugada' || slot.label === 'Noche');
+                    const icon = getSvgIcon(wmo, 50, isNightSlot);
+                    const iconHtml = isNightSlot ? maskedIconHtml(icon, 50, 'rgba(255,255,255,0.55)') : icon;
+
+                    let tempValue, tempClass;
+                    if (i === minSlotIdx) {
+                        tempValue = Math.round(row.tmin);
+                        tempClass = 'es-min';
+                    } else if (i === maxSlotIdx) {
+                        tempValue = Math.round(row.tmax);
+                        tempClass = 'es-max';
+                    } else if (slot.label === 'Madrugada') {
+                        tempValue = madrugadaTempValue;
+                        tempClass = 'es-media';
+                    } else {
+                        tempValue = nocheTempValue;
+                        tempClass = 'es-media';
+                    }
+
+                    // Índices horarios de bbcHourly dentro de esta franja
+                    const idxSlot = [];
+                    for (let j = 0; j < bbcHourly.time.length; j++) {
+                        if (!bbcHourly.time[j].startsWith(row.dateStr)) continue;
+                        const h = parseInt(bbcHourly.time[j].slice(11, 13), 10);
+                        if (h >= slot.h0 && h < slot.h1) idxSlot.push(j);
+                    }
+                    const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+                    const max = arr => arr.length ? Math.max(...arr) : null;
+                    const sum = arr => arr.length ? arr.reduce((a, b) => a + b, 0) : null;
+
+                    const pprobVals = idxSlot.map(j => bbcHourly.precipitation_probability?.[j]).filter(v => v !== undefined && v !== null);
+                    const precipVals = idxSlot.map(j => bbcHourly.precipitation?.[j]).filter(v => v !== undefined && v !== null);
+                    const windVals = idxSlot.map(j => bbcHourly.wind_speed_10m?.[j]).filter(v => v !== undefined && v !== null);
+                    const gustVals = idxSlot.map(j => bbcHourly.wind_gusts_10m?.[j]).filter(v => v !== undefined && v !== null);
+
+                    const pprobMax = max(pprobVals);
+                    const precipSum = sum(precipVals);
+                    const windAvg = avg(windVals);
+                    const gustMax = max(gustVals);
+
+                    const hourTxt = `${String(slot.h0).padStart(2, '0')} - ${String(slot.h1).padStart(2, '0')}h`;
+
+                    const rowDimClass = isNightSlot ? ' bbc-dprow-dim' : '';
+                    const rainIconColor = isNightSlot ? 'rgba(255,255,255,0.55)' : '#ffffff';
+
+                    return `<div class="bbc-dprow${rowDimClass}">
+                        <div class="bbc-dprow-label">
+                            <div class="bbc-dprow-period">${slot.label}</div>
+                            <div class="bbc-dprow-hour">${hourTxt}</div>
                         </div>
-                        <div class="bbc-hour-precip">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a9 9 0 0 0-9 9h18a9 9 0 0 0-9-9z" fill="#ffffff"/><line x1="12" y1="11" x2="12" y2="19" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/><path d="M12 19a2 2 0 1 0 4 0" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
-                            <span>${pp}%</span>
-                        </div>
-                        <div class="bbc-hour-wind">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(${(wd + 180) % 360}deg)"><path d="M12 2L6 20l6-4 6 4L12 2z" fill="#cfe8f7"/></svg>
-                            <span>${ws}km/h</span>
+                        <div class="bbc-dprow-icon">${iconHtml}</div>
+                        <div class="bbc-dprow-temp ${tempClass}">${tempValue}°</div>
+                        <div class="bbc-dprow-data">
+                            <div class="bbc-dprow-rain"><span class="bbc-dprow-rain-icon">${umbrellaOpenSvg(16, rainIconColor)}</span>${pprobMax !== null ? Math.round(pprobMax) + '%' : '--'}<span class="bbc-dprow-sub">(${precipSum !== null ? precipSum.toFixed(1) : '0.0'} mm)</span></div>
+                            <div class="bbc-dprow-wind">💨 ${windAvg !== null ? Math.round(windAvg) + ' km/h' : '--'}<span class="bbc-dprow-sub">(Máx ${gustMax !== null ? Math.round(gustMax) : '--'})</span></div>
                         </div>
                     </div>`;
                 }).join('');
+
+                const sunRowHtml = `<div class="bbc-dprow bbc-dprow-sun">
+                    <div class="bbc-dprow-label">
+                        <div class="bbc-dprow-period">&nbsp;</div>
+                    </div>
+                    <div class="bbc-dprow-sun-data">
+                        <span class="bbc-dprow-sun-item">Amanecer<span class="bbc-dprow-sub">${sunriseTxt}</span></span>
+                        <span class="bbc-dprow-sun-item">Atardecer<span class="bbc-dprow-sub">${sunsetTxt}</span></span>
+                    </div>
+                </div>`;
+
+                box.innerHTML = '<div class="bbc-daypart-rows">' + rowsHtml + sunRowHtml + '</div>';
             }
 
-            function renderBBCSunUvi(idx) {
-                const box = document.getElementById('bbc-sun-uvi');
+            function renderBBCSunUvi(boxId, idx) {
+                const box = document.getElementById(boxId);
                 if (!box || !bbcDaily) return;
                 const fmt = (iso) => iso ? new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
                 const sr = fmt(bbcDaily.sunrise?.[idx]);
@@ -4900,13 +5216,19 @@
                     </div>`;
             }
 
-            window.bbcSelectDay = function(idx) {
-                bbcSelectedIdx = idx;
-                document.querySelectorAll('.bbc-day-cell').forEach(c => c.classList.toggle('selected', parseInt(c.dataset.idx, 10) === idx));
-                const scrollEl = document.getElementById('bbc-hourly-scroll');
+            window.bbcSelectDay48h = function(idx) {
+                bbc48hSelectedIdx = idx;
+                document.querySelectorAll('#bbc-days-row-48h .bbc-day-cell').forEach(c => c.classList.toggle('selected', parseInt(c.dataset.idx, 10) === idx));
+                const scrollEl = document.getElementById('bbc-hourly-scroll-48h');
                 if (scrollEl) scrollEl.scrollLeft = 0;
-                renderBBCHourly(idx);
-                renderBBCSunUvi(idx);
+                renderBBCHourlyInto('bbc-hourly-inner-48h', idx);
+                renderBBCSunUvi('bbc-sun-uvi-48h', idx);
+            };
+
+            window.bbcSelectDaySemanal = function(idx) {
+                bbcSemanalSelectedIdx = idx;
+                document.querySelectorAll('#bbc-days-row-semanal .bbc-day-cell').forEach(c => c.classList.toggle('selected', parseInt(c.dataset.idx, 10) === idx));
+                renderBBCDaypartSemanal(idx);
             };
 
             window.renderBBCWeek = function(daily, hourly) {
@@ -4919,6 +5241,7 @@
                     const isToday = ds === todayStr;
                     const fallbackWmo = daily.weather_code?.[i] ?? 0;
                     return {
+                        idx: i,
                         dateStr: ds,
                         isToday,
                         label: isToday ? 'Hoy' : (DIAS_CORTO_BBC[dt.getDay()] + ' ' + dt.getDate()),
@@ -4927,11 +5250,37 @@
                         wmo: bbcModeWmo(ds, hourly, fallbackWmo),
                     };
                 });
-                if (bbcSelectedIdx >= bbcDailyRows.length) bbcSelectedIdx = 0;
-                renderBBCDays();
-                renderBBCHourly(bbcSelectedIdx);
-                renderBBCSunUvi(bbcSelectedIdx);
+                if (bbc48hSelectedIdx > 2 || bbc48hSelectedIdx >= bbcDailyRows.length) bbc48hSelectedIdx = 0;
+                if (bbcSemanalSelectedIdx < 3 || bbcSemanalSelectedIdx >= bbcDailyRows.length) {
+                    bbcSemanalSelectedIdx = Math.min(3, bbcDailyRows.length - 1);
+                }
+                // El bloque de 48h (pestañas Hoy/Mañana + tarjetas horarias) se
+                // renderiza siempre con datos de Open-Meteo.
+                renderBBCDays48h();
+                renderBBCHourlyInto('bbc-hourly-inner-48h', bbc48hSelectedIdx);
+                renderBBCDaysSemanal();
+                renderBBCDaypartSemanal(bbcSemanalSelectedIdx);
+                renderBBCSunUvi('bbc-sun-uvi-48h', bbc48hSelectedIdx);
+                updateSemanalDateRange();
             };
+
+            // Subtítulo dinámico "viernes 28 a martes 01" con el rango de días
+            // que cubre la previsión semanal (día 4 al día 8), actualizándose
+            // solo conforme avanzan los días.
+            const DIAS_LARGO_BBC = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+            function updateSemanalDateRange() {
+                const el = document.getElementById('semanal-date-range');
+                if (!el) return;
+                const rango = bbcDailyRows.slice(3, 8);
+                if (!rango.length) { el.textContent = ''; return; }
+                const primero = rango[0];
+                const ultimo = rango[rango.length - 1];
+                const fmt = (r) => {
+                    const dt = new Date(r.dateStr + 'T12:00:00');
+                    return DIAS_LARGO_BBC[dt.getDay()] + ' ' + dt.getDate();
+                };
+                el.textContent = rango.length > 1 ? (fmt(primero) + ' a ' + fmt(ultimo)) : fmt(primero);
+            }
         })();
 
         /* ── Abre el detalle de un día en el panel inferior de f7 ── */
@@ -5113,35 +5462,40 @@
             }
         }
 
-        // ── Desplegable: por qué mostramos probabilidad y acumulado por separado ──
-        function toggleF7InfoPanel() {
-            const panel = document.getElementById('f7-info-panel');
-            const icon  = document.getElementById('f7-info-toggle-icon');
+        // ── Helper genérico: abre/cierra un panel y cambia el texto del enlace
+        //    ("SABER +" ↔ "OCULTAR"), en mayúsculas, sin icono ──
+        function _f7ToggleGeneric(panelId, labelId) {
+            const panel = document.getElementById(panelId);
+            const label = labelId ? document.getElementById(labelId) : null;
             if (!panel) return;
             const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
             if (isOpen) {
                 panel.style.maxHeight = '0px';
-                if (icon) icon.style.transform = 'rotate(0deg)';
+                if (label) label.textContent = label.dataset.openText || 'SABER +';
             } else {
                 panel.style.maxHeight = panel.scrollHeight + 'px';
-                if (icon) icon.style.transform = 'rotate(180deg)';
+                if (label) label.textContent = 'OCULTAR';
             }
+            return !isOpen;
+        }
+
+        // ── Desplegable: por qué mostramos probabilidad y acumulado por separado ──
+        function toggleF7InfoPanel() {
+            _f7ToggleGeneric('f7-info-panel', 'f7-info-toggle-label');
+        }
+
+        // ── Desplegable genérico "Saber +" (humedad / presión / viento del meteograma semanal) ──
+        function toggleF7SimplePanel(panelId, labelId) {
+            _f7ToggleGeneric(panelId, labelId);
         }
 
         // ── Desplegable: último radiosondeo (UB/SMC), misma imagen que la sección de radiosondeo ──
         function toggleF7RadiosondeoPanel() {
-            const panel = document.getElementById('f7-radiosondeo-panel');
-            const icon  = document.getElementById('f7-radiosondeo-toggle-icon');
-            if (!panel) return;
-            const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
-            if (isOpen) {
-                panel.style.maxHeight = '0px';
-                if (icon) icon.style.transform = 'rotate(0deg)';
-            } else {
-                panel.style.maxHeight = panel.scrollHeight + 'px';
-                if (icon) icon.style.transform = 'rotate(180deg)';
+            const opened = _f7ToggleGeneric('f7-radiosondeo-panel', 'f7-radiosondeo-toggle-label');
+            if (opened) {
+                const panel = document.getElementById('f7-radiosondeo-panel');
                 // Si la imagen tarda en cargar, reajustar la altura del desplegable
-                const img = panel.querySelector('img');
+                const img = panel && panel.querySelector('img');
                 if (img && !img.complete) {
                     img.addEventListener('load', () => {
                         if (panel.style.maxHeight !== '0px') panel.style.maxHeight = panel.scrollHeight + 'px';
@@ -5167,18 +5521,37 @@
             // ── Zonas apiladas: temperatura / lluvia / precipitación acumulada,
             //    separadas por huecos con divisor sutil ──
             const tempH   = 140;   // alto zona temperatura
-            const gap     = 85;    // separación entre zonas (fila de días bajo temperatura → título "PROBABILIDAD DE LLUVIA" = 65px reales)
+            const gap     = 20;    // separación entre zona de temperatura y zona de lluvia
             const rainH   = 72;    // alto zona lluvia
 
             const tempTop    = PAD.t;
             const tempBottom = tempTop + tempH;
             const rainTop    = tempBottom + gap;
             const rainBottom = rainTop + rainH;
-            const accGap     = 40;   // separación entre barras de lluvia y gráfico acumulado
-            const accH       = 80;   // alto zona precipitación acumulada
-            const accTop     = rainBottom + accGap;
-            const accBottom  = accTop + accH;
-            const dayLabelY  = accBottom + 14;
+            const accValueY  = rainBottom + 20;   // fila con la cifra de acumulación (mm), justo debajo de las barras de lluvia
+
+            // ── Zona humedad relativa máxima/mínima (%) ──
+            const gapHum     = 140;  // separación tras la cifra de acumulación → título "HUMEDAD" (doble de la anterior)
+            const humH       = 160;  // alto zona humedad
+            const humTop     = accValueY + gapHum;
+            const humBottom  = humTop + humH;
+            const humDayLabelY = humBottom + 40;
+
+            // ── Zona presión a nivel del mar (hPa) ──
+            const gapPres    = 160;  // separación tras fila de días de humedad → título "PRESIÓN" (incluye hueco para la leyenda de humedad)
+            const presH      = 110;  // alto zona presión
+            const presTop    = humDayLabelY + gapPres;
+            const presBottom = presTop + presH;
+            const presDayLabelY = presBottom + 14;
+
+            // ── Zona viento previsto + rachas máximas (km/h) ──
+            const gapWind    = 150;  // separación tras fila de días de presión → título "VIENTO" (incluye hueco para la leyenda de presión)
+            const windH      = 160;  // alto zona viento
+            const windTop    = presDayLabelY + gapWind;
+            const windBottom = windTop + windH;
+            const windDayLabelY = windBottom + 26;
+
+            const dayLabelY  = windDayLabelY;
 
             // Altura del canvas calculada a partir de las zonas anteriores (se ajusta
             // sola si se añade, quita o redimensiona alguna zona/separación)
@@ -5200,6 +5573,13 @@
             const xPos  = i => PAD.l + (i / (n - 1)) * cw;
             const yTemp = v => tempTop + tempH - ((v - tMin) / (tMax - tMin)) * tempH;
 
+            // Posición "de banda": cada día ocupa un ancho igual (cw/n) del eje X,
+            // centrado en su propio tramo — igual que las barras de lluvia y la
+            // fila de días — en vez de la posición "de punto" xPos() (que deja
+            // el primer/último día pegados al borde, como si fuera el inicio del día).
+            const dayW  = cw / n;
+            const xBand = i => PAD.l + (i + 0.5) * dayW;
+
             ctx.clearRect(0, 0, W, H);
 
             // Líneas guía Y de la zona de temperatura (blancas translúcidas)
@@ -5214,13 +5594,13 @@
             // ── Zona temperatura: área + línea máxima/mínima ──
             const drawArea = (vals, fill) => {
                 ctx.beginPath();
-                ctx.moveTo(xPos(0), yTemp(vals[0]));
+                ctx.moveTo(xBand(0), yTemp(vals[0]));
                 for (let i = 1; i < n; i++) {
-                    const xc = (xPos(i-1) + xPos(i)) / 2;
-                    ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xPos(i), yTemp(vals[i]));
+                    const xc = (xBand(i-1) + xBand(i)) / 2;
+                    ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xBand(i), yTemp(vals[i]));
                 }
-                ctx.lineTo(xPos(n-1), tempBottom);
-                ctx.lineTo(xPos(0), tempBottom);
+                ctx.lineTo(xBand(n-1), tempBottom);
+                ctx.lineTo(xBand(0), tempBottom);
                 ctx.closePath();
                 const g = ctx.createLinearGradient(0, tempTop, 0, tempBottom);
                 g.addColorStop(0, fill);
@@ -5231,20 +5611,20 @@
 
             const drawLine = (vals, color, offset, dashed) => {
                 ctx.beginPath();
-                ctx.moveTo(xPos(0), yTemp(vals[0]));
+                ctx.moveTo(xBand(0), yTemp(vals[0]));
                 for (let i = 1; i < n; i++) {
-                    const xc = (xPos(i-1) + xPos(i)) / 2;
-                    ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xPos(i), yTemp(vals[i]));
+                    const xc = (xBand(i-1) + xBand(i)) / 2;
+                    ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xBand(i), yTemp(vals[i]));
                 }
                 ctx.setLineDash(dashed ? [5, 4] : []);
-                ctx.strokeStyle = color; ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.strokeStyle = color; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
                 ctx.setLineDash([]);
                 vals.forEach((v, i) => {
-                    ctx.beginPath(); ctx.arc(xPos(i), yTemp(v), 3.5, 0, Math.PI*2);
+                    ctx.beginPath(); ctx.arc(xBand(i), yTemp(v), 3.5, 0, Math.PI*2);
                     ctx.fillStyle = color; ctx.fill();
                     ctx.textAlign = 'center'; ctx.font = 'bold 10px Inter,sans-serif';
                     ctx.fillStyle = color;
-                    ctx.fillText(v + '°', xPos(i), yTemp(v) + offset);
+                    ctx.fillText(v + '°', xBand(i), yTemp(v) + offset);
                 });
             };
             drawLine(tmax, '#FF8A65', -9, false);
@@ -5254,19 +5634,17 @@
             ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
             rows.forEach((r, i) => {
                 const lbl = r.isToday ? 'HOY' : r.dayName;
-                ctx.fillText(lbl, xPos(i), tempBottom + 14);
+                ctx.fillText(lbl, xBand(i), tempBottom + 14);
             });
 
-            // ── Zona lluvia: título combinado + barras, ancladas abajo de su propia franja ──
-            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
-            ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.fillText('PROBABILIDAD DE LLUVIA · PRECIPITACIÓN ACUMULADA (MM)', PAD.l, rainTop - 6);
-
-            const barW = cw / n * 0.5;
+            // ── Zona lluvia: barras, ancladas abajo de su propia franja
+            //    (el título va fusionado con el de temperatura, arriba del todo;
+            //     xBand ya se definió arriba, junto a la fila de días) ──
+            const barW  = dayW * 0.72;
             rows.forEach((r, i) => {
                 const v = r.pprob;
                 const barH = (v / 100) * rainH;
-                const x  = xPos(i) - barW / 2;
+                const x  = xBand(i) - barW / 2;
                 const g = ctx.createLinearGradient(0, rainBottom - barH, 0, rainBottom);
                 g.addColorStop(0, 'rgba(56,189,248,0.85)');
                 g.addColorStop(1, 'rgba(56,189,248,0.25)');
@@ -5280,7 +5658,7 @@
                 ctx.fill();
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif';
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText(v + '%', xPos(i), rainBottom - barH - 5);
+                ctx.fillText(v + '%', xBand(i), rainBottom - barH - 5);
             });
             // Línea base de la zona de lluvia
             ctx.beginPath();
@@ -5288,67 +5666,377 @@
             ctx.lineTo(PAD.l + cw, rainBottom);
             ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
 
-            // ══════════════════════════════════════════════
-            // Zona precipitación acumulada (mm) — área + línea
-            // (justo debajo de la barra de probabilidad de lluvia; título ya incluido arriba)
-            // ══════════════════════════════════════════════
-            const precipVals = rows.map(r => r.precip);
-            const accMax = Math.max(...precipVals, 1);
-            const yAcc = v => accTop + accH - (v / accMax) * accH;
+            // ── Cifra de acumulación prevista (mm), justo debajo de las barras de lluvia ──
+            ctx.textAlign = 'center'; ctx.font = 'bold 9.5px Inter,sans-serif';
+            rows.forEach((r, i) => {
+                const mm = Math.round((r.precip ?? 0) * 10) / 10;
+                ctx.fillStyle = mm === 0 ? 'rgba(255,255,255,0.85)' : 'rgba(56,189,248,0.95)';
+                ctx.fillText(mm + ' mm', xBand(i), accValueY);
+            });
 
-            // Área bajo la línea
-            ctx.beginPath();
-            ctx.moveTo(xPos(0), yAcc(precipVals[0]));
-            for (let i = 1; i < n; i++) {
-                const xc = (xPos(i-1) + xPos(i)) / 2;
-                ctx.bezierCurveTo(xc, yAcc(precipVals[i-1]), xc, yAcc(precipVals[i]), xPos(i), yAcc(precipVals[i]));
+            // ══════════════════════════════════════════════
+            // Zona presión a nivel del mar (hPa) — área + línea
+            // ══════════════════════════════════════════════
+            const presVals = rows.map(r => r.pres);
+            const presHeadroom = 22; // aire simétrico arriba y abajo, para que ni los picos ni los valles rocen el título ni la línea base
+            // Eje Y simétrico centrado siempre en 1013 hPa (presión media):
+            // se toma el dato de la semana más alejado de 1013 y se usa esa
+            // misma distancia hacia arriba y hacia abajo, para que 1013 quede
+            // siempre en el centro vertical de la gráfica.
+            const presCenter = 1013;
+            const presSpan = Math.max(
+                1,
+                Math.ceil(Math.max(...presVals.map(v => Math.abs(v - presCenter))))
+            );
+            const pMin = presCenter - presSpan;
+            const pMax = presCenter + presSpan;
+            // headroom aplicado por igual arriba y abajo: el pico más alto de la
+            // semana no toca el título y el valle más bajo no toca la línea base
+            const yPres = v => presTop + presHeadroom + (1 - (v - pMin) / (pMax - pMin || 1)) * (presH - presHeadroom * 2);
+
+            ctx.textAlign = 'center'; ctx.font = 'bold 10.5px Inter,sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            ctx.fillText('PRESIÓN A NIVEL DEL MAR (hPa)', PAD.l + cw / 2, presTop - 10);
+
+            // Línea sutil marcando el centro (1013 hPa = presión media)
+            {
+                const yCenter = yPres(presCenter);
+                ctx.beginPath();
+                ctx.moveTo(PAD.l, yCenter);
+                ctx.lineTo(PAD.l + cw, yCenter);
+                ctx.setLineDash([3, 4]);
+                ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.textAlign = 'right'; ctx.font = '8.5px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                ctx.fillText('1013', PAD.l + cw, yCenter - 3);
             }
-            ctx.lineTo(xPos(n-1), accBottom);
-            ctx.lineTo(xPos(0), accBottom);
-            ctx.closePath();
-            const gAcc = ctx.createLinearGradient(0, accTop, 0, accBottom);
-            gAcc.addColorStop(0, 'rgba(139,92,246,0.40)');
-            gAcc.addColorStop(1, 'rgba(139,92,246,0)');
-            ctx.fillStyle = gAcc; ctx.fill();
+
+            // Área diverging: el relleno se reparte a partir de la línea de 1013,
+            // no desde el fondo de la gráfica — así lo que está por encima de
+            // 1013 se ve como una zona cálida por ENCIMA de la línea, y lo que
+            // está por debajo se ve como una zona fría por DEBAJO de la línea.
+            const yCenterFill = yPres(presCenter);
+            const buildPresAreaPath = () => {
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yPres(presVals[0]));
+                for (let i = 1; i < n; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yPres(presVals[i-1]), xc, yPres(presVals[i]), xPos(i), yPres(presVals[i]));
+                }
+                ctx.lineTo(xPos(n-1), yCenterFill);
+                ctx.lineTo(xPos(0), yCenterFill);
+                ctx.closePath();
+            };
+
+            // Parte por ENCIMA de 1013 (altas presiones) — tono cálido
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(PAD.l, presTop, cw, Math.max(0, yCenterFill - presTop));
+            ctx.clip();
+            buildPresAreaPath();
+            const gPresUp = ctx.createLinearGradient(0, presTop, 0, yCenterFill);
+            gPresUp.addColorStop(0, 'rgba(255,159,67,0.38)');
+            gPresUp.addColorStop(1, 'rgba(255,159,67,0.05)');
+            ctx.fillStyle = gPresUp; ctx.fill();
+            ctx.restore();
+
+            // Parte por DEBAJO de 1013 (bajas presiones) — tono frío
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(PAD.l, yCenterFill, cw, Math.max(0, presBottom - yCenterFill));
+            ctx.clip();
+            buildPresAreaPath();
+            const gPresDown = ctx.createLinearGradient(0, yCenterFill, 0, presBottom);
+            gPresDown.addColorStop(0, 'rgba(56,189,248,0.05)');
+            gPresDown.addColorStop(1, 'rgba(56,189,248,0.38)');
+            ctx.fillStyle = gPresDown; ctx.fill();
+            ctx.restore();
 
             // Línea
             ctx.beginPath();
-            ctx.moveTo(xPos(0), yAcc(precipVals[0]));
+            ctx.moveTo(xPos(0), yPres(presVals[0]));
             for (let i = 1; i < n; i++) {
                 const xc = (xPos(i-1) + xPos(i)) / 2;
-                ctx.bezierCurveTo(xc, yAcc(precipVals[i-1]), xc, yAcc(precipVals[i]), xPos(i), yAcc(precipVals[i]));
+                ctx.bezierCurveTo(xc, yPres(presVals[i-1]), xc, yPres(presVals[i]), xPos(i), yPres(presVals[i]));
             }
-            ctx.strokeStyle = '#8B5CF6'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
 
-            // Puntos + etiquetas
-            precipVals.forEach((v, i) => {
-                const x = xPos(i), y = yAcc(v);
-                ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fillStyle = '#8B5CF6'; ctx.fill();
+            // Puntos + etiquetas (la cifra se coloca al lado contrario de la línea
+            // de 1013: por encima de 1013 la etiqueta va arriba del punto,
+            // por debajo de 1013 la etiqueta va abajo del punto)
+            presVals.forEach((v, i) => {
+                const x = xPos(i), y = yPres(v);
+                ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                ctx.fillText(v, x, y - 8);
+                const labelOffset = v < presCenter ? 14 : -8;
+                ctx.textBaseline = v < presCenter ? 'top' : 'alphabetic';
+                ctx.fillText(v, x, y + labelOffset);
+                ctx.textBaseline = 'alphabetic';
             });
 
-            // Línea base
-            ctx.beginPath();
-            ctx.moveTo(PAD.l, accBottom); ctx.lineTo(PAD.l + cw, accBottom);
-            ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
-
-            // Fila de días, ahora debajo del gráfico de precipitación acumulada
+            // Fila de días bajo la presión
             ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
             rows.forEach((r, i) => {
                 const lbl = r.isToday ? 'HOY' : r.dayName;
-                ctx.fillText(lbl, xPos(i), accBottom + 14);
+                ctx.fillText(lbl, xPos(i), presDayLabelY);
+            });
+
+            // ══════════════════════════════════════════════
+            // Zona viento previsto + rachas máximas (km/h) — dos líneas
+            // ══════════════════════════════════════════════
+            const windVals = rows.map(r => r.wind);
+            const gustVals = rows.map(r => r.gusts);
+            const windHeadroom = 22; // deja aire entre el pico de línea/etiqueta y el título "VIENTO"
+            const wMax = Math.max(...windVals, ...gustVals, 10) + 3;
+            const yWind = v => windTop + windH - (v / wMax) * (windH - windHeadroom);
+
+            // Título + leyenda (velocidad continua / rachas discontinua) — centrada bajo el título
+            ctx.textAlign = 'center'; ctx.font = 'bold 10.5px Inter,sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            ctx.fillText('VIENTO PREVISTO · RACHAS MÁXIMAS (km/h)', PAD.l + cw / 2, windTop - 24);
+
+            ctx.font = 'bold 9px Inter,sans-serif';
+            {
+                const legendColor = 'rgba(255,255,255,0.65)';
+                const swatchW = 14, textPad = 5, groupGap = 20;
+                const t1 = 'Viento', t2 = 'Rachas';
+                const w1 = ctx.measureText(t1).width, w2 = ctx.measureText(t2).width;
+                const totalW = swatchW + textPad + w1 + groupGap + swatchW + textPad + w2;
+                let lx = PAD.l + cw / 2 - totalW / 2;
+
+                ctx.textAlign = 'left';
+                ctx.beginPath(); ctx.moveTo(lx, windTop - 12); ctx.lineTo(lx + swatchW, windTop - 12);
+                ctx.setLineDash([5,4]); ctx.strokeStyle = legendColor; ctx.lineWidth = 1.1; ctx.stroke(); ctx.setLineDash([]);
+                ctx.fillStyle = legendColor;
+                ctx.fillText(t1, lx + swatchW + textPad, windTop - 9);
+                lx += swatchW + textPad + w1 + groupGap;
+                ctx.beginPath(); ctx.moveTo(lx, windTop - 12); ctx.lineTo(lx + swatchW, windTop - 12);
+                ctx.strokeStyle = legendColor;
+                ctx.setLineDash([]); ctx.stroke();
+                ctx.fillStyle = legendColor;
+                ctx.fillText(t2, lx + swatchW + textPad, windTop - 9);
+            }
+
+            // Sombras por umbral de intensidad (verde → naranja → rojo degradado),
+            // aplicadas sobre la curva de rachas. Cada banda se pinta encima de la
+            // anterior, de modo que sólo queda visible el tramo entre umbrales.
+            // Solo se dibujan si el umbral entra dentro de la escala visible (wMax);
+            // por debajo de 40 km/h no se pinta ninguna sombra.
+            const buildWindAreaAbove = (vals, yBaseline) => {
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yWind(vals[0]));
+                for (let i = 1; i < n; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yWind(vals[i-1]), xc, yWind(vals[i]), xPos(i), yWind(vals[i]));
+                }
+                ctx.lineTo(xPos(n-1), yBaseline);
+                ctx.lineTo(xPos(0), yBaseline);
+                ctx.closePath();
+            };
+            const windThresholds = [
+                { v: 40, color: '76,217,100'  },  // verde
+                { v: 60, color: '255,149,0'   },  // naranja
+                { v: 80, color: '255,59,48'   },  // rojo
+            ];
+            windThresholds.forEach(({ v, color }) => {
+                if (v > wMax) return; // no cabe en la escala de este momento
+                const yT = yWind(v);
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(PAD.l, windTop, cw, Math.max(0, yT - windTop));
+                ctx.clip();
+                buildWindAreaAbove(gustVals, yT);
+                const gT = ctx.createLinearGradient(0, windTop, 0, yT);
+                gT.addColorStop(0, `rgba(${color},0.32)`);
+                gT.addColorStop(1, `rgba(${color},0.05)`);
+                ctx.fillStyle = gT; ctx.fill();
+                ctx.restore();
+
+                ctx.beginPath();
+                ctx.moveTo(PAD.l, yT);
+                ctx.lineTo(PAD.l + cw, yT);
+                ctx.setLineDash([3, 4]);
+                ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.textAlign = 'right'; ctx.font = '8.5px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                ctx.fillText(v + ' km/h', PAD.l + cw, yT - 3);
+            });
+
+            const drawWindLine = (vals, color, dashed) => {
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yWind(vals[0]));
+                for (let i = 1; i < n; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yWind(vals[i-1]), xc, yWind(vals[i]), xPos(i), yWind(vals[i]));
+                }
+                ctx.setLineDash(dashed ? [5, 4] : []);
+                ctx.strokeStyle = color; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.setLineDash([]);
+            };
+            drawWindLine(gustVals, '#ffffff', false);
+            drawWindLine(windVals, '#ffffff', true);
+
+            windVals.forEach((v, i) => {
+                const x = xPos(i);
+                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
+                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                ctx.textBaseline = 'top';
+                ctx.fillText(v, x, yWind(v) + 8);
+                ctx.textBaseline = 'alphabetic';
+            });
+            gustVals.forEach((v, i) => {
+                const x = xPos(i);
+                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
+                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                ctx.fillText(v, x, yWind(v) - 8);
+            });
+
+            // Fila de días bajo el viento
+            ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+            rows.forEach((r, i) => {
+                const lbl = r.isToday ? 'HOY' : r.dayName;
+                ctx.fillText(lbl, xPos(i), windDayLabelY);
+            });
+
+            // ══════════════════════════════════════════════
+            // Zona humedad relativa máxima/mínima (%) — dos líneas
+            // ══════════════════════════════════════════════
+            const humMaxVals = rows.map(r => r.humMax);
+            const humMinVals = rows.map(r => r.humMin);
+            const humHeadroom = 22; // deja aire entre el pico de línea/etiqueta y el título "HUMEDAD"
+            const allHum = [...humMaxVals, ...humMinVals];
+            const hMin = Math.max(0, Math.floor(Math.min(...allHum)) - 3);
+            const hMax = Math.min(100, Math.ceil(Math.max(...allHum)) + 3);
+            const yHum = v => humTop + humH - ((v - hMin) / (hMax - hMin || 1)) * (humH - humHeadroom);
+
+            // Título + leyenda (máxima continua / mínima discontinua)
+            ctx.textAlign = 'center'; ctx.font = 'bold 10.5px Inter,sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            ctx.fillText('HUMEDAD RELATIVA (%)', PAD.l + cw / 2, humTop - 24);
+
+            // Sombras tenues por umbral (mismo estilo diverging que la gráfica de presión):
+            // marrón por DEBAJO del 30% (humedad baja) y azul por ENCIMA del 70% (humedad alta)
+            const humLow = 30, humHigh = 70;
+            const yHumLow = yHum(humLow), yHumHigh = yHum(humHigh);
+
+            const buildHumAreaAbove = (vals, yBaseline) => {
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yHum(vals[0]));
+                for (let i = 1; i < n; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yHum(vals[i-1]), xc, yHum(vals[i]), xPos(i), yHum(vals[i]));
+                }
+                ctx.lineTo(xPos(n-1), yBaseline);
+                ctx.lineTo(xPos(0), yBaseline);
+                ctx.closePath();
+            };
+
+            // Por ENCIMA del 70% (línea máxima) — tono azul
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(PAD.l, humTop, cw, Math.max(0, yHumHigh - humTop));
+            ctx.clip();
+            buildHumAreaAbove(humMaxVals, yHumHigh);
+            const gHumHigh = ctx.createLinearGradient(0, humTop, 0, yHumHigh);
+            gHumHigh.addColorStop(0, 'rgba(56,189,248,0.30)');
+            gHumHigh.addColorStop(1, 'rgba(56,189,248,0.04)');
+            ctx.fillStyle = gHumHigh; ctx.fill();
+            ctx.restore();
+
+            // Por DEBAJO del 30% (línea mínima) — tono marrón
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(PAD.l, yHumLow, cw, Math.max(0, humBottom - yHumLow));
+            ctx.clip();
+            buildHumAreaAbove(humMinVals, yHumLow);
+            const gHumLow = ctx.createLinearGradient(0, yHumLow, 0, humBottom);
+            gHumLow.addColorStop(0, 'rgba(173,129,80,0.04)');
+            gHumLow.addColorStop(1, 'rgba(173,129,80,0.30)');
+            ctx.fillStyle = gHumLow; ctx.fill();
+            ctx.restore();
+
+            // Líneas sutiles discontinuas marcando el 70% y el 30% de humedad
+            [70, 30].forEach(v => {
+                if (v < hMin || v > hMax) return;
+                const y = yHum(v);
+                ctx.beginPath();
+                ctx.moveTo(PAD.l, y);
+                ctx.lineTo(PAD.l + cw, y);
+                ctx.setLineDash([3, 4]);
+                ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.textAlign = 'right'; ctx.font = '8.5px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                ctx.fillText(v + '%', PAD.l + cw, y - 3);
+            });
+
+            ctx.font = 'bold 9px Inter,sans-serif';
+            {
+                const legendColor = 'rgba(255,255,255,0.65)';
+                const swatchW = 14, textPad = 5, groupGap = 20;
+                const t1 = 'Máx', t2 = 'Mín';
+                const w1 = ctx.measureText(t1).width, w2 = ctx.measureText(t2).width;
+                const totalW = swatchW + textPad + w1 + groupGap + swatchW + textPad + w2;
+                let lx = PAD.l + cw / 2 - totalW / 2;
+
+                ctx.textAlign = 'left';
+                ctx.beginPath(); ctx.moveTo(lx, humTop - 12); ctx.lineTo(lx + swatchW, humTop - 12);
+                ctx.setLineDash([]); ctx.strokeStyle = legendColor; ctx.lineWidth = 1.1; ctx.stroke();
+                ctx.fillStyle = legendColor;
+                ctx.fillText(t1, lx + swatchW + textPad, humTop - 9);
+                lx += swatchW + textPad + w1 + groupGap;
+                ctx.beginPath(); ctx.moveTo(lx, humTop - 12); ctx.lineTo(lx + swatchW, humTop - 12);
+                ctx.strokeStyle = legendColor;
+                ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+                ctx.fillStyle = legendColor;
+                ctx.fillText(t2, lx + swatchW + textPad, humTop - 9);
+            }
+
+            const drawHumLine = (vals, color, dashed, labelBelow) => {
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yHum(vals[0]));
+                for (let i = 1; i < n; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yHum(vals[i-1]), xc, yHum(vals[i]), xPos(i), yHum(vals[i]));
+                }
+                ctx.setLineDash(dashed ? [5, 4] : []);
+                ctx.strokeStyle = color; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
+                ctx.setLineDash([]);
+                vals.forEach((v, i) => {
+                    ctx.beginPath(); ctx.arc(xPos(i), yHum(v), 3, 0, Math.PI*2); ctx.fillStyle = color; ctx.fill();
+                    ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = color;
+                    ctx.textBaseline = labelBelow ? 'top' : 'alphabetic';
+                    ctx.fillText(v + '%', xPos(i), yHum(v) + (labelBelow ? 8 : -8));
+                    ctx.textBaseline = 'alphabetic';
+                });
+            };
+            drawHumLine(humMaxVals, '#ffffff', false, false);
+            drawHumLine(humMinVals, '#ffffff', true, true);
+
+            // Fila de días bajo la humedad
+            ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+            rows.forEach((r, i) => {
+                const lbl = r.isToday ? 'HOY' : r.dayName;
+                ctx.fillText(lbl, xPos(i), humDayLabelY);
             });
 
             // Título + leyenda de temperatura (línea continua = máx, discontinua = mín)
-            ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+            ctx.textAlign = 'center'; ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.fillText('TEMPERATURA', PAD.l, PAD.t - 30);
+            ctx.fillText('TEMPERATURA / PROB. LLUVIA (%) · ACUMULADO (mm)', PAD.l + cw / 2, PAD.t - 30);
 
             ctx.font = 'bold 9px Inter,sans-serif';
             ctx.textAlign = 'left';
             ctx.beginPath(); ctx.moveTo(PAD.l, PAD.t - 15); ctx.lineTo(PAD.l + 14, PAD.t - 15);
-            ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 1.1; ctx.stroke();
             ctx.fillStyle = '#FF8A65';
             ctx.fillText(' Máx', PAD.l + 14, PAD.t - 12);
             ctx.beginPath(); ctx.moveTo(PAD.l + 60, PAD.t - 15); ctx.lineTo(PAD.l + 74, PAD.t - 15);
@@ -5356,6 +6044,22 @@
             ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
             ctx.fillStyle = '#7DD3FC';
             ctx.fillText(' Mín', PAD.l + 74, PAD.t - 12);
+        }
+
+        // Título de dos pesos tipo "METEOFLASH": parte fina (300) + parte en negrita (900),
+        // mismo tamaño/estilo que los títulos "METEOFLASH" / "Próximas HORAS" del HTML.
+        function _f7DrawSplitTitle(ctx, thinText, boldText, x0, y, size, align) {
+            const thinFont = '300 ' + size + 'px Inter,sans-serif';
+            const boldFont = '900 ' + size + 'px Inter,sans-serif';
+            ctx.font = thinFont;
+            const wThin = ctx.measureText(thinText).width;
+            ctx.font = boldFont;
+            const wBold = ctx.measureText(boldText).width;
+            let x = (align === 'left') ? x0 : x0 - (wThin + wBold) / 2;
+            ctx.textAlign = 'left'; ctx.fillStyle = '#ffffff';
+            ctx.font = thinFont; ctx.fillText(thinText, x, y);
+            x += wThin;
+            ctx.font = boldFont; ctx.fillText(boldText, x, y);
         }
 
         // ── Canvas inferior: niveles 850hPa/500hPa (atmósfera libre) / cota de isocero ──
@@ -5470,16 +6174,21 @@
                 ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 levels.forEach((l, j) => { ctx.fillText(l.hour === 0 ? '00h' : '12h', xPos2(j), levelsBottom + 24); });
 
-                // Fila de días, alineada justo bajo la hora 00h de cada día
+                // Fila de días, cada etiqueta inicia (alineada a la izquierda) a la altura de las 06h de ese día
                 if (rows) {
-                    ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'left'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
                     rows.forEach((r, i) => {
                         const lbl = r.isToday ? 'HOY' : r.dayName;
                         const j00 = levels.findIndex(l => l.dateStr === r.dateStr && l.hour === 0);
-                        const x = j00 !== -1 ? xPos2(j00) : xPos(i);
+                        const j12 = levels.findIndex(l => l.dateStr === r.dateStr && l.hour === 12);
+                        const x06 = (j00 !== -1 && j12 !== -1) ? (xPos2(j00) + xPos2(j12)) / 2 : null;
+                        const x = x06 !== null ? x06 : (j00 !== -1 ? xPos2(j00) : xPos(i));
                         ctx.fillText(lbl, x, levelsBottom + 40);
                     });
                 }
+
+                // Título grande estilo METEOFLASH: "7" fino + "DÍAS" en negrita (alineado a la izquierda)
+                _f7DrawSplitTitle(ctx, '7', 'DÍAS', PAD.l, levelsTop - 95, 20, 'left');
 
                 // Título de sección "ATMÓSFERA LIBRE" (con espacio respecto a la fila de días de arriba)
                 ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
@@ -5514,7 +6223,8 @@
                 const cotaV = levels.map(l => l.cota);
                 const cMin = Math.min(...cotaV, 0);
                 const cMax = Math.max(...cotaV, 500);
-                const yIso = v => isoTop + isoH - ((v - cMin) / (cMax - cMin || 1)) * isoH;
+                const isoHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "COTA DE ISOCERO"
+                const yIso = v => isoTop + isoH - ((v - cMin) / (cMax - cMin || 1)) * (isoH - isoHeadroom);
 
                 // Área bajo la línea
                 ctx.beginPath();
@@ -5568,7 +6278,11 @@
                 const capeMaxScale = Math.max(...capeVS, 500);
                 const liMinV = Math.min(...liVS, -2);
                 const liMaxV = Math.max(...liVS, 2);
-                const yLi = v => liTop + liH - ((v - liMinV) / (liMaxV - liMinV || 1)) * liH;
+                const liHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "LIFTED INDEX"
+                const yLi = v => liTop + liH - ((v - liMinV) / (liMaxV - liMinV || 1)) * (liH - liHeadroom);
+
+                // Título grande estilo METEOFLASH: "3" fino + "DÍAS" en negrita (alineado a la izquierda)
+                _f7DrawSplitTitle(ctx, '3', 'DÍAS', PAD.l, capeTop - 84, 20, 'left');
 
                 // Título general de la sección
                 ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
@@ -5578,12 +6292,13 @@
                 // ── Sub-zona CAPE: barras con color según intensidad ──
                 ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText('CAPE (J/kg)', PAD.l, capeTop - 8);
+                ctx.fillText('CAPE (J/kg)', PAD.l, capeTop - 12);
 
                 const capeBarW = cw / sN * 0.5;
+                const capeHeadroom = 16; // deja aire entre el pico de barra/etiqueta y el título "CAPE (J/kg)"
                 stormRows.forEach((r, j) => {
                     const v = r.cape;
-                    const barH = Math.max((v / capeMaxScale) * capeH, v > 0 ? 2 : 0);
+                    const barH = Math.max((v / capeMaxScale) * (capeH - capeHeadroom), v > 0 ? 2 : 0);
                     const x = xPosStorm(j) - capeBarW / 2;
                     // Colores tenues: naranja (igual tono que 850hPa) / amarillo / verde
                     const color = v >= 1500 ? 'rgba(255,138,101,0.72)' : v >= 500 ? 'rgba(250,204,21,0.65)' : 'rgba(52,211,153,0.55)';
@@ -5609,7 +6324,7 @@
                 // ── Sub-zona Lifted Index: línea (negativo = inestable) ──
                 ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText('LIFTED INDEX (°C)', PAD.l, liTop - 8);
+                ctx.fillText('LIFTED INDEX (°C)', PAD.l, liTop - 12);
 
                 // Línea guía en 0 (referencia estable/inestable)
                 if (liMinV < 0 && liMaxV > 0) {
@@ -5626,16 +6341,16 @@
                 stormRows.forEach((r, j) => {
                     const x = xPosStorm(j), y = yLi(r.li);
                     ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
-                    ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                     ctx.fillText(r.li, x, y - 7);
                 });
 
-                // Etiquetas Mañana/Tarde de esta franja
-                ctx.textAlign = 'center'; ctx.font = '7px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                // Etiquetas 00-12/12-24 de esta franja
+                ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 stormRows.forEach((r, j) => { ctx.fillText(r.periodLabel, xPosStorm(j), liBottom + 24); });
 
                 // Fila de días (una etiqueta por día, centrada entre su punto de mañana y de tarde)
-                ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 for (let d = 0; d < stormRows.length; d += 2) {
                     const r = stormRows[d];
                     const xMid = (xPosStorm(d) + xPosStorm(d + 1)) / 2;
@@ -5667,14 +6382,14 @@
                         ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#FFFFFF'; ctx.textAlign = 'center';
                         ctx.fillText('⚠', x, yDot + 3.5);
                     }
-                    ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                     ctx.fillText(r.periodLabel, x, yDot + 24);
                     ctx.font = 'bold 7px Inter,sans-serif'; ctx.fillStyle = risk.color;
                     ctx.fillText(risk.level, x, yDot + 35);
                 });
 
                 // Fila de días bajo el semáforo, centrada entre mañana/tarde de cada día
-                ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 for (let d = 0; d < stormRows.length; d += 2) {
                     const r = stormRows[d];
                     const xMid = (xPosStorm(d) + xPosStorm(d + 1)) / 2;
@@ -5742,7 +6457,7 @@
             // const PROXY_BASE = 'https://tiempo-bcn-proxy.tunombre.workers.dev';
             const PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
 
-            const url=`${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_850hPa,temperature_500hPa,freezing_level_height,cape,lifted_index,convective_inhibition&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean,cape_max&timezone=Europe/Madrid&forecast_days=7`;
+            const url=`${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_850hPa,temperature_500hPa,freezing_level_height,cape,lifted_index,convective_inhibition&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean,cape_max&timezone=Europe/Madrid&forecast_days=8`;
             const aqUrl=`${PROXY_BASE}/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&hourly=pm10&forecast_days=2&timezone=Europe/Madrid`;
             const marineUrl=`${PROXY_BASE}/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
 
@@ -5786,7 +6501,10 @@
                         if(ht.getDate()===now.getDate()&&ht.getMonth()===now.getMonth()&&ht<=now) precipToday+=data.hourly.precipitation[i]||0;
                     }
                 }
-                updateCurrentWeather(data.current, data.current.weather_code, precipToday, data.hourly);
+                // Tiempo actual (temperatura, icono, viento, presión, humedad, UVI...) → Open-Meteo.
+                updateCurrentWeather(data.current, data.current.weather_code, data.hourly);
+                // Previsión horaria de 48h (pestañas Hoy/Mañana + tarjetas por hora) → Open-Meteo,
+                // vía window.renderBBCWeek() más abajo.
                 updateTemp24hChart(data.hourly, data.daily);
                 updateRainSemaphore(data.hourly);
                 updateRainProb6h(data.hourly);
@@ -5820,7 +6538,7 @@
                         if (!daily?.time) return;
                         const todayStr = new Date().toISOString().slice(0,10);
                         const DIAS_ES  = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
-                        const rows = daily.time.map((ds, i) => {
+                        const rows = daily.time.slice(0, 7).map((ds, i) => {
                             const dt = new Date(ds + 'T12:00:00');
                             const liMin = _f7DayAgg(hourly, 'lifted_index', ds, arr => Math.min(...arr));
                             const cinMin = _f7DayAgg(hourly, 'convective_inhibition', ds, arr => Math.min(...arr));
@@ -5886,21 +6604,11 @@
             } catch(e) { console.error('Error procesando datos:',e); }
         }
 
-        function updateCurrentWeather(current, weatherCode, precipToday, hourly) {
+        // Tiempo actual con datos de Open-Meteo (icono SVG propio).
+        function updateCurrentWeather(current, weatherCode, hourly) {
             const now=new Date();
             document.getElementById('current-temp').textContent=Math.round(current.temperature_2m)+'°';
-            // Buscar índice horario más cercano para obtener desglose de nubosidad
             const nowMs = now.getTime();
-            let closestIdx = 0, minDiff = Infinity;
-            if (hourly?.time) {
-                hourly.time.forEach((t, i) => { const d = Math.abs(new Date(t) - nowMs); if (d < minDiff) { minDiff = d; closestIdx = i; } });
-            }
-            const cloudNow = hourly ? {
-                cloud_cover: current.cloud_cover,
-                cloud_cover_low: hourly.cloud_cover_low?.[closestIdx],
-                cloud_cover_mid: hourly.cloud_cover_mid?.[closestIdx],
-                cloud_cover_high: hourly.cloud_cover_high?.[closestIdx]
-            } : {cloud_cover: current.cloud_cover};
             document.getElementById('current-icon').innerHTML=getSvgIcon(weatherCode, 96, isNightTime(now));
             const pressureEl = document.getElementById('pressure');
             if (pressureEl) pressureEl.textContent=Math.round(current.pressure_msl)+' hPa';
@@ -5910,15 +6618,11 @@
             if (gustsEl) gustsEl.textContent=Math.round(current.wind_gusts_10m ?? current.wind_speed_10m ?? 0)+' km/h';
             const conditionEl = document.getElementById('condition-text');
             if (conditionEl) conditionEl.textContent = weatherDescriptions[weatherCode] || '';
-            // Dirección del viento desde datos horarios (current no incluye wind_direction)
             if (hourly?.time && hourly?.wind_direction_10m) {
                 const idxWd = hourly.time.findIndex(t => Math.abs(new Date(t) - nowMs) < 30*60*1000);
                 const deg = idxWd !== -1 ? hourly.wind_direction_10m[idxWd] : null;
                 if (deg != null) {
-                    // 16 puntos cardinales: índice 0=N, 1=NNE ... 15=NNO
                     const dirs  = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
-                    // Flecha indica hacia donde SOPLA el viento (opuesto al origen)
-                    // N(0°)→↓, NE(45°)→↙, E(90°)→←, SE(135°)→↖, S(180°)→↑, SO(225°)→↗, O(270°)→→, NO(315°)→↘
                     const arrows = ['↓','↙','↙','↙','←','↖','↖','↖','↑','↗','↗','↗','→','↘','↘','↘'];
                     const idx16 = Math.round(deg / 22.5) % 16;
                     const wdEl = document.getElementById('wind-direction');
@@ -5933,7 +6637,6 @@
                     document.getElementById('feels-like').textContent=Math.round(hourly.apparent_temperature[idx2])+'°';
                 }
             }
-
             if (hourly?.time && hourly?.uv_index) {
                 const idxUvi=hourly.time.findIndex(t=>Math.abs(new Date(t)-now)<30*60*1000);
                 if (idxUvi!==-1&&hourly.uv_index[idxUvi]!==undefined) {
@@ -7241,7 +7944,7 @@
         setInterval(updateMoonInfo, 60000);
 
         loadWeatherData();
-        setInterval(loadWeatherData, 600000);
+        setInterval(loadWeatherData, 900000); // 15 minutos
 
 
 
