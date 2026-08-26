@@ -5445,7 +5445,7 @@
             const humH       = 130;  // alto zona humedad
             const humTop     = accValueY + gapHum;
             const humBottom  = humTop + humH;
-            const humDayLabelY = humBottom + 14;
+            const humDayLabelY = humBottom + 26;
 
             // ── Zona presión a nivel del mar (hPa) ──
             const gapPres    = 90;   // separación tras fila de días de humedad → título "PRESIÓN"
@@ -5459,7 +5459,7 @@
             const windH      = 130;  // alto zona viento
             const windTop    = presDayLabelY + gapWind;
             const windBottom = windTop + windH;
-            const windDayLabelY = windBottom + 14;
+            const windDayLabelY = windBottom + 26;
 
             const dayLabelY  = windDayLabelY;
 
@@ -5604,6 +5604,19 @@
             // semana no toca el título y el valle más bajo no toca la línea base
             const yPres = v => presTop + presHeadroom + (1 - (v - pMin) / (pMax - pMin || 1)) * (presH - presHeadroom * 2);
 
+            // Líneas verticales discontinuas y sutiles marcando los días 2, 4 y 6
+            const drawDayGuideLines = (top, bottom) => {
+                [1, 3, 5].forEach(i => {
+                    if (i >= n) return;
+                    const x = xPos(i);
+                    ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom);
+                    ctx.setLineDash([3, 3]);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1; ctx.stroke();
+                    ctx.setLineDash([]);
+                });
+            };
+            drawDayGuideLines(presTop, presBottom);
+
             ctx.textAlign = 'center'; ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
             ctx.fillText('PRESIÓN A NIVEL DEL MAR (hPa)', PAD.l + cw / 2, presTop - 10);
@@ -5702,6 +5715,7 @@
             const windHeadroom = 30; // deja aire entre el pico de línea/etiqueta y el título "VIENTO"
             const wMax = Math.max(...windVals, ...gustVals, 10) + 5;
             const yWind = v => windTop + windH - (v / wMax) * (windH - windHeadroom);
+            drawDayGuideLines(windTop, windBottom);
 
             // Título + leyenda (velocidad continua / rachas discontinua)
             ctx.textAlign = 'center'; ctx.font = 'bold 10.5px Inter,sans-serif';
@@ -5711,14 +5725,39 @@
             ctx.font = 'bold 9px Inter,sans-serif';
             ctx.textAlign = 'left';
             ctx.beginPath(); ctx.moveTo(PAD.l, windTop - 12); ctx.lineTo(PAD.l + 14, windTop - 12);
-            ctx.setLineDash([]); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.1; ctx.stroke();
+            ctx.setLineDash([5,4]); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.1; ctx.stroke(); ctx.setLineDash([]);
             ctx.fillStyle = '#ffffff';
             ctx.fillText(' Viento', PAD.l + 14, windTop - 9);
             ctx.beginPath(); ctx.moveTo(PAD.l + 80, windTop - 12); ctx.lineTo(PAD.l + 94, windTop - 12);
             ctx.strokeStyle = '#ffffff';
-            ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+            ctx.setLineDash([]); ctx.stroke();
             ctx.fillStyle = '#ffffff';
             ctx.fillText(' Rachas', PAD.l + 94, windTop - 9);
+
+            // Sombra tenue cuando el viento supera los 40 km/h (sin línea de referencia)
+            const windThreshold = 40;
+            const yWindThreshold = yWind(windThreshold);
+            const buildWindAreaPath = (vals) => {
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yWind(vals[0]));
+                for (let i = 1; i < n; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yWind(vals[i-1]), xc, yWind(vals[i]), xPos(i), yWind(vals[i]));
+                }
+                ctx.lineTo(xPos(n-1), yWindThreshold);
+                ctx.lineTo(xPos(0), yWindThreshold);
+                ctx.closePath();
+            };
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(PAD.l, windTop, cw, Math.max(0, yWindThreshold - windTop));
+            ctx.clip();
+            buildWindAreaPath(windVals);
+            const gWind = ctx.createLinearGradient(0, windTop, 0, yWindThreshold);
+            gWind.addColorStop(0, 'rgba(76,217,100,0.35)');
+            gWind.addColorStop(1, 'rgba(76,217,100,0.05)');
+            ctx.fillStyle = gWind; ctx.fill();
+            ctx.restore();
 
             const drawWindLine = (vals, color, dashed) => {
                 ctx.beginPath();
@@ -5731,8 +5770,8 @@
                 ctx.strokeStyle = color; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
                 ctx.setLineDash([]);
             };
-            drawWindLine(gustVals, '#ffffff', true);
-            drawWindLine(windVals, '#ffffff', false);
+            drawWindLine(gustVals, '#ffffff', false);
+            drawWindLine(windVals, '#ffffff', true);
 
             windVals.forEach((v, i) => {
                 const x = xPos(i);
@@ -5746,11 +5785,6 @@
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                 ctx.fillText(v, x, yWind(v) - 8);
             });
-
-            // Línea base
-            ctx.beginPath();
-            ctx.moveTo(PAD.l, windBottom); ctx.lineTo(PAD.l + cw, windBottom);
-            ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
 
             // Fila de días bajo el viento
             ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
@@ -5769,11 +5803,37 @@
             const hMin = Math.max(0, Math.floor(Math.min(...allHum)) - 5);
             const hMax = Math.min(100, Math.ceil(Math.max(...allHum)) + 5);
             const yHum = v => humTop + humH - ((v - hMin) / (hMax - hMin || 1)) * (humH - humHeadroom);
+            drawDayGuideLines(humTop, humBottom);
 
             // Título + leyenda (máxima continua / mínima discontinua)
             ctx.textAlign = 'center'; ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
             ctx.fillText('HUMEDAD RELATIVA (%)', PAD.l + cw / 2, humTop - 24);
+
+            // Sombra tenue cuando la humedad máxima supera el 75% (sin línea de referencia)
+            const humThreshold = 75;
+            const yHumThreshold = yHum(humThreshold);
+            const buildHumAreaPath = (vals) => {
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yHum(vals[0]));
+                for (let i = 1; i < n; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yHum(vals[i-1]), xc, yHum(vals[i]), xPos(i), yHum(vals[i]));
+                }
+                ctx.lineTo(xPos(n-1), yHumThreshold);
+                ctx.lineTo(xPos(0), yHumThreshold);
+                ctx.closePath();
+            };
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(PAD.l, humTop, cw, Math.max(0, yHumThreshold - humTop));
+            ctx.clip();
+            buildHumAreaPath(humMaxVals);
+            const gHum = ctx.createLinearGradient(0, humTop, 0, yHumThreshold);
+            gHum.addColorStop(0, 'rgba(56,189,248,0.35)');
+            gHum.addColorStop(1, 'rgba(56,189,248,0.05)');
+            ctx.fillStyle = gHum; ctx.fill();
+            ctx.restore();
 
             ctx.font = 'bold 9px Inter,sans-serif';
             ctx.textAlign = 'left';
@@ -5787,7 +5847,7 @@
             ctx.fillStyle = '#ffffff';
             ctx.fillText(' Mín', PAD.l + 74, humTop - 9);
 
-            const drawHumLine = (vals, color, dashed) => {
+            const drawHumLine = (vals, color, dashed, labelBelow) => {
                 ctx.beginPath();
                 ctx.moveTo(xPos(0), yHum(vals[0]));
                 for (let i = 1; i < n; i++) {
@@ -5800,16 +5860,13 @@
                 vals.forEach((v, i) => {
                     ctx.beginPath(); ctx.arc(xPos(i), yHum(v), 3, 0, Math.PI*2); ctx.fillStyle = color; ctx.fill();
                     ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = color;
-                    ctx.fillText(v + '%', xPos(i), yHum(v) - 8);
+                    ctx.textBaseline = labelBelow ? 'top' : 'alphabetic';
+                    ctx.fillText(v + '%', xPos(i), yHum(v) + (labelBelow ? 8 : -8));
+                    ctx.textBaseline = 'alphabetic';
                 });
             };
-            drawHumLine(humMaxVals, '#ffffff', false);
-            drawHumLine(humMinVals, '#ffffff', true);
-
-            // Línea base
-            ctx.beginPath();
-            ctx.moveTo(PAD.l, humBottom); ctx.lineTo(PAD.l + cw, humBottom);
-            ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+            drawHumLine(humMaxVals, '#ffffff', false, false);
+            drawHumLine(humMinVals, '#ffffff', true, true);
 
             // Fila de días bajo la humedad
             ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
