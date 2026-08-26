@@ -1174,7 +1174,7 @@
 
                 <!-- Leyenda + enlace: por qué probabilidad y acumulado se muestran por separado
                      (justo debajo de la franja de temperatura/lluvia) -->
-                <div id="f7-info-legend-wrap" style="position:absolute;left:16px;right:16px;top:336px;">
+                <div style="position:absolute;left:16px;right:16px;top:336px;">
                     <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
                         Por qué mostramos la probabilidad y el acumulado por separado.
                         <span id="f7-info-toggle-label" data-open-text="SABER +" onclick="toggleF7InfoPanel()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7InfoPanel()" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
@@ -1193,7 +1193,7 @@
                 </div>
 
                 <!-- Leyenda + enlace: HUMEDAD (justo debajo de la franja de humedad) -->
-                <div id="f7-humedad-legend-wrap" style="position:absolute;left:16px;right:16px;top:676px;">
+                <div style="position:absolute;left:16px;right:16px;top:676px;">
                     <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
                         ¿Cuánto agua flota en el aire? Descubre si el ambiente estará seco o húmedo.
                         <span id="f7-humedad-toggle-label" data-open-text="SABER +" onclick="toggleF7SimplePanel('f7-humedad-panel','f7-humedad-toggle-label')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7SimplePanel('f7-humedad-panel','f7-humedad-toggle-label')" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
@@ -1210,7 +1210,7 @@
                 </div>
 
                 <!-- Leyenda + enlace: PRESIÓN (justo debajo de la franja de presión) -->
-                <div id="f7-presion-legend-wrap" style="position:absolute;left:16px;right:16px;top:960px;">
+                <div style="position:absolute;left:16px;right:16px;top:960px;">
                     <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
                         ¿El aire pesa mucho o poco? Averigua si viene sol o tormenta.
                         <span id="f7-presion-toggle-label" data-open-text="SABER +" onclick="toggleF7SimplePanel('f7-presion-panel','f7-presion-toggle-label')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7SimplePanel('f7-presion-panel','f7-presion-toggle-label')" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
@@ -1226,6 +1226,12 @@
                     </div>
                 </div>
                 </div>
+
+                <!-- Espaciador invisible: crece cuando se abre algún "SABER +" de arriba
+                     (info / humedad / presión) para empujar hacia abajo el contenido
+                     siguiente, ya que esos paneles están superpuestos (position:absolute)
+                     sobre el canvas y no ocupan espacio en el flujo por sí solos. -->
+                <div id="f7-top-spacer" style="height:0px;transition:height 0.3s ease;"></div>
 
                 <!-- Leyenda + enlace: VIENTO (justo debajo de la franja de viento, última del canvas) -->
                 <div style="padding:0 16px 14px;">
@@ -5446,45 +5452,7 @@
             const panel = document.getElementById(panelId);
             const csPanel = panel ? getComputedStyle(panel) : null;
             const padTB = csPanel ? (parseFloat(csPanel.paddingTop) + parseFloat(csPanel.paddingBottom)) : 32;
-            const baseH = H + padTB;
-            wrap.dataset.baseHeight = baseH; // alto "de reposo" del canvas, sin desplegables abiertos
-            wrap.style.height = baseH + 'px';
-            // Si al redibujar (p.ej. resize) algún desplegable de los de arriba
-            // estaba abierto, reaplicamos el desplazamiento para que siga empujando.
-            if (wrapId === 'f7-panel-wrap-top') _f7RecalcTopLegendLayout();
-        }
-
-        // ── Posiciones "de reposo" (alineadas con las franjas del canvas) de los
-        //    desplegables superiores, antes de que ninguno esté abierto ──
-        const F7_TOP_LEGEND_BASE = { humedad: 676, presion: 960 };
-
-        function _f7PanelOpenExtra(panelId) {
-            const panel = document.getElementById(panelId);
-            if (!panel) return 0;
-            const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
-            // scrollHeight = alto real del contenido, abierto o no
-            return isOpen ? panel.scrollHeight : 0;
-        }
-
-        // ── Recoloca los desplegables "humedad" y "presión" (y el alto del
-        //    contenedor) según qué paneles de arriba estén abiertos, para que
-        //    cada "SABER +" empuje hacia abajo el contenido siguiente en vez
-        //    de tapar lo que hay debajo ──
-        function _f7RecalcTopLegendLayout() {
-            const wrap = document.getElementById('f7-panel-wrap-top');
-            if (!wrap) return;
-            const baseH = parseFloat(wrap.dataset.baseHeight) || parseFloat(wrap.style.height) || 502;
-
-            const infoExtra    = _f7PanelOpenExtra('f7-info-panel');
-            const humedadExtra = _f7PanelOpenExtra('f7-humedad-panel');
-            const presionExtra = _f7PanelOpenExtra('f7-presion-panel');
-
-            const humedadWrap = document.getElementById('f7-humedad-legend-wrap');
-            const presionWrap = document.getElementById('f7-presion-legend-wrap');
-            if (humedadWrap) humedadWrap.style.top = (F7_TOP_LEGEND_BASE.humedad + infoExtra) + 'px';
-            if (presionWrap) presionWrap.style.top = (F7_TOP_LEGEND_BASE.presion + infoExtra + humedadExtra) + 'px';
-
-            wrap.style.height = (baseH + infoExtra + humedadExtra + presionExtra) + 'px';
+            wrap.style.height = (H + padTB) + 'px';
         }
 
         function drawF7ComboChart() {
@@ -5514,13 +5482,27 @@
                 panel.style.maxHeight = panel.scrollHeight + 'px';
                 if (label) label.textContent = 'OCULTAR';
             }
-            // Si el panel forma parte del meteograma semanal (temperatura/lluvia,
-            // humedad o presión), reajusta lo que hay debajo para que el
-            // desplegable empuje el contenido en vez de taparlo.
-            if (panelId === 'f7-info-panel' || panelId === 'f7-humedad-panel' || panelId === 'f7-presion-panel') {
-                _f7RecalcTopLegendLayout();
-            }
+            _f7UpdateTopSpacer();
             return !isOpen;
+        }
+
+        // ── Los paneles "info" / "humedad" / "presión" del meteograma semanal van
+        //    superpuestos (position:absolute) encima del canvas para alinearse con
+        //    los huecos dibujados en la gráfica, así que al abrirse no empujan el
+        //    contenido siguiente por sí solos. Este espaciador invisible crece la
+        //    misma cantidad que la suma de esos paneles abiertos, simulando que sí
+        //    empujan el resto de la página hacia abajo en vez de taparlo. ──
+        function _f7UpdateTopSpacer() {
+            const ids = ['f7-info-panel', 'f7-humedad-panel', 'f7-presion-panel'];
+            let total = 0;
+            ids.forEach(id => {
+                const p = document.getElementById(id);
+                if (p && p.style.maxHeight && p.style.maxHeight !== '0px') {
+                    total += parseFloat(p.style.maxHeight) || 0;
+                }
+            });
+            const spacer = document.getElementById('f7-top-spacer');
+            if (spacer) spacer.style.height = total + 'px';
         }
 
         // ── Desplegable: por qué mostramos probabilidad y acumulado por separado ──
