@@ -5751,6 +5751,53 @@
             gWind.addColorStop(1, 'rgba(76,217,100,0.03)');
             ctx.fillStyle = gWind; ctx.fill();
 
+            // Sombras por umbral de intensidad (degradado amarillo → naranja → rojo),
+            // aplicadas sobre la curva de rachas. Cada banda se pinta encima de la
+            // anterior, de modo que sólo queda visible el tramo entre umbrales.
+            // Solo se dibujan si el umbral entra dentro de la escala visible (wMax).
+            const buildWindAreaAbove = (vals, yBaseline) => {
+                ctx.beginPath();
+                ctx.moveTo(xPos(0), yWind(vals[0]));
+                for (let i = 1; i < n; i++) {
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yWind(vals[i-1]), xc, yWind(vals[i]), xPos(i), yWind(vals[i]));
+                }
+                ctx.lineTo(xPos(n-1), yBaseline);
+                ctx.lineTo(xPos(0), yBaseline);
+                ctx.closePath();
+            };
+            const windThresholds = [
+                { v: 40, color: '255,214,10'  },  // amarillo
+                { v: 60, color: '255,149,0'   },  // naranja
+                { v: 80, color: '255,59,48'   },  // rojo
+            ];
+            windThresholds.forEach(({ v, color }) => {
+                if (v > wMax) return; // no cabe en la escala de este momento
+                const yT = yWind(v);
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(PAD.l, windTop, cw, Math.max(0, yT - windTop));
+                ctx.clip();
+                buildWindAreaAbove(gustVals, yT);
+                const gT = ctx.createLinearGradient(0, windTop, 0, yT);
+                gT.addColorStop(0, `rgba(${color},0.32)`);
+                gT.addColorStop(1, `rgba(${color},0.05)`);
+                ctx.fillStyle = gT; ctx.fill();
+                ctx.restore();
+
+                ctx.beginPath();
+                ctx.moveTo(PAD.l, yT);
+                ctx.lineTo(PAD.l + cw, yT);
+                ctx.setLineDash([3, 4]);
+                ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.textAlign = 'right'; ctx.font = '8.5px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                ctx.fillText(v + ' km/h', PAD.l + cw, yT - 3);
+            });
+
             const drawWindLine = (vals, color, dashed) => {
                 ctx.beginPath();
                 ctx.moveTo(xPos(0), yWind(vals[0]));
