@@ -4432,27 +4432,54 @@
             const xPos = i => PAD.left+(i/(slots.length-1))*cw;
             const yV   = v => PAD.top+ch-((v-vMin)/(vMax-vMin))*ch;
 
-            // Área rachas (fondo naranja suave)
-            ctx.beginPath(); ctx.moveTo(xPos(0), yV(slots[0].wg ?? 0));
-            for (let i=1; i<slots.length; i++) {
-                const xc=(xPos(i-1)+xPos(i))/2;
-                ctx.bezierCurveTo(xc,yV(slots[i-1].wg??0),xc,yV(slots[i].wg??0),xPos(i),yV(slots[i].wg??0));
-            }
-            ctx.lineTo(xPos(slots.length-1),PAD.top+ch); ctx.lineTo(xPos(0),PAD.top+ch); ctx.closePath();
-            const gG = ctx.createLinearGradient(0,PAD.top,0,PAD.top+ch);
-            gG.addColorStop(0,'rgba(251,146,60,0.25)'); gG.addColorStop(1,'rgba(251,146,60,0.03)');
-            ctx.fillStyle=gG; ctx.fill();
+            // Umbral a partir del cual se dibuja la sombra (no por debajo)
+            const SHADE_THRESHOLD = 40;
+            const buildWindHourlyAreaPath = (getVal) => {
+                ctx.beginPath(); ctx.moveTo(xPos(0), yV(getVal(0)));
+                for (let i=1; i<slots.length; i++) {
+                    const xc=(xPos(i-1)+xPos(i))/2;
+                    ctx.bezierCurveTo(xc,yV(getVal(i-1)),xc,yV(getVal(i)),xPos(i),yV(getVal(i)));
+                }
+                ctx.lineTo(xPos(slots.length-1),PAD.top+ch); ctx.lineTo(xPos(0),PAD.top+ch); ctx.closePath();
+            };
+            if (SHADE_THRESHOLD <= vMax) {
+                const yThreshold = yV(SHADE_THRESHOLD);
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(PAD.left, PAD.top, cw, Math.max(0, yThreshold - PAD.top));
+                ctx.clip();
 
-            // Área velocidad (azul)
-            ctx.beginPath(); ctx.moveTo(xPos(0), yV(slots[0].ws ?? 0));
-            for (let i=1; i<slots.length; i++) {
-                const xc=(xPos(i-1)+xPos(i))/2;
-                ctx.bezierCurveTo(xc,yV(slots[i-1].ws??0),xc,yV(slots[i].ws??0),xPos(i),yV(slots[i].ws??0));
+                // Área rachas (fondo naranja suave), solo por encima de 40 km/h
+                buildWindHourlyAreaPath(i => slots[i].wg ?? 0);
+                const gG = ctx.createLinearGradient(0,PAD.top,0,PAD.top+ch);
+                gG.addColorStop(0,'rgba(251,146,60,0.25)'); gG.addColorStop(1,'rgba(251,146,60,0.03)');
+                ctx.fillStyle=gG; ctx.fill();
+
+                // Área velocidad (azul), solo por encima de 40 km/h
+                buildWindHourlyAreaPath(i => slots[i].ws ?? 0);
+                const gW = ctx.createLinearGradient(0,PAD.top,0,PAD.top+ch);
+                gW.addColorStop(0,'rgba(56,189,248,0.35)'); gW.addColorStop(1,'rgba(56,189,248,0.04)');
+                ctx.fillStyle=gW; ctx.fill();
+
+                ctx.restore();
             }
-            ctx.lineTo(xPos(slots.length-1),PAD.top+ch); ctx.lineTo(xPos(0),PAD.top+ch); ctx.closePath();
-            const gW = ctx.createLinearGradient(0,PAD.top,0,PAD.top+ch);
-            gW.addColorStop(0,'rgba(56,189,248,0.35)'); gW.addColorStop(1,'rgba(56,189,248,0.04)');
-            ctx.fillStyle=gW; ctx.fill();
+
+            // Líneas de referencia por umbral (40 / 60 / 80 km/h), solo si entran en la escala visible
+            const windHourlyThresholds = [
+                { v: 40, color: 'rgba(255,214,10,0.9)' },
+                { v: 60, color: 'rgba(255,149,0,0.9)'  },
+                { v: 80, color: 'rgba(255,59,48,0.9)'  },
+            ];
+            windHourlyThresholds.forEach(({ v, color }) => {
+                if (v > vMax) return;
+                const y = yV(v);
+                ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left+cw, y);
+                ctx.setLineDash([3,4]); ctx.strokeStyle='rgba(255,255,255,0.22)'; ctx.lineWidth=1; ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.textAlign='right'; ctx.font='8.5px Inter,sans-serif';
+                ctx.fillStyle=color;
+                ctx.fillText(v+' km/h', PAD.left+cw, y-3);
+            });
 
             // Línea rachas (naranja)
             ctx.beginPath(); ctx.moveTo(xPos(0),yV(slots[0].wg??0));
@@ -5730,31 +5757,11 @@
                 ctx.fillText(t2, lx + swatchW + textPad, windTop - 9);
             }
 
-            // Sombra tenue entre la línea de viento y la de rachas
-            const buildWindAreaPath = (topVals, bottomVals) => {
-                ctx.beginPath();
-                ctx.moveTo(xPos(0), yWind(topVals[0]));
-                for (let i = 1; i < n; i++) {
-                    const xc = (xPos(i-1) + xPos(i)) / 2;
-                    ctx.bezierCurveTo(xc, yWind(topVals[i-1]), xc, yWind(topVals[i]), xPos(i), yWind(topVals[i]));
-                }
-                ctx.lineTo(xPos(n-1), yWind(bottomVals[n-1]));
-                for (let i = n - 2; i >= 0; i--) {
-                    const xc = (xPos(i+1) + xPos(i)) / 2;
-                    ctx.bezierCurveTo(xc, yWind(bottomVals[i+1]), xc, yWind(bottomVals[i]), xPos(i), yWind(bottomVals[i]));
-                }
-                ctx.closePath();
-            };
-            buildWindAreaPath(gustVals, windVals);
-            const gWind = ctx.createLinearGradient(0, windTop, 0, windBottom);
-            gWind.addColorStop(0, 'rgba(76,217,100,0.14)');
-            gWind.addColorStop(1, 'rgba(76,217,100,0.03)');
-            ctx.fillStyle = gWind; ctx.fill();
-
-            // Sombras por umbral de intensidad (degradado amarillo → naranja → rojo),
+            // Sombras por umbral de intensidad (verde → naranja → rojo degradado),
             // aplicadas sobre la curva de rachas. Cada banda se pinta encima de la
             // anterior, de modo que sólo queda visible el tramo entre umbrales.
-            // Solo se dibujan si el umbral entra dentro de la escala visible (wMax).
+            // Solo se dibujan si el umbral entra dentro de la escala visible (wMax);
+            // por debajo de 40 km/h no se pinta ninguna sombra.
             const buildWindAreaAbove = (vals, yBaseline) => {
                 ctx.beginPath();
                 ctx.moveTo(xPos(0), yWind(vals[0]));
@@ -5767,7 +5774,7 @@
                 ctx.closePath();
             };
             const windThresholds = [
-                { v: 40, color: '255,214,10'  },  // amarillo
+                { v: 40, color: '76,217,100'  },  // verde
                 { v: 60, color: '255,149,0'   },  // naranja
                 { v: 80, color: '255,59,48'   },  // rojo
             ];
