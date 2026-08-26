@@ -5769,7 +5769,9 @@
                 const x = xPos(i);
                 ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                ctx.fillText(v, x, yWind(v) - 8);
+                ctx.textBaseline = 'top';
+                ctx.fillText(v, x, yWind(v) + 8);
+                ctx.textBaseline = 'alphabetic';
             });
             gustVals.forEach((v, i) => {
                 const x = xPos(i);
@@ -5801,26 +5803,63 @@
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
             ctx.fillText('HUMEDAD RELATIVA (%)', PAD.l + cw / 2, humTop - 24);
 
-            // Sombra tenue entre la línea de humedad máxima y la de mínima
-            const buildHumAreaPath = (topVals, bottomVals) => {
+            // Sombras tenues por umbral (mismo estilo diverging que la gráfica de presión):
+            // marrón por DEBAJO del 30% (humedad baja) y azul por ENCIMA del 70% (humedad alta)
+            const humLow = 30, humHigh = 70;
+            const yHumLow = yHum(humLow), yHumHigh = yHum(humHigh);
+
+            const buildHumAreaAbove = (vals, yBaseline) => {
                 ctx.beginPath();
-                ctx.moveTo(xPos(0), yHum(topVals[0]));
+                ctx.moveTo(xPos(0), yHum(vals[0]));
                 for (let i = 1; i < n; i++) {
                     const xc = (xPos(i-1) + xPos(i)) / 2;
-                    ctx.bezierCurveTo(xc, yHum(topVals[i-1]), xc, yHum(topVals[i]), xPos(i), yHum(topVals[i]));
+                    ctx.bezierCurveTo(xc, yHum(vals[i-1]), xc, yHum(vals[i]), xPos(i), yHum(vals[i]));
                 }
-                ctx.lineTo(xPos(n-1), yHum(bottomVals[n-1]));
-                for (let i = n - 2; i >= 0; i--) {
-                    const xc = (xPos(i+1) + xPos(i)) / 2;
-                    ctx.bezierCurveTo(xc, yHum(bottomVals[i+1]), xc, yHum(bottomVals[i]), xPos(i), yHum(bottomVals[i]));
-                }
+                ctx.lineTo(xPos(n-1), yBaseline);
+                ctx.lineTo(xPos(0), yBaseline);
                 ctx.closePath();
             };
-            buildHumAreaPath(humMaxVals, humMinVals);
-            const gHum = ctx.createLinearGradient(0, humTop, 0, humBottom);
-            gHum.addColorStop(0, 'rgba(56,189,248,0.14)');
-            gHum.addColorStop(1, 'rgba(56,189,248,0.03)');
-            ctx.fillStyle = gHum; ctx.fill();
+
+            // Por ENCIMA del 70% (línea máxima) — tono azul
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(PAD.l, humTop, cw, Math.max(0, yHumHigh - humTop));
+            ctx.clip();
+            buildHumAreaAbove(humMaxVals, yHumHigh);
+            const gHumHigh = ctx.createLinearGradient(0, humTop, 0, yHumHigh);
+            gHumHigh.addColorStop(0, 'rgba(56,189,248,0.30)');
+            gHumHigh.addColorStop(1, 'rgba(56,189,248,0.04)');
+            ctx.fillStyle = gHumHigh; ctx.fill();
+            ctx.restore();
+
+            // Por DEBAJO del 30% (línea mínima) — tono marrón
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(PAD.l, yHumLow, cw, Math.max(0, humBottom - yHumLow));
+            ctx.clip();
+            buildHumAreaAbove(humMinVals, yHumLow);
+            const gHumLow = ctx.createLinearGradient(0, yHumLow, 0, humBottom);
+            gHumLow.addColorStop(0, 'rgba(173,129,80,0.04)');
+            gHumLow.addColorStop(1, 'rgba(173,129,80,0.30)');
+            ctx.fillStyle = gHumLow; ctx.fill();
+            ctx.restore();
+
+            // Líneas sutiles discontinuas marcando el 70% y el 30% de humedad
+            [70, 30].forEach(v => {
+                if (v < hMin || v > hMax) return;
+                const y = yHum(v);
+                ctx.beginPath();
+                ctx.moveTo(PAD.l, y);
+                ctx.lineTo(PAD.l + cw, y);
+                ctx.setLineDash([3, 4]);
+                ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.textAlign = 'right'; ctx.font = '8.5px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                ctx.fillText(v + '%', PAD.l + cw, y - 3);
+            });
 
             ctx.font = 'bold 9px Inter,sans-serif';
             {
