@@ -1164,23 +1164,21 @@
                 <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">METEOGRAMA SEMANAL</span>
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
-                <!-- Panel superior: temperatura / probabilidad de lluvia / acumulado / humedad / presión
-                     (un único canvas con las 4 gráficas apiladas). Las leyendas de cada gráfica se
-                     colocan en posición absoluta, justo debajo de su propia franja dentro del canvas. -->
+                <!-- Panel superior: temperatura / probabilidad de lluvia / acumulado -->
                 <div id="f7-panel-wrap-top" style="position:relative;height:502px;">
                 <div id="f7-panel-combo-top" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-top" style="display:block;width:100%;"></canvas>
                 </div>
+                </div>
 
-                <!-- Leyenda + enlace: por qué probabilidad y acumulado se muestran por separado
-                     (justo debajo de la franja de temperatura/lluvia) -->
-                <div style="position:absolute;left:16px;right:16px;top:336px;">
-                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
-                        Por qué mostramos la probabilidad y el acumulado por separado.
-                        <span id="f7-info-toggle-label" data-open-text="SABER +" onclick="toggleF7InfoPanel()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7InfoPanel()" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
-                    </div>
+                <!-- Botón + desplegable: por qué probabilidad y acumulado se muestran por separado -->
+                <div style="padding:0 16px 14px;">
+                    <button id="f7-info-toggle" onclick="toggleF7InfoPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">¿Por qué mostramos la probabilidad y el acumulado por separado?</span>
+                        <span id="f7-info-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                    </button>
                     <div id="f7-info-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
-                        <div style="margin-top:8px;padding:12px;border-radius:8px;background:rgba(9,32,52,0.96);font-size:12px;line-height:1.5;color:rgba(255,255,255,0.9);">
+                        <div style="padding:12px 2px 2px;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,0.9);">
                             En Barcelona, especialmente con las tormentas de verano y otoño, el tiempo puede ser muy local. Imagina una nube de tormenta pequeña pero muy intensa sobre la ciudad:
                             <br><br>
                             <strong>La Probabilidad (en %)</strong> te dice qué tan fácil es que la nube pase exactamente por tu barrio (por ejemplo, un 20% porque es una tormenta muy localizada).
@@ -1192,14 +1190,15 @@
                     </div>
                 </div>
 
-                <!-- Leyenda + enlace: HUMEDAD (justo debajo de la franja de humedad) -->
-                <div style="position:absolute;left:16px;right:16px;top:676px;">
-                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
-                        ¿Cuánto agua flota en el aire? Descubre si el ambiente estará seco o húmedo.
-                        <span id="f7-humedad-toggle-label" data-open-text="SABER +" onclick="toggleF7SimplePanel('f7-humedad-panel','f7-humedad-toggle-label')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7SimplePanel('f7-humedad-panel','f7-humedad-toggle-label')" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
-                    </div>
+                <!-- Leyenda + desplegable: HUMEDAD -->
+                <div style="padding:0 16px 14px;">
+                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;margin-bottom:8px;">¿Cuánto agua flota en el aire? Descubre si el ambiente estará seco o húmedo.</div>
+                    <button id="f7-humedad-toggle" onclick="toggleF7SimplePanel('f7-humedad-panel','f7-humedad-toggle-icon')" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Saber +</span>
+                        <span id="f7-humedad-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                    </button>
                     <div id="f7-humedad-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
-                        <div style="margin-top:8px;padding:12px;border-radius:8px;background:rgba(9,32,52,0.96);font-size:12px;line-height:1.5;color:rgba(255,255,255,0.9);">
+                        <div style="padding:12px 2px 2px;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,0.9);">
                             Aunque no lo veas, en el aire siempre flotan gotitas de agua invisibles. A eso lo llamamos humedad.
                             <br><br>
                             <strong>Si la gráfica sube al 70% o más:</strong> ¡El aire está llenito de agua! Es lo que pasa por la noche o cuando va a llover. Si hace calor, sudas mucho más y la ropa tarda un montón en secarse. Si hace frío, se te mete en los huesos.
@@ -1209,14 +1208,15 @@
                     </div>
                 </div>
 
-                <!-- Leyenda + enlace: PRESIÓN (justo debajo de la franja de presión) -->
-                <div style="position:absolute;left:16px;right:16px;top:960px;">
-                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
-                        ¿El aire pesa mucho o poco? Averigua si viene sol o tormenta.
-                        <span id="f7-presion-toggle-label" data-open-text="SABER +" onclick="toggleF7SimplePanel('f7-presion-panel','f7-presion-toggle-label')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7SimplePanel('f7-presion-panel','f7-presion-toggle-label')" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
-                    </div>
+                <!-- Leyenda + desplegable: PRESIÓN -->
+                <div style="padding:0 16px 14px;">
+                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;margin-bottom:8px;">¿El aire pesa mucho o poco? Averigua si viene sol o tormenta.</div>
+                    <button id="f7-presion-toggle" onclick="toggleF7SimplePanel('f7-presion-panel','f7-presion-toggle-icon')" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Saber +</span>
+                        <span id="f7-presion-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                    </button>
                     <div id="f7-presion-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
-                        <div style="margin-top:8px;padding:12px;border-radius:8px;background:rgba(9,32,52,0.96);font-size:12px;line-height:1.5;color:rgba(255,255,255,0.9);">
+                        <div style="padding:12px 2px 2px;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,0.9);">
                             ¿Sabías que el aire pesa? Aunque no lo sientas, una capa gigante de aire nos aplasta suavemente. Para medir ese "peso", los científicos usan como regla una playa a nivel del mar, donde el peso normal es de 1013 unidades (hPa).
                             <br><br>
                             <strong>Si baja de 1013 (Bajas presiones):</strong> El aire se vuelve ligero y "flota" hacia arriba como un globo de gas. Al subir, se fabrican nubes gigantes, se levanta viento y es muy probable que necesites el paraguas porque se prepara una tormenta.
@@ -1225,22 +1225,16 @@
                         </div>
                     </div>
                 </div>
-                </div>
 
-                <!-- Espaciador invisible: crece cuando se abre algún "SABER +" de arriba
-                     (info / humedad / presión) para empujar hacia abajo el contenido
-                     siguiente, ya que esos paneles están superpuestos (position:absolute)
-                     sobre el canvas y no ocupan espacio en el flujo por sí solos. -->
-                <div id="f7-top-spacer" style="height:0px;transition:height 0.3s ease;"></div>
-
-                <!-- Leyenda + enlace: VIENTO (justo debajo de la franja de viento, última del canvas) -->
+                <!-- Leyenda + desplegable: VIENTO -->
                 <div style="padding:0 16px 14px;">
-                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
-                        ¿Cuánto sopla el viento? Mira la fuerza de las rachas.
-                        <span id="f7-viento-toggle-label" data-open-text="SABER +" onclick="toggleF7SimplePanel('f7-viento-panel','f7-viento-toggle-label')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7SimplePanel('f7-viento-panel','f7-viento-toggle-label')" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
-                    </div>
+                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;margin-bottom:8px;">¿Cuánto sopla el viento? Mira la fuerza de las rachas.</div>
+                    <button id="f7-viento-toggle" onclick="toggleF7SimplePanel('f7-viento-panel','f7-viento-toggle-icon')" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Saber +</span>
+                        <span id="f7-viento-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                    </button>
                     <div id="f7-viento-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
-                        <div style="margin-top:8px;padding:12px;border-radius:8px;background:rgba(9,32,52,0.96);font-size:12px;line-height:1.5;color:rgba(255,255,255,0.9);">
+                        <div style="padding:12px 2px 2px;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,0.9);">
                             Aquí ves dos cosas: el viento que sopla todo el tiempo (la línea de abajo) y las rachas más fuertes, que se llaman rachas (la línea de arriba). La pantalla cambia de color para avisarte si es peligroso salir a la calle:
                             <br><br>
                             <strong>Menos de 40 km/h (Color normal):</strong> El viento juega suave. Mueve las hojas de los árboles y te despeina un poco, pero puedes jugar en el parque sin problemas.
@@ -1277,14 +1271,14 @@
                 </div>
                 </div>
 
-                <!-- Leyenda + enlace: último radiosondeo (UB/SMC), justo debajo de su gráfica -->
+                <!-- Botón + desplegable: último radiosondeo (UB/SMC) -->
                 <div style="padding:0 16px 14px;">
-                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
-                        Último radiosondeo (UB/SMC), la última medición real de la atmósfera sobre Barcelona.
-                        <span id="f7-radiosondeo-toggle-label" data-open-text="SABER +" onclick="toggleF7RadiosondeoPanel()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7RadiosondeoPanel()" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
-                    </div>
+                    <button id="f7-radiosondeo-toggle" onclick="toggleF7RadiosondeoPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Último radiosondeo (UB/SMC)</span>
+                        <span id="f7-radiosondeo-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                    </button>
                     <div id="f7-radiosondeo-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
-                        <div style="margin-top:8px;padding:12px;border-radius:8px;background:rgba(9,32,52,0.96);">
+                        <div style="padding:12px 2px 2px;">
                             <img src="https://static-m.meteo.cat/content/radiosondatge/images/ultim.png"
                                  alt="Último radiosondeo Barcelona"
                                  style="width:100%;display:block;border-radius:8px;"
@@ -5468,60 +5462,50 @@
             }
         }
 
-        // ── Helper genérico: abre/cierra un panel y cambia el texto del enlace
-        //    ("SABER +" ↔ "OCULTAR"), en mayúsculas, sin icono ──
-        function _f7ToggleGeneric(panelId, labelId) {
-            const panel = document.getElementById(panelId);
-            const label = labelId ? document.getElementById(labelId) : null;
+        // ── Desplegable: por qué mostramos probabilidad y acumulado por separado ──
+        function toggleF7InfoPanel() {
+            const panel = document.getElementById('f7-info-panel');
+            const icon  = document.getElementById('f7-info-toggle-icon');
             if (!panel) return;
             const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
             if (isOpen) {
                 panel.style.maxHeight = '0px';
-                if (label) label.textContent = label.dataset.openText || 'SABER +';
+                if (icon) icon.style.transform = 'rotate(0deg)';
             } else {
                 panel.style.maxHeight = panel.scrollHeight + 'px';
-                if (label) label.textContent = 'OCULTAR';
+                if (icon) icon.style.transform = 'rotate(180deg)';
             }
-            _f7UpdateTopSpacer();
-            return !isOpen;
-        }
-
-        // ── Los paneles "info" / "humedad" / "presión" del meteograma semanal van
-        //    superpuestos (position:absolute) encima del canvas para alinearse con
-        //    los huecos dibujados en la gráfica, así que al abrirse no empujan el
-        //    contenido siguiente por sí solos. Este espaciador invisible crece la
-        //    misma cantidad que la suma de esos paneles abiertos, simulando que sí
-        //    empujan el resto de la página hacia abajo en vez de taparlo. ──
-        function _f7UpdateTopSpacer() {
-            const ids = ['f7-info-panel', 'f7-humedad-panel', 'f7-presion-panel'];
-            let total = 0;
-            ids.forEach(id => {
-                const p = document.getElementById(id);
-                if (p && p.style.maxHeight && p.style.maxHeight !== '0px') {
-                    total += parseFloat(p.style.maxHeight) || 0;
-                }
-            });
-            const spacer = document.getElementById('f7-top-spacer');
-            if (spacer) spacer.style.height = total + 'px';
-        }
-
-        // ── Desplegable: por qué mostramos probabilidad y acumulado por separado ──
-        function toggleF7InfoPanel() {
-            _f7ToggleGeneric('f7-info-panel', 'f7-info-toggle-label');
         }
 
         // ── Desplegable genérico "Saber +" (humedad / presión / viento del meteograma semanal) ──
-        function toggleF7SimplePanel(panelId, labelId) {
-            _f7ToggleGeneric(panelId, labelId);
+        function toggleF7SimplePanel(panelId, iconId) {
+            const panel = document.getElementById(panelId);
+            const icon  = document.getElementById(iconId);
+            if (!panel) return;
+            const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
+            if (isOpen) {
+                panel.style.maxHeight = '0px';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + 'px';
+                if (icon) icon.style.transform = 'rotate(180deg)';
+            }
         }
 
         // ── Desplegable: último radiosondeo (UB/SMC), misma imagen que la sección de radiosondeo ──
         function toggleF7RadiosondeoPanel() {
-            const opened = _f7ToggleGeneric('f7-radiosondeo-panel', 'f7-radiosondeo-toggle-label');
-            if (opened) {
-                const panel = document.getElementById('f7-radiosondeo-panel');
+            const panel = document.getElementById('f7-radiosondeo-panel');
+            const icon  = document.getElementById('f7-radiosondeo-toggle-icon');
+            if (!panel) return;
+            const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
+            if (isOpen) {
+                panel.style.maxHeight = '0px';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + 'px';
+                if (icon) icon.style.transform = 'rotate(180deg)';
                 // Si la imagen tarda en cargar, reajustar la altura del desplegable
-                const img = panel && panel.querySelector('img');
+                const img = panel.querySelector('img');
                 if (img && !img.complete) {
                     img.addEventListener('load', () => {
                         if (panel.style.maxHeight !== '0px') panel.style.maxHeight = panel.scrollHeight + 'px';
@@ -5564,14 +5548,14 @@
             const humDayLabelY = humBottom + 40;
 
             // ── Zona presión a nivel del mar (hPa) ──
-            const gapPres    = 160;  // separación tras fila de días de humedad → título "PRESIÓN" (incluye hueco para la leyenda de humedad)
+            const gapPres    = 90;   // separación tras fila de días de humedad → título "PRESIÓN"
             const presH      = 110;  // alto zona presión
             const presTop    = humDayLabelY + gapPres;
             const presBottom = presTop + presH;
             const presDayLabelY = presBottom + 14;
 
             // ── Zona viento previsto + rachas máximas (km/h) ──
-            const gapWind    = 150;  // separación tras fila de días de presión → título "VIENTO" (incluye hueco para la leyenda de presión)
+            const gapWind    = 90;   // separación tras fila de días de presión → título "VIENTO"
             const windH      = 160;  // alto zona viento
             const windTop    = presDayLabelY + gapWind;
             const windBottom = windTop + windH;
