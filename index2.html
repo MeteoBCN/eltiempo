@@ -5555,12 +5555,13 @@
             const tempH   = 140;   // alto zona temperatura
             const gap     = 20;    // separación entre zona de temperatura y zona de lluvia
             const rainH   = 72;    // alto zona lluvia
+            const rainMmCap = 80;  // tope visual (mm) de la barra de acumulado; si se supera, la barra se corta con una marca de "corte" en vez de agrandar el gráfico
 
             const tempTop    = PAD.t;
             const tempBottom = tempTop + tempH;
             const rainTop    = tempBottom + gap;
             const rainBottom = rainTop + rainH;
-            const accValueY  = rainBottom + 20;   // fila con la cifra de acumulación (mm), justo debajo de las barras de lluvia
+            const accValueY  = rainBottom + 20;   // fila con la probabilidad de lluvia (%), justo debajo de las barras de acumulado
 
             // ── Zona humedad relativa máxima/mínima (%) ──
             const gapHum     = 140;  // separación tras la cifra de acumulación → título "HUMEDAD" (doble de la anterior)
@@ -5668,24 +5669,22 @@
                 ctx.fillText(lbl, xPos(i), tempBottom + 14);
             });
 
-            // ── Zona lluvia: barras, centradas en xPos(i) — el mismo eje que la
-            //    fila de días y los puntos de temperatura, para que cada barra
-            //    quede justo debajo de su día. Se recorta al área del gráfico
-            //    para que las barras de los extremos (primer/último día) no
-            //    se salgan del panel. ──
+            // ── Zona lluvia: barras de ACUMULADO (mm), centradas en xPos(i) — el
+            //    mismo eje que la fila de días y los puntos de temperatura, para
+            //    que cada barra quede justo debajo de su día. En vez de recortar
+            //    (clip) las barras de los extremos —lo que dejaba solo la mitad
+            //    visible—, se desplaza (clamp) la barra lo mínimo necesario para
+            //    que quede siempre completa y dentro del lienzo. Si el acumulado
+            //    supera rainMmCap, la barra llega al tope y se marca con un
+            //    borde "roto"/en zigzag en vez de agrandar el gráfico. ──
             const barW  = dayW * 0.72;
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(PAD.l, rainTop, cw, rainBottom - rainTop);
-            ctx.clip();
             rows.forEach((r, i) => {
-                const v = r.pprob;
-                const barH = (v / 100) * rainH;
-                const x  = xPos(i) - barW / 2;
-                const g = ctx.createLinearGradient(0, rainBottom - barH, 0, rainBottom);
-                g.addColorStop(0, 'rgba(56,189,248,0.85)');
-                g.addColorStop(1, 'rgba(56,189,248,0.25)');
-                ctx.fillStyle = g;
+                const mm = Math.round((r.precip ?? 0) * 10) / 10;
+                const capped = mm > rainMmCap;
+                const barH = (Math.min(mm, rainMmCap) / rainMmCap) * rainH;
+                let x  = xPos(i) - barW / 2;
+                x = Math.max(2, Math.min(x, W - barW - 2));
+                ctx.fillStyle = 'rgba(56,189,248,0.85)';
                 ctx.beginPath();
                 if (ctx.roundRect) {
                     ctx.roundRect(x, rainBottom - barH, barW, Math.max(barH, 2), 3);
@@ -5693,14 +5692,36 @@
                     ctx.rect(x, rainBottom - barH, barW, Math.max(barH, 2));
                 }
                 ctx.fill();
+
+                // Marca de "corte": se recorta (punch-out) un borde en zigzag justo
+                // encima del tope de la barra, dejando ver el fondo del panel —
+                // así se entiende que el valor real sigue por encima de lo dibujado.
+                if (capped) {
+                    const cutY     = rainBottom - barH;
+                    const cutBandH = 9;
+                    const teeth    = Math.max(3, Math.round(barW / 7));
+                    const toothW   = barW / teeth;
+                    ctx.save();
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.beginPath();
+                    ctx.moveTo(x, cutY + cutBandH);
+                    for (let t = 0; t <= teeth; t++) {
+                        const tx = x + t * toothW;
+                        const ty = cutY + (t % 2 === 0 ? 0 : cutBandH * 0.55);
+                        ctx.lineTo(tx, ty);
+                    }
+                    ctx.lineTo(x + barW, cutY + cutBandH);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                }
             });
-            ctx.restore();
             rows.forEach((r, i) => {
-                const v = r.pprob;
-                const barH = (v / 100) * rainH;
+                const mm = Math.round((r.precip ?? 0) * 10) / 10;
+                const barH = (Math.min(mm, rainMmCap) / rainMmCap) * rainH;
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif';
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText(v + '%', xPos(i), rainBottom - barH - 5);
+                ctx.fillText(mm + ' mm', xPos(i), rainBottom - barH - 5);
             });
             // Línea base de la zona de lluvia
             ctx.beginPath();
@@ -5708,12 +5729,12 @@
             ctx.lineTo(PAD.l + cw, rainBottom);
             ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
 
-            // ── Cifra de acumulación prevista (mm), justo debajo de las barras de lluvia ──
+            // ── Probabilidad de lluvia (%), justo debajo de las barras de acumulado ──
             ctx.textAlign = 'center'; ctx.font = 'bold 9.5px Inter,sans-serif';
             rows.forEach((r, i) => {
-                const mm = Math.round((r.precip ?? 0) * 10) / 10;
-                ctx.fillStyle = mm === 0 ? 'rgba(255,255,255,0.85)' : 'rgba(56,189,248,0.95)';
-                ctx.fillText(mm + ' mm', xPos(i), accValueY);
+                const v = r.pprob;
+                ctx.fillStyle = v === 0 ? 'rgba(255,255,255,0.85)' : 'rgba(56,189,248,0.95)';
+                ctx.fillText(v + '%', xPos(i), accValueY);
             });
 
             // ══════════════════════════════════════════════
