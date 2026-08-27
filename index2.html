@@ -7098,31 +7098,38 @@
         }
 
         // ── Motivo principal por el que las condiciones no son óptimas ──
-        function _sportReason(temp, hum, wind, uv, aqi, wmo) {
+        function _sportReason(temp, hum, wind, uv, aqi, wmo, feels) {
             var reasons = [];
+
+            // Temperatura
             if      (temp < 5)   reasons.push({ p:25, txt:'Frío intenso' });
-            else if (temp < 10)  reasons.push({ p:10, txt:'Hace frío' });
-            else if (temp > 30)  reasons.push({ p:45, txt:'Calor extremo' });
-            else if (temp > 26)  reasons.push({ p:28, txt:'Mucho calor' });
-            else if (temp > 22)  reasons.push({ p:15, txt:'Algo de calor' });
-            else if (temp > 18)  reasons.push({ p:5,  txt:'Temperatura algo alta' });
+            else if (temp < 10)  reasons.push({ p:10, txt:'Por frío' });
+            else if (temp > 35)  reasons.push({ p:45, txt:'Calor extremo' });
+            else if (temp > 30)  reasons.push({ p:28, txt:'Por calor' });
 
-            if      (hum > 85) reasons.push({ p:28, txt:'Humedad muy alta' });
-            else if (hum > 75) reasons.push({ p:18, txt:'Humedad alta' });
-            else if (hum > 65) reasons.push({ p:8,  txt:'Algo de humedad' });
+            // Sensación térmica
+            if (feels != null) {
+                if (feels > 32) reasons.push({ p:32, txt:'Sensación de calor' });
+                if (feels < 0)  reasons.push({ p:32, txt:'Sensación de frío' });
+            }
 
+            // Humedad
+            if (hum > 85) reasons.push({ p:28, txt:'Humedad' });
+
+            // Viento
             if      (wind > 35) reasons.push({ p:18, txt:'Viento fuerte' });
             else if (wind > 25) reasons.push({ p:10, txt:'Viento moderado' });
-            else if (wind > 15) reasons.push({ p:5,  txt:'Algo de viento' });
 
-            if      (uv >= 8) reasons.push({ p:18, txt:'Radiación UV muy alta' });
-            else if (uv >= 6) reasons.push({ p:8,  txt:'Radiación UV alta' });
+            // Radiación UV
+            if (uv >= 8) reasons.push({ p:18, txt:'Radiación UV alta' });
 
+            // Calidad del aire (AQI europeo)
             if      (aqi > 80) reasons.push({ p:30, txt:'Aire muy contaminado' });
             else if (aqi > 60) reasons.push({ p:20, txt:'Aire contaminado' });
             else if (aqi > 40) reasons.push({ p:10, txt:'Calidad del aire regular' });
             else if (aqi > 20) reasons.push({ p:4,  txt:'Aire algo cargado' });
 
+            // Precipitación / tormenta
             var isRain    = (wmo >= 51 && wmo <= 67) || (wmo >= 80 && wmo <= 82);
             var isThunder = wmo >= 95;
             var isSnow    = wmo >= 71 && wmo <= 77;
@@ -7160,13 +7167,14 @@
             ];
 
             var cardsHTML = points.map(function(p, idx) {
-                var temp, hum, wind, uv, wmo, dt;
+                var temp, hum, wind, uv, wmo, feels, dt;
                 if (p.offset === 0) {
                     dt = now;
                     temp = current.temperature_2m ?? 20;
                     hum  = current.relative_humidity_2m ?? 50;
                     wind = current.wind_speed_10m ?? 0;
                     wmo  = current.weather_code ?? 0;
+                    feels = current.apparent_temperature ?? temp;
                     var idxNow = findHourlyIdx(now);
                     uv = idxNow !== -1 ? (hourly?.uv_index?.[idxNow] ?? 0) : 0;
                 } else {
@@ -7178,6 +7186,7 @@
                         hum  = current.relative_humidity_2m ?? 50;
                         wind = current.wind_speed_10m ?? 0;
                         wmo  = current.weather_code ?? 0;
+                        feels = current.apparent_temperature ?? temp;
                         uv   = 0;
                     } else {
                         temp = hourly.temperature_2m?.[idx] ?? 20;
@@ -7185,6 +7194,7 @@
                         wind = hourly.wind_speed_10m?.[idx] ?? 0;
                         wmo  = hourly.weather_code?.[idx] ?? 0;
                         uv   = hourly.uv_index?.[idx] ?? 0;
+                        feels = hourly.apparent_temperature?.[idx] ?? temp;
                     }
                 }
                 var score = _sportScoreAt(temp, hum, wind, uv, aqi, wmo);
@@ -7192,7 +7202,7 @@
                 var reason;
                 if (lvl.label === 'Excelente') reason = 'CONDICIONES IDEALES';
                 else if (lvl.label === 'Buena') reason = 'BUEN MOMENTO PARA SALIR';
-                else reason = _sportReason(temp, hum, wind, uv, aqi, wmo);
+                else reason = _sportReason(temp, hum, wind, uv, aqi, wmo, feels);
                 var icon = '<div style="width:14px;height:14px;border-radius:50%;background:' + lvl.color + ';box-shadow:0 0 6px ' + lvl.color + '80;"></div>';
                 var borderStyle = (idx === points.length - 1) ? 'none' : '1px solid rgba(18,54,83,0.08)';
 
