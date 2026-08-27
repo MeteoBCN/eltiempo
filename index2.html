@@ -7233,14 +7233,14 @@
                 var lvl = _sportLevel(score);
                 var showReason = (lvl.label !== 'Excelente' && lvl.label !== 'Buena');
                 var reason = showReason ? _sportReason(temp, hum, wind, uv, aqi, wmo) : '';
-                var icon = getSvgIcon(wmo, 28, isNightTime(dt));
+                var icon = '<div style="width:14px;height:14px;border-radius:50%;background:' + lvl.color + ';box-shadow:0 0 6px ' + lvl.color + '80;"></div>';
                 var borderStyle = (idx === points.length - 1) ? 'none' : '1px solid rgba(18,54,83,0.08)';
 
                 return '<div style="display:flex;align-items:center;padding:10px 2px;border-bottom:' + borderStyle + ';">' +
                     '<div style="width:32px;flex-shrink:0;font-size:12px;font-weight:700;color:#123653;">' + p.label + 'h</div>' +
                     '<div style="width:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">' + icon + '</div>' +
                     '<div style="width:64px;flex-shrink:0;font-size:10px;font-weight:700;color:#123653;text-transform:uppercase;line-height:1.2;">' + lvl.label + '</div>' +
-                    '<div style="flex:1;min-width:0;text-align:right;font-size:10.5px;color:#123653;opacity:0.7;padding-left:6px;">' + reason + '</div>' +
+                    '<div style="flex:1;min-width:0;text-align:left;font-size:10.5px;color:#123653;opacity:0.7;padding-left:6px;">' + reason + '</div>' +
                 '</div>';
             }).join('');
 
