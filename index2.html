@@ -7095,37 +7095,43 @@
             return { label:'Mala', color:'#9d174d', bg:'#fdf2f8' };
         }
 
-        // ── Causas por las que las condiciones no son óptimas (en minúsculas) ──
+        // ── Causas por las que las condiciones no son óptimas (en minúsculas, con datos) ──
         function _sportReason(temp, hum, wind, uv, aqi, wmo, feels) {
             var reasons = [];
+            var t  = Math.round(temp);
+            var f  = feels != null ? Math.round(feels) : null;
+            var h  = Math.round(hum);
+            var w  = Math.round(wind);
+            var u  = Math.round(uv);
+            var a  = Math.round(aqi);
 
-            // Temperatura
-            if      (temp < 5)   reasons.push({ p:25, txt:'frío intenso' });
-            else if (temp < 10)  reasons.push({ p:10, txt:'frío' });
-            else if (temp > 35)  reasons.push({ p:45, txt:'calor extremo' });
-            else if (temp > 30)  reasons.push({ p:28, txt:'calor' });
+            // Temperatura real
+            if      (temp < 5)   reasons.push({ p:25, txt:'frío intenso ' + t + 'º' });
+            else if (temp < 10)  reasons.push({ p:10, txt:'frío ' + t + 'º' });
+            else if (temp > 35)  reasons.push({ p:45, txt:'calor extremo ' + t + 'º' });
+            else if (temp > 30)  reasons.push({ p:28, txt:'calor ' + t + 'º' });
 
-            // Sensación térmica
-            if (feels != null) {
-                if (feels > 32) reasons.push({ p:32, txt:'sensación de calor' });
-                if (feels < 0)  reasons.push({ p:32, txt:'sensación de frío' });
+            // Sensación térmica (distinta de la temperatura real)
+            if (f != null) {
+                if (feels > 32) reasons.push({ p:32, txt:'sensación térmica ' + f + 'º' });
+                if (feels < 0)  reasons.push({ p:32, txt:'sensación térmica ' + f + 'º' });
             }
 
             // Humedad
-            if (hum > 85) reasons.push({ p:28, txt:'humedad alta' });
+            if (hum > 85) reasons.push({ p:28, txt:'humedad ' + h + '%' });
 
             // Viento
-            if      (wind > 35) reasons.push({ p:18, txt:'viento fuerte' });
-            else if (wind > 25) reasons.push({ p:10, txt:'viento moderado' });
+            if      (wind > 35) reasons.push({ p:18, txt:'viento fuerte ' + w + ' km/h' });
+            else if (wind > 25) reasons.push({ p:10, txt:'viento moderado ' + w + ' km/h' });
 
             // Radiación UV
-            if (uv >= 8) reasons.push({ p:18, txt:'radiación uv alta' });
+            if (uv >= 8) reasons.push({ p:18, txt:'radiación uv alta (índice ' + u + ')' });
 
             // Calidad del aire (AQI europeo)
-            if      (aqi > 80) reasons.push({ p:30, txt:'aire muy contaminado (AQI ' + Math.round(aqi) + ')' });
-            else if (aqi > 60) reasons.push({ p:20, txt:'aire contaminado (AQI ' + Math.round(aqi) + ')' });
-            else if (aqi > 40) reasons.push({ p:10, txt:'calidad del aire regular (AQI ' + Math.round(aqi) + ')' });
-            else if (aqi > 20) reasons.push({ p:4,  txt:'aire algo cargado (AQI ' + Math.round(aqi) + ')' });
+            if      (aqi > 80) reasons.push({ p:30, txt:'aire muy contaminado (AQI ' + a + ')' });
+            else if (aqi > 60) reasons.push({ p:20, txt:'aire contaminado (AQI ' + a + ')' });
+            else if (aqi > 40) reasons.push({ p:10, txt:'calidad del aire regular (AQI ' + a + ')' });
+            else if (aqi > 20) reasons.push({ p:4,  txt:'aire algo cargado (AQI ' + a + ')' });
 
             // Precipitación / tormenta
             var isRain    = (wmo >= 51 && wmo <= 67) || (wmo >= 80 && wmo <= 82);
