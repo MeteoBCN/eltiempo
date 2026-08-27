@@ -7104,15 +7104,15 @@
 
             // Temperatura real vs sensación térmica: solo se muestra la más destacada de las dos
             var tempCause = null;
-            if      (temp < 5)   tempCause = { p:25, txt:'<strong>Frío intenso</strong>: temperatura de ' + t + 'º' };
-            else if (temp < 10)  tempCause = { p:10, txt:'<strong>Frío</strong>: temperatura de ' + t + 'º' };
-            else if (temp > 35)  tempCause = { p:45, txt:'<strong>Calor extremo</strong>: temperatura de ' + t + 'º' };
-            else if (temp > 30)  tempCause = { p:28, txt:'<strong>Calor</strong>: temperatura de ' + t + 'º' };
+            if      (temp < 5)   tempCause = { p:25, txt:'frío intenso de ' + t + 'º' };
+            else if (temp < 10)  tempCause = { p:10, txt:'frío de ' + t + 'º' };
+            else if (temp > 35)  tempCause = { p:45, txt:'calor extremo de ' + t + 'º' };
+            else if (temp > 30)  tempCause = { p:28, txt:'calor de ' + t + 'º' };
 
             var feelsCause = null;
             if (f != null) {
-                if (feels > 32) feelsCause = { p:32, txt:'<strong>Sensación térmica</strong>: temperatura de ' + f + 'º' };
-                if (feels < 0)  feelsCause = { p:32, txt:'<strong>Sensación térmica</strong>: temperatura de ' + f + 'º' };
+                if (feels > 32) feelsCause = { p:32, txt:'sensación térmica de ' + f + 'º' };
+                if (feels < 0)  feelsCause = { p:32, txt:'sensación térmica de ' + f + 'º' };
             }
 
             if (tempCause && feelsCause) {
@@ -7124,26 +7124,25 @@
             }
 
             // Viento
-            if      (wind > 35) reasons.push({ p:18, txt:'<strong>Viento</strong>: fuerte' });
-            else if (wind > 25) reasons.push({ p:10, txt:'<strong>Viento</strong>: moderado' });
+            if      (wind > 35) reasons.push({ p:18, txt:'viento fuerte' });
+            else if (wind > 25) reasons.push({ p:10, txt:'viento moderado' });
 
             // Radiación UV
-            if (uv >= 8) reasons.push({ p:18, txt:'<strong>Radiación UV</strong>: índice ' + u + ' (alta)' });
+            if (uv >= 8) reasons.push({ p:18, txt:'radiación uv alta (índice ' + u + ')' });
 
-            // Calidad del aire (AQI europeo) — mismos rangos y etiquetas que la galleta real de calidad del aire
-            if      (aqi > 100) reasons.push({ p:35, txt:'<strong>Calidad del aire</strong>: extremadamente mala' });
-            else if (aqi > 80)  reasons.push({ p:30, txt:'<strong>Calidad del aire</strong>: muy mala' });
-            else if (aqi > 60)  reasons.push({ p:20, txt:'<strong>Calidad del aire</strong>: mala' });
-            else if (aqi > 40)  reasons.push({ p:10, txt:'<strong>Calidad del aire</strong>: regular' });
-            else if (aqi > 20)  reasons.push({ p:4,  txt:'<strong>Calidad del aire</strong>: razonablemente buena' });
+            // Calidad del aire (AQI europeo) — solo se muestra si realmente es un problema (regular en adelante)
+            if      (aqi > 100) reasons.push({ p:35, txt:'calidad del aire extremadamente mala' });
+            else if (aqi > 80)  reasons.push({ p:30, txt:'calidad del aire muy mala' });
+            else if (aqi > 60)  reasons.push({ p:20, txt:'calidad del aire mala' });
+            else if (aqi > 40)  reasons.push({ p:10, txt:'calidad del aire regular' });
 
             // Precipitación / tormenta
             var isRain    = (wmo >= 51 && wmo <= 67) || (wmo >= 80 && wmo <= 82);
             var isThunder = wmo >= 95;
             var isSnow    = wmo >= 71 && wmo <= 77;
-            if      (isThunder) reasons.push({ p:60, txt:'<strong>Precipitación</strong>: riesgo de tormenta' });
-            else if (isRain)    reasons.push({ p:30, txt:'<strong>Precipitación</strong>: riesgo de lluvia' });
-            else if (isSnow)    reasons.push({ p:20, txt:'<strong>Precipitación</strong>: nieve' });
+            if      (isThunder) reasons.push({ p:60, txt:'riesgo de tormenta' });
+            else if (isRain)    reasons.push({ p:30, txt:'riesgo de lluvia' });
+            else if (isSnow)    reasons.push({ p:20, txt:'nieve' });
 
             reasons.sort(function(a,b){ return b.p - a.p; });
             return reasons;
