@@ -2734,12 +2734,19 @@
             }
             if (hourPoints.length < 2) return;
 
-            // Gráfica: intervalos de 30 minutos, durante las próximas 4 horas desde ahora.
+            // Gráfica: intervalos de 30 minutos, durante las próximas 4 horas.
+            // El punto de partida se redondea a la franja de 30 min más cercana
+            // (en punto o y media) para que las horas mostradas sean siempre
+            // "bonitas" (12:00, 12:30, 13:00...) y solo cambien cada media hora,
+            // no cada minuto según el reloj exacto.
             const STEP_MIN = 30;
             const TOTAL_MIN = 240;
+            const start = new Date(now);
+            start.setSeconds(0, 0);
+            start.setMinutes(start.getMinutes() < 30 ? 0 : 30);
             const slots = [];
             for (let m = 0; m <= TOTAL_MIN; m += STEP_MIN) {
-                const t = new Date(now.getTime() + m * 60000);
+                const t = new Date(start.getTime() + m * 60000);
                 let idx = hourPoints.findIndex(p => p.h > t);
                 if (idx === -1) idx = hourPoints.length - 1;
                 if (idx === 0) idx = 1;
@@ -7111,8 +7118,8 @@
 
             var feelsCause = null;
             if (f != null) {
-                if (feels > 32) feelsCause = { p:32, txt:'sensación térmica de ' + f + 'º' };
-                if (feels < 0)  feelsCause = { p:32, txt:'sensación térmica de ' + f + 'º' };
+                if (feels > 32) feelsCause = { p:32, txt:'temperatura de sensación (bochorno) de ' + f + 'º' };
+                if (feels < 0)  feelsCause = { p:32, txt:'temperatura de sensación (frío) de ' + f + 'º' };
             }
 
             if (tempCause && feelsCause) {
