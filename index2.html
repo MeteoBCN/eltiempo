@@ -7090,9 +7090,9 @@
         }
 
         function _sportLevel(score) {
-            if (score >= 60) return { label:'Buena',   color:'#16a34a', bg:'#f0fdf4' };
-            if (score >= 20) return { label:'Regular', color:'#f97316', bg:'#fff7ed' };
-            return { label:'Mala', color:'#9d174d', bg:'#fdf2f8' };
+            if (score >= 60) return { label:'Buena',   title:'buenas condiciones', color:'#16a34a', bg:'#f0fdf4' };
+            if (score >= 20) return { label:'Regular', title:'precaución',         color:'#f97316', bg:'#fff7ed' };
+            return { label:'Mala', title:'no recomendable', color:'#9d174d', bg:'#fdf2f8' };
         }
 
         // ── Causas por las que las condiciones no son óptimas (en minúsculas, con datos) ──
@@ -7222,8 +7222,9 @@
                     '<div style="display:flex;align-items:center;justify-content:center;gap:8px;">' +
                         '<div style="font-size:12px;font-weight:700;color:#123653;">' + p.label + 'h</div>' +
                         '<div style="display:flex;align-items:center;justify-content:center;">' + icon + '</div>' +
+                        '<div style="font-size:11px;font-weight:700;color:' + lvl.color + ';text-transform:capitalize;">' + lvl.title + '</div>' +
                     '</div>' +
-                    '<div style="text-align:center;font-size:10.5px;font-weight:700;font-style:normal;color:' + lvl.color + ';margin-top:4px;">' + reason + '</div>' +
+                    '<div style="text-align:center;font-size:10.5px;font-weight:700;font-style:normal;color:#123653;margin-top:4px;">' + reason + '</div>' +
                 '</div>';
             }).join('');
 
