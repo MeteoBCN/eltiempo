@@ -7190,7 +7190,9 @@
                 { label: String((now.getHours()+3) % 24), offset: 3 }
             ];
 
-            var cardsHTML = points.map(function(p, idx) {
+            var runSvg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg>';
+
+            function computePoint(p) {
                 var temp, hum, wind, uv, wmo, feels, dt;
                 if (p.offset === 0) {
                     dt = now;
@@ -7224,21 +7226,34 @@
                 var score = _sportScoreAt(temp, hum, wind, uv, aqi, wmo);
                 var lvl = _sportLevel(score);
                 var reason = _sportPhrase(lvl, temp, hum, wind, uv, aqi, wmo, feels);
-                var runSvg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg>';
-                var icon = maskedIconHtml(runSvg, 22, lvl.color);
-                var borderStyle = (idx === points.length - 1) ? 'none' : '1px solid rgba(18,54,83,0.08)';
+                return { p:p, lvl:lvl, reason:reason };
+            }
 
-                return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px;border-bottom:' + borderStyle + ';">' +
-                    '<div style="display:flex;align-items:center;justify-content:center;gap:8px;">' +
-                        '<div style="font-size:12px;font-weight:700;color:#123653;">' + p.label + 'h</div>' +
-                        '<div style="display:flex;align-items:center;justify-content:center;">' + icon + '</div>' +
-                        '<div style="font-size:11px;font-weight:700;color:' + lvl.color + ';text-transform:uppercase;">' + lvl.title + '</div>' +
-                    '</div>' +
-                    '<div style="text-align:center;font-size:10.5px;font-weight:400;font-style:normal;color:#123653;text-transform:uppercase;margin-top:4px;">' + reason + '</div>' +
+            // ── Tarjeta principal: hora actual, sin cambios de diseño ──
+            var mainData = computePoint(points[0]);
+            var mainIcon = maskedIconHtml(runSvg, 22, mainData.lvl.color);
+            var mainHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px;border-bottom:none;">' +
+                '<div style="display:flex;align-items:center;justify-content:center;gap:8px;">' +
+                    '<div style="font-size:12px;font-weight:700;color:#123653;">' + mainData.p.label + 'h</div>' +
+                    '<div style="display:flex;align-items:center;justify-content:center;">' + mainIcon + '</div>' +
+                    '<div style="font-size:11px;font-weight:700;color:' + mainData.lvl.color + ';text-transform:uppercase;">' + mainData.lvl.title + '</div>' +
+                '</div>' +
+                '<div style="text-align:center;font-size:10.5px;font-weight:400;font-style:normal;color:#123653;text-transform:uppercase;margin-top:4px;">' + mainData.reason + '</div>' +
+            '</div>';
+
+            // ── Las 3 horas siguientes: fila compacta con solo icono + hora ──
+            var nextHTML = points.slice(1).map(function(p) {
+                var d = computePoint(p);
+                var icon = maskedIconHtml(runSvg, 18, d.lvl.color);
+                return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">' +
+                    '<div style="display:flex;align-items:center;justify-content:center;">' + icon + '</div>' +
+                    '<div style="font-size:11px;font-weight:700;color:#123653;">' + d.p.label + 'h</div>' +
                 '</div>';
             }).join('');
 
-            wrap.innerHTML = cardsHTML;
+            var nextRowHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:22px;padding:10px 6px 4px;border-top:1px solid rgba(18,54,83,0.08);margin-top:2px;">' + nextHTML + '</div>';
+
+            wrap.innerHTML = mainHTML + nextRowHTML;
         }
 
         function updateRunningIndex(current, hourly, daily, aq) {
