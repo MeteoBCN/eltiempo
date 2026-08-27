@@ -7122,10 +7122,10 @@
             if (uv >= 8) reasons.push({ p:18, txt:'radiación uv alta' });
 
             // Calidad del aire (AQI europeo)
-            if      (aqi > 80) reasons.push({ p:30, txt:'aire muy contaminado' });
-            else if (aqi > 60) reasons.push({ p:20, txt:'aire contaminado' });
-            else if (aqi > 40) reasons.push({ p:10, txt:'calidad del aire regular' });
-            else if (aqi > 20) reasons.push({ p:4,  txt:'aire algo cargado' });
+            if      (aqi > 80) reasons.push({ p:30, txt:'aire muy contaminado (AQI ' + Math.round(aqi) + ')' });
+            else if (aqi > 60) reasons.push({ p:20, txt:'aire contaminado (AQI ' + Math.round(aqi) + ')' });
+            else if (aqi > 40) reasons.push({ p:10, txt:'calidad del aire regular (AQI ' + Math.round(aqi) + ')' });
+            else if (aqi > 20) reasons.push({ p:4,  txt:'aire algo cargado (AQI ' + Math.round(aqi) + ')' });
 
             // Precipitación / tormenta
             var isRain    = (wmo >= 51 && wmo <= 67) || (wmo >= 80 && wmo <= 82);
@@ -7142,13 +7142,12 @@
         // ── Frase final mostrada en cada tarjeta, según el nivel ──
         function _sportPhrase(lvl, temp, hum, wind, uv, aqi, wmo, feels) {
             if (lvl.label === 'Buena') {
-                return 'tiempo ideal para entrenar, pasear y disfrutar al aire libre.';
+                return 'Tiempo ideal para entrenar, pasear y disfrutar al aire libre.';
             }
             var causes = _sportReason(temp, hum, wind, uv, aqi, wmo, feels);
-            if (!causes.length) return 'condiciones poco favorables para el deporte.';
+            if (!causes.length) return 'condiciones poco favorables';
             var top = causes.slice(0, 2).map(function(c){ return c.txt; });
-            var joined = top.length === 2 ? (top[0] + ' y ' + top[1]) : top[0];
-            return 'no se recomienda por ' + joined + '.';
+            return top.join(', ');
         }
 
         function updateSportSection(current, hourly, aq) {
@@ -7218,7 +7217,7 @@
                         '<div style="font-size:12px;font-weight:700;color:#123653;">' + p.label + 'h</div>' +
                         '<div style="display:flex;align-items:center;justify-content:center;">' + icon + '</div>' +
                     '</div>' +
-                    '<div style="text-align:center;font-size:10.5px;font-weight:700;color:' + lvl.color + ';margin-top:4px;">' + reason + '</div>' +
+                    '<div style="text-align:center;font-size:10.5px;font-weight:700;font-style:normal;color:' + lvl.color + ';margin-top:4px;">' + reason + '</div>' +
                 '</div>';
             }).join('');
 
