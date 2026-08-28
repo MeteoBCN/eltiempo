@@ -176,7 +176,11 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
                 anchor: 'end',
                 align: 'top',
                 offset: 2,
-                formatter: (v, ctx) => `${(liData[ctx.dataIndex] ?? 0).toFixed(1)}°`
+                formatter: (v, ctx) => {
+                    const li = liData[ctx.dataIndex] ?? 0;
+                    const signo = li > 0 ? '+' : '';
+                    return `${signo}${li.toFixed(1)}°`;
+                }
             }
         },
         {
@@ -197,7 +201,10 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
                 font: { weight: 'bold', size: 9 },
                 anchor: 'center',
                 align: 'center',
-                formatter: (v, ctx) => `-${Math.round(cinData[ctx.dataIndex] ?? 0)}`
+                formatter: (v, ctx) => {
+                    const cin = Math.round(cinData[ctx.dataIndex] ?? 0);
+                    return cin === 0 ? '0' : `-${cin}`;
+                }
             }
         }
     ];
