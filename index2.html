@@ -5889,30 +5889,39 @@
                 ctx.fillStyle = 'rgba(255,255,255,0.65)';
                 ctx.fillText('CIN (J/kg)', PAD.l, cinTop - 12);
 
-                const cinVS   = stormRows.map(r => r.cin);
-                const cinMinV = Math.min(...cinVS, -20);
-                const cinMaxV = Math.max(...cinVS, 0);
-                const cinHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "CIN"
-                const yCin = v => cinTop + cinH - ((v - cinMinV) / (cinMaxV - cinMinV || 1)) * (cinH - cinHeadroom);
+                const cinVS = stormRows.map(r => r.cin);
+                const cinAllFlat = cinVS.every(v => v >= -5); // sin tapa convectiva relevante en los 3 días
 
-                // Línea guía en 0 (referencia sin tapa convectiva)
-                const y0Cin = yCin(0);
-                ctx.beginPath(); ctx.moveTo(PAD.l, y0Cin); ctx.lineTo(PAD.l + cw, y0Cin);
-                ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 1; ctx.stroke();
+                if (cinAllFlat) {
+                    // Sin datos que representar: mensaje centrado en vez de una línea plana en 0
+                    ctx.textAlign = 'center'; ctx.font = '10px Inter,sans-serif';
+                    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+                    ctx.fillText('Sin tapa convectiva prevista', PAD.l + cw / 2, cinTop + cinH / 2 + 3);
+                } else {
+                    const cinMinV = Math.min(...cinVS, -20);
+                    const cinMaxV = Math.max(...cinVS, 0);
+                    const cinHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "CIN"
+                    const yCin = v => cinTop + cinH - ((v - cinMinV) / (cinMaxV - cinMinV || 1)) * (cinH - cinHeadroom);
 
-                ctx.beginPath();
-                stormRows.forEach((r, j) => { const x = xPosStorm(j), y = yCin(r.cin); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
-                ctx.setLineDash([]);
-                ctx.strokeStyle = '#C4B5FD'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+                    // Línea guía en 0 (referencia sin tapa convectiva)
+                    const y0Cin = yCin(0);
+                    ctx.beginPath(); ctx.moveTo(PAD.l, y0Cin); ctx.lineTo(PAD.l + cw, y0Cin);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 1; ctx.stroke();
 
-                stormRows.forEach((r, j) => {
-                    const x = xPosStorm(j), y = yCin(r.cin);
-                    // Color del punto según intensidad de la tapa: verde (sin tapa) → ámbar → morado (tapa fuerte)
-                    const dotColor = r.cin >= -10 ? '#34D399' : r.cin >= -100 ? '#FACC15' : '#C4B5FD';
-                    ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = dotColor; ctx.fill();
-                    ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                    ctx.fillText(r.cin, x, y - 7);
-                });
+                    ctx.beginPath();
+                    stormRows.forEach((r, j) => { const x = xPosStorm(j), y = yCin(r.cin); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
+                    ctx.setLineDash([]);
+                    ctx.strokeStyle = '#C4B5FD'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+
+                    stormRows.forEach((r, j) => {
+                        const x = xPosStorm(j), y = yCin(r.cin);
+                        // Color del punto según intensidad de la tapa: verde (sin tapa) → ámbar → morado (tapa fuerte)
+                        const dotColor = r.cin >= -10 ? '#34D399' : r.cin >= -100 ? '#FACC15' : '#C4B5FD';
+                        ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = dotColor; ctx.fill();
+                        ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                        ctx.fillText(r.cin, x, y - 7);
+                    });
+                }
 
                 // Etiquetas 00-12/12-24 de esta franja
                 ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
