@@ -4838,6 +4838,7 @@
                         periodLabel : periodLabel,
                         cape        : capeV !== null ? Math.round(capeV) : 0,
                         li          : liV !== null ? Math.round(liV * 10) / 10 : 0,
+                        cin         : cinV !== null ? Math.round(cinV) : 0,
                         risk        : _f7StormRisk(capeV, liV, ppV, cinV),
                     });
                 });
@@ -6165,7 +6166,9 @@
             const capeH   = 80;    // alto sub-zona CAPE (barras)
             const capeGap = 73;    // separación entre CAPE y Lifted Index (gráfica CAPE → título "LIFTED INDEX" = 65px reales)
             const liH     = 70;    // alto sub-zona Lifted Index (línea)
-            const gap5    = 158;   // separación antes del semáforo de riesgo de tormenta (fila de días tras Lifted Index → título "RIESGO DE TORMENTA" = 110px reales)
+            const liGap   = 73;    // separación entre Lifted Index y CIN (gráfica LI → título "CIN" = 65px reales)
+            const cinH    = 70;    // alto sub-zona CIN (línea)
+            const gap5    = 158;   // separación antes del semáforo de riesgo de tormenta (fila de días tras CIN → título "RIESGO DE TORMENTA" = 110px reales)
             const riskH   = 80;    // alto de la fila de riesgo de tormenta (dot + Mañana/Tarde + nivel)
 
             const levelsTop    = PAD.t;
@@ -6176,7 +6179,9 @@
             const capeBottom = capeTop + capeH;
             const liTop      = capeBottom + capeGap;
             const liBottom   = liTop + liH;
-            const riskTop    = liBottom + gap5;
+            const cinTop     = liBottom + liGap;
+            const cinBottom  = cinTop + cinH;
+            const riskTop    = cinBottom + gap5;
             const riskBottom = riskTop + riskH;
 
             const H = riskBottom + PAD.b;
@@ -6435,6 +6440,53 @@
                 // Línea base Lifted Index
                 ctx.beginPath();
                 ctx.moveTo(PAD.l, liBottom); ctx.lineTo(PAD.l + cw, liBottom);
+                ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+
+                // ── Sub-zona CIN: línea (más negativo = mayor tapa convectiva) ──
+                ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.65)';
+                ctx.fillText('CIN (J/kg)', PAD.l, cinTop - 12);
+
+                const cinVS = stormRows.map(r => r.cin);
+                const cinMinV = Math.min(...cinVS, -2);
+                const cinMaxV = Math.max(...cinVS, 2);
+                const cinHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "CIN"
+                const yCin = v => cinTop + cinH - ((v - cinMinV) / (cinMaxV - cinMinV || 1)) * (cinH - cinHeadroom);
+
+                // Línea guía en 0 (referencia sin tapa convectiva)
+                if (cinMinV < 0 && cinMaxV > 0) {
+                    const y0c = yCin(0);
+                    ctx.beginPath(); ctx.moveTo(PAD.l, y0c); ctx.lineTo(PAD.l + cw, y0c);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 1; ctx.stroke();
+                }
+
+                ctx.beginPath();
+                stormRows.forEach((r, j) => { const x = xPosStorm(j), y = yCin(r.cin); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
+                ctx.setLineDash([]);
+                ctx.strokeStyle = '#B983FF'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+
+                stormRows.forEach((r, j) => {
+                    const x = xPosStorm(j), y = yCin(r.cin);
+                    ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = '#B983FF'; ctx.fill();
+                    ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#B983FF';
+                    ctx.fillText(r.cin, x, y - 7);
+                });
+
+                // Etiquetas 00-12/12-24 de esta franja
+                ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                stormRows.forEach((r, j) => { ctx.fillText(r.periodLabel, xPosStorm(j), cinBottom + 24); });
+
+                // Fila de días (una etiqueta por día, centrada entre su punto de mañana y de tarde)
+                ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                for (let d = 0; d < stormRows.length; d += 2) {
+                    const r = stormRows[d];
+                    const xMid = (xPosStorm(d) + xPosStorm(d + 1)) / 2;
+                    ctx.fillText(r.isToday ? 'HOY' : r.dayName, xMid, cinBottom + 40);
+                }
+
+                // Línea base CIN
+                ctx.beginPath();
+                ctx.moveTo(PAD.l, cinBottom); ctx.lineTo(PAD.l + cw, cinBottom);
                 ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
 
                 // ══════════════════════════════════════════════
