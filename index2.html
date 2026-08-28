@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&display=swap" rel="stylesheet">
@@ -6509,19 +6510,36 @@
 
             // ── 5. Datasets ────────────────────────────────────────────────
             const datasets = [
-                { label: 'CAPE atrapado', type: 'bar', data: capeAtrapado, backgroundColor: 'rgba(35, 177, 77, 0.25)', stack: 'cape', yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 3 },
-                { label: 'CAPE libre',    type: 'bar', data: capeLibre,    backgroundColor: '#23b14d',                 stack: 'cape', yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 3 },
-                { label: 'LI atrapado',   type: 'bar', data: liAtrapado,   backgroundColor: 'rgba(47, 85, 205, 0.3)',  stack: 'li',   yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 2 },
-                { label: 'LI activo',     type: 'bar', data: liActivo,     backgroundColor: '#2f55cd',                 stack: 'li',   yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 2 },
+                { label: 'CAPE atrapado', type: 'bar', data: capeAtrapado, backgroundColor: 'rgba(35, 177, 77, 0.25)', stack: 'cape', yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 3, datalabels: { display: false } },
+                {
+                    label: 'CAPE libre', type: 'bar', data: capeLibre, backgroundColor: '#23b14d', stack: 'cape', yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 3,
+                    datalabels: {
+                        color: '#ffffff', font: { weight: 'bold', size: 9 }, anchor: 'end', align: 'top', offset: 2,
+                        formatter: (v, ctx) => `${Math.round(capeData[ctx.dataIndex] ?? 0)}`
+                    }
+                },
+                { label: 'LI atrapado', type: 'bar', data: liAtrapado, backgroundColor: 'rgba(47, 85, 205, 0.3)', stack: 'li', yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 2, datalabels: { display: false } },
+                {
+                    label: 'LI activo', type: 'bar', data: liActivo, backgroundColor: '#2f55cd', stack: 'li', yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 2,
+                    datalabels: {
+                        color: '#ffffff', font: { weight: 'bold', size: 9 }, anchor: 'end', align: 'top', offset: 2,
+                        formatter: (v, ctx) => `${(liData[ctx.dataIndex] ?? 0).toFixed(1)}°`
+                    }
+                },
                 {
                     label: 'CIN (cuchilla)', type: 'bar', data: cinFloatBar,
                     backgroundColor: '#e61919', borderColor: '#e61919', borderWidth: 1,
                     grouped: false, barPercentage: 0.85, categoryPercentage: 0.9,
-                    yAxisID: 'yCAPE', order: 1
+                    yAxisID: 'yCAPE', order: 1,
+                    datalabels: {
+                        color: '#ffffff', font: { weight: 'bold', size: 9 }, anchor: 'center', align: 'center',
+                        formatter: (v, ctx) => `-${Math.round(cinData[ctx.dataIndex] ?? 0)}`
+                    }
                 }
             ];
 
             // ── 6. Configuración Chart.js ────────────────────────────────
+            if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
             const config = {
                 type: 'bar',
                 data: { labels, datasets },

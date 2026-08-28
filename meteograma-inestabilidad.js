@@ -2,12 +2,13 @@
  * ══════════════════════════════════════════════════════════════════
  *  METEOGRAMA SINTÉTICO DE INESTABILIDAD CONVECTIVA
  *  CAPE + CIN + Lifted Index (LI) fusionados en un único gráfico
- *  Requiere: Chart.js v4 ya cargado en la página
+ *  Requiere: Chart.js v4 y chartjs-plugin-datalabels ya cargados en la página
  *  (https://cdn.jsdelivr.net/npm/chart.js@4)
+ *  (https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2)
  * ══════════════════════════════════════════════════════════════════
  *
  * Requiere además un contenedor HTML fijo, situado encima de la gráfica,
- * donde se inyecta el diagnóstico en tiempo real al pasar el ratón:
+ * donde se inyecta el diagnóstico (franja actual, sin depender del ratón):
  *   <div id="texto-diagnostico"></div>
  *
  * Uso:
@@ -106,7 +107,8 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
             yAxisID: 'yCAPE',
             barPercentage: 0.5,
             categoryPercentage: 0.85,
-            order: 3
+            order: 3,
+            datalabels: { display: false } // el valor real se muestra en "CAPE libre" (tope del stack)
         },
         {
             label: 'CAPE libre',
@@ -117,7 +119,15 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
             yAxisID: 'yCAPE',
             barPercentage: 0.5,
             categoryPercentage: 0.85,
-            order: 3
+            order: 3,
+            datalabels: {
+                color: '#ffffff',
+                font: { weight: 'bold', size: 9 },
+                anchor: 'end',
+                align: 'top',
+                offset: 2,
+                formatter: (v, ctx) => `${Math.round(capeData[ctx.dataIndex] ?? 0)}`
+            }
         },
         {
             label: 'LI atrapado',
@@ -128,7 +138,8 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
             yAxisID: 'yCAPE',
             barPercentage: 0.5,
             categoryPercentage: 0.85,
-            order: 2
+            order: 2,
+            datalabels: { display: false } // el valor real se muestra en "LI activo" (tope del stack)
         },
         {
             label: 'LI activo',
@@ -139,7 +150,15 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
             yAxisID: 'yCAPE',
             barPercentage: 0.5,
             categoryPercentage: 0.85,
-            order: 2
+            order: 2,
+            datalabels: {
+                color: '#ffffff',
+                font: { weight: 'bold', size: 9 },
+                anchor: 'end',
+                align: 'top',
+                offset: 2,
+                formatter: (v, ctx) => `${(liData[ctx.dataIndex] ?? 0).toFixed(1)}°`
+            }
         },
         {
             // La "cuchilla" del CIN: barra flotante ancha que cruza ambas columnas
@@ -153,11 +172,19 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
             barPercentage: 0.85,
             categoryPercentage: 0.9,
             yAxisID: 'yCAPE',
-            order: 1
+            order: 1,
+            datalabels: {
+                color: '#ffffff',
+                font: { weight: 'bold', size: 9 },
+                anchor: 'center',
+                align: 'center',
+                formatter: (v, ctx) => `-${Math.round(cinData[ctx.dataIndex] ?? 0)}`
+            }
         }
     ];
 
     // ── 6. Configuración Chart.js ────────────────────────────────────
+    if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
     const config = {
         type: 'bar',
         data: { labels, datasets },
