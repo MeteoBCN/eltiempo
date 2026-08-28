@@ -101,7 +101,37 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
         return `DIAGNOSTICO: Condiciones mixtas (CAPE ${Math.round(cape)} J/kg, CIN -${Math.round(cin)} J/kg, LI ${li.toFixed(1)}°C). Sin un patrón convectivo dominante claro.`;
     }
 
-    // Inyecta el diagnóstico en el contenedor HTML externo fijo (#texto-diagnostico)
+    // Nivel de severidad meteorológica de una franja (0 = escenario más extremo/peligroso,
+    // valores crecientes = escenarios progresivamente más tranquilos). Sigue el mismo orden
+    // que la cascada de diagnosticoConvectivo, así que ambas funciones deben mantenerse en sincronía.
+    function nivelSeveridad(cape, cin, li) {
+        if (cape > 2500 && cin < 25 && li <= -6) return 0;
+        if (cape > 2000 && cin >= 150) return 1;
+        if (cape > 1500 && cin < 50 && li <= -4) return 2;
+        if (cape > 1000 && cin >= 50 && cin < 150) return 3;
+        if (cape >= 500 && cape <= 1500 && cin < 50) return 4;
+        if (cape < 500 && li <= -4) return 5;
+        if (cape < 500 && cin > 100) return 6;
+        if (cape < 300 && cin <= 100 && li > -2) return 7;
+        return 4.5; // Comodín "condiciones mixtas": severidad intermedia, sin patrón claro
+    }
+
+    // Recorre todas las franjas y devuelve el índice de la más severa (peor escenario convectivo)
+    function indicePeorEscenario() {
+        let peorIdx = 0;
+        let peorNivel = Infinity;
+        for (let i = 0; i < n; i++) {
+            const nivel = nivelSeveridad(capeData[i] ?? 0, cinData[i] ?? 0, liData[i] ?? 0);
+            if (nivel < peorNivel) {
+                peorNivel = nivel;
+                peorIdx = i;
+            }
+        }
+        return peorIdx;
+    }
+
+    // Inyecta el diagnóstico en el contenedor HTML externo fijo (#texto-diagnostico),
+    // precedido por la franja horaria (con día) a la que corresponde
     function actualizarDiagnostico(i) {
         const contenedor = document.getElementById('texto-diagnostico');
         if (!contenedor) return;
@@ -109,10 +139,11 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
             contenedor.textContent = '';
             return;
         }
-        const cape = capeData[i] ?? 0;
-        const cin  = cinData[i]  ?? 0;
-        const li   = liData[i]   ?? 0;
-        contenedor.textContent = diagnosticoConvectivo(cape, cin, li);
+        const cape   = capeData[i] ?? 0;
+        const cin    = cinData[i]  ?? 0;
+        const li     = liData[i]   ?? 0;
+        const franja = labels[i] || '';
+        contenedor.textContent = `${franja} — ${diagnosticoConvectivo(cape, cin, li)}`;
     }
 
     // ── 5. Datasets ────────────────────────────────────────────────────
@@ -246,8 +277,8 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
         }
     };
 
-    // Diagnóstico fijo (franja actual, sin depender del ratón)
-    actualizarDiagnostico(0);
+    // Diagnóstico fijo: se muestra la franja con peor escenario convectivo (sin depender del ratón)
+    actualizarDiagnostico(indicePeorEscenario());
 
     return new Chart(canvas.getContext('2d'), config);
 }
