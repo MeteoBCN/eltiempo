@@ -69,17 +69,36 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
     }
 
     // ── 4. Diagnóstico Convectivo Automatizado (texto puro, sin iconos) ─
+    // Se evalúa en orden: de los escenarios más extremos/específicos a los más
+    // genéricos. La última condición (else) actúa de comodín y nunca deja el
+    // cuadro vacío, aunque no se cumpla ningún umbral "clásico".
     function diagnosticoConvectivo(cape, cin, li) {
+        if (cape > 2500 && cin < 25 && li <= -6) {
+            return 'DIAGNOSTICO: Riesgo extremo. Atmósfera cargada al máximo y prácticamente sin tapón: entorno favorable para tormentas severas y posibles supercélulas.';
+        }
         if (cape > 2000 && cin >= 150) {
             return 'DIAGNOSTICO: Olla a presión. Combustible extremo retenido por fuerte tapón. Monitorear orografía o frentes.';
         }
         if (cape > 1500 && cin < 50 && li <= -4) {
             return 'DIAGNOSTICO: Bomba convectiva activa. Vía libre para tormentas explosivas y severas.';
         }
+        if (cape > 1000 && cin >= 50 && cin < 150) {
+            return 'DIAGNOSTICO: Energía moderada con tapa parcial. Disparo posible por calentamiento diurno o forzamiento orográfico/frontal.';
+        }
+        if (cape >= 500 && cape <= 1500 && cin < 50) {
+            return 'DIAGNOSTICO: Ambiente ligeramente inestable. Chubascos o tormentas aisladas posibles, de intensidad limitada.';
+        }
+        if (cape < 500 && li <= -4) {
+            return 'DIAGNOSTICO: Inestabilidad elevada en niveles medios pese a poca energía en superficie. Vigilar si aumenta el calentamiento diurno.';
+        }
         if (cape < 500 && cin > 100) {
             return 'DIAGNOSTICO: Atmósfera estable. El tapón anula cualquier amago de convección.';
         }
-        return '';
+        if (cape < 300 && cin <= 100 && li > -2) {
+            return 'DIAGNOSTICO: Atmósfera tranquila. Sin señales relevantes de convección en esta franja.';
+        }
+        // Comodín: no encaja en ningún patrón anterior, pero igualmente se informa
+        return `DIAGNOSTICO: Condiciones mixtas (CAPE ${Math.round(cape)} J/kg, CIN -${Math.round(cin)} J/kg, LI ${li.toFixed(1)}°C). Sin un patrón convectivo dominante claro.`;
     }
 
     // Inyecta el diagnóstico en el contenedor HTML externo fijo (#texto-diagnostico)
