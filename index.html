@@ -18,9 +18,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/weather-icons@1.3.2/css/weather-icons.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&display=swap" rel="stylesheet">
     <style>
         :root {
             --color-primary: #3B82F6;
@@ -981,11 +983,7 @@
                         <div style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Temperatura · Precipitación</div>
                         <div id="paraguas-hour-row" style="position:relative;height:12px;margin:14px 0 0 0;"></div>
                         <canvas id="paraguas-hourly-chart" style="width:100%;display:block;"></canvas>
-                        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-top:2px;padding-left:24px;">
-                            <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
-                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#f7f8fa;flex-shrink:0;"></span>
-                                <span style="text-transform:uppercase;font-weight:400;">No se espera lluvia</span>
-                            </span>
+                        <div style="display:flex;flex-direction:row;align-items:center;justify-content:center;gap:18px;margin-top:2px;">
                             <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
                                 <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(59,130,246,0.10);flex-shrink:0;"></span>
                                 <span style="text-transform:uppercase;font-weight:400;">Cuidado, podría llover</span>
@@ -995,44 +993,35 @@
                                 <span style="text-transform:uppercase;font-weight:400;">No olvides el paraguas</span>
                             </span>
                         </div>
-                    </div>
 
-                    <div id="sport-section-wrap" style="width:100vw;margin:75px calc(-50vw + 50%) 0 calc(-50vw + 50%);background-image:url('hacerdeporte.jpg');background-size:cover;background-position:center;background-repeat:no-repeat;padding:20px 0 20px 0;position:relative;overflow:hidden;">
-                        <div style="max-width:600px;margin:0 auto;position:relative;z-index:1;">
-                        <div style="font-size:12px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">¿Pensando en salir a hacer deporte?</div>
-                        <div id="sport-section-subtitle" style="font-size:9px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:16px;">Condiciones a las...</div>
-                        <div id="sport-section-cards" style="display:flex;gap:0;padding:14px 4px;background:rgba(255,255,255,0.7);border-radius:0;">
-                            <div style="flex:1;text-align:center;padding:14px 6px;color:#94a3b8;font-size:11px;">Cargando…</div>
+                        <div id="sport-section-wrap" style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(28,79,120,0.15);">
+                            <div style="font-family:'Fraunces',serif;font-style:italic;font-size:19px;font-weight:500;color:#123653;text-align:center;margin-bottom:2px;letter-spacing:0.2px;">¿Sales a correr por Barcelona?</div>
+                            <div style="font-family:'Fraunces',serif;font-style:italic;font-size:19px;font-weight:500;color:#123653;text-align:center;margin-bottom:2px;letter-spacing:0.2px;">¿Tienes un evento o solo quieres pasear?</div>
+                            <div id="sport-section-subtitle" style="font-size:10px;font-weight:600;color:#123653;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:10px;margin-bottom:16px;">Elige la hora perfecta para tu plan</div>
+                            <div id="sport-section-cards" style="display:flex;flex-direction:column;gap:0;padding:6px 8px;background:#F3FAF4;border-radius:12px;">
+                                <div style="flex:1;text-align:center;padding:14px 6px;color:#94a3b8;font-size:11px;">Cargando…</div>
+                            </div>
                         </div>
-                        <div style="text-align:center;margin-top:14px;">
-                            <button id="sport-expand-btn" onclick="toggleSportDetails()" style="font-size:11px;font-weight:700;color:#123653;background:#f0f6fa;border:1px solid rgba(18,54,83,0.15);border-radius:20px;padding:7px 16px;cursor:pointer;letter-spacing:0.3px;transition:all 0.2s;">Detalles ↓</button>
-                        </div>
-                        </div>
-                    </div>
 
-                    <div style="max-width:600px;margin:0 auto;background:#ffffff;">
-                        <div id="sport-details-panel" style="display:none;margin-top:14px;padding:16px 12px;background:#ffffff;border-radius:0;overflow-x:auto;">
-                            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;width:max-content;margin:0 auto;">
-                                <div style="display:flex;align-items:center;gap:10px;">
-                                    <span style="width:14px;height:14px;border-radius:50%;background:#16a34a;box-shadow:0 0 6px rgba(22,163,74,0.5);flex-shrink:0;"></span>
-                                    <span style="font-size:11px;color:#123653;line-height:1.4;white-space:nowrap;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Excelente</span> — Condiciones ideales.</span>
-                                </div>
-                                <div style="display:flex;align-items:center;gap:10px;">
-                                    <span style="width:14px;height:14px;border-radius:50%;background:#84cc16;box-shadow:0 0 6px rgba(132,204,22,0.5);flex-shrink:0;"></span>
-                                    <span style="font-size:11px;color:#123653;line-height:1.4;white-space:nowrap;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Buena</span> — Buen momento para salir.</span>
-                                </div>
-                                <div style="display:flex;align-items:center;gap:10px;">
-                                    <span style="width:14px;height:14px;border-radius:50%;background:#f59e0b;box-shadow:0 0 6px rgba(245,158,11,0.5);flex-shrink:0;"></span>
-                                    <span style="font-size:11px;color:#123653;line-height:1.4;white-space:nowrap;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Regular</span> — No es la hora perfecta.</span>
-                                </div>
-                                <div style="display:flex;align-items:center;gap:10px;">
-                                    <span style="width:14px;height:14px;border-radius:50%;background:#f97316;box-shadow:0 0 6px rgba(249,115,22,0.5);flex-shrink:0;"></span>
-                                    <span style="font-size:11px;color:#123653;line-height:1.4;white-space:nowrap;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Precaución</span> — Entrena con cuidado.</span>
-                                </div>
-                                <div style="display:flex;align-items:center;gap:10px;">
-                                    <span style="width:14px;height:14px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,0.5);flex-shrink:0;"></span>
-                                    <span style="font-size:11px;color:#123653;line-height:1.4;white-space:nowrap;"><span style="color:#123653;font-weight:700;text-transform:uppercase;">Mala</span> — Mejor entrena en interiores.</span>
-                                </div>
+                        <div id="walk-section-wrap" style="margin-top:28px;padding-top:20px;position:relative;">
+                            <div style="position:absolute;top:0;left:25%;width:50%;height:1px;background:rgba(28,79,120,0.15);"></div>
+                            <div id="walk-section-cards" style="display:flex;flex-direction:column;gap:0;padding:6px 8px;background:#F2FBFC;border-radius:12px;">
+                                <div style="flex:1;text-align:center;padding:14px 6px;color:#94a3b8;font-size:11px;">Cargando…</div>
+                            </div>
+                            <div style="display:flex;flex-direction:row;align-items:center;justify-content:center;flex-wrap:wrap;gap:14px;margin-top:24px;">
+                                <span style="font-size:8px;font-weight:700;color:#123653;text-transform:uppercase;">Condiciones:</span>
+                                <span style="display:flex;align-items:center;gap:5px;font-size:8px;color:#123653;opacity:0.8;">
+                                    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#16a34a;flex-shrink:0;"></span>
+                                    <span style="text-transform:uppercase;font-weight:400;">Buenas</span>
+                                </span>
+                                <span style="display:flex;align-items:center;gap:5px;font-size:8px;color:#123653;opacity:0.8;">
+                                    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f97316;flex-shrink:0;"></span>
+                                    <span style="text-transform:uppercase;font-weight:400;">Mejorables</span>
+                                </span>
+                                <span style="display:flex;align-items:center;gap:5px;font-size:8px;color:#123653;opacity:0.8;">
+                                    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#9d174d;flex-shrink:0;"></span>
+                                    <span style="text-transform:uppercase;font-weight:400;">Malas</span>
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -1044,11 +1033,7 @@
                         <div id="paraguas-days-icon-row" style="position:relative;height:24px;margin:10px 0 0 0;"></div>
                         <div id="paraguas-days-hour-row" style="position:relative;height:12px;margin:4px 0 -2px 0;"></div>
                         <canvas id="paraguas-days-chart" style="width:100%;display:block;"></canvas>
-                        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-top:2px;padding-left:24px;">
-                            <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
-                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#f7f8fa;flex-shrink:0;"></span>
-                                <span style="text-transform:uppercase;font-weight:400;">No se espera lluvia</span>
-                            </span>
+                        <div style="display:flex;flex-direction:row;align-items:center;justify-content:center;gap:18px;margin-top:2px;">
                             <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
                                 <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(59,130,246,0.10);flex-shrink:0;"></span>
                                 <span style="text-transform:uppercase;font-weight:400;">Cuidado, podría llover</span>
@@ -1164,23 +1149,21 @@
                 <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">METEOGRAMA SEMANAL</span>
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
-                <!-- Panel superior: temperatura / probabilidad de lluvia / acumulado / humedad / presión
-                     (un único canvas con las 4 gráficas apiladas). Las leyendas de cada gráfica se
-                     colocan en posición absoluta, justo debajo de su propia franja dentro del canvas. -->
+                <!-- Panel superior: temperatura / probabilidad de lluvia / acumulado -->
                 <div id="f7-panel-wrap-top" style="position:relative;height:502px;">
                 <div id="f7-panel-combo-top" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-top" style="display:block;width:100%;"></canvas>
                 </div>
+                </div>
 
-                <!-- Leyenda + enlace: por qué probabilidad y acumulado se muestran por separado
-                     (justo debajo de la franja de temperatura/lluvia) -->
-                <div style="position:absolute;left:16px;right:16px;top:336px;">
-                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
-                        Por qué mostramos la probabilidad y el acumulado por separado.
-                        <span id="f7-info-toggle-label" data-open-text="SABER +" onclick="toggleF7InfoPanel()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7InfoPanel()" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
-                    </div>
+                <!-- Botón + desplegable: por qué probabilidad y acumulado se muestran por separado -->
+                <div style="padding:0 16px 14px;">
+                    <button id="f7-info-toggle" onclick="toggleF7InfoPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Por qué la probabilidad y el acumulado por separado?</span>
+                        <span id="f7-info-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                    </button>
                     <div id="f7-info-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
-                        <div style="margin-top:8px;padding:12px;border-radius:8px;background:rgba(9,32,52,0.96);font-size:12px;line-height:1.5;color:rgba(255,255,255,0.9);">
+                        <div style="padding:12px 2px 2px;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,0.9);">
                             En Barcelona, especialmente con las tormentas de verano y otoño, el tiempo puede ser muy local. Imagina una nube de tormenta pequeña pero muy intensa sobre la ciudad:
                             <br><br>
                             <strong>La Probabilidad (en %)</strong> te dice qué tan fácil es que la nube pase exactamente por tu barrio (por ejemplo, un 20% porque es una tormenta muy localizada).
@@ -1192,58 +1175,82 @@
                     </div>
                 </div>
 
-                <!-- Leyenda + enlace: HUMEDAD (justo debajo de la franja de humedad) -->
-                <div style="position:absolute;left:16px;right:16px;top:676px;">
-                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
-                        ¿Cuánto agua flota en el aire? Descubre si el ambiente estará seco o húmedo.
-                        <span id="f7-humedad-toggle-label" data-open-text="SABER +" onclick="toggleF7SimplePanel('f7-humedad-panel','f7-humedad-toggle-label')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7SimplePanel('f7-humedad-panel','f7-humedad-toggle-label')" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
-                    </div>
-                    <div id="f7-humedad-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
-                        <div style="margin-top:8px;padding:12px;border-radius:8px;background:rgba(9,32,52,0.96);font-size:12px;line-height:1.5;color:rgba(255,255,255,0.9);">
-                            Aunque no lo veas, en el aire siempre flotan gotitas de agua invisibles. A eso lo llamamos humedad.
-                            <br><br>
-                            <strong>Si la gráfica sube al 70% o más:</strong> ¡El aire está llenito de agua! Es lo que pasa por la noche o cuando va a llover. Si hace calor, sudas mucho más y la ropa tarda un montón en secarse. Si hace frío, se te mete en los huesos.
-                            <br><br>
-                            <strong>Si la gráfica baja al 30% o menos:</strong> ¡El aire está súper seco! El sol se ha "bebido" el agua del ambiente. Sentirás más sed, se te secarán los labios y la piel te picará un poquito. ¡Es buen día para tender la ropa porque se secará volando!
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Leyenda + enlace: PRESIÓN (justo debajo de la franja de presión) -->
-                <div style="position:absolute;left:16px;right:16px;top:960px;">
-                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
-                        ¿El aire pesa mucho o poco? Averigua si viene sol o tormenta.
-                        <span id="f7-presion-toggle-label" data-open-text="SABER +" onclick="toggleF7SimplePanel('f7-presion-panel','f7-presion-toggle-label')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7SimplePanel('f7-presion-panel','f7-presion-toggle-label')" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
-                    </div>
-                    <div id="f7-presion-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
-                        <div style="margin-top:8px;padding:12px;border-radius:8px;background:rgba(9,32,52,0.96);font-size:12px;line-height:1.5;color:rgba(255,255,255,0.9);">
-                            ¿Sabías que el aire pesa? Aunque no lo sientas, una capa gigante de aire nos aplasta suavemente. Para medir ese "peso", los científicos usan como regla una playa a nivel del mar, donde el peso normal es de 1013 unidades (hPa).
-                            <br><br>
-                            <strong>Si baja de 1013 (Bajas presiones):</strong> El aire se vuelve ligero y "flota" hacia arriba como un globo de gas. Al subir, se fabrican nubes gigantes, se levanta viento y es muy probable que necesites el paraguas porque se prepara una tormenta.
-                            <br><br>
-                            <strong>Si sube de 1013 (Altas presiones):</strong> El aire pesa mucho y empuja con fuerza hacia abajo. Ese peso "aplasta" las nubes y las borra del mapa. Por eso, cuando el número es alto, casi siempre tenemos un día hermoso, soleado y sin una sola nube.
-                        </div>
-                    </div>
-                </div>
-                </div>
-
-                <!-- Leyenda + enlace: VIENTO (justo debajo de la franja de viento, última del canvas) -->
+                <!-- Desplegable: CÓMO FUNCIONA LA HUMEDAD EN LA ATMÓSFERA -->
                 <div style="padding:0 16px 14px;">
-                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
-                        ¿Cuánto sopla el viento? Mira la fuerza de las rachas.
-                        <span id="f7-viento-toggle-label" data-open-text="SABER +" onclick="toggleF7SimplePanel('f7-viento-panel','f7-viento-toggle-label')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7SimplePanel('f7-viento-panel','f7-viento-toggle-label')" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
+                    <button id="f7-humedad-explica-toggle" onclick="toggleF7SimplePanel('f7-humedad-explica-panel','f7-humedad-explica-toggle-icon')" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">¿Cómo funciona la humedad en la atmósfera?</span>
+                        <span id="f7-humedad-explica-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                    </button>
+                    <div id="f7-humedad-explica-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
+                        <div style="padding:12px 2px 2px;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,0.9);">
+                            La humedad es, simplemente, la cantidad de vapor de agua (agua en estado gaseoso) que se encuentra flotando en el aire. Aunque es invisible, su comportamiento define el clima que vivimos a diario y se rige por tres reglas principales:
+                            <br><br>
+                            <strong>1. El aire funciona como una esponja</strong><br>
+                            Imagina que la atmósfera es una esponja gigante. El aire absorbe el agua que se evapora de los océanos, lagos, ríos y de la transpiración de las plantas. Sin embargo, esa "esponja" tiene un límite: no puede absorber agua de forma infinita.
+                            <br><br>
+                            <strong>2. La temperatura dicta la capacidad (La regla de oro)</strong><br>
+                            La clave para entender la humedad es la temperatura del aire. El aire caliente se expande, lo que significa que su "esponja" se vuelve más grande y puede retener muchísimo más vapor de agua. Por el contrario, el aire frío se contrae, su "esponja" se achica y satura con muy poca cantidad de agua.
+                            <br><br>
+                            <strong>3. El camino hacia la lluvia: Saturación y Condensación</strong>
+                            <br><br>
+                            • <strong>Humedad Relativa (HR):</strong> Es el dato que ves en los pronósticos. No mide cuánta agua hay en total, sino qué tan llena está la "esponja" en ese momento. Si la HR es del 50%, la esponja está a la mitad de su capacidad.
+                            <br><br>
+                            • <strong>El punto de saturación (100%):</strong> Cuando el termómetro baja o entra demasiado vapor, el aire alcanza el 100% de humedad relativa. La esponja se llena por completo; ya no cabe un solo gramo más de vapor.
+                            <br><br>
+                            • <strong>El nacimiento de las nubes:</strong> Al enfriarse el aire más allá de ese 100% (llamado punto de rocío), el exceso de vapor no puede sostenerse en el aire. El gas se convierte en gotas líquidas visibles (condensación), dando origen a la niebla, las nubes y, finalmente, a la lluvia.
+                        </div>
                     </div>
-                    <div id="f7-viento-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
-                        <div style="margin-top:8px;padding:12px;border-radius:8px;background:rgba(9,32,52,0.96);font-size:12px;line-height:1.5;color:rgba(255,255,255,0.9);">
-                            Aquí ves dos cosas: el viento que sopla todo el tiempo (la línea de abajo) y las rachas más fuertes, que se llaman rachas (la línea de arriba). La pantalla cambia de color para avisarte si es peligroso salir a la calle:
+                </div>
+
+                <!-- Desplegable: QUÉ ES LA PRESIÓN BAROMÉTRICA -->
+                <div style="padding:0 16px 14px;">
+                    <button id="f7-presion-explica-toggle" onclick="toggleF7SimplePanel('f7-presion-explica-panel','f7-presion-explica-toggle-icon')" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">¿Qué es la presión barométrica?</span>
+                        <span id="f7-presion-explica-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                    </button>
+                    <div id="f7-presion-explica-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
+                        <div style="padding:12px 2px 2px;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,0.9);">
+                            Es la fuerza que ejerce el conjunto de gases de la atmósfera por unidad de superficie. Se mide principalmente en hectopascales (hPa) o milibares (mb). A nivel del mar, la presión media normal es de 1013.25 hPa.
                             <br><br>
-                            <strong>Menos de 40 km/h (Color normal):</strong> El viento juega suave. Mueve las hojas de los árboles y te despeina un poco, pero puedes jugar en el parque sin problemas.
+                            <strong>Factores que la cambian</strong>
                             <br><br>
-                            <strong>A partir de 40 km/h:</strong> ¡Ya tiene fuerza! Cuesta un poco caminar en línea recta, los paraguas se dan la vuelta y hay que agarrar bien el manillar de la bici.
+                            • <strong>Altitud:</strong> A mayor altura, menos aire hay encima y la presión disminuye.
                             <br><br>
-                            <strong>Más de 60 km/h:</strong> El fondo se vuelve naranja porque el viento ya está enfadado. Puede tirar cosas de los balcones, arrastrar cubos de basura por la calle y romper ramas de los árboles. ¡Mucho cuidado!
+                            • <strong>Temperatura:</strong> El aire cálido se expande y pesa menos (baja presión). El aire frío se comprime y es más denso (alta presión).
                             <br><br>
-                            <strong>Más de 80 km/h:</strong> El fondo se enciende en rojo. ¡Es un viento peligroso! Puede arrancar árboles enteros o tirar tejados. Lo mejor es quedarse en casa o refugiado.
+                            <strong>¿Cómo predice el tiempo?</strong><br>
+                            Los cambios en el barómetro son la mejor pista para saber qué tiempo viene:
+                            <br><br>
+                            • <strong>Alta Presión (Anticiclón):</strong> El aire pesado desciende, evita la formación de nubes y trae tiempo estable, despejado y seco.
+                            <br><br>
+                            • <strong>Baja Presión (Borrasca):</strong> El aire ligero asciende, se enfría y condensa su humedad. Trae tiempo inestable, nubes, viento y lluvia.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desplegable: POR QUÉ SE GENERA EL VIENTO -->
+                <div style="padding:0 16px 14px;">
+                    <button id="f7-viento-explica-toggle" onclick="toggleF7SimplePanel('f7-viento-explica-panel','f7-viento-explica-toggle-icon')" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">¿Por qué se genera el viento?</span>
+                        <span id="f7-viento-explica-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                    </button>
+                    <div id="f7-viento-explica-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
+                        <div style="padding:12px 2px 2px;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,0.9);">
+                            El aire siempre se desplaza desde las zonas de alta presión (anticiclones) hacia las zonas de baja presión (borrascas) para equilibrar la atmósfera. Imagina que pinchas un balón inflado: el aire sale con fuerza hacia el exterior porque busca igualar las presiones. Cuanto mayor sea la diferencia de presión entre dos zonas, más rápido se moverá el aire y más fuerte será el viento.
+                            <br><br>
+                            <strong>Viento sostenido vs. Rachas de viento</strong><br>
+                            En los pronósticos meteorológicos es vital distinguir estos dos conceptos:
+                            <br><br>
+                            • <strong>Viento Sostenido:</strong> Es la velocidad media del viento calculada durante un período de tiempo determinado (habitualmente 10 minutos). Es el flujo constante que marca la tendencia del día.
+                            <br><br>
+                            • <strong>Rachas de viento (o ráfagas):</strong> Son aumentos repentinos y breves de la velocidad del viento. Para considerarse racha, debe superar la velocidad media en al menos 10-15 km/h y durar solo unos pocos segundos.
+                            <br><br>
+                            <strong>¿Por qué ocurren las rachas?</strong><br>
+                            Las rachas no son continuas porque el viento encuentra obstáculos en su camino. Se producen por:
+                            <br><br>
+                            • <strong>Turbulencia mecánica:</strong> El viento choca contra edificios, árboles o montañas, lo que rompe el flujo constante y genera remolinos rápidos.
+                            <br><br>
+                            • <strong>Turbulencia térmica:</strong> El calor del suelo genera burbujas de aire caliente que suben de golpe, alterando la corriente de aire que circula por encima.
                         </div>
                     </div>
                 </div>
@@ -1265,20 +1272,39 @@
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <!-- Panel inferior: niveles 850hPa/500hPa (atmósfera libre) / cota de isocero -->
-                <div id="f7-panel-wrap-bottom" style="position:relative;height:582px;">
+                <div id="f7-panel-wrap-bottom" style="position:relative;height:560px;">
                 <div id="f7-panel-combo-bottom" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-bottom" style="display:block;width:100%;"></canvas>
                 </div>
                 </div>
 
-                <!-- Leyenda + enlace: último radiosondeo (UB/SMC), justo debajo de su gráfica -->
-                <div style="padding:0 16px 14px;">
-                    <div style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.4;">
-                        Último radiosondeo (UB/SMC), la última medición real de la atmósfera sobre Barcelona.
-                        <span id="f7-radiosondeo-toggle-label" data-open-text="SABER +" onclick="toggleF7RadiosondeoPanel()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleF7RadiosondeoPanel()" style="display:inline-block;background:transparent;margin-left:3px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7DD3FC;cursor:pointer;white-space:nowrap;">SABER +</span>
+                <!-- Meteograma Sintético de Inestabilidad Convectiva: CAPE + CIN + Lifted Index fusionados (Chart.js) -->
+                <div style="padding:18px 16px 4px;">
+                    <div style="text-align:left;line-height:1;margin-bottom:8px;">
+                        <span style="font-size:20px;font-weight:300;color:#ffffff;">3<b style="font-weight:700;">DÍAS</b></span>
                     </div>
+                    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);margin-bottom:8px;">INESTABILIDAD CONVECTIVA · 3 DÍAS (MAÑANA/TARDE)</div>
+                    <div id="texto-diagnostico" style="min-height:32px;font-size:11px;font-weight:600;color:#ffffff;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:8px;padding:7px 10px;margin-bottom:10px;line-height:1.35;"></div>
+                    <div style="position:relative;height:260px;">
+                        <canvas id="meteograma-inestabilidad-canvas"></canvas>
+                    </div>
+                </div>
+
+                <!-- Semáforo de riesgo de tormenta -->
+                <div id="f7-panel-wrap-risk" style="position:relative;height:140px;">
+                <div id="f7-panel-combo-risk" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
+                    <canvas id="f7-chart-risk" style="display:block;width:100%;"></canvas>
+                </div>
+                </div>
+
+                <!-- Botón + desplegable: último radiosondeo (UB/SMC) -->
+                <div style="padding:0 16px 14px;">
+                    <button id="f7-radiosondeo-toggle" onclick="toggleF7RadiosondeoPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Último radiosondeo (UB/SMC)</span>
+                        <span id="f7-radiosondeo-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                    </button>
                     <div id="f7-radiosondeo-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
-                        <div style="margin-top:8px;padding:12px;border-radius:8px;background:rgba(9,32,52,0.96);">
+                        <div style="padding:12px 2px 2px;">
                             <img src="https://static-m.meteo.cat/content/radiosondatge/images/ultim.png"
                                  alt="Último radiosondeo Barcelona"
                                  style="width:100%;display:block;border-radius:8px;"
@@ -2735,14 +2761,50 @@
             _lastParaguasHourly = hourly;
 
             const now = new Date();
-            const slots = [];
+
+            // Puntos horarios reales (con margen a cada lado) usados como base para
+            // interpolar la temperatura cada 30 minutos.
+            const hourPoints = [];
             for (let i = 0; i < hourly.time.length; i++) {
                 const ht = new Date(hourly.time[i]);
                 const diffH = (ht - now) / 3600000;
-                if (diffH < -0.5 || diffH > 12) continue;
-                const rawTemp = hourly.temperature_2m?.[i] ?? null;
-                slots.push({
+                if (diffH < -1.5 || diffH > 5.5) continue;
+                hourPoints.push({
                     h: ht,
+                    temp: hourly.temperature_2m?.[i] ?? null,
+                    prob: hourly.precipitation_probability?.[i] ?? 0,
+                    mm: hourly.precipitation?.[i] ?? 0
+                });
+            }
+            if (hourPoints.length < 2) return;
+
+            // Gráfica: intervalos de 30 minutos, durante las próximas 4 horas.
+            // El punto de partida se redondea a la franja de 30 min más cercana
+            // (en punto o y media) para que las horas mostradas sean siempre
+            // "bonitas" (12:00, 12:30, 13:00...) y solo cambien cada media hora,
+            // no cada minuto según el reloj exacto.
+            const STEP_MIN = 30;
+            const TOTAL_MIN = 240;
+            const start = new Date(now);
+            start.setSeconds(0, 0);
+            start.setMinutes(start.getMinutes() < 30 ? 0 : 30);
+            const slots = [];
+            for (let m = 0; m <= TOTAL_MIN; m += STEP_MIN) {
+                const t = new Date(start.getTime() + m * 60000);
+                let idx = hourPoints.findIndex(p => p.h > t);
+                if (idx === -1) idx = hourPoints.length - 1;
+                if (idx === 0) idx = 1;
+                const p0 = hourPoints[idx - 1], p1 = hourPoints[idx];
+                const span = (p1.h - p0.h) || 3600000;
+                const frac = Math.min(1, Math.max(0, (t - p0.h) / span));
+                const rawTemp = (p0.temp !== null && p1.temp !== null)
+                    ? p0.temp + (p1.temp - p0.temp) * frac
+                    : (p0.temp ?? p1.temp);
+                // La probabilidad/acumulación de lluvia se toma del tramo horario más
+                // cercano (no tiene sentido interpolarla de forma continua).
+                const nearest = frac < 0.5 ? p0 : p1;
+                slots.push({
+                    h: t,
                     // Redondeamos aquí, una sola vez, y usamos SIEMPRE este valor
                     // (para la posición Y, el color y la etiqueta). Así, dos horas
                     // que muestran el mismo número de grados quedan siempre a la
@@ -2750,9 +2812,9 @@
                     // con el decimal real pero la etiqueta redondeaba, y por eso
                     // dos "25°" podían aparecer a alturas distintas.
                     temp: rawTemp !== null ? Math.round(rawTemp) : null,
-                    prob: hourly.precipitation_probability?.[i] ?? 0,
-                    mm: hourly.precipitation?.[i] ?? 0,
-                    label: String(ht.getHours()).padStart(2,'0') + 'h'
+                    prob: nearest.prob,
+                    mm: nearest.mm,
+                    label: String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0')
                 });
             }
             if (slots.length < 2) return;
@@ -2886,19 +2948,18 @@
                 ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI*2);
                 ctx.fillStyle = `rgb(${tempToColor(s.temp).join(',')})`; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
 
-                const hourNum = s.h.getHours();
-                if (hourNum % 2 === 0) {
+                if (i % 2 === 0) {
                     ctx.fillStyle = '#123653'; ctx.font = 'bold 10px Inter,sans-serif';
                     ctx.fillText(s.temp + '°', x, y - 8);
                 }
             });
 
-            // ── Fila de horas (debajo de la gráfica), alineada por hora ──
+            // ── Fila de horas (debajo de la gráfica), cada hora relativa a "ahora" ──
             const hourRow = document.getElementById('paraguas-hour-row');
             if (hourRow) {
                 let hHtml = '';
                 slots.forEach((s, i) => {
-                    if (s.h.getHours() % 2 === 0) {
+                    if (i % 2 === 0) {
                         const x = xPos(i);
                         hHtml += `<span style="position:absolute;left:${x}px;top:0;transform:translateX(-50%);font-size:9px;font-weight:500;color:#64748B;font-family:Inter,sans-serif;white-space:nowrap;">${s.label}</span>`;
                     }
@@ -4617,21 +4678,6 @@
             btn.textContent = isOpen ? '+ INFORMACIÓN' : '− INFORMACIÓN';
         }
 
-        function toggleSportDetails() {
-            const panel = document.getElementById('sport-details-panel');
-            const btn   = document.getElementById('sport-expand-btn');
-            if (!panel) return;
-            const isOpen = panel.style.display !== 'none';
-            if (isOpen) {
-                panel.style.display = 'none';
-                if (btn) btn.textContent = 'Detalles ↓';
-            } else {
-                panel.style.display = 'block';
-                if (btn) btn.textContent = 'Ocultar ↑';
-                requestAnimationFrame(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
-            }
-        }
-
         function toggleAqiExpanded() {
             const panel = document.getElementById('aqi-expanded-panel');
             const btn   = document.getElementById('aqi-expand-btn');
@@ -4813,6 +4859,7 @@
                         periodLabel : periodLabel,
                         cape        : capeV !== null ? Math.round(capeV) : 0,
                         li          : liV !== null ? Math.round(liV * 10) / 10 : 0,
+                        cin         : cinV !== null ? Math.round(cinV) : 0,
                         risk        : _f7StormRisk(capeV, liV, ppV, cinV),
                     });
                 });
@@ -5458,44 +5505,64 @@
             try {
                 drawF7ChartBottom();
             } catch (e) {
-                console.error('[Meteograma] Error dibujando gráfico inferior (atmósfera libre/CAPE):', e);
+                console.error('[Meteograma] Error dibujando gráfico inferior (atmósfera libre):', e);
             }
-        }
-
-        // ── Helper genérico: abre/cierra un panel y cambia el texto del enlace
-        //    ("SABER +" ↔ "OCULTAR"), en mayúsculas, sin icono ──
-        function _f7ToggleGeneric(panelId, labelId) {
-            const panel = document.getElementById(panelId);
-            const label = labelId ? document.getElementById(labelId) : null;
-            if (!panel) return;
-            const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
-            if (isOpen) {
-                panel.style.maxHeight = '0px';
-                if (label) label.textContent = label.dataset.openText || 'SABER +';
-            } else {
-                panel.style.maxHeight = panel.scrollHeight + 'px';
-                if (label) label.textContent = 'OCULTAR';
+            try {
+                updateMeteogramaInestabilidad();
+            } catch (e) {
+                console.error('[Meteograma] Error dibujando meteograma de inestabilidad (CAPE/CIN/LI):', e);
             }
-            return !isOpen;
+            try {
+                drawF7ChartRisk();
+            } catch (e) {
+                console.error('[Meteograma] Error dibujando semáforo de riesgo de tormenta:', e);
+            }
         }
 
         // ── Desplegable: por qué mostramos probabilidad y acumulado por separado ──
         function toggleF7InfoPanel() {
-            _f7ToggleGeneric('f7-info-panel', 'f7-info-toggle-label');
+            const panel = document.getElementById('f7-info-panel');
+            const icon  = document.getElementById('f7-info-toggle-icon');
+            if (!panel) return;
+            const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
+            if (isOpen) {
+                panel.style.maxHeight = '0px';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + 'px';
+                if (icon) icon.style.transform = 'rotate(180deg)';
+            }
         }
 
         // ── Desplegable genérico "Saber +" (humedad / presión / viento del meteograma semanal) ──
-        function toggleF7SimplePanel(panelId, labelId) {
-            _f7ToggleGeneric(panelId, labelId);
+        function toggleF7SimplePanel(panelId, iconId) {
+            const panel = document.getElementById(panelId);
+            const icon  = document.getElementById(iconId);
+            if (!panel) return;
+            const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
+            if (isOpen) {
+                panel.style.maxHeight = '0px';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + 'px';
+                if (icon) icon.style.transform = 'rotate(180deg)';
+            }
         }
 
         // ── Desplegable: último radiosondeo (UB/SMC), misma imagen que la sección de radiosondeo ──
         function toggleF7RadiosondeoPanel() {
-            const opened = _f7ToggleGeneric('f7-radiosondeo-panel', 'f7-radiosondeo-toggle-label');
-            if (opened) {
-                const panel = document.getElementById('f7-radiosondeo-panel');
+            const panel = document.getElementById('f7-radiosondeo-panel');
+            const icon  = document.getElementById('f7-radiosondeo-toggle-icon');
+            if (!panel) return;
+            const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
+            if (isOpen) {
+                panel.style.maxHeight = '0px';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + 'px';
+                if (icon) icon.style.transform = 'rotate(180deg)';
                 // Si la imagen tarda en cargar, reajustar la altura del desplegable
-                const img = panel && panel.querySelector('img');
+                const img = panel.querySelector('img');
                 if (img && !img.complete) {
                     img.addEventListener('load', () => {
                         if (panel.style.maxHeight !== '0px') panel.style.maxHeight = panel.scrollHeight + 'px';
@@ -5523,12 +5590,13 @@
             const tempH   = 140;   // alto zona temperatura
             const gap     = 20;    // separación entre zona de temperatura y zona de lluvia
             const rainH   = 72;    // alto zona lluvia
+            const rainMmCap = 80;  // tope visual (mm) de la barra de acumulado; si se supera, la barra se corta con una marca de "corte" en vez de agrandar el gráfico
 
             const tempTop    = PAD.t;
             const tempBottom = tempTop + tempH;
             const rainTop    = tempBottom + gap;
             const rainBottom = rainTop + rainH;
-            const accValueY  = rainBottom + 20;   // fila con la cifra de acumulación (mm), justo debajo de las barras de lluvia
+            const accValueY  = rainBottom + 20;   // fila con la probabilidad de lluvia (%), justo debajo de las barras de acumulado
 
             // ── Zona humedad relativa máxima/mínima (%) ──
             const gapHum     = 140;  // separación tras la cifra de acumulación → título "HUMEDAD" (doble de la anterior)
@@ -5538,14 +5606,14 @@
             const humDayLabelY = humBottom + 40;
 
             // ── Zona presión a nivel del mar (hPa) ──
-            const gapPres    = 160;  // separación tras fila de días de humedad → título "PRESIÓN" (incluye hueco para la leyenda de humedad)
+            const gapPres    = 90;   // separación tras fila de días de humedad → título "PRESIÓN"
             const presH      = 110;  // alto zona presión
             const presTop    = humDayLabelY + gapPres;
             const presBottom = presTop + presH;
             const presDayLabelY = presBottom + 14;
 
             // ── Zona viento previsto + rachas máximas (km/h) ──
-            const gapWind    = 150;  // separación tras fila de días de presión → título "VIENTO" (incluye hueco para la leyenda de presión)
+            const gapWind    = 90;   // separación tras fila de días de presión → título "VIENTO"
             const windH      = 160;  // alto zona viento
             const windTop    = presDayLabelY + gapWind;
             const windBottom = windTop + windH;
@@ -5573,12 +5641,9 @@
             const xPos  = i => PAD.l + (i / (n - 1)) * cw;
             const yTemp = v => tempTop + tempH - ((v - tMin) / (tMax - tMin)) * tempH;
 
-            // Posición "de banda": cada día ocupa un ancho igual (cw/n) del eje X,
-            // centrado en su propio tramo — igual que las barras de lluvia y la
-            // fila de días — en vez de la posición "de punto" xPos() (que deja
-            // el primer/último día pegados al borde, como si fuera el inicio del día).
+            // Ancho de "carril" por día, usado solo para el grosor de las barras
+            // de lluvia (su centro va en xPos(i), igual que el resto del gráfico).
             const dayW  = cw / n;
-            const xBand = i => PAD.l + (i + 0.5) * dayW;
 
             ctx.clearRect(0, 0, W, H);
 
@@ -5592,15 +5657,17 @@
             }
 
             // ── Zona temperatura: área + línea máxima/mínima ──
+            // (posición "de punto" xPos(), igual que la gráfica de humedad: el
+            //  primer día empieza pegado al borde izquierdo, no centrado en su tramo)
             const drawArea = (vals, fill) => {
                 ctx.beginPath();
-                ctx.moveTo(xBand(0), yTemp(vals[0]));
+                ctx.moveTo(xPos(0), yTemp(vals[0]));
                 for (let i = 1; i < n; i++) {
-                    const xc = (xBand(i-1) + xBand(i)) / 2;
-                    ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xBand(i), yTemp(vals[i]));
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xPos(i), yTemp(vals[i]));
                 }
-                ctx.lineTo(xBand(n-1), tempBottom);
-                ctx.lineTo(xBand(0), tempBottom);
+                ctx.lineTo(xPos(n-1), tempBottom);
+                ctx.lineTo(xPos(0), tempBottom);
                 ctx.closePath();
                 const g = ctx.createLinearGradient(0, tempTop, 0, tempBottom);
                 g.addColorStop(0, fill);
@@ -5611,20 +5678,20 @@
 
             const drawLine = (vals, color, offset, dashed) => {
                 ctx.beginPath();
-                ctx.moveTo(xBand(0), yTemp(vals[0]));
+                ctx.moveTo(xPos(0), yTemp(vals[0]));
                 for (let i = 1; i < n; i++) {
-                    const xc = (xBand(i-1) + xBand(i)) / 2;
-                    ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xBand(i), yTemp(vals[i]));
+                    const xc = (xPos(i-1) + xPos(i)) / 2;
+                    ctx.bezierCurveTo(xc, yTemp(vals[i-1]), xc, yTemp(vals[i]), xPos(i), yTemp(vals[i]));
                 }
                 ctx.setLineDash(dashed ? [5, 4] : []);
                 ctx.strokeStyle = color; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
                 ctx.setLineDash([]);
                 vals.forEach((v, i) => {
-                    ctx.beginPath(); ctx.arc(xBand(i), yTemp(v), 3.5, 0, Math.PI*2);
+                    ctx.beginPath(); ctx.arc(xPos(i), yTemp(v), 3.5, 0, Math.PI*2);
                     ctx.fillStyle = color; ctx.fill();
                     ctx.textAlign = 'center'; ctx.font = 'bold 10px Inter,sans-serif';
                     ctx.fillStyle = color;
-                    ctx.fillText(v + '°', xBand(i), yTemp(v) + offset);
+                    ctx.fillText(v + '°', xPos(i), yTemp(v) + offset);
                 });
             };
             drawLine(tmax, '#FF8A65', -9, false);
@@ -5634,21 +5701,25 @@
             ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
             rows.forEach((r, i) => {
                 const lbl = r.isToday ? 'HOY' : r.dayName;
-                ctx.fillText(lbl, xBand(i), tempBottom + 14);
+                ctx.fillText(lbl, xPos(i), tempBottom + 14);
             });
 
-            // ── Zona lluvia: barras, ancladas abajo de su propia franja
-            //    (el título va fusionado con el de temperatura, arriba del todo;
-            //     xBand ya se definió arriba, junto a la fila de días) ──
+            // ── Zona lluvia: barras de ACUMULADO (mm), centradas en xPos(i) — el
+            //    mismo eje que la fila de días y los puntos de temperatura, para
+            //    que cada barra quede justo debajo de su día. En vez de recortar
+            //    (clip) las barras de los extremos —lo que dejaba solo la mitad
+            //    visible—, se desplaza (clamp) la barra lo mínimo necesario para
+            //    que quede siempre completa y dentro del lienzo. Si el acumulado
+            //    supera rainMmCap, la barra llega al tope y se marca con un
+            //    borde "roto"/en zigzag en vez de agrandar el gráfico. ──
             const barW  = dayW * 0.72;
             rows.forEach((r, i) => {
-                const v = r.pprob;
-                const barH = (v / 100) * rainH;
-                const x  = xBand(i) - barW / 2;
-                const g = ctx.createLinearGradient(0, rainBottom - barH, 0, rainBottom);
-                g.addColorStop(0, 'rgba(56,189,248,0.85)');
-                g.addColorStop(1, 'rgba(56,189,248,0.25)');
-                ctx.fillStyle = g;
+                const mm = Math.round((r.precip ?? 0) * 10) / 10;
+                const capped = mm > rainMmCap;
+                const barH = (Math.min(mm, rainMmCap) / rainMmCap) * rainH;
+                let x  = xPos(i) - barW / 2;
+                x = Math.max(2, Math.min(x, W - barW - 2));
+                ctx.fillStyle = 'rgba(56,189,248,0.85)';
                 ctx.beginPath();
                 if (ctx.roundRect) {
                     ctx.roundRect(x, rainBottom - barH, barW, Math.max(barH, 2), 3);
@@ -5656,9 +5727,36 @@
                     ctx.rect(x, rainBottom - barH, barW, Math.max(barH, 2));
                 }
                 ctx.fill();
+
+                // Marca de "corte": se recorta (punch-out) un borde en zigzag justo
+                // encima del tope de la barra, dejando ver el fondo del panel —
+                // así se entiende que el valor real sigue por encima de lo dibujado.
+                if (capped) {
+                    const cutY     = rainBottom - barH;
+                    const cutBandH = 9;
+                    const teeth    = Math.max(3, Math.round(barW / 7));
+                    const toothW   = barW / teeth;
+                    ctx.save();
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.beginPath();
+                    ctx.moveTo(x, cutY + cutBandH);
+                    for (let t = 0; t <= teeth; t++) {
+                        const tx = x + t * toothW;
+                        const ty = cutY + (t % 2 === 0 ? 0 : cutBandH * 0.55);
+                        ctx.lineTo(tx, ty);
+                    }
+                    ctx.lineTo(x + barW, cutY + cutBandH);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                }
+            });
+            rows.forEach((r, i) => {
+                const mm = Math.round((r.precip ?? 0) * 10) / 10;
+                const barH = (Math.min(mm, rainMmCap) / rainMmCap) * rainH;
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif';
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText(v + '%', xBand(i), rainBottom - barH - 5);
+                ctx.fillText(mm + ' mm', xPos(i), rainBottom - barH - 5);
             });
             // Línea base de la zona de lluvia
             ctx.beginPath();
@@ -5666,12 +5764,12 @@
             ctx.lineTo(PAD.l + cw, rainBottom);
             ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
 
-            // ── Cifra de acumulación prevista (mm), justo debajo de las barras de lluvia ──
+            // ── Probabilidad de lluvia (%), justo debajo de las barras de acumulado ──
             ctx.textAlign = 'center'; ctx.font = 'bold 9.5px Inter,sans-serif';
             rows.forEach((r, i) => {
-                const mm = Math.round((r.precip ?? 0) * 10) / 10;
-                ctx.fillStyle = mm === 0 ? 'rgba(255,255,255,0.85)' : 'rgba(56,189,248,0.95)';
-                ctx.fillText(mm + ' mm', xBand(i), accValueY);
+                const v = r.pprob;
+                ctx.fillStyle = v === 0 ? 'rgba(255,255,255,0.85)' : 'rgba(56,189,248,0.95)';
+                ctx.fillText(v + '%', xPos(i), accValueY);
             });
 
             // ══════════════════════════════════════════════
@@ -6034,16 +6132,25 @@
             ctx.fillText('TEMPERATURA / PROB. LLUVIA (%) · ACUMULADO (mm)', PAD.l + cw / 2, PAD.t - 30);
 
             ctx.font = 'bold 9px Inter,sans-serif';
-            ctx.textAlign = 'left';
-            ctx.beginPath(); ctx.moveTo(PAD.l, PAD.t - 15); ctx.lineTo(PAD.l + 14, PAD.t - 15);
-            ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 1.1; ctx.stroke();
-            ctx.fillStyle = '#FF8A65';
-            ctx.fillText(' Máx', PAD.l + 14, PAD.t - 12);
-            ctx.beginPath(); ctx.moveTo(PAD.l + 60, PAD.t - 15); ctx.lineTo(PAD.l + 74, PAD.t - 15);
-            ctx.strokeStyle = '#7DD3FC';
-            ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
-            ctx.fillStyle = '#7DD3FC';
-            ctx.fillText(' Mín', PAD.l + 74, PAD.t - 12);
+            {
+                const swatchW = 14, textPad = 5, groupGap = 20;
+                const t1 = 'Máx', t2 = 'Mín';
+                const w1 = ctx.measureText(t1).width, w2 = ctx.measureText(t2).width;
+                const totalW = swatchW + textPad + w1 + groupGap + swatchW + textPad + w2;
+                let lx = PAD.l + cw / 2 - totalW / 2;
+
+                ctx.textAlign = 'left';
+                ctx.beginPath(); ctx.moveTo(lx, PAD.t - 15); ctx.lineTo(lx + swatchW, PAD.t - 15);
+                ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 1.1; ctx.stroke();
+                ctx.fillStyle = '#FF8A65';
+                ctx.fillText(t1, lx + swatchW + textPad, PAD.t - 12);
+                lx += swatchW + textPad + w1 + groupGap;
+                ctx.beginPath(); ctx.moveTo(lx, PAD.t - 15); ctx.lineTo(lx + swatchW, PAD.t - 15);
+                ctx.strokeStyle = '#7DD3FC';
+                ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+                ctx.fillStyle = '#7DD3FC';
+                ctx.fillText(t2, lx + swatchW + textPad, PAD.t - 12);
+            }
         }
 
         // Título de dos pesos tipo "METEOFLASH": parte fina (300) + parte en negrita (900),
@@ -6086,25 +6193,17 @@
             const levelsH = 170;   // alto zona 850hPa/500hPa (con espacio para ambas líneas y etiquetas)
             const gap3    = 135;   // separación antes de isocero (fila de días de ATMÓSFERA LIBRE → título "COTA DE ISOCERO" = 65px reales)
             const isoH    = 70;    // alto zona cota isocero
-            const gap4    = 150;   // separación antes de CAPE/LI (gráfica COTA ISOCERO → título "INESTABILIDAD CONVECTIVA" = 110px reales)
-            const capeH   = 80;    // alto sub-zona CAPE (barras)
-            const capeGap = 73;    // separación entre CAPE y Lifted Index (gráfica CAPE → título "LIFTED INDEX" = 65px reales)
-            const liH     = 70;    // alto sub-zona Lifted Index (línea)
-            const gap5    = 158;   // separación antes del semáforo de riesgo de tormenta (fila de días tras Lifted Index → título "RIESGO DE TORMENTA" = 110px reales)
-            const riskH   = 80;    // alto de la fila de riesgo de tormenta (dot + Mañana/Tarde + nivel)
 
             const levelsTop    = PAD.t;
             const levelsBottom = levelsTop + levelsH;
             const isoTop     = levelsBottom + gap3;
             const isoBottom  = isoTop + isoH;
-            const capeTop    = isoBottom + gap4;
-            const capeBottom = capeTop + capeH;
-            const liTop      = capeBottom + capeGap;
-            const liBottom   = liTop + liH;
-            const riskTop    = liBottom + gap5;
-            const riskBottom = riskTop + riskH;
 
-            const H = riskBottom + PAD.b;
+            // Nota: CAPE, Lifted Index y CIN ya no se dibujan aquí — se fusionaron en
+            // el Meteograma Sintético de Inestabilidad Convectiva (Chart.js), ver
+            // updateMeteogramaInestabilidad(). El semáforo de riesgo de tormenta pasó
+            // a su propio canvas: ver drawF7ChartRisk().
+            const H = isoBottom + PAD.b;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -6264,138 +6363,251 @@
                 ctx.moveTo(PAD.l, isoBottom); ctx.lineTo(PAD.l + cw, isoBottom);
                 ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
 
-                // ══════════════════════════════════════════════
-                // Zona CAPE (barras) + Lifted Index (línea) — inestabilidad convectiva
-                // Limitada a 3 días, con un punto "Mañana" y otro "Tarde" por día
-                // (6 puntos en total) en vez de 7 días × 00h/12h.
-                // ══════════════════════════════════════════════
-                const stormRows = window._f7StormRows || _f7BuildStormRows(window._hourlyCache, rows);
-                const sN = stormRows.length || 1;
-                const xPosStorm = i => sN > 1 ? (PAD.l + (i / (sN - 1)) * cw) : (PAD.l + cw / 2);
-
-                const capeVS = stormRows.map(r => r.cape);
-                const liVS   = stormRows.map(r => r.li);
-                const capeMaxScale = Math.max(...capeVS, 500);
-                const liMinV = Math.min(...liVS, -2);
-                const liMaxV = Math.max(...liVS, 2);
-                const liHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "LIFTED INDEX"
-                const yLi = v => liTop + liH - ((v - liMinV) / (liMaxV - liMinV || 1)) * (liH - liHeadroom);
-
-                // Título grande estilo METEOFLASH: "3" fino + "DÍAS" en negrita (alineado a la izquierda)
-                _f7DrawSplitTitle(ctx, '3', 'DÍAS', PAD.l, capeTop - 84, 20, 'left');
-
-                // Título general de la sección
-                ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
-                ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                ctx.fillText('INESTABILIDAD CONVECTIVA · 3 DÍAS (MAÑANA/TARDE)', PAD.l, capeTop - 40);
-
-                // ── Sub-zona CAPE: barras con color según intensidad ──
-                ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
-                ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText('CAPE (J/kg)', PAD.l, capeTop - 12);
-
-                const capeBarW = cw / sN * 0.5;
-                const capeHeadroom = 16; // deja aire entre el pico de barra/etiqueta y el título "CAPE (J/kg)"
-                stormRows.forEach((r, j) => {
-                    const v = r.cape;
-                    const barH = Math.max((v / capeMaxScale) * (capeH - capeHeadroom), v > 0 ? 2 : 0);
-                    const x = xPosStorm(j) - capeBarW / 2;
-                    // Colores tenues: naranja (igual tono que 850hPa) / amarillo / verde
-                    const color = v >= 1500 ? 'rgba(255,138,101,0.72)' : v >= 500 ? 'rgba(250,204,21,0.65)' : 'rgba(52,211,153,0.55)';
-                    ctx.fillStyle = color;
-                    ctx.beginPath();
-                    if (ctx.roundRect) {
-                        ctx.roundRect(x, capeBottom - barH, capeBarW, barH, 2);
-                    } else {
-                        ctx.rect(x, capeBottom - barH, capeBarW, barH);
-                    }
-                    ctx.fill();
-                    if (v > 0) {
-                        ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                        ctx.fillText(v, xPosStorm(j), capeBottom - barH - 5);
-                    }
-                });
-
-                // Línea base CAPE
-                ctx.beginPath();
-                ctx.moveTo(PAD.l, capeBottom); ctx.lineTo(PAD.l + cw, capeBottom);
-                ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
-
-                // ── Sub-zona Lifted Index: línea (negativo = inestable) ──
-                ctx.textAlign = 'left'; ctx.font = 'bold 8px Inter,sans-serif';
-                ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText('LIFTED INDEX (°C)', PAD.l, liTop - 12);
-
-                // Línea guía en 0 (referencia estable/inestable)
-                if (liMinV < 0 && liMaxV > 0) {
-                    const y0 = yLi(0);
-                    ctx.beginPath(); ctx.moveTo(PAD.l, y0); ctx.lineTo(PAD.l + cw, y0);
-                    ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 1; ctx.stroke();
-                }
-
-                ctx.beginPath();
-                stormRows.forEach((r, j) => { const x = xPosStorm(j), y = yLi(r.li); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
-                ctx.setLineDash([]);
-                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
-
-                stormRows.forEach((r, j) => {
-                    const x = xPosStorm(j), y = yLi(r.li);
-                    ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
-                    ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                    ctx.fillText(r.li, x, y - 7);
-                });
-
-                // Etiquetas 00-12/12-24 de esta franja
-                ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                stormRows.forEach((r, j) => { ctx.fillText(r.periodLabel, xPosStorm(j), liBottom + 24); });
-
-                // Fila de días (una etiqueta por día, centrada entre su punto de mañana y de tarde)
-                ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                for (let d = 0; d < stormRows.length; d += 2) {
-                    const r = stormRows[d];
-                    const xMid = (xPosStorm(d) + xPosStorm(d + 1)) / 2;
-                    ctx.fillText(r.isToday ? 'HOY' : r.dayName, xMid, liBottom + 40);
-                }
-
-                // Línea base Lifted Index
-                ctx.beginPath();
-                ctx.moveTo(PAD.l, liBottom); ctx.lineTo(PAD.l + cw, liBottom);
-                ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
-
-                // ══════════════════════════════════════════════
-                // Semáforo de riesgo de tormenta (CAPE + Lifted Index + prob. lluvia),
-                // limitado a 3 días con una franja Mañana y otra Tarde por día
-                // ══════════════════════════════════════════════
-                ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
-                ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                ctx.fillText('RIESGO DE TORMENTA · 3 DÍAS (MAÑANA/TARDE)', PAD.l, riskTop - 8);
-
-                const dotR = 9;
-                const yDot = riskTop + 20;
-                stormRows.forEach((r, j) => {
-                    const x = xPosStorm(j);
-                    const risk = r.risk;
-                    ctx.beginPath(); ctx.arc(x, yDot, dotR, 0, Math.PI*2);
-                    ctx.fillStyle = risk.color; ctx.fill();
-                    // Aviso "Loaded Gun": cap extremo pero LI muy negativo, no se rebaja el riesgo
-                    if (risk.loadedGun) {
-                        ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#FFFFFF'; ctx.textAlign = 'center';
-                        ctx.fillText('⚠', x, yDot + 3.5);
-                    }
-                    ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                    ctx.fillText(r.periodLabel, x, yDot + 24);
-                    ctx.font = 'bold 7px Inter,sans-serif'; ctx.fillStyle = risk.color;
-                    ctx.fillText(risk.level, x, yDot + 35);
-                });
-
-                // Fila de días bajo el semáforo, centrada entre mañana/tarde de cada día
-                ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                for (let d = 0; d < stormRows.length; d += 2) {
-                    const r = stormRows[d];
-                    const xMid = (xPosStorm(d) + xPosStorm(d + 1)) / 2;
-                    ctx.fillText(r.isToday ? 'HOY' : r.dayName, xMid, yDot + 48);
-                }
             }
+        }
+
+        /* ══════════════════════════════════════════════
+           SEMÁFORO DE RIESGO DE TORMENTA (canvas propio)
+           Limitado a 3 días, con una franja Mañana y otra Tarde por día
+        ══════════════════════════════════════════════ */
+        function drawF7ChartRisk() {
+            const rows = window._f7Data;
+            const canvas = document.getElementById('f7-chart-risk');
+            if (!canvas) return;
+            const stormRows = window._f7StormRows || _f7BuildStormRows(window._hourlyCache, rows);
+            if (!stormRows || !stormRows.length) {
+                const wrap = document.getElementById('f7-panel-wrap-risk');
+                if (wrap) wrap.style.height = '0px';
+                return;
+            }
+
+            const dpr = window.devicePixelRatio || 1;
+            const W   = canvas.parentElement.offsetWidth - 32;
+            const ctx = canvas.getContext('2d');
+
+            const PAD = { t:16, r:16, b:16, l:16 };
+            const cw  = W - PAD.l - PAD.r;
+            const sN  = stormRows.length || 1;
+            const xPosStorm = i => sN > 1 ? (PAD.l + (i / (sN - 1)) * cw) : (PAD.l + cw / 2);
+
+            const riskTop = PAD.t + 8;
+            const yDot    = riskTop + 20;
+            const H = yDot + 48 + PAD.b;
+
+            canvas.width  = W * dpr;
+            canvas.height = H * dpr;
+            canvas.style.width  = W + 'px';
+            canvas.style.height = H + 'px';
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, W, H);
+
+            _f7SyncWrapHeight('f7-panel-wrap-risk', 'f7-panel-combo-risk', H);
+
+            ctx.textAlign = 'left'; ctx.font = 'bold 11px Inter,sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.fillText('RIESGO DE TORMENTA · 3 DÍAS (MAÑANA/TARDE)', PAD.l, riskTop - 8);
+
+            const dotR = 9;
+            stormRows.forEach((r, j) => {
+                const x = xPosStorm(j);
+                const risk = r.risk;
+                ctx.beginPath(); ctx.arc(x, yDot, dotR, 0, Math.PI*2);
+                ctx.fillStyle = risk.color; ctx.fill();
+                // Aviso "Loaded Gun": cap extremo pero LI muy negativo, no se rebaja el riesgo
+                if (risk.loadedGun) {
+                    ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#FFFFFF'; ctx.textAlign = 'center';
+                    ctx.fillText('⚠', x, yDot + 3.5);
+                }
+                ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                ctx.fillText(r.periodLabel, x, yDot + 24);
+                ctx.font = 'bold 7px Inter,sans-serif'; ctx.fillStyle = risk.color;
+                ctx.fillText(risk.level, x, yDot + 35);
+            });
+
+            // Fila de días bajo el semáforo, centrada entre mañana/tarde de cada día
+            ctx.textAlign = 'center'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            for (let d = 0; d < stormRows.length; d += 2) {
+                const r = stormRows[d];
+                const xMid = (xPosStorm(d) + xPosStorm(d + 1)) / 2;
+                ctx.fillText(r.isToday ? 'HOY' : r.dayName, xMid, yDot + 48);
+            }
+        }
+
+        /* ══════════════════════════════════════════════
+           METEOGRAMA SINTÉTICO DE INESTABILIDAD CONVECTIVA
+           CAPE + CIN + Lifted Index fusionados (Chart.js v4)
+        ══════════════════════════════════════════════ */
+        window._meteogramaInestabilidadChart = null;
+
+        function drawMeteogramaInestabilidad(canvasId, hourly) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || typeof Chart === 'undefined') return null;
+
+            // ── 1. Datos base ────────────────────────────────────────────
+            const labels   = hourly.time || hourly.labels || [];
+            const capeData = hourly.cape || [];
+            // El CIN puede llegar en signo negativo o positivo (magnitud) -> se normaliza
+            const cinData  = (hourly.convective_inhibition || hourly.cin || []).map(v => Math.abs(v || 0));
+            const liData   = hourly.lifted_index || hourly.li || [];
+
+            const n = labels.length;
+
+            // ── 2. Constantes de escala (10:1) y mapeo del LI ────────────
+            const CAPE_MAX   = 3200;
+            const CIN_SCALE  = 10;
+            const CIN_BAND   = 55;
+            const LI_MIN_C   = -8;
+            const LI_TO_CAPE = CAPE_MAX / Math.abs(LI_MIN_C);
+
+            // ── 3. Series visuales ────────────────────────────────────────
+            const cinFloatBar = [];
+            const capeAtrapado = [];
+            const capeLibre    = [];
+            const liAtrapado   = [];
+            const liActivo     = [];
+
+            for (let i = 0; i < n; i++) {
+                const cape = capeData[i] ?? 0;
+                const cin  = cinData[i]  ?? 0;
+                const li   = liData[i]   ?? 0;
+
+                const cinH = cin * CIN_SCALE;
+                cinFloatBar.push([Math.max(0, cinH - CIN_BAND), Math.min(CAPE_MAX, cinH + CIN_BAND)]);
+
+                const capeAtrap = Math.min(cinH, cape);
+                capeAtrapado.push(capeAtrap);
+                capeLibre.push(Math.max(0, cape - capeAtrap));
+
+                const liH = Math.max(0, Math.min(CAPE_MAX, -li * LI_TO_CAPE));
+                const liAtrap = Math.min(cinH, liH);
+                liAtrapado.push(liAtrap);
+                liActivo.push(Math.max(0, liH - liAtrap));
+            }
+
+            // ── 4. Diagnóstico Convectivo Automatizado (texto puro, sin iconos) ─
+            // De más extremo/específico a más genérico; el último caso (comodín)
+            // nunca deja el cuadro vacío, aunque no encaje ningún umbral "clásico".
+            function diagnosticoConvectivo(cape, cin, li) {
+                if (cape > 2500 && cin < 25 && li <= -6) {
+                    return 'DIAGNOSTICO: Riesgo extremo. Atmósfera cargada al máximo y prácticamente sin tapón: entorno favorable para tormentas severas y posibles supercélulas.';
+                }
+                if (cape > 2000 && cin >= 150) {
+                    return 'DIAGNOSTICO: Olla a presión. Combustible extremo retenido por fuerte tapón. Monitorear orografía o frentes.';
+                }
+                if (cape > 1500 && cin < 50 && li <= -4) {
+                    return 'DIAGNOSTICO: Bomba convectiva activa. Vía libre para tormentas explosivas y severas.';
+                }
+                if (cape > 1000 && cin >= 50 && cin < 150) {
+                    return 'DIAGNOSTICO: Energía moderada con tapa parcial. Disparo posible por calentamiento diurno o forzamiento orográfico/frontal.';
+                }
+                if (cape >= 500 && cape <= 1500 && cin < 50) {
+                    return 'DIAGNOSTICO: Ambiente ligeramente inestable. Chubascos o tormentas aisladas posibles, de intensidad limitada.';
+                }
+                if (cape < 500 && li <= -4) {
+                    return 'DIAGNOSTICO: Inestabilidad elevada en niveles medios pese a poca energía en superficie. Vigilar si aumenta el calentamiento diurno.';
+                }
+                if (cape < 500 && cin > 100) {
+                    return 'DIAGNOSTICO: Atmósfera estable. El tapón anula cualquier amago de convección.';
+                }
+                if (cape < 300 && cin <= 100 && li > -2) {
+                    return 'DIAGNOSTICO: Atmósfera tranquila. Sin señales relevantes de convección en esta franja.';
+                }
+                // Comodín: no encaja en ningún patrón anterior, pero igualmente se informa
+                return `DIAGNOSTICO: Condiciones mixtas (CAPE ${Math.round(cape)} J/kg, CIN -${Math.round(cin)} J/kg, LI ${li.toFixed(1)}°C). Sin un patrón convectivo dominante claro.`;
+            }
+
+            function actualizarDiagnostico(i) {
+                const contenedor = document.getElementById('texto-diagnostico');
+                if (!contenedor) return;
+                if (i === null || i === undefined || i < 0 || i >= n) {
+                    contenedor.textContent = '';
+                    return;
+                }
+                contenedor.textContent = diagnosticoConvectivo(capeData[i] ?? 0, cinData[i] ?? 0, liData[i] ?? 0);
+            }
+
+            // ── 5. Datasets ────────────────────────────────────────────────
+            const datasets = [
+                { label: 'CAPE atrapado', type: 'bar', data: capeAtrapado, backgroundColor: 'rgba(35, 177, 77, 0.25)', stack: 'cape', yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 3, datalabels: { display: false } },
+                {
+                    label: 'CAPE libre', type: 'bar', data: capeLibre, backgroundColor: '#23b14d', stack: 'cape', yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 3,
+                    datalabels: {
+                        color: '#ffffff', font: { weight: 'bold', size: 9 }, anchor: 'end', align: 'top', offset: 2,
+                        formatter: (v, ctx) => `${Math.round(capeData[ctx.dataIndex] ?? 0)}`
+                    }
+                },
+                { label: 'LI atrapado', type: 'bar', data: liAtrapado, backgroundColor: 'rgba(47, 85, 205, 0.3)', stack: 'li', yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 2, datalabels: { display: false } },
+                {
+                    label: 'LI activo', type: 'bar', data: liActivo, backgroundColor: '#2f55cd', stack: 'li', yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 2,
+                    datalabels: {
+                        color: '#ffffff', font: { weight: 'bold', size: 9 }, anchor: 'end', align: 'top', offset: 2,
+                        formatter: (v, ctx) => `${(liData[ctx.dataIndex] ?? 0).toFixed(1)}°`
+                    }
+                },
+                {
+                    label: 'CIN (cuchilla)', type: 'bar', data: cinFloatBar,
+                    backgroundColor: '#e61919', borderColor: '#e61919', borderWidth: 1,
+                    grouped: false, barPercentage: 0.85, categoryPercentage: 0.9,
+                    yAxisID: 'yCAPE', order: 1,
+                    datalabels: {
+                        color: '#ffffff', font: { weight: 'bold', size: 9 }, anchor: 'center', align: 'center',
+                        formatter: (v, ctx) => `-${Math.round(cinData[ctx.dataIndex] ?? 0)}`
+                    }
+                }
+            ];
+
+            // ── 6. Configuración Chart.js ────────────────────────────────
+            if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
+            const config = {
+                type: 'bar',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    events: [],   // sin interacción con el ratón (ni hover ni click)
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.6)' } },
+                        yCAPE: {
+                            type: 'linear', position: 'left', min: 0, max: CAPE_MAX, stacked: true,
+                            grid: { color: 'rgba(255,255,255,0.10)' },
+                            ticks: { color: 'rgba(255,255,255,0.6)' },
+                            title: { display: true, text: 'CAPE / CIN (J/kg)', color: 'rgba(255,255,255,0.8)' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(255,255,255,0.8)',
+                                filter: item => ['CAPE libre', 'LI activo', 'CIN (cuchilla)'].includes(item.text)
+                            }
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    }
+                }
+            };
+
+            // Diagnóstico fijo (franja actual, sin depender del ratón)
+            actualizarDiagnostico(0);
+
+            if (window._meteogramaInestabilidadChart) {
+                window._meteogramaInestabilidadChart.destroy();
+            }
+            window._meteogramaInestabilidadChart = new Chart(canvas.getContext('2d'), config);
+            return window._meteogramaInestabilidadChart;
+        }
+
+        function updateMeteogramaInestabilidad() {
+            const rows = window._f7Data;
+            const stormRows = window._f7StormRows || _f7BuildStormRows(window._hourlyCache, rows);
+            if (!stormRows || !stormRows.length) return;
+            drawMeteogramaInestabilidad('meteograma-inestabilidad-canvas', {
+                time: stormRows.map(r => `${r.isToday ? 'HOY' : r.dayName} ${r.period}`),
+                cape: stormRows.map(r => r.cape),
+                cin:  stormRows.map(r => r.cin),
+                li:   stormRows.map(r => r.li)
+            });
         }
 
         /* ══════════════════════════════════════════════
@@ -6524,6 +6736,7 @@
                 updateProximaLluvia(data.hourly);
                 updateRunningIndex(data.current, data.hourly, data.daily, aqData?.current ?? null);
                 updateSportSection(data.current, data.hourly, aqData?.current ?? null);
+                updateWalkSection(data.current, data.hourly, aqData?.current ?? null);
                 updateParaguasSection(data.hourly);
                 drawParaguasHourlyChart(data.hourly);
                 drawParaguasDaysChart(data.hourly);
@@ -7029,8 +7242,8 @@
         function _sportScoreAt(temp, hum, wind, uv, aqi, wmo) {
             var s = 100;
             if      (temp < 5)  s -= 25; else if (temp < 10) s -= 10;
-            else if (temp > 30) s -= 45; else if (temp > 26) s -= 28;
-            else if (temp > 22) s -= 15; else if (temp > 18) s -= 5;
+            else if (temp > 30) s -= 55; else if (temp > 26) s -= 42;
+            else if (temp > 22) s -= 25; else if (temp > 18) s -= 5;
             if      (hum > 85) s -= 28; else if (hum > 75) s -= 18; else if (hum > 65) s -= 8;
             if      (wind > 35) s -= 18; else if (wind > 25) s -= 10; else if (wind > 15) s -= 5;
             if      (uv >= 8) s -= 18; else if (uv >= 6) s -= 8;
@@ -7045,11 +7258,74 @@
         }
 
         function _sportLevel(score) {
-            if (score >= 80) return { label:'Excelente', color:'#16a34a', bg:'#f0fdf4' };
-            if (score >= 60) return { label:'Buena',     color:'#84cc16', bg:'#f7fee7' };
-            if (score >= 40) return { label:'Regular',   color:'#f59e0b', bg:'#fffbeb' };
-            if (score >= 20) return { label:'Precaución',color:'#f97316', bg:'#fff7ed' };
-            return { label:'Mala', color:'#ef4444', bg:'#fef2f2' };
+            if (score >= 60) return { label:'Buena',   title:'buenas condiciones', color:'#16a34a', bg:'#f0fdf4' };
+            if (score >= 20) return { label:'Regular', title:'condiciones mejorables', color:'#f97316', bg:'#fff7ed' };
+            return { label:'Mala', title:'no recomendable', color:'#9d174d', bg:'#fdf2f8' };
+        }
+
+        // ── Causas por las que las condiciones no son óptimas (en minúsculas, con datos) ──
+        function _sportReason(temp, hum, wind, uv, aqi, wmo, feels) {
+            var reasons = [];
+            var t  = Math.round(temp);
+            var f  = feels != null ? Math.round(feels) : null;
+            var u  = Math.round(uv);
+
+            // Temperatura real vs sensación térmica: solo se muestra la más destacada de las dos
+            var tempCause = null;
+            if      (temp < 5)   tempCause = { p:25, txt:'frío intenso de ' + t + 'º' };
+            else if (temp < 10)  tempCause = { p:10, txt:'frío de ' + t + 'º' };
+            else if (temp > 35)  tempCause = { p:45, txt:'calor extremo de ' + t + 'º' };
+            else if (temp > 30)  tempCause = { p:28, txt:'calor de ' + t + 'º' };
+            else if (temp > 26)  tempCause = { p:20, txt:'calor moderado de ' + t + 'º' };
+
+            var feelsCause = null;
+            if (f != null) {
+                if (feels > 32) feelsCause = { p:32, txt:'temperatura de sensación (bochorno) de ' + f + 'º' };
+                if (feels < 0)  feelsCause = { p:32, txt:'temperatura de sensación (frío) de ' + f + 'º' };
+            }
+
+            if (tempCause && feelsCause) {
+                reasons.push(tempCause.p >= feelsCause.p ? tempCause : feelsCause);
+            } else if (tempCause) {
+                reasons.push(tempCause);
+            } else if (feelsCause) {
+                reasons.push(feelsCause);
+            }
+
+            // Viento
+            if      (wind > 35) reasons.push({ p:18, txt:'viento fuerte' });
+            else if (wind > 25) reasons.push({ p:10, txt:'viento moderado' });
+
+            // Radiación UV
+            if (uv >= 8) reasons.push({ p:18, txt:'radiación uv alta (índice ' + u + ')' });
+
+            // Calidad del aire (AQI europeo) — solo se muestra si realmente es un problema (regular en adelante)
+            if      (aqi > 100) reasons.push({ p:35, txt:'calidad del aire extremadamente mala' });
+            else if (aqi > 80)  reasons.push({ p:30, txt:'calidad del aire muy mala' });
+            else if (aqi > 60)  reasons.push({ p:20, txt:'calidad del aire mala' });
+            else if (aqi > 40)  reasons.push({ p:10, txt:'calidad del aire regular' });
+
+            // Precipitación / tormenta
+            var isRain    = (wmo >= 51 && wmo <= 67) || (wmo >= 80 && wmo <= 82);
+            var isThunder = wmo >= 95;
+            var isSnow    = wmo >= 71 && wmo <= 77;
+            if      (isThunder) reasons.push({ p:60, txt:'riesgo de tormenta' });
+            else if (isRain)    reasons.push({ p:30, txt:'riesgo de lluvia' });
+            else if (isSnow)    reasons.push({ p:20, txt:'nieve' });
+
+            reasons.sort(function(a,b){ return b.p - a.p; });
+            return reasons;
+        }
+
+        // ── Frase final mostrada en cada tarjeta, según el nivel ──
+        function _sportPhrase(lvl, temp, hum, wind, uv, aqi, wmo, feels) {
+            if (lvl.label === 'Buena') {
+                return 'Sin excusas, las condiciones para entrenar son inmejorables.';
+            }
+            var causes = _sportReason(temp, hum, wind, uv, aqi, wmo, feels);
+            if (!causes.length) return 'condiciones poco favorables';
+            var top = causes.slice(0, 2).map(function(c){ return c.txt; });
+            return top.join(', ');
         }
 
         function updateSportSection(current, hourly, aq) {
@@ -7073,26 +7349,35 @@
                 { label: String(now.getHours()), offset: 0 },
                 { label: String((now.getHours()+1) % 24), offset: 1 },
                 { label: String((now.getHours()+2) % 24), offset: 2 },
-                { label: String((now.getHours()+3) % 24), offset: 3 }
+                { label: String((now.getHours()+3) % 24), offset: 3 },
+                { label: String((now.getHours()+4) % 24), offset: 4 },
+                { label: String((now.getHours()+5) % 24), offset: 5 },
+                { label: String((now.getHours()+6) % 24), offset: 6 }
             ];
 
-            var cardsHTML = points.map(function(p) {
-                var temp, hum, wind, uv, wmo;
+            var runSvg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg>';
+
+            function computePoint(p) {
+                var temp, hum, wind, uv, wmo, feels, dt;
                 if (p.offset === 0) {
+                    dt = now;
                     temp = current.temperature_2m ?? 20;
                     hum  = current.relative_humidity_2m ?? 50;
                     wind = current.wind_speed_10m ?? 0;
                     wmo  = current.weather_code ?? 0;
+                    feels = current.apparent_temperature ?? temp;
                     var idxNow = findHourlyIdx(now);
                     uv = idxNow !== -1 ? (hourly?.uv_index?.[idxNow] ?? 0) : 0;
                 } else {
                     var future = new Date(now.getTime() + p.offset * 3600000);
+                    dt = future;
                     var idx = findHourlyIdx(future);
                     if (idx === -1) {
                         temp = current.temperature_2m ?? 20;
                         hum  = current.relative_humidity_2m ?? 50;
                         wind = current.wind_speed_10m ?? 0;
                         wmo  = current.weather_code ?? 0;
+                        feels = current.apparent_temperature ?? temp;
                         uv   = 0;
                     } else {
                         temp = hourly.temperature_2m?.[idx] ?? 20;
@@ -7100,19 +7385,176 @@
                         wind = hourly.wind_speed_10m?.[idx] ?? 0;
                         wmo  = hourly.weather_code?.[idx] ?? 0;
                         uv   = hourly.uv_index?.[idx] ?? 0;
+                        feels = hourly.apparent_temperature?.[idx] ?? temp;
                     }
                 }
                 var score = _sportScoreAt(temp, hum, wind, uv, aqi, wmo);
                 var lvl = _sportLevel(score);
+                var reason = _sportPhrase(lvl, temp, hum, wind, uv, aqi, wmo, feels);
+                return { p:p, lvl:lvl, reason:reason };
+            }
 
-                return '<div style="flex:1;min-width:0;text-align:center;background:transparent;border-radius:10px;padding:12px 4px;">' +
-                    '<div style="font-size:9px;font-weight:700;color:#123653;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;opacity:0.75;">' + p.label + 'h</div>' +
-                    '<div style="width:20px;height:20px;border-radius:50%;background:' + lvl.color + ';box-shadow:0 0 8px ' + lvl.color + '80, inset 0 2px 3px rgba(255,255,255,0.35);margin:0 auto 8px auto;"></div>' +
-                    '<div style="font-size:9.5px;font-weight:700;color:#123653;text-transform:uppercase;line-height:1.2;">' + lvl.label + '</div>' +
+            // ── Tarjeta principal: hora actual, sin cambios de diseño ──
+            var mainData = computePoint(points[0]);
+            var mainIcon = maskedIconHtml(runSvg, 22, mainData.lvl.color);
+            var mainHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px;border-bottom:none;">' +
+                '<div style="display:flex;align-items:center;justify-content:center;gap:8px;">' +
+                    '<div style="font-size:12px;font-weight:700;color:#123653;">Ahora</div>' +
+                    '<div style="display:flex;align-items:center;justify-content:center;">' + mainIcon + '</div>' +
+                    '<div style="font-size:11px;font-weight:700;color:' + mainData.lvl.color + ';text-transform:uppercase;">' + mainData.lvl.title + '</div>' +
+                '</div>' +
+                '<div style="text-align:center;font-size:10.5px;font-weight:400;font-style:normal;color:#123653;text-transform:uppercase;margin-top:4px;">' + mainData.reason + '</div>' +
+            '</div>';
+
+            // ── Las 6 horas siguientes: fila compacta con solo icono + hora ──
+            var nextHTML = points.slice(1).map(function(p) {
+                var d = computePoint(p);
+                var icon = maskedIconHtml(runSvg, 18, d.lvl.color);
+                return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">' +
+                    '<div style="display:flex;align-items:center;justify-content:center;">' + icon + '</div>' +
+                    '<div style="font-size:11px;font-weight:700;color:#123653;">' + d.p.label + 'h</div>' +
                 '</div>';
             }).join('');
 
-            wrap.innerHTML = cardsHTML;
+            var nextRowHTML = '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;row-gap:16px;column-gap:14px;padding:10px 6px 4px;margin-top:2px;">' + nextHTML + '</div>';
+
+            wrap.innerHTML = mainHTML + nextRowHTML;
+        }
+
+        // ── Puntuación de condiciones para PASEAR (más permisiva que para correr) ──
+        function _walkScoreAt(temp, hum, wind, uv, aqi, wmo) {
+            var s = 100;
+            if      (temp < 3)  s -= 20; else if (temp < 8) s -= 8;
+            else if (temp > 34) s -= 45; else if (temp > 30) s -= 30; else if (temp > 26) s -= 15;
+            if      (hum > 88) s -= 20; else if (hum > 78) s -= 12; else if (hum > 68) s -= 5;
+            if      (wind > 45) s -= 30; else if (wind > 32) s -= 15;
+            if      (uv >= 9) s -= 14; else if (uv >= 7) s -= 6;
+            if      (aqi > 80) s -= 28; else if (aqi > 60) s -= 18; else if (aqi > 40) s -= 8; else if (aqi > 20) s -= 3;
+            var isRain    = (wmo >= 51 && wmo <= 67) || (wmo >= 80 && wmo <= 82);
+            var isThunder = wmo >= 95;
+            var isSnow    = wmo >= 71 && wmo <= 77;
+            if      (isThunder) s -= 50;
+            else if (isRain)    s -= 40;
+            else if (isSnow)    s -= 40;
+            return Math.max(0, Math.min(100, Math.round(s)));
+        }
+
+        // ── Frase final para pasear, según el nivel ──
+        function _walkPhrase(lvl, temp, hum, wind, uv, aqi, wmo, feels) {
+            if (lvl.label === 'Buena') {
+                return 'Tiempo ideal para pasear y disfrutar al aire libre.';
+            }
+            var causes = _sportReason(temp, hum, wind, uv, aqi, wmo, feels);
+            if (!causes.length) return 'condiciones poco favorables';
+            var top = causes.slice(0, 2).map(function(c){ return c.txt; });
+            return top.join(', ');
+        }
+
+        function updateWalkSection(current, hourly, aq) {
+            var wrap = document.getElementById('walk-section-cards');
+            if (!wrap || !current) return;
+
+            var aqi = aq?.european_aqi ?? aq?.us_aqi ?? 0;
+            var now = new Date();
+
+            function findHourlyIdx(targetDate) {
+                if (!hourly?.time) return -1;
+                var ts = targetDate.getFullYear() + '-' + String(targetDate.getMonth()+1).padStart(2,'0') + '-' +
+                         String(targetDate.getDate()).padStart(2,'0') + 'T' + String(targetDate.getHours()).padStart(2,'0');
+                for (var i = 0; i < hourly.time.length; i++) {
+                    if (hourly.time[i].startsWith(ts)) return i;
+                }
+                return -1;
+            }
+
+            var points = [
+                { label: String(now.getHours()), offset: 0 },
+                { label: String((now.getHours()+1) % 24), offset: 1 },
+                { label: String((now.getHours()+2) % 24), offset: 2 },
+                { label: String((now.getHours()+3) % 24), offset: 3 },
+                { label: String((now.getHours()+4) % 24), offset: 4 },
+                { label: String((now.getHours()+5) % 24), offset: 5 },
+                { label: String((now.getHours()+6) % 24), offset: 6 }
+            ];
+
+            var walkSvg = '<svg viewBox="0 0 26 22" xmlns="http://www.w3.org/2000/svg">' +
+                // Árbol
+                '<circle cx="3.5" cy="6.5" r="3.8"/>' +
+                '<rect x="2.6" y="10" width="1.8" height="4" rx="0.4"/>' +
+                // Mujer (de frente)
+                '<circle cx="11" cy="3.8" r="2.1"/>' +
+                '<polygon points="8.4,8 13.6,8 14.6,16 7.4,16"/>' +
+                '<rect x="9.2" y="16" width="1.5" height="6" rx="0.6"/>' +
+                '<rect x="12.3" y="16" width="1.5" height="6" rx="0.6"/>' +
+                // Hombre (de frente)
+                '<circle cx="19.8" cy="3.8" r="2.1"/>' +
+                '<rect x="17.1" y="7.9" width="5.4" height="7.6" rx="1.1"/>' +
+                '<rect x="17.4" y="15.5" width="2.1" height="7" rx="0.8"/>' +
+                '<rect x="20" y="15.5" width="2.1" height="7" rx="0.8"/>' +
+                '</svg>';
+
+            function computePoint(p) {
+                var temp, hum, wind, uv, wmo, feels, dt;
+                if (p.offset === 0) {
+                    dt = now;
+                    temp = current.temperature_2m ?? 20;
+                    hum  = current.relative_humidity_2m ?? 50;
+                    wind = current.wind_speed_10m ?? 0;
+                    wmo  = current.weather_code ?? 0;
+                    feels = current.apparent_temperature ?? temp;
+                    var idxNow = findHourlyIdx(now);
+                    uv = idxNow !== -1 ? (hourly?.uv_index?.[idxNow] ?? 0) : 0;
+                } else {
+                    var future = new Date(now.getTime() + p.offset * 3600000);
+                    dt = future;
+                    var idx = findHourlyIdx(future);
+                    if (idx === -1) {
+                        temp = current.temperature_2m ?? 20;
+                        hum  = current.relative_humidity_2m ?? 50;
+                        wind = current.wind_speed_10m ?? 0;
+                        wmo  = current.weather_code ?? 0;
+                        feels = current.apparent_temperature ?? temp;
+                        uv   = 0;
+                    } else {
+                        temp = hourly.temperature_2m?.[idx] ?? 20;
+                        hum  = hourly.relative_humidity_2m?.[idx] ?? 50;
+                        wind = hourly.wind_speed_10m?.[idx] ?? 0;
+                        wmo  = hourly.weather_code?.[idx] ?? 0;
+                        uv   = hourly.uv_index?.[idx] ?? 0;
+                        feels = hourly.apparent_temperature?.[idx] ?? temp;
+                    }
+                }
+                var score = _walkScoreAt(temp, hum, wind, uv, aqi, wmo);
+                var lvl = _sportLevel(score);
+                var reason = _walkPhrase(lvl, temp, hum, wind, uv, aqi, wmo, feels);
+                return { p:p, lvl:lvl, reason:reason };
+            }
+
+            // ── Tarjeta principal: hora actual ──
+            var mainData = computePoint(points[0]);
+            var mainIcon = maskedIconHtml(walkSvg, 22, mainData.lvl.color);
+            var mainHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px;border-bottom:none;">' +
+                '<div style="display:flex;align-items:center;justify-content:center;gap:8px;">' +
+                    '<div style="font-size:12px;font-weight:700;color:#123653;">Ahora</div>' +
+                    '<div style="display:flex;align-items:center;justify-content:center;">' + mainIcon + '</div>' +
+                    '<div style="font-size:11px;font-weight:700;color:' + mainData.lvl.color + ';text-transform:uppercase;">' + mainData.lvl.title + '</div>' +
+                '</div>' +
+                '<div style="text-align:center;font-size:10.5px;font-weight:400;font-style:normal;color:#123653;text-transform:uppercase;margin-top:4px;">' + mainData.reason + '</div>' +
+            '</div>';
+
+            // ── Las 6 horas siguientes: fila compacta con solo icono + hora ──
+            var nextHTML = points.slice(1).map(function(p) {
+                var d = computePoint(p);
+                var icon = maskedIconHtml(walkSvg, 18, d.lvl.color);
+                return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">' +
+                    '<div style="display:flex;align-items:center;justify-content:center;">' + icon + '</div>' +
+                    '<div style="font-size:11px;font-weight:700;color:#123653;">' + d.p.label + 'h</div>' +
+                '</div>';
+            }).join('');
+
+            var nextRowHTML = '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;row-gap:16px;column-gap:14px;padding:10px 6px 4px;margin-top:2px;">' + nextHTML + '</div>';
+
+            wrap.innerHTML = mainHTML + nextRowHTML;
         }
 
         function updateRunningIndex(current, hourly, daily, aq) {
