@@ -220,33 +220,7 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
                     }
                 },
                 tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    callbacks: {
-                        // Limpia los rangos matemáticos internos y muestra los valores reales del modelo
-                        label: function (ctx) {
-                            const i = ctx.dataIndex;
-                            const cape = capeData[i] ?? 0;
-                            const cin  = cinData[i]  ?? 0;
-
-                            switch (ctx.dataset.label) {
-                                case 'CAPE atrapado':
-                                case 'LI atrapado':
-                                case 'LI activo':
-                                    return null; // se omiten: el valor real se muestra en las líneas combinadas
-                                case 'CAPE libre':
-                                    return `CAPE total: ${Math.round(cape)} J/kg`;
-                                case 'CIN (cuchilla)':
-                                    return `CIN: -${Math.round(cin)} J/kg`;
-                                case 'Tendencia LI':
-                                    return `Lifted Index: ${(liData[i] ?? 0).toFixed(1)} °C`;
-                                default:
-                                    return null;
-                            }
-                        }
-                        // Nota: el diagnóstico ya NO se muestra en el footer del tooltip.
-                        // Se inyecta dinámicamente en #texto-diagnostico vía onHover (ver arriba).
-                    }
+                    enabled: false
                 }
             }
         }

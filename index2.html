@@ -6562,28 +6562,7 @@
                             }
                         },
                         tooltip: {
-                            mode: 'index', intersect: false,
-                            callbacks: {
-                                label: function (ctx) {
-                                    const i = ctx.dataIndex;
-                                    const cape = capeData[i] ?? 0;
-                                    const cin  = cinData[i]  ?? 0;
-                                    switch (ctx.dataset.label) {
-                                        case 'CAPE atrapado':
-                                        case 'LI atrapado':
-                                        case 'LI activo':
-                                            return null;
-                                        case 'CAPE libre':
-                                            return `CAPE total: ${Math.round(cape)} J/kg`;
-                                        case 'CIN (cuchilla)':
-                                            return `CIN: -${Math.round(cin)} J/kg`;
-                                        case 'Tendencia LI':
-                                            return `Lifted Index: ${(liData[i] ?? 0).toFixed(1)} °C`;
-                                        default:
-                                            return null;
-                                    }
-                                }
-                            }
+                            enabled: false
                         }
                     }
                 }
