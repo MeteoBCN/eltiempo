@@ -6456,7 +6456,6 @@
             const CIN_SCALE  = 10;
             const CIN_BAND   = 55;
             const LI_MIN_C   = -8;
-            const LI_MAX_C   = 1;
             const LI_TO_CAPE = CAPE_MAX / Math.abs(LI_MIN_C);
 
             // ── 3. Series visuales ────────────────────────────────────────
@@ -6510,21 +6509,15 @@
 
             // ── 5. Datasets ────────────────────────────────────────────────
             const datasets = [
-                { label: 'CAPE atrapado', type: 'bar', data: capeAtrapado, backgroundColor: 'rgba(35, 177, 77, 0.25)', stack: 'cape', yAxisID: 'yCAPE', barPercentage: 0.35, categoryPercentage: 0.8, order: 3 },
-                { label: 'CAPE libre',    type: 'bar', data: capeLibre,    backgroundColor: '#23b14d',                 stack: 'cape', yAxisID: 'yCAPE', barPercentage: 0.35, categoryPercentage: 0.8, order: 3 },
-                { label: 'LI atrapado',   type: 'bar', data: liAtrapado,   backgroundColor: 'rgba(47, 85, 205, 0.3)',  stack: 'li',   yAxisID: 'yCAPE', barPercentage: 0.2,  categoryPercentage: 0.8, order: 2 },
-                { label: 'LI activo',     type: 'bar', data: liActivo,     backgroundColor: '#2f55cd',                 stack: 'li',   yAxisID: 'yCAPE', barPercentage: 0.2,  categoryPercentage: 0.8, order: 2 },
+                { label: 'CAPE atrapado', type: 'bar', data: capeAtrapado, backgroundColor: 'rgba(35, 177, 77, 0.25)', stack: 'cape', yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 3 },
+                { label: 'CAPE libre',    type: 'bar', data: capeLibre,    backgroundColor: '#23b14d',                 stack: 'cape', yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 3 },
+                { label: 'LI atrapado',   type: 'bar', data: liAtrapado,   backgroundColor: 'rgba(47, 85, 205, 0.3)',  stack: 'li',   yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 2 },
+                { label: 'LI activo',     type: 'bar', data: liActivo,     backgroundColor: '#2f55cd',                 stack: 'li',   yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 2 },
                 {
                     label: 'CIN (cuchilla)', type: 'bar', data: cinFloatBar,
                     backgroundColor: '#e61919', borderColor: '#e61919', borderWidth: 1,
                     grouped: false, barPercentage: 0.85, categoryPercentage: 0.9,
                     yAxisID: 'yCAPE', order: 1
-                },
-                {
-                    label: 'Tendencia LI', type: 'line', data: liData,
-                    borderColor: '#2f55cd', backgroundColor: '#2f55cd', borderWidth: 2,
-                    pointRadius: 0, pointHoverRadius: 3, tension: 0.3, fill: false,
-                    yAxisID: 'yLI', order: 0
                 }
             ];
 
@@ -6535,10 +6528,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    onHover: (event, elements) => {
-                        actualizarDiagnostico(elements && elements.length ? elements[0].index : null);
-                    },
+                    events: [],   // sin interacción con el ratón (ni hover ni click)
                     scales: {
                         x: { stacked: true, grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.6)' } },
                         yCAPE: {
@@ -6546,19 +6536,13 @@
                             grid: { color: 'rgba(255,255,255,0.10)' },
                             ticks: { color: 'rgba(255,255,255,0.6)' },
                             title: { display: true, text: 'CAPE / CIN (J/kg)', color: 'rgba(255,255,255,0.8)' }
-                        },
-                        yLI: {
-                            type: 'linear', position: 'right', min: LI_MIN_C, max: LI_MAX_C, reverse: true,
-                            grid: { drawOnChartArea: false },
-                            ticks: { color: 'rgba(255,255,255,0.6)' },
-                            title: { display: true, text: 'Lifted Index (°C)', color: 'rgba(255,255,255,0.8)' }
                         }
                     },
                     plugins: {
                         legend: {
                             labels: {
                                 color: 'rgba(255,255,255,0.8)',
-                                filter: item => ['CAPE libre', 'LI activo', 'CIN (cuchilla)', 'Tendencia LI'].includes(item.text)
+                                filter: item => ['CAPE libre', 'LI activo', 'CIN (cuchilla)'].includes(item.text)
                             }
                         },
                         tooltip: {
@@ -6567,6 +6551,9 @@
                     }
                 }
             };
+
+            // Diagnóstico fijo (franja actual, sin depender del ratón)
+            actualizarDiagnostico(0);
 
             if (window._meteogramaInestabilidadChart) {
                 window._meteogramaInestabilidadChart.destroy();

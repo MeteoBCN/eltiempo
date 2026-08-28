@@ -37,7 +37,6 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
     const CIN_SCALE  = 10;                             // proporción visual CIN -> escala CAPE
     const CIN_BAND   = 55;                              // semigrosor visual de la "cuchilla" del CIN
     const LI_MIN_C   = -8;                             // LI extremo -> tope visual (3200)
-    const LI_MAX_C   = 1;                               // LI estable -> base del eje yLI
     const LI_TO_CAPE = CAPE_MAX / Math.abs(LI_MIN_C);   // factor de conversión LI(°C) -> escala CAPE (400)
 
     // ── 3. Construcción de las series visuales ────────────────────────
@@ -105,8 +104,8 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
             backgroundColor: 'rgba(35, 177, 77, 0.25)',
             stack: 'cape',
             yAxisID: 'yCAPE',
-            barPercentage: 0.35,
-            categoryPercentage: 0.8,
+            barPercentage: 0.5,
+            categoryPercentage: 0.85,
             order: 3
         },
         {
@@ -116,8 +115,8 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
             backgroundColor: '#23b14d',
             stack: 'cape',
             yAxisID: 'yCAPE',
-            barPercentage: 0.35,
-            categoryPercentage: 0.8,
+            barPercentage: 0.5,
+            categoryPercentage: 0.85,
             order: 3
         },
         {
@@ -127,8 +126,8 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
             backgroundColor: 'rgba(47, 85, 205, 0.3)',
             stack: 'li',
             yAxisID: 'yCAPE',
-            barPercentage: 0.2,
-            categoryPercentage: 0.8,
+            barPercentage: 0.5,
+            categoryPercentage: 0.85,
             order: 2
         },
         {
@@ -138,8 +137,8 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
             backgroundColor: '#2f55cd',
             stack: 'li',
             yAxisID: 'yCAPE',
-            barPercentage: 0.2,
-            categoryPercentage: 0.8,
+            barPercentage: 0.5,
+            categoryPercentage: 0.85,
             order: 2
         },
         {
@@ -155,21 +154,6 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
             categoryPercentage: 0.9,
             yAxisID: 'yCAPE',
             order: 1
-        },
-        {
-            // Curva de tendencia del Lifted Index (eje derecho)
-            label: 'Tendencia LI',
-            type: 'line',
-            data: liData,
-            borderColor: '#2f55cd',
-            backgroundColor: '#2f55cd',
-            borderWidth: 2,
-            pointRadius: 0,
-            pointHoverRadius: 3,
-            tension: 0.3,
-            fill: false,
-            yAxisID: 'yLI',
-            order: 0
         }
     ];
 
@@ -180,15 +164,7 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            // Captura la columna activa en tiempo real y actualiza el diagnóstico externo
-            onHover: (event, elements) => {
-                if (elements && elements.length) {
-                    actualizarDiagnostico(elements[0].index);
-                } else {
-                    actualizarDiagnostico(null);
-                }
-            },
+            events: [],   // sin interacción con el ratón (ni hover ni click)
             scales: {
                 x: {
                     stacked: true,
@@ -201,22 +177,13 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
                     max: CAPE_MAX,
                     stacked: true,
                     title: { display: true, text: 'CAPE / CIN (J/kg)' }
-                },
-                yLI: {
-                    type: 'linear',
-                    position: 'right',
-                    min: LI_MIN_C,
-                    max: LI_MAX_C,
-                    reverse: true,                       // -8 arriba (inestable) / 1 abajo (estable)
-                    grid: { drawOnChartArea: false },     // evita duplicar la cuadrícula de fondo
-                    title: { display: true, text: 'Lifted Index (°C)' }
                 }
             },
             plugins: {
                 legend: {
                     labels: {
                         // Limpia la leyenda: solo un ítem representativo por variable
-                        filter: item => ['CAPE libre', 'LI activo', 'CIN (cuchilla)', 'Tendencia LI'].includes(item.text)
+                        filter: item => ['CAPE libre', 'LI activo', 'CIN (cuchilla)'].includes(item.text)
                     }
                 },
                 tooltip: {
@@ -225,6 +192,9 @@ function drawMeteogramaInestabilidad(canvasId, hourly) {
             }
         }
     };
+
+    // Diagnóstico fijo (franja actual, sin depender del ratón)
+    actualizarDiagnostico(0);
 
     return new Chart(canvas.getContext('2d'), config);
 }
