@@ -1376,6 +1376,32 @@
                                         <svg id="ics-pressure-trend-icon" width="26" height="12" viewBox="0 0 26 12" style="margin-top:6px;"></svg>
                                     </div>
                                 </div>
+
+                                <div style="width:100%;height:1px;background:rgba(255,255,255,0.12);margin:14px 0 12px;"></div>
+
+                                <!-- Seguimiento de Inestabilidad: 5 indicadores adicionales -->
+                                <div style="display:flex;justify-content:space-between;gap:6px;">
+                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;">
+                                        <div style="font-size:9px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;line-height:1.2;">Depre.<br>Rocío</div>
+                                        <div id="ics-dewdep-value" style="font-size:15px;font-weight:700;color:#ffffff;line-height:1;">—</div>
+                                    </div>
+                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;">
+                                        <div style="font-size:9px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;line-height:1.2;">Racha<br>Viento</div>
+                                        <div id="ics-gust-value" style="font-size:15px;font-weight:700;color:#ffffff;line-height:1;">—</div>
+                                    </div>
+                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;">
+                                        <div style="font-size:9px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;line-height:1.2;">Nivel<br>Cong.</div>
+                                        <div id="ics-freezing-value" style="font-size:15px;font-weight:700;color:#ffffff;line-height:1;">—</div>
+                                    </div>
+                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;">
+                                        <div style="font-size:9px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;line-height:1.2;">Grad.<br>850-500</div>
+                                        <div id="ics-lapse-value" style="font-size:15px;font-weight:700;color:#ffffff;line-height:1;">—</div>
+                                    </div>
+                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;">
+                                        <div style="font-size:9px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;line-height:1.2;">Tend.<br>Térmica</div>
+                                        <svg id="ics-temptrend-icon" width="26" height="12" viewBox="0 0 26 12" style="margin-top:2px;"></svg>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Webcam Vila Olímpica: misma característica de tarjeta que el radar -->
@@ -5573,10 +5599,10 @@
                         if (presHace3h !== null && presHace3h !== undefined) {
                             const delta = presActual - presHace3h;
                             let color, path;
-                            if (delta > 0.5) {
+                            if (delta > 1) {
                                 color = '#f87171'; // sube = rojo
                                 path = 'M2,9 L22,9 M22,9 L17,4.5 M22,9 L17,13.5';
-                            } else if (delta < -0.5) {
+                            } else if (delta < -1) {
                                 color = '#60a5fa'; // baja = azul
                                 path = 'M2,9 L22,9 M2,9 L7,4.5 M2,9 L7,13.5';
                             } else {
@@ -5587,6 +5613,68 @@
                         } else {
                             pressureTrendEl.innerHTML = '';
                         }
+                    }
+                }
+
+                // ── 5 indicadores de seguimiento de inestabilidad ──
+                const idxAhoraGlobal = hourly?.time
+                    ? hourly.time.findIndex(t => Math.abs(new Date(t) - new Date()) < 30 * 60 * 1000)
+                    : -1;
+
+                // 1. Depresión del punto de rocío (Temp. Actual - Punto de Rocío)
+                const dewdepEl = document.getElementById('ics-dewdep-value');
+                if (dewdepEl) {
+                    if (td !== null && cur?.temperature_2m !== null && cur?.temperature_2m !== undefined) {
+                        dewdepEl.textContent = `${Math.round(cur.temperature_2m - td)}°C`;
+                    } else {
+                        dewdepEl.textContent = '—';
+                    }
+                }
+
+                // 2. Racha de viento actual
+                const gustEl = document.getElementById('ics-gust-value');
+                if (gustEl) {
+                    const gust = cur?.wind_gusts_10m;
+                    gustEl.textContent = (gust !== null && gust !== undefined) ? `${Math.round(gust)}` : '—';
+                }
+
+                // 3. Nivel de congelación (altura 0°C)
+                const freezingEl = document.getElementById('ics-freezing-value');
+                if (freezingEl) {
+                    const fz = (idxAhoraGlobal >= 0) ? hourly?.freezing_level_height?.[idxAhoraGlobal] : null;
+                    freezingEl.textContent = (fz !== null && fz !== undefined) ? `${Math.round(fz / 100) / 10}k` : '—';
+                }
+
+                // 4. Gradiente térmico 850hPa - 500hPa (proxy de lapse rate)
+                const lapseEl = document.getElementById('ics-lapse-value');
+                if (lapseEl) {
+                    const t850 = (idxAhoraGlobal >= 0) ? hourly?.temperature_850hPa?.[idxAhoraGlobal] : null;
+                    const t500 = (idxAhoraGlobal >= 0) ? hourly?.temperature_500hPa?.[idxAhoraGlobal] : null;
+                    lapseEl.textContent = (t850 !== null && t850 !== undefined && t500 !== null && t500 !== undefined)
+                        ? `${Math.round(t850 - t500)}°C` : '—';
+                }
+
+                // 5. Tendencia térmica (últimas 3h), misma lógica visual que la de presión
+                const tempTrendEl = document.getElementById('ics-temptrend-icon');
+                if (tempTrendEl) {
+                    const idxHace3hTemp = idxAhoraGlobal - 3;
+                    const tempHace3h = (idxHace3hTemp >= 0) ? hourly?.temperature_2m?.[idxHace3hTemp] : null;
+                    if (tempHace3h !== null && tempHace3h !== undefined && cur?.temperature_2m !== null && cur?.temperature_2m !== undefined) {
+                        const deltaT = cur.temperature_2m - tempHace3h;
+                        let colorT, pathT;
+                        if (deltaT > 1) {
+                            colorT = '#f87171'; // calentando = rojo
+                            pathT = 'M2,9 L22,9 M22,9 L17,4.5 M22,9 L17,13.5';
+                        } else if (deltaT < -1) {
+                            colorT = '#60a5fa'; // enfriando = azul
+                            pathT = 'M2,9 L22,9 M2,9 L7,4.5 M2,9 L7,13.5';
+                        } else {
+                            colorT = '#d1d5db'; // estable = gris claro
+                            pathT = 'M6,4.5 L20,4.5 M6,13.5 L20,13.5';
+                        }
+                        tempTrendEl.innerHTML = `<path d="${pathT}" stroke="${colorT}" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+                    } else {
+                        tempTrendEl.innerHTML = '';
                     }
                 }
             } catch (e) {
