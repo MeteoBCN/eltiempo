@@ -1334,19 +1334,47 @@
                             </div>
                         </div>
 
-                        <!-- Columna 2: Punto de Rocío + Temperatura del Mar (fusionados) -->
-                        <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
-                            <div style="flex:1;display:flex;align-items:stretch;justify-content:center;gap:14px;">
-                                <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 0;">
-                                    <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Punto de Rocío</div>
-                                    <div id="ics-dewpoint-value" style="font-size:28px;font-weight:700;color:#ffffff;line-height:1;">—</div>
-                                    <div id="ics-dewpoint-label" style="font-size:10.5px;font-weight:600;margin-top:8px;text-align:center;line-height:1.35;color:#aaaaaa;">Cargando datos…</div>
+                        <!-- Columna 2: Punto de Rocío + Temp. Actual/Humedad + Temperatura del Mar, y debajo la Webcam -->
+                        <div style="display:flex;flex-direction:column;gap:12px;">
+                            <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
+                                <div style="flex:1;display:flex;align-items:stretch;justify-content:center;gap:14px;">
+                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 0;">
+                                        <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Punto de Rocío</div>
+                                        <div id="ics-dewpoint-value" style="font-size:28px;font-weight:700;color:#ffffff;line-height:1;">—</div>
+                                        <div id="ics-dewpoint-label" style="font-size:10.5px;font-weight:600;margin-top:8px;text-align:center;line-height:1.35;color:#aaaaaa;">Cargando datos…</div>
+                                    </div>
+                                    <div style="width:1px;background:rgba(255,255,255,0.12);"></div>
+                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 0;gap:10px;">
+                                        <div>
+                                            <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Temp. Actual</div>
+                                            <div id="ics-currenttemp-value" style="font-size:22px;font-weight:700;color:#ffffff;line-height:1;">—</div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Humedad</div>
+                                            <div id="ics-humidity-value" style="font-size:22px;font-weight:700;color:#ffffff;line-height:1;">—</div>
+                                        </div>
+                                    </div>
+                                    <div style="width:1px;background:rgba(255,255,255,0.12);"></div>
+                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 0;">
+                                        <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Temp. del Mar</div>
+                                        <div id="ics-sst-value" style="font-size:28px;font-weight:700;color:#ffffff;line-height:1;">—</div>
+                                        <div id="ics-sst-label" style="font-size:10.5px;font-weight:600;margin-top:8px;text-align:center;line-height:1.35;color:#aaaaaa;">Cargando datos…</div>
+                                    </div>
                                 </div>
-                                <div style="width:1px;background:rgba(255,255,255,0.12);"></div>
-                                <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 0;">
-                                    <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Temp. del Mar</div>
-                                    <div id="ics-sst-value" style="font-size:28px;font-weight:700;color:#ffffff;line-height:1;">—</div>
-                                    <div id="ics-sst-label" style="font-size:10.5px;font-weight:600;margin-top:8px;text-align:center;line-height:1.35;color:#aaaaaa;">Cargando datos…</div>
+                            </div>
+
+                            <!-- Webcam Vila Olímpica: misma característica de tarjeta que el radar -->
+                            <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
+                                <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Webcam Vila Olímpica</div>
+                                <div style="position:relative;width:100%;height:220px;border-radius:8px;overflow:hidden;background:#1a1a1a;">
+                                    <img src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg"
+                                         alt="Vila Olímpica"
+                                         style="width:100%;height:100%;object-fit:cover;display:block;"
+                                         loading="lazy"
+                                         onerror="this.style.background='#1a1a1a'"/>
+                                </div>
+                                <div style="text-align:center;padding-top:4px;">
+                                    <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Windy</span>
                                 </div>
                             </div>
                         </div>
@@ -1811,25 +1839,6 @@
         </div>
 
         <div style="height:20px;background:#ffffff;"></div>
-
-        <!-- ═══════════════════════════════════════════
-             WEBCAM VILA OLÍMPICA (siempre visible)
-        ════════════════════════════════════════════ -->
-        <div id="webcam-olimpica-section" style="max-width:600px;width:calc(100% - 32px);margin:0 auto 0;border:2px solid #2c4a6e;border-radius:var(--border-radius);overflow:hidden;">
-            <div style="display:flex;align-items:center;justify-content:center;padding:10px 16px 8px;background:#2c4a6e;">
-                <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">VILA OLÍMPICA (WEBCAM)</span>
-            </div>
-            <div style="background:#000;overflow:hidden;">
-                <img src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg"
-                     alt="Vila Olímpica"
-                     style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover;"
-                     loading="lazy"
-                     onerror="this.style.background='#1a252f'"/>
-                <div style="background:#1e293b;padding:6px 12px;text-align:center;">
-                    <span style="font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">Fuente: Windy</span>
-                </div>
-            </div>
-        </div>
 
         <div style="height:60px;background:#ffffff;"></div>
 
@@ -5506,9 +5515,11 @@
             const dpLabelEl = document.getElementById('ics-dewpoint-label');
             const sstValueEl = document.getElementById('ics-sst-value');
             const sstLabelEl = document.getElementById('ics-sst-label');
+            const tempValueEl = document.getElementById('ics-currenttemp-value');
+            const humValueEl = document.getElementById('ics-humidity-value');
             if (!dpValueEl && !sstValueEl) return;
 
-            // ── Punto de rocío (a partir de temperatura + humedad relativa actuales) ──
+            // ── Punto de rocío + Temperatura actual + Humedad (a partir de datos actuales) ──
             try {
                 const data = await window._mainDataPromise;
                 const cur  = data?.current;
@@ -5520,6 +5531,14 @@
                     dpLabelEl.style.color = et.color;
                 } else if (dpLabelEl) {
                     dpLabelEl.textContent = 'Sin datos disponibles';
+                }
+                if (tempValueEl) {
+                    tempValueEl.textContent = (cur?.temperature_2m !== null && cur?.temperature_2m !== undefined)
+                        ? `${cur.temperature_2m.toFixed(1)} °C` : '—';
+                }
+                if (humValueEl) {
+                    humValueEl.textContent = (cur?.relative_humidity_2m !== null && cur?.relative_humidity_2m !== undefined)
+                        ? `${Math.round(cur.relative_humidity_2m)}%` : '—';
                 }
             } catch (e) {
                 console.error('[Indicadores críticos] Error calculando punto de rocío:', e);
