@@ -1322,6 +1322,14 @@
                             <div style="position:relative;width:100%;height:220px;border-radius:8px;overflow:hidden;background:#1a1a1a;">
                                 <div id="ahora-radar-map" style="width:100%;height:100%;"></div>
                             </div>
+                            <div style="padding-top:10px;">
+                                <div style="width:100%;height:8px;border-radius:4px;background:linear-gradient(90deg, rgba(0,94,182,0.3) 0%, rgba(0,94,182,1) 20%, rgb(78,167,234) 35%, rgb(230,81,120) 50%, rgb(253,143,110) 65%, rgb(255,183,110) 75%, rgb(255,225,47) 88%, rgb(255,253,5) 100%);"></div>
+                                <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                                    <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Débil</span>
+                                    <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Moderada</span>
+                                    <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Fuerte</span>
+                                </div>
+                            </div>
                             <div style="padding-top:8px;">
                                 <div style="display:flex;justify-content:center;align-items:center;margin-top:8px;">
                                     <span id="ahora-radar-time-label" style="font-size:11px;color:#cccccc;font-weight:600;">--:--</span>
@@ -1598,8 +1606,13 @@
                 return 'debil';
             }
 
+            // Distancia máxima (al cuadrado) permitida para aceptar el emparejamiento.
+            // Píxeles "raros" (bordes con artefactos de compresión, marrones, etc.)
+            // que no se parecen a ningún color real de la paleta quedan descartados.
+            const MAX_MATCH_DIST = 2500; // ≈ distancia euclídea de 50 en espacio RGBA
+
             // Empareja un píxel RGBA leído del tile con la entrada más cercana de la paleta
-            // y devuelve el dBZ estimado (y por tanto la intensidad).
+            // y devuelve el dBZ estimado (o null si el color no encaja con ninguna entrada real).
             function estimateDbzFromPixel(r, g, b, a) {
                 let bestDbz = -32, bestDist = Infinity;
                 for (let i = 0; i < RV_PALETTE.length; i++) {
@@ -1608,6 +1621,7 @@
                     const dist = dr * dr + dg * dg + db * db + da * da;
                     if (dist < bestDist) { bestDist = dist; bestDbz = dbz; }
                 }
+                if (bestDist > MAX_MATCH_DIST) return null; // color no fiable (artefacto)
                 return bestDbz;
             }
 
@@ -1749,6 +1763,9 @@
                     const [r, g, b, alpha] = px;
                     if (alpha > 15) {
                         const dbz = estimateDbzFromPixel(r, g, b, alpha);
+                        // dbz === null -> color no fiable (artefacto/marrón de borde): se ignora.
+                        // dbz < 30 -> lluvia débil: se ignora, ya no se avisa de eso.
+                        if (dbz === null || dbz < 30) return;
                         const intensidad = dbzToIntensidad(dbz);
                         if (p.kind === 'core5') {
                             rain5km = true;
@@ -1777,9 +1794,10 @@
                 const dirIntensidad = new Array(DIRECCIONES.length).fill(null);
                 results.forEach((res, i) => {
                     const precip = res.current?.precipitation || 0;
-                    if (precip > 0) {
-                        // Mismos umbrales aprox. que el radar: <2mm/h débil, 2-15mm/h moderada, >15mm/h fuerte
-                        const intensidad = precip >= 15 ? 'fuerte' : (precip >= 2 ? 'moderada' : 'debil');
+                    // Se ignora la lluvia débil (<2mm/h), igual que en la lectura del radar.
+                    if (precip >= 2) {
+                        // Mismos umbrales aprox. que el radar: 2-15mm/h moderada, >15mm/h fuerte
+                        const intensidad = precip >= 15 ? 'fuerte' : 'moderada';
                         const p = allPts[i];
                         if (p.kind === 'core5') {
                             rain5km = true;
