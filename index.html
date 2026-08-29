@@ -1310,6 +1310,37 @@
                     </div>
                 </div>
 
+                <!-- Meteograma de Humedad en Columna y Cizalladura: PWAT + HR 850/700hPa + Cizalladura 850-500hPa (Chart.js)
+                     Mismo ancho y estilo que el meteograma de Inestabilidad Convectiva, justo debajo. -->
+                <div style="background:transparent;padding:14px 16px 4px;margin-bottom:12px;">
+                    <div style="position:relative;height:260px;">
+                        <canvas id="meteograma-humedad-canvas"></canvas>
+                    </div>
+
+                    <!-- Botón + desplegable: guía de interpretación del meteograma de humedad/cizalladura -->
+                    <div style="padding-top:10px;padding-bottom:14px;">
+                        <button id="meteograma-humedad-guia-toggle" onclick="toggleMeteogramaHumedadGuiaPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(0,0,0,0.18);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                            <span style="flex:1;text-align:center;font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Guía de interpretación: Humedad en Columna y Cizalladura</span>
+                            <span id="meteograma-humedad-guia-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                        </button>
+                        <div id="meteograma-humedad-guia-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
+                            <div style="padding:12px 2px 2px;font-size:12px;line-height:1.55;color:rgba(255,255,255,0.9);">
+                                <p style="margin:0 0 10px;">Este gráfico complementa al de CAPE/LI/CIN con tres variables clave para tormentas intensas y lluvias torrenciales en el Mediterráneo:</p>
+                                <ul style="margin:0 0 12px;padding-left:18px;">
+                                    <li style="margin-bottom:8px;"><b>PWAT — Agua Precipitable (Barras Verde Agua):</b> Cantidad total de humedad disponible en toda la columna de aire (mm). Valores altos (&gt;35-40 mm) indican combustible para lluvias torrenciales, con independencia del CAPE.</li>
+                                    <li style="margin-bottom:8px;"><b>HR 850hPa / 700hPa (Líneas Turquesa y Violeta):</b> Humedad relativa en niveles medios. Si están secas aunque la humedad en superficie sea alta, el desarrollo de nubosidad se frena; si están húmedas, favorecen tormentas de mayor desarrollo vertical.</li>
+                                    <li><b>Cizalladura 850-500hPa (Línea Naranja Discontinua):</b> Diferencia vectorial del viento entre niveles bajos y medios (km/h). Cuanto mayor sea, más organizada y severa puede ser la tormenta (potencial de supercélulas o líneas de turbonada).</li>
+                                </ul>
+                                <p style="margin:0 0 8px;font-weight:700;">💡 ¿Cómo leer el gráfico en un vistazo?</p>
+                                <ul style="margin:0;padding-left:18px;">
+                                    <li style="margin-bottom:8px;"><b>Riesgo de lluvias torrenciales:</b> PWAT alto + HR 850/700hPa alta = columna de aire saturada de humedad, capaz de generar precipitaciones muy intensas aunque el CAPE no sea extremo.</li>
+                                    <li><b>Riesgo de tormentas severas organizadas:</b> Cizalladura alta (&gt;40-50 km/h) combinada con CAPE relevante en el gráfico de arriba apunta a tormentas más organizadas y potencialmente severas, no solo chubascos aislados.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ═══════════════════════════════════════════
                      INDICADORES CRÍTICOS EN SUPERFICIE
                 ════════════════════════════════════════════ -->
@@ -4873,6 +4904,10 @@
                     const liV   = _f7HalfDayAgg(hourly, 'lifted_index', ds, hStart, hEnd, arr => Math.min(...arr));
                     const ppV   = _f7HalfDayAgg(hourly, 'precipitation_probability', ds, hStart, hEnd, arr => Math.max(...arr));
                     const cinV  = _f7HalfDayAgg(hourly, 'convective_inhibition', ds, hStart, hEnd, arr => Math.min(...arr));
+                    const pwatV  = _f7HalfDayAgg(hourly, 'precipitable_water', ds, hStart, hEnd, arr => Math.max(...arr));
+                    const rh850V = _f7HalfDayAgg(hourly, 'relative_humidity_850hPa', ds, hStart, hEnd, arr => arr.reduce((a,b) => a+b, 0) / arr.length);
+                    const rh700V = _f7HalfDayAgg(hourly, 'relative_humidity_700hPa', ds, hStart, hEnd, arr => arr.reduce((a,b) => a+b, 0) / arr.length);
+                    const shearV = _f7HalfDayAgg(hourly, 'shear_850_500', ds, hStart, hEnd, arr => Math.max(...arr));
                     out.push({
                         dateStr     : ds,
                         dayName     : day.dayName,
@@ -4883,6 +4918,10 @@
                         li          : liV !== null ? Math.round(liV * 10) / 10 : 0,
                         cin         : cinV !== null ? Math.round(cinV) : 0,
                         risk        : _f7StormRisk(capeV, liV, ppV, cinV),
+                        pwat        : pwatV !== null ? Math.round(pwatV * 10) / 10 : 0,
+                        rh850       : rh850V !== null ? Math.round(rh850V) : 0,
+                        rh700       : rh700V !== null ? Math.round(rh700V) : 0,
+                        shear       : shearV !== null ? Math.round(shearV) : 0,
                     });
                 });
             });
@@ -4904,6 +4943,29 @@
 
                     const todayStr = new Date().toISOString().slice(0,10);
                     const hourly = data?.hourly;
+
+                    // Cizalladura vectorial 850-500hPa por hora (km/h), calculada a partir de
+                    // velocidad + dirección de viento en ambos niveles (componentes u/v).
+                    // Se guarda como campo sintético en 'hourly' para poder agregarla igual
+                    // que el resto de variables horarias (_f7HalfDayAgg).
+                    if (hourly?.time && hourly?.wind_speed_850hPa && hourly?.wind_direction_850hPa
+                        && hourly?.wind_speed_500hPa && hourly?.wind_direction_500hPa) {
+                        hourly.shear_850_500 = hourly.time.map((_, i) => {
+                            const s850 = hourly.wind_speed_850hPa[i];
+                            const d850 = hourly.wind_direction_850hPa[i];
+                            const s500 = hourly.wind_speed_500hPa[i];
+                            const d500 = hourly.wind_direction_500hPa[i];
+                            if ([s850, d850, s500, d500].some(v => v === null || v === undefined)) return null;
+                            const toRad = deg => deg * Math.PI / 180;
+                            // Meteorológico -> vector "hacia donde sopla" = dirección + 180°
+                            const u850 = -s850 * Math.sin(toRad(d850));
+                            const v850 = -s850 * Math.cos(toRad(d850));
+                            const u500 = -s500 * Math.sin(toRad(d500));
+                            const v500 = -s500 * Math.cos(toRad(d500));
+                            return Math.sqrt((u500 - u850) ** 2 + (v500 - v850) ** 2);
+                        });
+                    }
+
                     const rows = d.time.map((ds, i) => {
                         const dt = new Date(ds + 'T12:00:00');
                         const liMin = _f7DayAgg(hourly, 'lifted_index', ds, arr => Math.min(...arr));
@@ -5794,6 +5856,11 @@
                 console.error('[Meteograma] Error dibujando meteograma de inestabilidad (CAPE/CIN/LI):', e);
             }
             try {
+                updateMeteogramaHumedad();
+            } catch (e) {
+                console.error('[Meteograma] Error dibujando meteograma de humedad/cizalladura (PWAT/HR/Shear):', e);
+            }
+            try {
                 drawF7ChartRisk();
             } catch (e) {
                 console.error('[Meteograma] Error dibujando semáforo de riesgo de tormenta:', e);
@@ -5861,6 +5928,20 @@
         function toggleMeteogramaGuiaPanel() {
             const panel = document.getElementById('meteograma-guia-panel');
             const icon  = document.getElementById('meteograma-guia-toggle-icon');
+            if (!panel) return;
+            const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
+            if (isOpen) {
+                panel.style.maxHeight = '0px';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + 'px';
+                if (icon) icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        function toggleMeteogramaHumedadGuiaPanel() {
+            const panel = document.getElementById('meteograma-humedad-guia-panel');
+            const icon  = document.getElementById('meteograma-humedad-guia-toggle-icon');
             if (!panel) return;
             const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
             if (isOpen) {
@@ -7020,6 +7101,167 @@
             });
         }
 
+        // ── Meteograma de Humedad en Columna y Cizalladura: PWAT (barras) + HR 850/700hPa
+        //    (líneas, % en eje derecho) + Cizalladura 850-500hPa (línea discontinua) ──
+        function drawMeteogramaHumedad(canvasId, hourly) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || typeof Chart === 'undefined') return null;
+
+            const labels    = hourly.time || hourly.labels || [];
+            const pwatData  = hourly.pwat  || [];
+            const rh850Data = hourly.rh850 || [];
+            const rh700Data = hourly.rh700 || [];
+            const shearData = hourly.shear || [];
+
+            const PWAT_MAX  = 60; // mm — techo del eje izquierdo (PWAT + cizalladura comparten escala visual)
+
+            if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
+
+            const datasets = [
+                {
+                    label: 'PWAT', type: 'bar', data: pwatData, backgroundColor: 'rgba(45, 212, 191, 0.55)',
+                    yAxisID: 'yLeft', barPercentage: 0.55, categoryPercentage: 0.85, order: 3,
+                    datalabels: {
+                        color: '#ffffff', font: { weight: 'bold', size: 9 }, anchor: 'end', align: 'top', offset: 2,
+                        formatter: v => `${Math.round(v)}`
+                    }
+                },
+                {
+                    label: 'HR 850hPa', type: 'line', data: rh850Data, borderColor: '#38bdf8', backgroundColor: '#38bdf8',
+                    yAxisID: 'yPct', pointRadius: 3, pointBackgroundColor: '#38bdf8', borderWidth: 2, tension: 0.3, order: 1,
+                    datalabels: {
+                        color: '#38bdf8', font: { weight: 'bold', size: 9 }, anchor: 'end', align: 'top', offset: 4,
+                        formatter: v => `${Math.round(v)}%`
+                    }
+                },
+                {
+                    label: 'HR 700hPa', type: 'line', data: rh700Data, borderColor: '#c084fc', backgroundColor: '#c084fc',
+                    yAxisID: 'yPct', pointRadius: 3, pointBackgroundColor: '#c084fc', borderWidth: 2, tension: 0.3, order: 1,
+                    datalabels: {
+                        color: '#c084fc', font: { weight: 'bold', size: 9 }, anchor: 'end', align: 'bottom', offset: 4,
+                        formatter: v => `${Math.round(v)}%`
+                    }
+                },
+                {
+                    label: 'Cizalladura 850-500hPa', type: 'line', data: shearData, borderColor: '#fb923c', backgroundColor: '#fb923c',
+                    yAxisID: 'yLeft', pointRadius: 3, pointBackgroundColor: '#fb923c', borderWidth: 2, borderDash: [5, 4], tension: 0.3, order: 2,
+                    datalabels: {
+                        color: '#fb923c', font: { weight: 'bold', size: 9 }, anchor: 'start', align: 'bottom', offset: 4,
+                        formatter: v => `${Math.round(v)}`
+                    }
+                }
+            ];
+
+            // Plugin local: líneas horizontales discontinuas cada 20% (misma estética que capeGridLinesPlugin)
+            const humedadGridLinesPlugin = {
+                id: 'humedadGridLines',
+                beforeDraw(chart) {
+                    const { ctx, chartArea, scales: { yPct } } = chart;
+                    if (!chartArea || !yPct) return;
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([4, 4]);
+                    for (let v = 0; v <= 100; v += 20) {
+                        const yPos = yPct.getPixelForValue(v);
+                        ctx.beginPath();
+                        ctx.moveTo(chartArea.left, yPos);
+                        ctx.lineTo(chartArea.right, yPos);
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+                }
+            };
+
+            // Plugin local: separador vertical entre días (idéntico al del meteograma de inestabilidad)
+            const daySeparatorPluginHum = {
+                id: 'daySeparatorLinesHum',
+                afterDraw(chart) {
+                    const { ctx, chartArea } = chart;
+                    if (!chartArea) return;
+                    const chartLabels = chart.data.labels;
+                    const xScale = chart.scales.x;
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([4, 4]);
+                    for (let i = 1; i < chartLabels.length; i++) {
+                        const prevDay = Array.isArray(chartLabels[i - 1]) ? chartLabels[i - 1][1] : null;
+                        const currDay = Array.isArray(chartLabels[i]) ? chartLabels[i][1] : null;
+                        if (prevDay !== null && currDay !== null && prevDay !== currDay) {
+                            const xPos = (xScale.getPixelForValue(i - 1) + xScale.getPixelForValue(i)) / 2;
+                            ctx.beginPath();
+                            ctx.moveTo(xPos, chartArea.top);
+                            ctx.lineTo(xPos, chartArea.bottom);
+                            ctx.stroke();
+                        }
+                    }
+                    ctx.restore();
+                }
+            };
+
+            const config = {
+                type: 'bar',
+                data: { labels, datasets },
+                plugins: [humedadGridLinesPlugin, daySeparatorPluginHum],
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    events: [],
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.6)' } },
+                        yLeft: {
+                            type: 'linear', position: 'left', min: 0, max: PWAT_MAX,
+                            display: true, ticks: { display: false }, border: { display: false }, grid: { display: false }
+                        },
+                        yPct: {
+                            type: 'linear', position: 'right', min: 0, max: 100,
+                            display: true, ticks: { display: false }, border: { display: false }, grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(255,255,255,0.8)',
+                                boxWidth: 10,
+                                boxHeight: 10,
+                                generateLabels: chart => {
+                                    const original = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                                    const renombrar = {
+                                        'PWAT': 'PWAT (mm)',
+                                        'HR 850hPa': 'HR 850hPa (%)',
+                                        'HR 700hPa': 'HR 700hPa (%)',
+                                        'Cizalladura 850-500hPa': 'Cizalladura (km/h)'
+                                    };
+                                    return original.map(item => ({ ...item, text: renombrar[item.text] || item.text }));
+                                }
+                            }
+                        },
+                        tooltip: { enabled: false }
+                    }
+                }
+            };
+
+            if (window._meteogramaHumedadChart) {
+                window._meteogramaHumedadChart.destroy();
+            }
+            window._meteogramaHumedadChart = new Chart(canvas.getContext('2d'), config);
+            return window._meteogramaHumedadChart;
+        }
+
+        function updateMeteogramaHumedad() {
+            const rows = window._f7Data;
+            const stormRows = window._f7StormRows || _f7BuildStormRows(window._hourlyCache, rows);
+            if (!stormRows || !stormRows.length) return;
+            drawMeteogramaHumedad('meteograma-humedad-canvas', {
+                time:  stormRows.map(r => [r.periodLabel, r.isToday ? 'HOY' : r.dayName]),
+                pwat:  stormRows.map(r => r.pwat),
+                rh850: stormRows.map(r => r.rh850),
+                rh700: stormRows.map(r => r.rh700),
+                shear: stormRows.map(r => r.shear)
+            });
+        }
+
         /* ══════════════════════════════════════════════
            FIN RESUMEN 7 DÍAS
         ══════════════════════════════════════════════ */
@@ -7109,7 +7351,7 @@
                 console.log('Datos meteo cargados desde caché propia (datos/meteo.json), generados:', cache.generated_at);
             } else {
                 console.warn('No se pudo leer datos/meteo.json, usando proxy en directo como respaldo.');
-                const url=`${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_850hPa,temperature_500hPa,freezing_level_height,cape,lifted_index,convective_inhibition&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean,cape_max&timezone=Europe/Madrid&forecast_days=8`;
+                const url=`${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_850hPa,temperature_500hPa,freezing_level_height,cape,lifted_index,convective_inhibition,precipitable_water,relative_humidity_850hPa,relative_humidity_700hPa,wind_speed_850hPa,wind_direction_850hPa,wind_speed_500hPa,wind_direction_500hPa&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean,cape_max&timezone=Europe/Madrid&forecast_days=8`;
                 const aqUrl=`${PROXY_BASE}/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&hourly=pm10&forecast_days=2&timezone=Europe/Madrid`;
                 const marineUrl=`${PROXY_BASE}/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
 
