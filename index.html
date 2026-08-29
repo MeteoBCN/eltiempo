@@ -1322,6 +1322,9 @@
                             <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Radar de Lluvia (RainViewer)</div>
                             <div style="position:relative;width:100%;height:220px;border-radius:8px;overflow:hidden;background:#1a1a1a;">
                                 <div id="ahora-radar-map" style="width:100%;height:100%;"></div>
+                                <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);padding:3px 9px;border-radius:6px;z-index:1000;pointer-events:none;">
+                                    <span id="ahora-radar-time-label" style="font-size:11px;color:#ffffff;font-weight:600;">--:--</span>
+                                </div>
                             </div>
                             <div style="padding-top:10px;">
                                 <div style="width:100%;height:8px;border-radius:4px;background:linear-gradient(90deg, rgba(136,221,238,0.45) 0%, rgb(136,221,238) 13%, rgb(0,163,224) 25%, rgb(0,85,136) 38%, rgb(255,238,0) 50%, rgb(255,170,0) 63%, rgb(255,68,0) 75%, rgb(193,0,0) 88%, rgb(255,170,255) 100%);"></div>
@@ -1330,11 +1333,6 @@
                                     <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Moderada</span>
                                     <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Fuerte</span>
                                     <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Extrema</span>
-                                </div>
-                            </div>
-                            <div style="padding-top:8px;">
-                                <div style="display:flex;justify-content:center;align-items:center;margin-top:8px;">
-                                    <span id="ahora-radar-time-label" style="font-size:11px;color:#cccccc;font-weight:600;">--:--</span>
                                 </div>
                             </div>
                             <div style="text-align:center;padding-top:6px;">
@@ -5590,12 +5588,31 @@
             const y = v => baseY - (Math.max(0, Math.min(CAPE_MAX, v)) / CAPE_MAX) * H;
             const capeX = 7, liX = 37, barW = 22;
 
+            let svg = '';
+            // Rejilla de fondo sutil (da contexto de escala aunque las barras estén vacías)
+            [0.25, 0.5, 0.75].forEach(frac => {
+                const gy = topY + H * (1 - frac);
+                svg += `<line x1="4" y1="${gy}" x2="62" y2="${gy}" stroke="rgba(255,255,255,0.10)" stroke-width="1" stroke-dasharray="2,2"/>`;
+            });
+
+            // Sin inestabilidad real (CAPE≈0, CIN≈0, LI≥0): en vez de dos barras vacías,
+            // mostramos un estado de "calma" para no dejar el hueco sin comunicar nada.
+            const esEstable = capeV <= 10 && cinV <= 10 && liV >= 0;
+            if (esEstable) {
+                const cx = (capeX + liX + barW) / 2, cy = topY + H / 2 - 6;
+                svg += `<circle cx="${cx}" cy="${cy}" r="13" fill="none" stroke="#23b14d" stroke-width="2"/>`;
+                svg += `<path d="M${cx-6},${cy} L${cx-1.5},${cy+5} L${cx+6.5},${cy-6}" stroke="#23b14d" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+                svg += `<text x="${cx}" y="${cy+24}" text-anchor="middle" font-size="8" font-weight="700" fill="#23b14d" letter-spacing="0.5">ESTABLE</text>`;
+                svg += `<line x1="4" y1="${baseY}" x2="62" y2="${baseY}" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>`;
+                svgEl.innerHTML = svg;
+                return;
+            }
+
             const rectCape = (y0, y1, opacity) =>
                 `<rect x="${capeX}" y="${Math.min(y0,y1)}" width="${barW}" height="${Math.abs(y1-y0)}" fill="#23b14d" fill-opacity="${opacity}"/>`;
             const rectLI = (y0, y1, opacity) =>
                 `<rect x="${liX}" y="${Math.min(y0,y1)}" width="${barW}" height="${Math.abs(y1-y0)}" fill="#2f55cd" fill-opacity="${opacity}"/>`;
 
-            let svg = '';
             // Barra CAPE: tramo atrapado (bajo la cuchilla, tenue) + tramo libre (encima, sólido)
             if (capeAtr > 0) svg += rectCape(baseY, y(capeAtr), 0.28);
             if (capeLib > 0) svg += rectCape(y(capeAtr), y(capeAtr + capeLib), 1);
