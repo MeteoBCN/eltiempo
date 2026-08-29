@@ -1278,45 +1278,43 @@
                 </div>
                 </div>
 
-                <!-- Meteograma Sintético de Inestabilidad Convectiva: CAPE + CIN + Lifted Index fusionados (Chart.js) -->
-                <div style="padding:18px 16px 4px;">
-                    <div style="text-align:center;line-height:1;margin-bottom:8px;">
-                        <span style="font-size:20px;font-weight:300;color:#ffffff;">3<b style="font-weight:700;">DÍAS</b></span>
-                    </div>
-                    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);margin-bottom:8px;text-align:center;">INESTABILIDAD CONVECTIVA · 3 DÍAS (MAÑANA/TARDE)</div>
-                    <div id="texto-diagnostico" style="min-height:32px;font-size:11px;font-weight:600;color:#ffffff;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:8px;padding:7px 10px;margin-bottom:10px;line-height:1.35;text-align:center;"></div>
-                    <div style="position:relative;height:260px;">
-                        <canvas id="meteograma-inestabilidad-canvas"></canvas>
-                    </div>
-
-                    <!-- Botón + desplegable: guía de interpretación del meteograma de inestabilidad -->
-                    <div style="padding-top:10px;">
-                        <button id="meteograma-guia-toggle" onclick="toggleMeteogramaGuiaPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
-                            <span style="flex:1;text-align:center;font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Guía de interpretación: Diagnóstico de Inestabilidad Convectiva</span>
-                            <span id="meteograma-guia-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
-                        </button>
-                        <div id="meteograma-guia-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
-                            <div style="padding:12px 2px 2px;font-size:12px;line-height:1.55;color:rgba(255,255,255,0.9);">
-                                <p style="margin:0 0 10px;">Este gráfico avanzado unifica las tres variables fundamentales que determinan el desarrollo de tormentas en nuestra zona:</p>
-                                <ul style="margin:0 0 12px;padding-left:18px;">
-                                    <li style="margin-bottom:8px;"><b>CAPE libre (Barras Verdes):</b> Representa el combustible de la tormenta. Mide la energía potencial disponible en el suelo (en J/kg) para que el aire ascienda. Cuanto más alta y brillante sea la barra, mayor será el potencial de desarrollo de nubes de tormenta de gran tamaño.</li>
-                                    <li style="margin-bottom:8px;"><b>LI activo (Barras Azules):</b> El Lifted Index mide la fuerza de succión del cielo. Muestra la inestabilidad en las capas medias y altas de la atmósfera. Los valores negativos significan que el aire en altura está muy frío y forzará un ascenso violento de las nubes.</li>
-                                    <li><b>CIN cuchilla (Líneas Rojas):</b> Es la inhibición o "tapón" térmico. Mide la resistencia atmosférica que frena el inicio de las tormentas.</li>
-                                </ul>
-                                <p style="margin:0 0 8px;font-weight:700;">💡 ¿Cómo leer el gráfico en un vistazo?</p>
-                                <ul style="margin:0;padding-left:18px;">
-                                    <li style="margin-bottom:8px;"><b>Vía libre (Riesgo de tormentas):</b> Si observas barras verdes y azules altas y limpias, con la línea roja del CIN desplazada hacia el suelo, la atmósfera está libre para liberar su energía de forma convectiva.</li>
-                                    <li><b>Situación tapada (Energía bloqueada):</b> Si la línea roja del CIN sube y atraviesa las barras, la barra verde inferior se atenuará. Esto indica que hay un "tapón" o inversión térmica bloqueando la energía en superficie, lo que dificulta o anula la formación de tormentas.</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- ═══════════════════════════════════════════
                      INDICADORES CRÍTICOS EN SUPERFICIE
                 ════════════════════════════════════════════ -->
                 <div id="indicadores-criticos-superficie" style="padding:18px 16px 4px;background:transparent;">
+
+                    <!-- Meteograma Sintético de Inestabilidad Convectiva: CAPE + CIN + Lifted Index fusionados (Chart.js) -->
+                    <div style="background:#242424;border-radius:8px;padding:18px 16px 4px;margin-bottom:12px;">
+                        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);margin-bottom:8px;text-align:center;">INESTABILIDAD CONVECTIVA · 3 DÍAS (MAÑANA/TARDE)</div>
+                        <div id="texto-diagnostico" style="min-height:32px;font-size:11px;font-weight:600;color:#ffffff;background:#1a1a1a;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:7px 10px;margin-bottom:10px;line-height:1.35;text-align:center;"></div>
+                        <div style="position:relative;height:260px;">
+                            <canvas id="meteograma-inestabilidad-canvas"></canvas>
+                        </div>
+
+                        <!-- Botón + desplegable: guía de interpretación del meteograma de inestabilidad -->
+                        <div style="padding-top:10px;padding-bottom:14px;">
+                            <button id="meteograma-guia-toggle" onclick="toggleMeteogramaGuiaPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                                <span style="flex:1;text-align:center;font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Guía de interpretación: Diagnóstico de Inestabilidad Convectiva</span>
+                                <span id="meteograma-guia-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                            </button>
+                            <div id="meteograma-guia-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
+                                <div style="padding:12px 2px 2px;font-size:12px;line-height:1.55;color:rgba(255,255,255,0.9);">
+                                    <p style="margin:0 0 10px;">Este gráfico avanzado unifica las tres variables fundamentales que determinan el desarrollo de tormentas en nuestra zona:</p>
+                                    <ul style="margin:0 0 12px;padding-left:18px;">
+                                        <li style="margin-bottom:8px;"><b>CAPE libre (Barras Verdes):</b> Representa el combustible de la tormenta. Mide la energía potencial disponible en el suelo (en J/kg) para que el aire ascienda. Cuanto más alta y brillante sea la barra, mayor será el potencial de desarrollo de nubes de tormenta de gran tamaño.</li>
+                                        <li style="margin-bottom:8px;"><b>LI activo (Barras Azules):</b> El Lifted Index mide la fuerza de succión del cielo. Muestra la inestabilidad en las capas medias y altas de la atmósfera. Los valores negativos significan que el aire en altura está muy frío y forzará un ascenso violento de las nubes.</li>
+                                        <li><b>CIN cuchilla (Líneas Rojas):</b> Es la inhibición o "tapón" térmico. Mide la resistencia atmosférica que frena el inicio de las tormentas.</li>
+                                    </ul>
+                                    <p style="margin:0 0 8px;font-weight:700;">💡 ¿Cómo leer el gráfico en un vistazo?</p>
+                                    <ul style="margin:0;padding-left:18px;">
+                                        <li style="margin-bottom:8px;"><b>Vía libre (Riesgo de tormentas):</b> Si observas barras verdes y azules altas y limpias, con la línea roja del CIN desplazada hacia el suelo, la atmósfera está libre para liberar su energía de forma convectiva.</li>
+                                        <li><b>Situación tapada (Energía bloqueada):</b> Si la línea roja del CIN sube y atraviesa las barras, la barra verde inferior se atenuará. Esto indica que hay un "tapón" o inversión térmica bloqueando la energía en superficie, lo que dificulta o anula la formación de tormentas.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);margin-bottom:12px;text-align:center;text-transform:uppercase;letter-spacing:1px;">Indicadores Críticos en Superficie</div>
 
                     <div id="ics-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:12px;">
@@ -6689,9 +6687,7 @@
                         x: { stacked: true, grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.6)' } },
                         yCAPE: {
                             type: 'linear', position: 'left', min: 0, max: CAPE_MAX, stacked: true,
-                            grid: { color: 'rgba(255,255,255,0.10)' },
-                            ticks: { color: 'rgba(255,255,255,0.6)' },
-                            title: { display: true, text: 'CAPE / CIN (J/kg)', color: 'rgba(255,255,255,0.8)' }
+                            display: false
                         }
                     },
                     plugins: {
