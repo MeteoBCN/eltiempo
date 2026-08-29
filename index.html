@@ -6674,6 +6674,29 @@
                 }
             ];
 
+            // Plugin local: dibuja líneas horizontales discontinuas y sutiles
+            // cada 500 unidades de CAPE (Chart.js v4 no soporta dash nativo en grid.*)
+            const capeGridLinesPlugin = {
+                id: 'capeGridLines',
+                beforeDraw(chart) {
+                    const { ctx, chartArea, scales: { yCAPE } } = chart;
+                    if (!chartArea || !yCAPE) return;
+                    const step = 500;
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([4, 4]);
+                    for (let v = 0; v <= CAPE_MAX; v += step) {
+                        const yPos = yCAPE.getPixelForValue(v);
+                        ctx.beginPath();
+                        ctx.moveTo(chartArea.left, yPos);
+                        ctx.lineTo(chartArea.right, yPos);
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+                }
+            };
+
             // Plugin local: dibuja una línea vertical discontinua y sutil en cada
             // cambio de día (frontera entre la última franja de un día y la primera del siguiente)
             const daySeparatorPlugin = {
@@ -6706,7 +6729,7 @@
             const config = {
                 type: 'bar',
                 data: { labels, datasets },
-                plugins: [daySeparatorPlugin],
+                plugins: [capeGridLinesPlugin, daySeparatorPlugin],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -6716,14 +6739,9 @@
                         yCAPE: {
                             type: 'linear', position: 'left', min: 0, max: CAPE_MAX, stacked: true,
                             display: true,
-                            ticks: { display: false, stepSize: 1000 },
+                            ticks: { display: false },
                             border: { display: false },
-                            grid: {
-                                color: 'rgba(255,255,255,0.15)',
-                                lineWidth: 1,
-                                drawTicks: false,
-                                borderDash: [4, 4]
-                            }
+                            grid: { display: false }
                         }
                     },
                     plugins: {
