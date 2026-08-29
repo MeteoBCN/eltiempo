@@ -1282,7 +1282,6 @@
                      Trasladado justo después de la cota de isocero. Mismo ancho que la gráfica 850hPa/500hPa/isocero
                      (padding 14px 16px, igual que #f7-panel-combo-bottom) y fondo azul heredado del contenedor. -->
                 <div style="background:transparent;padding:14px 16px 4px;margin-bottom:12px;">
-                    <div id="texto-diagnostico" style="min-height:32px;font-size:11px;font-weight:600;color:#ffffff;background:rgba(0,0,0,0.18);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:7px 10px;margin-bottom:10px;line-height:1.35;text-align:center;"></div>
                     <div style="position:relative;height:260px;">
                         <canvas id="meteograma-inestabilidad-canvas"></canvas>
                     </div>
@@ -1347,13 +1346,25 @@
                         <div style="display:flex;flex-direction:column;gap:12px;">
                             <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
                                 <div style="flex:1;display:flex;align-items:stretch;justify-content:center;gap:14px;">
-                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:10px 0;">
-                                        <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Punto Rocío</div>
-                                        <div id="ics-dewpoint-value" style="font-size:22px;font-weight:700;color:#ffffff;line-height:1;margin-top:6px;">—</div>
-                                        <div id="ics-dewpoint-label" style="font-size:10.5px;font-weight:600;margin-top:8px;text-align:center;line-height:1.35;color:#aaaaaa;">Cargando datos…</div>
+                                    <!-- Columna 1: Punto Rocío / Nivel de Congelación / Gradiente 850-500hPa -->
+                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:10px 0;gap:16px;">
+                                        <div>
+                                            <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Punto Rocío</div>
+                                            <div id="ics-dewpoint-value" style="font-size:22px;font-weight:700;color:#ffffff;line-height:1;margin-top:6px;">—</div>
+                                            <div id="ics-dewpoint-label" style="font-size:10.5px;font-weight:600;margin-top:8px;text-align:center;line-height:1.35;color:#aaaaaa;">Cargando datos…</div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size:9px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;line-height:1.2;">Nivel de<br>Congelación</div>
+                                            <div id="ics-freezing-value" style="font-size:15px;font-weight:700;color:#ffffff;line-height:1;">—</div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size:9px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;line-height:1.2;">Gradiente<br>850-500hPa</div>
+                                            <div id="ics-lapse-value" style="font-size:15px;font-weight:700;color:#ffffff;line-height:1;">—</div>
+                                        </div>
                                     </div>
                                     <div style="width:1px;background:rgba(255,255,255,0.12);"></div>
-                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:10px 0;gap:10px;">
+                                    <!-- Columna 2 (medio): Temp. Actual / Humedad / Presión / Racha Viento -->
+                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:10px 0;gap:14px;">
                                         <div>
                                             <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Temp. Actual</div>
                                             <div id="ics-currenttemp-value" style="font-size:22px;font-weight:700;color:#ffffff;line-height:1;margin-top:6px;">—</div>
@@ -1362,43 +1373,23 @@
                                             <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Humedad</div>
                                             <div id="ics-humidity-value" style="font-size:15px;font-weight:400;color:#cccccc;line-height:1;">—</div>
                                         </div>
+                                        <div>
+                                            <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Presión</div>
+                                            <div id="ics-pressure-value" style="font-size:15px;font-weight:400;color:#cccccc;line-height:1;">—</div>
+                                            <svg id="ics-pressure-trend-icon" width="26" height="12" viewBox="0 0 26 12" style="margin-top:4px;"></svg>
+                                        </div>
+                                        <div>
+                                            <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Racha Viento</div>
+                                            <div id="ics-gust-value" style="font-size:15px;font-weight:400;color:#cccccc;line-height:1;">—</div>
+                                        </div>
                                     </div>
                                     <div style="width:1px;background:rgba(255,255,255,0.12);"></div>
-                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:10px 0;">
-                                        <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Temp. Mar</div>
-                                        <div id="ics-sst-value" style="font-size:22px;font-weight:700;color:#ffffff;line-height:1;margin-top:6px;">—</div>
-                                        <div id="ics-sst-label" style="font-size:10.5px;font-weight:600;margin-top:8px;text-align:center;line-height:1.35;color:#aaaaaa;">Cargando datos…</div>
-                                        <div style="width:28px;height:1px;background:rgba(255,255,255,0.12);margin:10px 0 8px;"></div>
-                                        <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Presión</div>
-                                        <div id="ics-pressure-value" style="font-size:22px;font-weight:700;color:#ffffff;line-height:1;margin-top:6px;">—</div>
-                                        <svg id="ics-pressure-trend-icon" width="26" height="12" viewBox="0 0 26 12" style="margin-top:6px;"></svg>
+                                    <!-- Columna 3 (derecha): mini "foto" del meteograma CAPE/LI/CIN, franja actual -->
+                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 0;">
+                                        <div style="font-size:9px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:8px;line-height:1.2;">Inestabilidad<br>Ahora</div>
+                                        <svg id="ics-inestabilidad-mini" width="66" height="100" viewBox="0 0 66 100"></svg>
                                     </div>
-                                </div>
 
-                                <div style="width:100%;height:1px;background:rgba(255,255,255,0.12);margin:14px 0 12px;"></div>
-
-                                <!-- Seguimiento de Inestabilidad: 5 indicadores adicionales -->
-                                <div style="display:flex;justify-content:space-between;gap:6px;">
-                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;">
-                                        <div style="font-size:9px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;line-height:1.2;">Depre.<br>Rocío</div>
-                                        <div id="ics-dewdep-value" style="font-size:15px;font-weight:700;color:#ffffff;line-height:1;">—</div>
-                                    </div>
-                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;">
-                                        <div style="font-size:9px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;line-height:1.2;">Racha<br>Viento</div>
-                                        <div id="ics-gust-value" style="font-size:15px;font-weight:700;color:#ffffff;line-height:1;">—</div>
-                                    </div>
-                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;">
-                                        <div style="font-size:9px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;line-height:1.2;">Nivel<br>Cong.</div>
-                                        <div id="ics-freezing-value" style="font-size:15px;font-weight:700;color:#ffffff;line-height:1;">—</div>
-                                    </div>
-                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;">
-                                        <div style="font-size:9px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;line-height:1.2;">Grad.<br>850-500</div>
-                                        <div id="ics-lapse-value" style="font-size:15px;font-weight:700;color:#ffffff;line-height:1;">—</div>
-                                    </div>
-                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;">
-                                        <div style="font-size:9px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;line-height:1.2;">Tend.<br>Térmica</div>
-                                        <svg id="ics-temptrend-icon" width="26" height="12" viewBox="0 0 26 12" style="margin-top:2px;"></svg>
-                                    </div>
                                 </div>
                             </div>
 
@@ -5559,6 +5550,67 @@
             }
         }
 
+        // ── Mini "foto" de Inestabilidad Ahora: barras CAPE/LI + cuchilla CIN ──
+        // Réplica visual reducida del meteograma grande (mismas escalas y colores),
+        // pero solo para el instante actual, pensada para encajar en la columna
+        // derecha estrecha del panel de rocío/temp/humedad/presión.
+        function _icsDrawMiniInestabilidad(svgEl, cape, li, cin) {
+            const CAPE_MAX   = 3200;
+            const CIN_SCALE  = 10;
+            const CIN_BAND   = 55;
+            const LI_MIN_C   = -8;
+            const LI_TO_CAPE = CAPE_MAX / Math.abs(LI_MIN_C);
+
+            const capeV = cape ?? 0;
+            const liV   = li ?? 0;
+            const cinV  = Math.abs(cin ?? 0);
+
+            const cinH     = Math.min(CAPE_MAX, cinV * CIN_SCALE);
+            const capeH    = Math.max(0, Math.min(CAPE_MAX, capeV));
+            const capeAtr  = Math.min(cinH, capeH);
+            const capeLib  = capeH - capeAtr;
+            const liHraw   = Math.max(0, Math.min(CAPE_MAX, -liV * LI_TO_CAPE));
+            const liAtr    = Math.min(cinH, liHraw);
+            const liLib    = liHraw - liAtr;
+
+            // Geometría del mini gráfico (viewBox 0 0 66 100)
+            const baseY = 82, topY = 8, H = baseY - topY;
+            const y = v => baseY - (Math.max(0, Math.min(CAPE_MAX, v)) / CAPE_MAX) * H;
+            const capeX = 7, liX = 37, barW = 22;
+
+            const rectCape = (y0, y1, opacity) =>
+                `<rect x="${capeX}" y="${Math.min(y0,y1)}" width="${barW}" height="${Math.abs(y1-y0)}" fill="#23b14d" fill-opacity="${opacity}"/>`;
+            const rectLI = (y0, y1, opacity) =>
+                `<rect x="${liX}" y="${Math.min(y0,y1)}" width="${barW}" height="${Math.abs(y1-y0)}" fill="#2f55cd" fill-opacity="${opacity}"/>`;
+
+            let svg = '';
+            // Barra CAPE: tramo atrapado (bajo la cuchilla, tenue) + tramo libre (encima, sólido)
+            if (capeAtr > 0) svg += rectCape(baseY, y(capeAtr), 0.28);
+            if (capeLib > 0) svg += rectCape(y(capeAtr), y(capeAtr + capeLib), 1);
+            // Barra LI: mismo criterio
+            if (liAtr > 0) svg += rectLI(baseY, y(liAtr), 0.3);
+            if (liLib > 0) svg += rectLI(y(liAtr), y(liAtr + liLib), 1);
+
+            // Etiquetas numéricas encima de cada barra (igual que el gráfico grande)
+            const capeTopY = Math.max(topY, y(capeH) - 4);
+            const liTopY   = Math.max(topY, y(liHraw) - 4);
+            svg += `<text x="${capeX + barW/2}" y="${capeTopY}" text-anchor="middle" font-size="8" font-weight="700" fill="#ffffff">${Math.round(capeV)}</text>`;
+            const liSigno = liV > 0 ? '+' : '';
+            svg += `<text x="${liX + barW/2}" y="${liTopY}" text-anchor="middle" font-size="8" font-weight="700" fill="#ffffff">${liSigno}${liV.toFixed(1)}°</text>`;
+
+            // Cuchilla CIN: banda roja flotante atravesando ambas barras
+            const bandTop = y(Math.min(CAPE_MAX, cinH + CIN_BAND));
+            const bandBot = y(Math.max(0, cinH - CIN_BAND));
+            svg += `<rect x="${capeX}" y="${bandTop}" width="${(liX + barW) - capeX}" height="${bandBot - bandTop}" fill="#e61919"/>`;
+            const cinLabel = Math.round(cinV) === 0 ? '0' : `-${Math.round(cinV)}`;
+            svg += `<text x="${(capeX + liX + barW)/2}" y="${(bandTop+bandBot)/2 + 3}" text-anchor="middle" font-size="8" font-weight="700" fill="#ffffff">${cinLabel}</text>`;
+
+            // Línea base
+            svg += `<line x1="4" y1="${baseY}" x2="62" y2="${baseY}" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>`;
+
+            svgEl.innerHTML = svg;
+        }
+
         async function updateIndicadoresCriticosSuperficie() {
             const dpValueEl = document.getElementById('ics-dewpoint-value');
             const dpLabelEl = document.getElementById('ics-dewpoint-label');
@@ -5684,6 +5736,17 @@
                     } else {
                         tempTrendEl.innerHTML = '';
                     }
+                }
+
+                // 6. Mini "foto" de Inestabilidad Ahora (barras CAPE/LI + cuchilla CIN),
+                //    mismas escalas y colores que el meteograma grande (CAPE_MAX=3200,
+                //    CIN_SCALE=10, CIN_BAND=55, LI_MIN_C=-8) para que sea coherente visualmente.
+                const miniSvg = document.getElementById('ics-inestabilidad-mini');
+                if (miniSvg) {
+                    const capeNow = (idxAhoraGlobal >= 0) ? hourly?.cape?.[idxAhoraGlobal] : null;
+                    const liNow   = (idxAhoraGlobal >= 0) ? hourly?.lifted_index?.[idxAhoraGlobal] : null;
+                    const cinNow  = (idxAhoraGlobal >= 0) ? hourly?.convective_inhibition?.[idxAhoraGlobal] : null;
+                    _icsDrawMiniInestabilidad(miniSvg, capeNow, liNow, cinNow);
                 }
             } catch (e) {
                 console.error('[Indicadores críticos] Error calculando punto de rocío:', e);
