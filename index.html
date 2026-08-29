@@ -1323,11 +1323,12 @@
                                 <div id="ahora-radar-map" style="width:100%;height:100%;"></div>
                             </div>
                             <div style="padding-top:10px;">
-                                <div style="width:100%;height:8px;border-radius:4px;background:linear-gradient(90deg, rgba(0,94,182,0.3) 0%, rgba(0,94,182,1) 20%, rgb(78,167,234) 35%, rgb(230,81,120) 50%, rgb(253,143,110) 65%, rgb(255,183,110) 75%, rgb(255,225,47) 88%, rgb(255,253,5) 100%);"></div>
+                                <div style="width:100%;height:8px;border-radius:4px;background:linear-gradient(90deg, rgba(98,181,229,0.35) 0%, rgb(98,181,229) 15%, rgb(53,213,197) 30%, rgb(97,207,86) 45%, rgb(226,219,74) 60%, rgb(237,150,52) 75%, rgb(214,63,52) 90%, rgb(196,68,140) 100%);"></div>
                                 <div style="display:flex;justify-content:space-between;margin-top:4px;">
                                     <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Débil</span>
                                     <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Moderada</span>
                                     <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Fuerte</span>
+                                    <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Extrema</span>
                                 </div>
                             </div>
                             <div style="padding-top:8px;">
@@ -8819,7 +8820,31 @@
                 dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false,
                 boxZoom: false, keyboard: false, tap: false, interactive: false
             });
+
+            /* ── Panes personalizados: mapa base < capa gris oscura < radar ──
+               El mapa base se queda en el pane por defecto (tilePane, z=200).
+               Se crean dos panes nuevos por encima, en este orden de altura:
+               1) dimPane   (z=220) — rectángulo gris oscuro semitransparente
+               2) radarPane (z=250) — tiles de RainViewer
+               Así la capa oscura queda SIEMPRE entre el mapa y el radar, sin
+               depender del orden de carga ni de z-index relativos internos. */
+            map2.createPane('dimPane');
+            map2.getPane('dimPane').style.zIndex = 220;
+            map2.getPane('dimPane').style.pointerEvents = 'none';
+
+            map2.createPane('radarPane');
+            map2.getPane('radarPane').style.zIndex = 250;
+            map2.getPane('radarPane').style.pointerEvents = 'none';
+
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, opacity: 1, crossOrigin: true, subdomains: 'abc' }).addTo(map2);
+
+            /* Rectángulo gris oscuro que cubre todo el mapa visible, en su propio
+               pane (dimPane), por encima del mapa base y por debajo del radar.
+               Ajusta fillOpacity (0-1) para más o menos oscurecimiento. */
+            L.rectangle([[-90, -180], [90, 180]], {
+                pane: 'dimPane', stroke: false, fillColor: '#1a1a1a', fillOpacity: 0.55, interactive: false
+            }).addTo(map2);
+
             const bcnIcon2 = L.divIcon({ className: '', html: '<div style="width:10px;height:10px;background:#3b82f6;border:2px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(59,130,246,0.8);"></div>', iconSize: [10,10], iconAnchor: [5,5] });
             L.marker([BCN_LAT, BCN_LON], { icon: bcnIcon2, interactive: false }).addTo(map2);
 
@@ -8836,7 +8861,7 @@
                     radarLayers2.forEach(l => map2.removeLayer(l));
                     radarLayers2 = [];
                     frames.forEach((f, i) => {
-                        const layer = L.tileLayer(`https://tilecache.rainviewer.com${f.path}/256/{z}/{x}/{y}/2/1_1.png`, { opacity: 0, maxZoom: 19, maxNativeZoom: 7, tileSize: 256, zIndex: 10+i });
+                        const layer = L.tileLayer(`https://tilecache.rainviewer.com${f.path}/256/{z}/{x}/{y}/2/1_1.png`, { opacity: 0, maxZoom: 19, maxNativeZoom: 7, tileSize: 256, zIndex: 10+i, pane: 'radarPane' });
                         layer.addTo(map2); radarLayers2.push(layer);
                     });
                     currentFrame2 = 0; showFrame2(0);
