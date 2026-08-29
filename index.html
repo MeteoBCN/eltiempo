@@ -1340,6 +1340,34 @@
                             </div>
                         </div>
 
+                        <!-- Columna 1b: Radar de Lluvia y Rayos (Windy) — copia del bloque RainViewer, congelada y recortada -->
+                        <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
+                            <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Radar de Lluvia y Rayos (Windy)</div>
+
+                            <!-- ══════ MARCO VISUAL: contenedor con overflow hidden ══════ -->
+                            <div style="position:relative;width:100%;height:220px;border-radius:8px;overflow:hidden;background:#1a1a1a;">
+
+                                <!-- ══════ IFRAME DE WINDY (por debajo del escudo) ══════ -->
+                                <!-- Técnica de "crop": el iframe es un 108% del contenedor y se desplaza
+                                     -4% en top/left para que los botones nativos de las esquinas queden
+                                     fuera del área visible (el overflow:hidden del contenedor los recorta). -->
+                                <iframe
+                                    src="https://embed.windy.com/embed2.html?lat=41.385&lon=2.173&detailLat=41.385&detailLon=2.173&width=650&height=450&zoom=8&level=surface&overlay=radar&product=radar&menu=&message=true&marker=&calendar=&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1"
+                                    style="position:absolute;top:-4%;left:-4%;width:108%;height:108%;border:none;"
+                                    loading="lazy"
+                                    title="Radar de lluvia y rayos Barcelona - Windy">
+                                </iframe>
+
+                                <!-- ══════ ESCUDO INVISIBLE: bloquea zoom, arrastre y clics ══════ -->
+                                <div style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;background:transparent;cursor:default;"></div>
+
+                            </div>
+
+                            <div style="text-align:center;padding-top:6px;">
+                                <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Windy</span>
+                            </div>
+                        </div>
+
                         <!-- Columna 2: Punto de Rocío + Temp. Actual/Humedad + Temperatura del Mar, y debajo la Webcam -->
                         <div style="display:flex;flex-direction:column;gap:12px;">
                             <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
