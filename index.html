@@ -1386,8 +1386,13 @@
                                     <div style="width:1px;background:rgba(255,255,255,0.12);"></div>
                                     <!-- Columna 3 (derecha): mini "foto" del meteograma CAPE/LI/CIN, franja actual -->
                                     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 0;">
-                                        <div style="font-size:9px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:8px;line-height:1.2;">Inestabilidad<br>Ahora</div>
+                                        <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Inestabilidad</div>
                                         <svg id="ics-inestabilidad-mini" width="66" height="100" viewBox="0 0 66 100"></svg>
+                                        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:6px;font-size:10px;font-weight:700;line-height:1.3;">
+                                            <span id="ics-cape-value" style="color:#23b14d;">—</span>
+                                            <span id="ics-li-value" style="color:#2f55cd;">—</span>
+                                            <span id="ics-cin-value" style="color:#e61919;">—</span>
+                                        </div>
                                     </div>
 
                                 </div>
@@ -5747,6 +5752,13 @@
                     const liNow   = (idxAhoraGlobal >= 0) ? hourly?.lifted_index?.[idxAhoraGlobal] : null;
                     const cinNow  = (idxAhoraGlobal >= 0) ? hourly?.convective_inhibition?.[idxAhoraGlobal] : null;
                     _icsDrawMiniInestabilidad(miniSvg, capeNow, liNow, cinNow);
+
+                    const capeTxtEl = document.getElementById('ics-cape-value');
+                    if (capeTxtEl) capeTxtEl.textContent = (capeNow !== null && capeNow !== undefined) ? `${Math.round(capeNow)} J/kg` : '—';
+                    const liTxtEl = document.getElementById('ics-li-value');
+                    if (liTxtEl) liTxtEl.textContent = (liNow !== null && liNow !== undefined) ? `${liNow > 0 ? '+' : ''}${liNow.toFixed(1)}°C` : '—';
+                    const cinTxtEl = document.getElementById('ics-cin-value');
+                    if (cinTxtEl) cinTxtEl.textContent = (cinNow !== null && cinNow !== undefined) ? `${Math.round(Math.abs(cinNow))} J/kg` : '—';
                 }
             } catch (e) {
                 console.error('[Indicadores críticos] Error calculando punto de rocío:', e);
