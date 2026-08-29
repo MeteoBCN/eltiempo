@@ -1329,7 +1329,18 @@
                                     style="position:absolute;top:-55px;left:0;width:100%;height:340px;border:0;pointer-events:none;">
                                 </iframe>
                             </div>
-                            <div style="text-align:center;padding-top:4px;">
+                            <div style="padding-top:8px;">
+                                <div style="height:8px;border-radius:4px;background:linear-gradient(to right, #7fd9f5 0%, #3fa9e0 12%, #2f7fd4 24%, #2ecc71 38%, #f4e04d 52%, #f5a623 66%, #e8543a 80%, #b83280 92%, #7a1f6e 100%);"></div>
+                                <div style="display:flex;justify-content:space-between;margin-top:3px;">
+                                    <span style="font-size:8px;color:rgba(255,255,255,0.45);">0.1</span>
+                                    <span style="font-size:8px;color:rgba(255,255,255,0.45);">1</span>
+                                    <span style="font-size:8px;color:rgba(255,255,255,0.45);">5</span>
+                                    <span style="font-size:8px;color:rgba(255,255,255,0.45);">10</span>
+                                    <span style="font-size:8px;color:rgba(255,255,255,0.45);">25</span>
+                                    <span style="font-size:8px;color:rgba(255,255,255,0.45);">50+ mm/h</span>
+                                </div>
+                            </div>
+                            <div style="text-align:center;padding-top:6px;">
                                 <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Ventusky</span>
                             </div>
                         </div>
@@ -5525,7 +5536,7 @@
                 const cur  = data?.current;
                 const td   = _icsCalcularPuntoRocio(cur?.temperature_2m, cur?.relative_humidity_2m);
                 if (td !== null && dpValueEl) {
-                    dpValueEl.textContent = `${td.toFixed(1)} °C`;
+                    dpValueEl.textContent = `${Math.round(td)} °C`;
                     const et = _icsEtiquetaPuntoRocio(td);
                     dpLabelEl.textContent = et.texto;
                     dpLabelEl.style.color = et.color;
@@ -5534,7 +5545,7 @@
                 }
                 if (tempValueEl) {
                     tempValueEl.textContent = (cur?.temperature_2m !== null && cur?.temperature_2m !== undefined)
-                        ? `${cur.temperature_2m.toFixed(1)} °C` : '—';
+                        ? `${Math.round(cur.temperature_2m)} °C` : '—';
                 }
                 if (humValueEl) {
                     humValueEl.textContent = (cur?.relative_humidity_2m !== null && cur?.relative_humidity_2m !== undefined)
@@ -5550,7 +5561,7 @@
                 const marine = await window._marineDataPromise;
                 const sst = marine?.current?.sea_surface_temperature;
                 if (sst !== null && sst !== undefined && sstValueEl) {
-                    sstValueEl.textContent = `${sst.toFixed(1)} °C`;
+                    sstValueEl.textContent = `${Math.round(sst)} °C`;
                     const mesActual = new Date().getMonth();
                     const et = _icsEtiquetaAnomaliaSST(sst, mesActual);
                     sstLabelEl.textContent = et.texto;
