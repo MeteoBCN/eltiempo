@@ -8794,15 +8794,15 @@
         /* ── Radar secundario (sección AHORA) — Leaflet + Rainviewer ── */
         function initAhoraRadar() {
             if (!window.L) return;
-            const BCN_LAT = 41.3851, BCN_LON = 2.1734, ZOOM = 7, FRAMES_TARGET = 8;
+            const BCN_LAT = 41.3851, BCN_LON = 2.1734, ZOOM = 9, FRAMES_TARGET = 8;
             let map2, radarLayers2 = [], currentFrame2 = 0, animTimer2 = null, isPlaying2 = true, allFrames2 = [];
 
             map2 = L.map('ahora-radar-map', {
-                center: [BCN_LAT, BCN_LON], zoom: 7, zoomControl: false, attributionControl: false,
+                center: [BCN_LAT, BCN_LON], zoom: 9, zoomControl: false, attributionControl: false,
                 dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false,
                 boxZoom: false, keyboard: false, tap: false, interactive: false
             });
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, opacity: 1, crossOrigin: true }).addTo(map2);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, opacity: 1, crossOrigin: true, subdomains: 'abcd' }).addTo(map2);
             const bcnIcon2 = L.divIcon({ className: '', html: '<div style="width:10px;height:10px;background:#3b82f6;border:2px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(59,130,246,0.8);"></div>', iconSize: [10,10], iconAnchor: [5,5] });
             L.marker([BCN_LAT, BCN_LON], { icon: bcnIcon2, interactive: false }).addTo(map2);
 
