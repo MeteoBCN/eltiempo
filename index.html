@@ -1288,6 +1288,29 @@
                     <div style="position:relative;height:260px;">
                         <canvas id="meteograma-inestabilidad-canvas"></canvas>
                     </div>
+
+                    <!-- Botón + desplegable: guía de interpretación del meteograma de inestabilidad -->
+                    <div style="padding-top:10px;">
+                        <button id="meteograma-guia-toggle" onclick="toggleMeteogramaGuiaPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                            <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Guía de interpretación: Diagnóstico de Inestabilidad Convectiva</span>
+                            <span id="meteograma-guia-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                        </button>
+                        <div id="meteograma-guia-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
+                            <div style="padding:12px 2px 2px;font-size:12px;line-height:1.55;color:rgba(255,255,255,0.9);">
+                                <p style="margin:0 0 10px;">Este gráfico avanzado unifica las tres variables fundamentales que determinan el desarrollo de tormentas en nuestra zona:</p>
+                                <ul style="margin:0 0 12px;padding-left:18px;">
+                                    <li style="margin-bottom:8px;"><b>CAPE libre (Barras Verdes):</b> Representa el combustible de la tormenta. Mide la energía potencial disponible en el suelo (en J/kg) para que el aire ascienda. Cuanto más alta y brillante sea la barra, mayor será el potencial de desarrollo de nubes de tormenta de gran tamaño.</li>
+                                    <li style="margin-bottom:8px;"><b>LI activo (Barras Azules):</b> El Lifted Index mide la fuerza de succión del cielo. Muestra la inestabilidad en las capas medias y altas de la atmósfera. Los valores negativos significan que el aire en altura está muy frío y forzará un ascenso violento de las nubes.</li>
+                                    <li><b>CIN cuchilla (Líneas Rojas):</b> Es la inhibición o "tapón" térmico. Mide la resistencia atmosférica que frena el inicio de las tormentas.</li>
+                                </ul>
+                                <p style="margin:0 0 8px;font-weight:700;">💡 ¿Cómo leer el gráfico en un vistazo?</p>
+                                <ul style="margin:0;padding-left:18px;">
+                                    <li style="margin-bottom:8px;"><b>Vía libre (Riesgo de tormentas):</b> Si observas barras verdes y azules altas y limpias, con la línea roja del CIN desplazada hacia el suelo, la atmósfera está libre para liberar su energía de forma convectiva.</li>
+                                    <li><b>Situación tapada (Energía bloqueada):</b> Si la línea roja del CIN sube y atraviesa las barras, la barra verde inferior se atenuará. Esto indica que hay un "tapón" o inversión térmica bloqueando la energía en superficie, lo que dificulta o anula la formación de tormentas.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Semáforo de riesgo de tormenta -->
@@ -5571,6 +5594,21 @@
             }
         }
 
+        // ── Desplegable: guía de interpretación del meteograma de inestabilidad ──
+        function toggleMeteogramaGuiaPanel() {
+            const panel = document.getElementById('meteograma-guia-panel');
+            const icon  = document.getElementById('meteograma-guia-toggle-icon');
+            if (!panel) return;
+            const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
+            if (isOpen) {
+                panel.style.maxHeight = '0px';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + 'px';
+                if (icon) icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
         // ── Canvas superior: temperatura / probabilidad de lluvia / precipitación acumulada ──
         function drawF7ChartTop() {
             const rows = window._f7Data;
@@ -6516,6 +6554,35 @@
                 return `DIAGNOSTICO: Condiciones mixtas (CAPE ${Math.round(cape)} J/kg, CIN -${Math.round(cin)} J/kg, LI ${li.toFixed(1)}°C). Sin un patrón convectivo dominante claro.`;
             }
 
+            // Nivel de severidad meteorológica de una franja (0 = escenario más extremo/peligroso,
+            // valores crecientes = escenarios progresivamente más tranquilos). Sigue el mismo orden
+            // que la cascada de diagnosticoConvectivo, así que ambas funciones deben ir sincronizadas.
+            function nivelSeveridad(cape, cin, li) {
+                if (cape > 2500 && cin < 25 && li <= -6) return 0;
+                if (cape > 2000 && cin >= 150) return 1;
+                if (cape > 1500 && cin < 50 && li <= -4) return 2;
+                if (cape > 1000 && cin >= 50 && cin < 150) return 3;
+                if (cape >= 500 && cape <= 1500 && cin < 50) return 4;
+                if (cape < 500 && li <= -4) return 5;
+                if (cape < 500 && cin > 100) return 6;
+                if (cape < 300 && cin <= 100 && li > -2) return 7;
+                return 4.5; // Comodín "condiciones mixtas": severidad intermedia, sin patrón claro
+            }
+
+            // Recorre todas las franjas y devuelve el índice de la más severa (peor escenario convectivo)
+            function indicePeorEscenario() {
+                let peorIdx = 0;
+                let peorNivel = Infinity;
+                for (let i = 0; i < n; i++) {
+                    const nivel = nivelSeveridad(capeData[i] ?? 0, cinData[i] ?? 0, liData[i] ?? 0);
+                    if (nivel < peorNivel) {
+                        peorNivel = nivel;
+                        peorIdx = i;
+                    }
+                }
+                return peorIdx;
+            }
+
             function actualizarDiagnostico(i) {
                 const contenedor = document.getElementById('texto-diagnostico');
                 if (!contenedor) return;
@@ -6523,7 +6590,8 @@
                     contenedor.textContent = '';
                     return;
                 }
-                contenedor.textContent = diagnosticoConvectivo(capeData[i] ?? 0, cinData[i] ?? 0, liData[i] ?? 0);
+                const franja = labels[i] || '';
+                contenedor.textContent = `${franja} — ${diagnosticoConvectivo(capeData[i] ?? 0, cinData[i] ?? 0, liData[i] ?? 0)}`;
             }
 
             // ── 5. Datasets ────────────────────────────────────────────────
@@ -6541,7 +6609,11 @@
                     label: 'LI activo', type: 'bar', data: liActivo, backgroundColor: '#2f55cd', stack: 'li', yAxisID: 'yCAPE', barPercentage: 0.5, categoryPercentage: 0.85, order: 2,
                     datalabels: {
                         color: '#ffffff', font: { weight: 'bold', size: 9 }, anchor: 'end', align: 'top', offset: 2,
-                        formatter: (v, ctx) => `${(liData[ctx.dataIndex] ?? 0).toFixed(1)}°`
+                        formatter: (v, ctx) => {
+                            const li = liData[ctx.dataIndex] ?? 0;
+                            const signo = li > 0 ? '+' : '';
+                            return `${signo}${li.toFixed(1)}°`;
+                        }
                     }
                 },
                 {
@@ -6551,7 +6623,10 @@
                     yAxisID: 'yCAPE', order: 1,
                     datalabels: {
                         color: '#ffffff', font: { weight: 'bold', size: 9 }, anchor: 'center', align: 'center',
-                        formatter: (v, ctx) => `-${Math.round(cinData[ctx.dataIndex] ?? 0)}`
+                        formatter: (v, ctx) => {
+                            const cin = Math.round(cinData[ctx.dataIndex] ?? 0);
+                            return cin === 0 ? '0' : `-${cin}`;
+                        }
                     }
                 }
             ];
@@ -6588,8 +6663,8 @@
                 }
             };
 
-            // Diagnóstico fijo (franja actual, sin depender del ratón)
-            actualizarDiagnostico(0);
+            // Diagnóstico fijo: se muestra la franja con peor escenario convectivo (sin depender del ratón)
+            actualizarDiagnostico(indicePeorEscenario());
 
             if (window._meteogramaInestabilidadChart) {
                 window._meteogramaInestabilidadChart.destroy();
@@ -6663,15 +6738,20 @@
         }
 
         async function loadWeatherData() {
-            // ── Peticiones independientes: si una falla, las demás siguen ──
-            // ── PROXY Cloudflare Worker (evita bloqueos 503 en móvil) ──────────
-            // Cambia PROXY_BASE por la URL de tu Worker desplegado, por ejemplo:
-            // const PROXY_BASE = 'https://tiempo-bcn-proxy.tunombre.workers.dev';
-            const PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
+            // ── Caché centralizada propia ───────────────────────────────────
+            // En vez de que cada visitante llame directo a Open-Meteo (lo que
+            // multiplica las llamadas por cada persona que abre la web), un
+            // GitHub Action ejecuta scripts/actualizar-datos.js cada 3 horas,
+            // hace ÉL la única llamada real a Open-Meteo, y guarda el
+            // resultado en datos/meteo.json dentro de este mismo repositorio.
+            // Todos los visitantes leen ese archivo estático propio.
+            const DATOS_URL = './datos/meteo.json';
 
-            const url=`${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_850hPa,temperature_500hPa,freezing_level_height,cape,lifted_index,convective_inhibition&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean,cape_max&timezone=Europe/Madrid&forecast_days=8`;
-            const aqUrl=`${PROXY_BASE}/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&hourly=pm10&forecast_days=2&timezone=Europe/Madrid`;
-            const marineUrl=`${PROXY_BASE}/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
+            // Respaldo: si el JSON local no existe o falla (por ejemplo justo
+            // después de subir la web por primera vez, antes de que el Action
+            // se haya ejecutado alguna vez), se recurre al proxy en directo
+            // para que la web nunca se quede sin datos.
+            const PROXY_BASE = 'https://muddy-truth-8fff.lojasergi.workers.dev';
 
             const safeFetch = async (u) => {
                 try {
@@ -6684,18 +6764,33 @@
                 } catch(e) { console.warn('Fetch error:', u, e); return null; }
             };
 
-            // Exponer promesas globalmente para que otros módulos (widget 3d, widget 7d,
+            let data, aqData, marineData;
+
+            const cache = await safeFetch(DATOS_URL);
+            if (cache?.forecast?.hourly && cache?.forecast?.daily) {
+                data       = cache.forecast;
+                aqData     = cache.air_quality;
+                marineData = cache.marine;
+                console.log('Datos meteo cargados desde caché propia (datos/meteo.json), generados:', cache.generated_at);
+            } else {
+                console.warn('No se pudo leer datos/meteo.json, usando proxy en directo como respaldo.');
+                const url=`${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_850hPa,temperature_500hPa,freezing_level_height,cape,lifted_index,convective_inhibition&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean,cape_max&timezone=Europe/Madrid&forecast_days=8`;
+                const aqUrl=`${PROXY_BASE}/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&hourly=pm10&forecast_days=2&timezone=Europe/Madrid`;
+                const marineUrl=`${PROXY_BASE}/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
+
+                [data, aqData, marineData] = await Promise.all([
+                    safeFetch(url),
+                    safeFetch(aqUrl),
+                    safeFetch(marineUrl)
+                ]);
+            }
+
+            // Exponer los datos globalmente para que otros módulos (widget 3d, widget 7d,
             // semáforo AQI, sección Mar) reutilicen los mismos datos sin lanzar
             // peticiones extra — especialmente importante en móvil con red limitada.
-            window._mainDataPromise   = safeFetch(url);
-            window._aqDataPromise     = safeFetch(aqUrl);
-            window._marineDataPromise = safeFetch(marineUrl);
-
-            const [data, aqData, marineData] = await Promise.all([
-                window._mainDataPromise,
-                window._aqDataPromise,
-                window._marineDataPromise
-            ]);
+            window._mainDataPromise   = Promise.resolve(data);
+            window._aqDataPromise     = Promise.resolve(aqData);
+            window._marineDataPromise = Promise.resolve(marineData);
 
             if (!data?.hourly || !data?.daily) { console.error('No se pudieron cargar datos principales'); return; }
 
@@ -8386,7 +8481,7 @@
         setInterval(updateMoonInfo, 60000);
 
         loadWeatherData();
-        setInterval(loadWeatherData, 900000); // 15 minutos
+        setInterval(loadWeatherData, 3600000); // 1 hora (los datos en datos/meteo.json solo cambian cada 3h, pero comprobar cada 1h asegura que se recoja el nuevo dato poco después de generarse)
 
 
 
