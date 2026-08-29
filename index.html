@@ -1370,6 +1370,10 @@
                                         <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Temp. Mar</div>
                                         <div id="ics-sst-value" style="font-size:22px;font-weight:700;color:#ffffff;line-height:1;margin-top:6px;">—</div>
                                         <div id="ics-sst-label" style="font-size:10.5px;font-weight:600;margin-top:8px;text-align:center;line-height:1.35;color:#aaaaaa;">Cargando datos…</div>
+                                        <div style="width:28px;height:1px;background:rgba(255,255,255,0.12);margin:10px 0 8px;"></div>
+                                        <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Presión</div>
+                                        <div id="ics-pressure-value" style="font-size:22px;font-weight:700;color:#ffffff;line-height:1;margin-top:6px;">—</div>
+                                        <svg id="ics-pressure-trend-icon" width="26" height="12" viewBox="0 0 26 12" style="margin-top:6px;"></svg>
                                     </div>
                                 </div>
                             </div>
@@ -5528,12 +5532,15 @@
             const sstLabelEl = document.getElementById('ics-sst-label');
             const tempValueEl = document.getElementById('ics-currenttemp-value');
             const humValueEl = document.getElementById('ics-humidity-value');
+            const pressureValueEl = document.getElementById('ics-pressure-value');
+            const pressureTrendEl = document.getElementById('ics-pressure-trend-icon');
             if (!dpValueEl && !sstValueEl) return;
 
             // ── Punto de rocío + Temperatura actual + Humedad (a partir de datos actuales) ──
             try {
                 const data = await window._mainDataPromise;
                 const cur  = data?.current;
+                const hourly = data?.hourly;
                 const td   = _icsCalcularPuntoRocio(cur?.temperature_2m, cur?.relative_humidity_2m);
                 if (td !== null && dpValueEl) {
                     dpValueEl.textContent = `${Math.round(td)} °C`;
@@ -5550,6 +5557,37 @@
                 if (humValueEl) {
                     humValueEl.textContent = (cur?.relative_humidity_2m !== null && cur?.relative_humidity_2m !== undefined)
                         ? `${Math.round(cur.relative_humidity_2m)}%` : '—';
+                }
+                // ── Presión barométrica actual + tendencia (últimas 3-4h) ──
+                if (pressureValueEl) {
+                    const presActual = cur?.pressure_msl;
+                    pressureValueEl.textContent = (presActual !== null && presActual !== undefined)
+                        ? `${Math.round(presActual)} hPa` : '—';
+
+                    if (pressureTrendEl && hourly?.time && hourly?.pressure_msl && presActual !== null && presActual !== undefined) {
+                        const now = new Date();
+                        const idxAhora = hourly.time.findIndex(t => Math.abs(new Date(t) - now) < 30 * 60 * 1000);
+                        const idxHace3h = idxAhora - 3;
+                        const presHace3h = (idxHace3h >= 0) ? hourly.pressure_msl[idxHace3h] : null;
+
+                        if (presHace3h !== null && presHace3h !== undefined) {
+                            const delta = presActual - presHace3h;
+                            let color, path;
+                            if (delta > 0.5) {
+                                color = '#f87171'; // sube = rojo
+                                path = 'M2,9 L22,9 M22,9 L17,4.5 M22,9 L17,13.5';
+                            } else if (delta < -0.5) {
+                                color = '#60a5fa'; // baja = azul
+                                path = 'M2,9 L22,9 M2,9 L7,4.5 M2,9 L7,13.5';
+                            } else {
+                                color = '#d1d5db'; // estable = gris claro
+                                path = 'M6,4.5 L20,4.5 M6,13.5 L20,13.5';
+                            }
+                            pressureTrendEl.innerHTML = `<path d="${path}" stroke="${color}" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+                        } else {
+                            pressureTrendEl.innerHTML = '';
+                        }
+                    }
                 }
             } catch (e) {
                 console.error('[Indicadores críticos] Error calculando punto de rocío:', e);
