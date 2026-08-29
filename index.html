@@ -8802,17 +8802,12 @@
 
             // Mapa minimalista "Light Gray Canvas" (Esri) — tierra y mar en tonos grises suaves, gratis y sin API key
             L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, opacity: 1, crossOrigin: true }).addTo(map2);
-            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, opacity: 1, crossOrigin: true }).addTo(map2);
             // Filtro CSS para dar aspecto oscuro sin depender de ningún proveedor con API key
             map2.getPane('tilePane').style.filter = 'invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9)';
 
             // Círculos de referencia de distancia (10 km y 25 km), línea discontinua, sin relleno
             L.circle([BCN_LAT, BCN_LON], {
                 radius: 10000, pane: 'ringsPane', color: '#ffffff', weight: 1.5, opacity: 0.55,
-                dashArray: '4 5', fill: false, interactive: false
-            }).addTo(map2);
-            L.circle([BCN_LAT, BCN_LON], {
-                radius: 25000, pane: 'ringsPane', color: '#ffffff', weight: 1.5, opacity: 0.4,
                 dashArray: '4 5', fill: false, interactive: false
             }).addTo(map2);
 
