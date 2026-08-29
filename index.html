@@ -6674,11 +6674,39 @@
                 }
             ];
 
+            // Plugin local: dibuja una línea vertical discontinua y sutil en cada
+            // cambio de día (frontera entre la última franja de un día y la primera del siguiente)
+            const daySeparatorPlugin = {
+                id: 'daySeparatorLines',
+                afterDraw(chart) {
+                    const { ctx, chartArea, scales: { x } } = chart;
+                    if (!chartArea) return;
+                    const chartLabels = chart.data.labels;
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([4, 4]);
+                    for (let i = 1; i < chartLabels.length; i++) {
+                        const prevDay = Array.isArray(chartLabels[i - 1]) ? chartLabels[i - 1][1] : null;
+                        const currDay = Array.isArray(chartLabels[i]) ? chartLabels[i][1] : null;
+                        if (prevDay !== null && currDay !== null && prevDay !== currDay) {
+                            const xPos = (x.getPixelForValue(i - 1) + x.getPixelForValue(i)) / 2;
+                            ctx.beginPath();
+                            ctx.moveTo(xPos, chartArea.top);
+                            ctx.lineTo(xPos, chartArea.bottom);
+                            ctx.stroke();
+                        }
+                    }
+                    ctx.restore();
+                }
+            };
+
             // ── 6. Configuración Chart.js ────────────────────────────────
             if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
             const config = {
                 type: 'bar',
                 data: { labels, datasets },
+                plugins: [daySeparatorPlugin],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -6687,7 +6715,15 @@
                         x: { stacked: true, grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.6)' } },
                         yCAPE: {
                             type: 'linear', position: 'left', min: 0, max: CAPE_MAX, stacked: true,
-                            display: false
+                            display: true,
+                            ticks: { display: false, stepSize: 1000 },
+                            border: { display: false },
+                            grid: {
+                                color: 'rgba(255,255,255,0.15)',
+                                lineWidth: 1,
+                                drawTicks: false,
+                                borderDash: [4, 4]
+                            }
                         }
                     },
                     plugins: {
