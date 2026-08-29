@@ -1323,11 +1323,11 @@
 
                         <!-- Columna 1: Línea de Convergencia (Dinámica de Vientos) -->
                         <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
-                            <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Vientos en Superficie (Convergencia)</div>
+                            <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Lluvia y Viento en Superficie (Convergencia)</div>
                             <div style="position:relative;width:100%;height:220px;border-radius:8px;overflow:hidden;background:#1a1a1a;">
                                 <iframe
-                                    src="https://embed.ventusky.com/?p=41.3789;2.1899;9&l=wind-10m&w=soft"
-                                    title="Mapa de viento en tiempo real (Ventusky) - Costa de Barcelona"
+                                    src="https://embed.ventusky.com/?p=41.3789;2.1899;9&l=radar&w=soft"
+                                    title="Radar de lluvia con líneas de viento en tiempo real (Ventusky) - Costa de Barcelona"
                                     loading="lazy"
                                     frameborder="0"
                                     scrolling="no"
@@ -1497,14 +1497,14 @@
         ════════════════════════════════════════════ -->
         <div id="ahora-section" style="max-width:600px;margin:0 auto;">
 
-            <!-- ── RADAR RAINVIEWER — redondo, fijo, sin controles ── -->
-            <div style="display:flex;flex-direction:column;align-items:center;padding:18px 16px;background:#ffffff;">
-                <div style="width:calc(100% - 32px);max-width:600px;aspect-ratio:1/1;border-radius:50%;overflow:hidden;border:3px solid #2c4a6e;box-shadow:0 2px 10px rgba(0,0,0,0.18);position:relative;">
-                    <div id="rv-map" style="width:100%;height:100%;transform:scale(1.35);transform-origin:center center;pointer-events:none;"></div>
-                </div>
-                <span id="rv-timestamp" style="margin-top:10px;font-size:9px;color:#64748b;letter-spacing:1px;"></span>
-                <span style="font-size:8px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Fuente: RainViewer</span>
-                <span id="rain-alert-debug" style="margin-top:6px;font-size:8px;color:#b0b8c1;letter-spacing:0.5px;"></span>
+            <!-- ── Mapa circular de RainViewer OCULTO a petición: el aviso de lluvia
+                 cercana sigue funcionando igual, ya que lee los tiles de RainViewer
+                 por su cuenta (ver script más abajo) sin depender de este mapa. Se
+                 mantiene el span de debug oculto a la vista pero disponible en DOM
+                 por si se quiere reactivar el mapa en el futuro. ── -->
+            <div style="display:none;">
+                <span id="rv-timestamp"></span>
+                <span id="rain-alert-debug"></span>
             </div>
 
         <script>
@@ -1810,124 +1810,9 @@
             setInterval(checkRainAlert, 4 * 60 * 1000);
         })();
         </script>
-
-
-        <style>
-            .rv-bcn-label {
-                background: transparent !important;
-                border: none !important;
-                box-shadow: none !important;
-                font-size: 10px !important;
-                font-weight: 700 !important;
-                color: #2c4a6e !important;
-                letter-spacing: 0.5px;
-                text-transform: uppercase;
-                padding: 0 !important;
-            }
-            .rv-bcn-label::before { display: none !important; }
-        </style>
-        <script>
-        // ── RAINVIEWER (radar circular fijo, sin interacción) ──────────
-        (function() {
-            let rvMap = null, rvFrames = [], rvIdx = 0, rvTimer = null;
-            let rvColor = 8, rvOpacity = 0.8;
-            let rvLayers = [], rvInited = false;
-            let rvApiHost = 'https://tilecache.rainviewer.com';
-            const BCN = [41.385, 2.173];
-
-            function rvInit() {
-                if (rvInited) return;
-                rvInited = true;
-                rvMap = L.map('rv-map', {
-                    zoomControl: false,
-                    attributionControl: false,
-                    dragging: false,
-                    scrollWheelZoom: false,
-                    doubleClickZoom: false,
-                    boxZoom: false,
-                    keyboard: false,
-                    touchZoom: false,
-                    tap: false
-                }).setView(BCN, 7);
-                // Mapa base "World Light Gray" de Esri: sin iconos de parques/bosques/POI,
-                // solo relieve de tierra/agua muy sutil.
-                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-                    maxZoom: 16
-                }).addTo(rvMap);
-                L.circleMarker(BCN, { radius: 5, color: '#2c4a6e', fillColor: '#2c4a6e', fillOpacity: 1, weight: 2 })
-                    .addTo(rvMap);
-                L.tooltip({ permanent: true, direction: 'top', offset: [0, -6], className: 'rv-bcn-label' })
-                    .setContent('Barcelona')
-                    .setLatLng(BCN)
-                    .addTo(rvMap);
-                // Círculos de referencia de distancia (25 km y 50 km)
-                L.circle(BCN, { radius: 25000, color: '#2c4a6e', weight: 1, opacity: 0.35, fill: false, dashArray: '4,4' })
-                    .addTo(rvMap);
-                L.circle(BCN, { radius: 50000, color: '#2c4a6e', weight: 1, opacity: 0.25, fill: false, dashArray: '4,4' })
-                    .addTo(rvMap);
-                fetch('https://api.rainviewer.com/public/weather-maps.json')
-                    .then(r => r.json())
-                    .then(data => {
-                        rvApiHost = data.host || rvApiHost;
-                        rvFrames = (data.radar?.past || []).concat(data.radar?.nowcast || []);
-                        if (!rvFrames.length) return;
-                        // Precargar todos los layers, ocultos
-                        rvFrames.forEach((f, i) => {
-                            const layer = L.tileLayer(
-                                rvApiHost + f.path + '/512/{z}/{x}/{y}/' + rvColor + '/1_1.png',
-                                { opacity: 0, zIndex: 10 }
-                            ).addTo(rvMap);
-                            rvLayers.push(layer);
-                        });
-                        // Mostrar el último (más reciente)
-                        rvIdx = rvFrames.length - 1;
-                        rvLayers[rvIdx].setOpacity(rvOpacity);
-                        rvUpdateTimestamp(rvIdx);
-                        // Arrancar animación (siempre activa, sin botón)
-                        rvStartPlay();
-                    })
-                    .catch(e => console.warn('RainViewer error:', e));
-            }
-
-            function rvShowFrame(i) {
-                if (!rvLayers.length) return;
-                // Ocultar frame anterior, mostrar el nuevo
-                rvLayers.forEach((l, idx) => l.setOpacity(idx === i ? rvOpacity : 0));
-                rvUpdateTimestamp(i);
-            }
-
-            function rvUpdateTimestamp(i) {
-                const f = rvFrames[i];
-                if (!f) return;
-                const d = new Date(f.time * 1000);
-                const ts = document.getElementById('rv-timestamp');
-                if (ts) ts.textContent = d.toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'short' })
-                    + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
-            }
-
-            function rvStartPlay() {
-                if (rvTimer) clearInterval(rvTimer);
-                rvTimer = setInterval(() => {
-                    rvIdx = (rvIdx + 1) % rvFrames.length;
-                    rvShowFrame(rvIdx);
-                }, 700);
-            }
-
-            // Init automático al cargar la página (espera a Leaflet)
-            function tryRvInit() {
-                if (typeof L !== 'undefined') {
-                    rvInit();
-                } else {
-                    setTimeout(tryRvInit, 100);
-                }
-            }
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', tryRvInit);
-            } else {
-                tryRvInit();
-            }
-        })();
-        </script>
+        <!-- Mapa circular Leaflet/RainViewer eliminado a petición: el aviso de
+             lluvia cercana (script justo arriba) no depende de él en absoluto,
+             ya que lee los tiles de RainViewer con su propio fetch/canvas. -->
 
         </div>
 
