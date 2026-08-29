@@ -8788,29 +8788,15 @@
                 boxZoom: false, keyboard: false, tap: false, interactive: false
             });
 
-            /* ── Panes personalizados: mapa base < capa gris oscura < radar ──
+            /* ── Panes personalizados: mapa base < radar ──
                El mapa base se queda en el pane por defecto (tilePane, z=200).
-               Se crean dos panes nuevos por encima, en este orden de altura:
-               1) dimPane   (z=220) — rectángulo gris oscuro semitransparente
-               2) radarPane (z=250) — tiles de RainViewer
-               Así la capa oscura queda SIEMPRE entre el mapa y el radar, sin
-               depender del orden de carga ni de z-index relativos internos. */
-            map2.createPane('dimPane');
-            map2.getPane('dimPane').style.zIndex = 220;
-            map2.getPane('dimPane').style.pointerEvents = 'none';
-
+               El radar va en su propio pane por encima, sin capa de
+               oscurecimiento intermedia (el mapa base ya es oscuro). */
             map2.createPane('radarPane');
             map2.getPane('radarPane').style.zIndex = 250;
             map2.getPane('radarPane').style.pointerEvents = 'none';
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, opacity: 1, crossOrigin: true, subdomains: 'abc' }).addTo(map2);
-
-            /* Rectángulo gris oscuro que cubre todo el mapa visible, en su propio
-               pane (dimPane), por encima del mapa base y por debajo del radar.
-               Ajusta fillOpacity (0-1) para más o menos oscurecimiento. */
-            L.rectangle([[-90, -180], [90, 180]], {
-                pane: 'dimPane', stroke: false, fillColor: '#1a1a1a', fillOpacity: 0.55, interactive: false
-            }).addTo(map2);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, opacity: 1, crossOrigin: true, subdomains: 'abcd' }).addTo(map2);
 
             const bcnIcon2 = L.divIcon({ className: '', html: '<div style="width:10px;height:10px;background:#3b82f6;border:2px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(59,130,246,0.8);"></div>', iconSize: [10,10], iconAnchor: [5,5] });
             L.marker([BCN_LAT, BCN_LON], { icon: bcnIcon2, interactive: false }).addTo(map2);
