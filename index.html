@@ -1313,6 +1313,51 @@
                     </div>
                 </div>
 
+                <!-- ═══════════════════════════════════════════
+                     INDICADORES CRÍTICOS EN SUPERFICIE
+                ════════════════════════════════════════════ -->
+                <div id="indicadores-criticos-superficie" style="padding:18px 16px 4px;background:transparent;">
+                    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);margin-bottom:12px;text-align:center;text-transform:uppercase;letter-spacing:1px;">Indicadores Críticos en Superficie</div>
+
+                    <div id="ics-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:12px;">
+
+                        <!-- Columna 1: Línea de Convergencia (Dinámica de Vientos) -->
+                        <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
+                            <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Vents en Superfície (Convergència)</div>
+                            <div style="position:relative;width:100%;padding-top:75%;border-radius:8px;overflow:hidden;background:#1a1a1a;">
+                                <iframe
+                                    src="https://embed.windy.com/embed2.html?lat=41.36&lon=2.19&detailLat=41.36&detailLon=2.19&width=650&height=450&zoom=9&level=surface&overlay=wind&menu=&message=true&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1"
+                                    title="Mapa de viento en tiempo real - Costa de Barcelona"
+                                    loading="lazy"
+                                    frameborder="0"
+                                    style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;">
+                                </iframe>
+                            </div>
+                            <div style="font-size:11px;line-height:1.5;color:rgba(255,255,255,0.65);margin-top:10px;">El choque de vientos (marítim vs terral) actúa como la chispa mecánica que rompe la inversión y fuerza el ascenso vertical del aire.</div>
+                        </div>
+
+                        <!-- Columna 2: Humedad Absoluta (Punto de Rocío / Dew Point) -->
+                        <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
+                            <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Punt de Rosada (Dew Point)</div>
+                            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 0;">
+                                <div id="ics-dewpoint-value" style="font-size:32px;font-weight:700;color:#ffffff;line-height:1;">—</div>
+                                <div id="ics-dewpoint-label" style="font-size:11px;font-weight:600;margin-top:10px;text-align:center;line-height:1.4;color:#aaaaaa;">Cargando datos…</div>
+                            </div>
+                        </div>
+
+                        <!-- Columna 3: Motor Térmico (Temperatura del Mar) -->
+                        <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
+                            <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Temperatura del Mar (Barceloneta)</div>
+                            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 0;">
+                                <div id="ics-sst-value" style="font-size:32px;font-weight:700;color:#ffffff;line-height:1;">—</div>
+                                <div id="ics-sst-label" style="font-size:11px;font-weight:600;margin-top:10px;text-align:center;line-height:1.4;color:#aaaaaa;">Cargando datos…</div>
+                            </div>
+                            <div style="font-size:11px;line-height:1.5;color:rgba(255,255,255,0.65);margin-top:10px;">Un Mediterráneo sobrecalentado incrementa la evaporación e inyecta energía adicional a las masas de aire que entran hacia la costa.</div>
+                        </div>
+
+                    </div>
+                </div>
+
                 <!-- Semáforo de riesgo de tormenta -->
                 <div id="f7-panel-wrap-risk" style="position:relative;height:140px;">
                 <div id="f7-panel-combo-risk" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
@@ -5519,6 +5564,92 @@
             wrap.style.height = (H + padTB) + 'px';
         }
 
+        // ══════════════════════════════════════════════════════════════════
+        //  INDICADORES CRÍTICOS EN SUPERFICIE
+        //  (Punto de rocío calculado vía Magnus-Tetens + temperatura del mar
+        //  con anomalía frente a una climatología mensual aproximada)
+        // ══════════════════════════════════════════════════════════════════
+
+        // Climatología mensual aproximada de temperatura superficial del mar
+        // frente a Barcelona (valores de referencia orientativos, no oficiales).
+        // Índice 0 = enero … 11 = diciembre.
+        const ICS_SST_CLIMATOLOGIA = [13, 13, 14, 15, 18, 22, 25, 26, 24, 21, 18, 15];
+
+        function _icsCalcularPuntoRocio(tempC, humedadRel) {
+            if (tempC === null || tempC === undefined || humedadRel === null || humedadRel === undefined) return null;
+            const a = 17.62, b = 243.12;
+            const rh = Math.min(Math.max(humedadRel, 1), 100); // evita log(0)
+            const alpha = Math.log(rh / 100) + (a * tempC) / (b + tempC);
+            return (b * alpha) / (a - alpha);
+        }
+
+        function _icsEtiquetaPuntoRocio(td) {
+            if (td < 15) {
+                return { texto: 'Ambiente seco / Bajo potencial hídrico', color: '#aaaaaa' };
+            } else if (td <= 20) {
+                return { texto: 'Humedad moderada', color: '#facc15' };
+            } else {
+                return { texto: 'Bochorno extremo / Combustible de alta calidad para la convección', color: '#f87171' };
+            }
+        }
+
+        function _icsEtiquetaAnomaliaSST(sst, mes) {
+            const media = ICS_SST_CLIMATOLOGIA[mes];
+            const anomalia = sst - media;
+            const signo = anomalia >= 0 ? '+' : '';
+            if (anomalia >= 2) {
+                return { texto: `${signo}${anomalia.toFixed(1)}°C sobre la media estacional · Mediterráneo sobrecalentado`, color: '#f87171' };
+            } else if (anomalia <= -2) {
+                return { texto: `${signo}${anomalia.toFixed(1)}°C bajo la media estacional · Menor aporte energético`, color: '#7dd3fc' };
+            } else {
+                return { texto: `${signo}${anomalia.toFixed(1)}°C respecto a la media estacional`, color: '#aaaaaa' };
+            }
+        }
+
+        async function updateIndicadoresCriticosSuperficie() {
+            const dpValueEl = document.getElementById('ics-dewpoint-value');
+            const dpLabelEl = document.getElementById('ics-dewpoint-label');
+            const sstValueEl = document.getElementById('ics-sst-value');
+            const sstLabelEl = document.getElementById('ics-sst-label');
+            if (!dpValueEl && !sstValueEl) return;
+
+            // ── Punto de rocío (a partir de temperatura + humedad relativa actuales) ──
+            try {
+                const data = await window._mainDataPromise;
+                const cur  = data?.current;
+                const td   = _icsCalcularPuntoRocio(cur?.temperature_2m, cur?.relative_humidity_2m);
+                if (td !== null && dpValueEl) {
+                    dpValueEl.textContent = `${td.toFixed(1)} °C`;
+                    const et = _icsEtiquetaPuntoRocio(td);
+                    dpLabelEl.textContent = et.texto;
+                    dpLabelEl.style.color = et.color;
+                } else if (dpLabelEl) {
+                    dpLabelEl.textContent = 'Sin datos disponibles';
+                }
+            } catch (e) {
+                console.error('[Indicadores críticos] Error calculando punto de rocío:', e);
+                if (dpLabelEl) dpLabelEl.textContent = 'Sin datos disponibles';
+            }
+
+            // ── Temperatura del mar (Barceloneta) + anomalía frente a climatología ──
+            try {
+                const marine = await window._marineDataPromise;
+                const sst = marine?.current?.sea_surface_temperature;
+                if (sst !== null && sst !== undefined && sstValueEl) {
+                    sstValueEl.textContent = `${sst.toFixed(1)} °C`;
+                    const mesActual = new Date().getMonth();
+                    const et = _icsEtiquetaAnomaliaSST(sst, mesActual);
+                    sstLabelEl.textContent = et.texto;
+                    sstLabelEl.style.color = et.color;
+                } else if (sstLabelEl) {
+                    sstLabelEl.textContent = 'Sin datos disponibles';
+                }
+            } catch (e) {
+                console.error('[Indicadores críticos] Error obteniendo temperatura del mar:', e);
+                if (sstLabelEl) sstLabelEl.textContent = 'Sin datos disponibles';
+            }
+        }
+
         function drawF7ComboChart() {
             try {
                 drawF7ChartTop();
@@ -5539,6 +5670,11 @@
                 drawF7ChartRisk();
             } catch (e) {
                 console.error('[Meteograma] Error dibujando semáforo de riesgo de tormenta:', e);
+            }
+            try {
+                updateIndicadoresCriticosSuperficie();
+            } catch (e) {
+                console.error('[Indicadores críticos] Error actualizando punto de rocío / temperatura del mar:', e);
             }
         }
 
