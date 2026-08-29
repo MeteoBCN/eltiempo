@@ -2385,6 +2385,20 @@
         const LON = 2.1734;
         // OpenWeather eliminado: toda la app usa Open-Meteo (tiempo actual, previsión 48h, gráficas, etc.)
 
+        // ── Promesas de datos globales, creadas ANTES que nadie pueda leerlas ──
+        // Antes, window._mainDataPromise / _aqDataPromise / _marineDataPromise no
+        // existían hasta que loadWeatherData() terminaba su fetch. Cualquier
+        // función que las leyera antes (loadAQI, loadMar3, loadForecast7...)
+        // encontraba "undefined" y se quedaba así para siempre (un await sobre
+        // undefined no espera a que la variable se asigne más tarde).
+        // Al crear aquí promesas reales con su "resolve" guardado, cualquier
+        // lectura temprana obtiene una promesa que SÍ se completará en cuanto
+        // lleguen los datos, sin importar el orden de ejecución.
+        let _resolveMainData, _resolveAqData, _resolveMarineData;
+        window._mainDataPromise   = new Promise(r => { _resolveMainData = r; });
+        window._aqDataPromise     = new Promise(r => { _resolveAqData = r; });
+        window._marineDataPromise = new Promise(r => { _resolveMarineData = r; });
+
         // Fecha automática del artículo
         (function() {
             const meses = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
@@ -6934,9 +6948,12 @@
             // Exponer los datos globalmente para que otros módulos (widget 3d, widget 7d,
             // semáforo AQI, sección Mar) reutilicen los mismos datos sin lanzar
             // peticiones extra — especialmente importante en móvil con red limitada.
-            window._mainDataPromise   = Promise.resolve(data);
-            window._aqDataPromise     = Promise.resolve(aqData);
-            window._marineDataPromise = Promise.resolve(marineData);
+            // Resolvemos las promesas creadas al principio del script (no las
+            // reemplazamos), así cualquiera que ya estuviera esperando (await)
+            // sobre ellas recibe los datos igualmente.
+            _resolveMainData(data);
+            _resolveAqData(aqData);
+            _resolveMarineData(marineData);
 
             if (!data?.hourly || !data?.daily) { console.error('No se pudieron cargar datos principales'); return; }
 
