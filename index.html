@@ -1316,49 +1316,15 @@
 
                     <div id="ics-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:12px;">
 
-                        <!-- Columna 1: Línea de Convergencia (Dinámica de Vientos) -->
-                        <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
-                            <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Lluvia y Viento en Superficie</div>
-                            <div style="position:relative;width:100%;height:220px;border-radius:8px;overflow:hidden;background:#1a1a1a;">
-                                <iframe
-                                    src="https://embed.ventusky.com/?p=41.3789;2.1899;9&l=radar&w=soft"
-                                    title="Radar de lluvia con líneas de viento en tiempo real (Ventusky) - Costa de Barcelona"
-                                    loading="lazy"
-                                    frameborder="0"
-                                    scrolling="no"
-                                    style="position:absolute;top:-55px;left:0;width:100%;height:340px;border:0;">
-                                </iframe>
-                            </div>
-                            <div style="padding-top:8px;">
-                                <div style="height:8px;border-radius:4px;background:linear-gradient(to right, #7fd9f5 0%, #3fa9e0 12%, #2f7fd4 24%, #2ecc71 38%, #f4e04d 52%, #f5a623 66%, #e8543a 80%, #b83280 92%, #7a1f6e 100%);"></div>
-                                <div style="display:flex;justify-content:space-between;margin-top:3px;">
-                                    <span style="font-size:8px;color:rgba(255,255,255,0.45);">0.1</span>
-                                    <span style="font-size:8px;color:rgba(255,255,255,0.45);">1</span>
-                                    <span style="font-size:8px;color:rgba(255,255,255,0.45);">5</span>
-                                    <span style="font-size:8px;color:rgba(255,255,255,0.45);">10</span>
-                                    <span style="font-size:8px;color:rgba(255,255,255,0.45);">25</span>
-                                    <span style="font-size:8px;color:rgba(255,255,255,0.45);">50+ mm/h</span>
-                                </div>
-                            </div>
-                            <div style="text-align:center;padding-top:6px;">
-                                <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Ventusky</span>
-                            </div>
-                        </div>
-
-                        <!-- Radar RainViewer (prueba) — debajo del de Ventusky, mismo estilo de tarjeta -->
+                        <!-- Columna 1: Radar de Lluvia (RainViewer) -->
                         <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
                             <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Radar de Lluvia (RainViewer)</div>
                             <div style="position:relative;width:100%;height:220px;border-radius:8px;overflow:hidden;background:#1a1a1a;">
                                 <div id="ahora-radar-map" style="width:100%;height:100%;"></div>
                             </div>
                             <div style="padding-top:8px;">
-                                <div style="width:100%;height:3px;background:rgba(255,255,255,0.12);border-radius:2px;overflow:hidden;">
-                                    <div id="ahora-radar-progress" style="height:100%;width:0%;background:#3B82F6;transition:width 0.3s;"></div>
-                                </div>
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-                                    <button id="ahora-radar-btn-play" onclick="window.ahoraRadarTogglePlay()" style="background:#1a1a1a;border:1px solid rgba(255,255,255,0.15);color:#ffffff;font-size:10px;font-weight:600;padding:5px 10px;border-radius:6px;cursor:pointer;">⏸ PAUSAR</button>
+                                <div style="display:flex;justify-content:center;align-items:center;margin-top:8px;">
                                     <span id="ahora-radar-time-label" style="font-size:11px;color:#cccccc;font-weight:600;">--:--</span>
-                                    <button onclick="window.ahoraRadarGoLive()" style="background:#1a1a1a;border:1px solid rgba(255,255,255,0.15);color:#ffffff;font-size:10px;font-weight:600;padding:5px 10px;border-radius:6px;cursor:pointer;">EN VIVO</button>
                                 </div>
                             </div>
                             <div style="text-align:center;padding-top:6px;">
@@ -8819,7 +8785,7 @@
                     radarLayers2.forEach(l => map2.removeLayer(l));
                     radarLayers2 = [];
                     frames.forEach((f, i) => {
-                        const layer = L.tileLayer(`https://tilecache.rainviewer.com${f.path}/256/{z}/{x}/{y}/2/1_1.png`, { opacity: 0, maxZoom: 19, tileSize: 256, zIndex: 10+i });
+                        const layer = L.tileLayer(`https://tilecache.rainviewer.com${f.path}/256/{z}/{x}/{y}/2/1_1.png`, { opacity: 0, maxZoom: 19, maxNativeZoom: 7, tileSize: 256, zIndex: 10+i });
                         layer.addTo(map2); radarLayers2.push(layer);
                     });
                     currentFrame2 = 0; showFrame2(0);
