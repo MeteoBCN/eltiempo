@@ -1285,7 +1285,6 @@
 
                     <!-- Meteograma Sintético de Inestabilidad Convectiva: CAPE + CIN + Lifted Index fusionados (Chart.js) -->
                     <div style="background:#242424;border-radius:8px;padding:18px 16px 4px;margin-bottom:12px;">
-                        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);margin-bottom:8px;text-align:center;">INESTABILIDAD CONVECTIVA · 3 DÍAS (MAÑANA/TARDE)</div>
                         <div id="texto-diagnostico" style="min-height:32px;font-size:11px;font-weight:600;color:#ffffff;background:#1a1a1a;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:7px 10px;margin-bottom:10px;line-height:1.35;text-align:center;"></div>
                         <div style="position:relative;height:260px;">
                             <canvas id="meteograma-inestabilidad-canvas"></canvas>
@@ -1315,13 +1314,11 @@
                         </div>
                     </div>
 
-                    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);margin-bottom:12px;text-align:center;text-transform:uppercase;letter-spacing:1px;">Indicadores Críticos en Superficie</div>
-
                     <div id="ics-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:12px;">
 
                         <!-- Columna 1: Línea de Convergencia (Dinámica de Vientos) -->
                         <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
-                            <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Lluvia y Viento en Superficie (Convergencia)</div>
+                            <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Lluvia y Viento en Superficie</div>
                             <div style="position:relative;width:100%;height:220px;border-radius:8px;overflow:hidden;background:#1a1a1a;">
                                 <iframe
                                     src="https://embed.ventusky.com/?p=41.3789;2.1899;9&l=radar&w=soft"
@@ -1339,7 +1336,6 @@
 
                         <!-- Columna 2: Punto de Rocío + Temperatura del Mar (fusionados) -->
                         <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
-                            <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Punto de Rocío y Temperatura del Mar</div>
                             <div style="flex:1;display:flex;align-items:stretch;justify-content:center;gap:14px;">
                                 <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 0;">
                                     <div style="font-size:10.5px;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Punto de Rocío</div>
@@ -5501,7 +5497,7 @@
             } else if (anomalia <= -2) {
                 return { texto: `${signo}${anomalia.toFixed(1)}°C bajo la media estacional · Menor aporte energético`, color: '#7dd3fc' };
             } else {
-                return { texto: `${signo}${anomalia.toFixed(1)}°C respecto a la media estacional`, color: '#aaaaaa' };
+                return { texto: '', color: '#aaaaaa' };
             }
         }
 
@@ -6748,7 +6744,19 @@
                         legend: {
                             labels: {
                                 color: 'rgba(255,255,255,0.8)',
-                                filter: item => ['CAPE libre', 'LI activo', 'CIN (cuchilla)'].includes(item.text)
+                                boxWidth: 10,
+                                boxHeight: 10,
+                                generateLabels: chart => {
+                                    const original = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                                    const renombrar = {
+                                        'CAPE libre': 'CAPE (J/kg)',
+                                        'LI activo': 'LI (ºC)',
+                                        'CIN (cuchilla)': 'CIN (J/kg)'
+                                    };
+                                    return original
+                                        .filter(item => ['CAPE libre', 'LI activo', 'CIN (cuchilla)'].includes(item.text))
+                                        .map(item => ({ ...item, text: renombrar[item.text] || item.text }));
+                                }
                             }
                         },
                         tooltip: {
