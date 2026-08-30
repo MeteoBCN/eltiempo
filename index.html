@@ -36,6 +36,25 @@
             --border-radius: 16px;
             --border-radius-sm: 12px;
         }
+        /* Botones "desplegable" discretos (guías de interpretación, radiosondeo):
+           sin caja pesada, ancho automático centrado, look de enlace secundario. */
+        .f7-toggle-btn {
+            display: inline-flex; align-items: center; gap: 7px;
+            background: transparent; border: none;
+            border-bottom: 1px solid rgba(255,255,255,0.22);
+            padding: 3px 2px 7px; margin: 0 auto;
+            cursor: pointer; font: inherit; transition: border-color 0.2s ease;
+        }
+        .f7-toggle-btn:hover { border-bottom-color: rgba(255,255,255,0.4); }
+        .f7-toggle-btn .f7-toggle-ico { flex-shrink: 0; opacity: 0.55; transition: opacity 0.2s ease; }
+        .f7-toggle-btn .f7-toggle-label { font-size: 10.5px; font-weight: 400; letter-spacing: 0.3px; color: rgba(255,255,255,0.6); transition: color 0.2s ease; }
+        .f7-toggle-btn .f7-toggle-chevron { flex-shrink: 0; transition: transform 0.25s ease; }
+        .f7-toggle-btn .f7-toggle-chevron path { stroke: rgba(255,255,255,0.55); transition: stroke 0.2s ease; }
+        .f7-toggle-btn.is-open { border-bottom-color: rgba(255,255,255,0.4); }
+        .f7-toggle-btn.is-open .f7-toggle-label { color: rgba(255,255,255,0.9); }
+        .f7-toggle-btn.is-open .f7-toggle-ico { opacity: 0.9; }
+        .f7-toggle-btn.is-open .f7-toggle-chevron { transform: rotate(180deg); }
+        .f7-toggle-btn.is-open .f7-toggle-chevron path { stroke: rgba(255,255,255,0.9); }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scrollbar-gutter: stable; }
         body {
@@ -1147,10 +1166,12 @@
                 </div>
 
                 <!-- Botón + desplegable: por qué probabilidad y acumulado se muestran por separado -->
-                <div style="padding:0 16px 14px;">
-                    <button id="f7-info-toggle" onclick="toggleF7InfoPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
-                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Por qué la probabilidad y el acumulado por separado?</span>
-                        <span id="f7-info-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                <div style="padding:0 16px 14px;text-align:center;">
+                    <button id="f7-info-toggle" class="f7-toggle-btn" onclick="toggleF7InfoPanel()">
+                        <span class="f7-toggle-label">Por qué la probabilidad y el acumulado por separado?</span>
+                        <svg id="f7-info-toggle-icon" class="f7-toggle-chevron" width="9" height="9" viewBox="0 0 10 10">
+                            <path d="M1 3 L5 7 L9 3" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     </button>
                     <div id="f7-info-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
                         <div style="padding:12px 2px 2px;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,0.9);">
@@ -1166,10 +1187,12 @@
                 </div>
 
                 <!-- Desplegable: CÓMO FUNCIONA LA HUMEDAD EN LA ATMÓSFERA -->
-                <div style="padding:0 16px 14px;">
-                    <button id="f7-humedad-explica-toggle" onclick="toggleF7SimplePanel('f7-humedad-explica-panel','f7-humedad-explica-toggle-icon')" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
-                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">¿Cómo funciona la humedad en la atmósfera?</span>
-                        <span id="f7-humedad-explica-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                <div style="padding:0 16px 14px;text-align:center;">
+                    <button id="f7-humedad-explica-toggle" class="f7-toggle-btn" onclick="toggleF7SimplePanel('f7-humedad-explica-panel','f7-humedad-explica-toggle-icon','f7-humedad-explica-toggle')">
+                        <span class="f7-toggle-label">¿Cómo funciona la humedad en la atmósfera?</span>
+                        <svg id="f7-humedad-explica-toggle-icon" class="f7-toggle-chevron" width="9" height="9" viewBox="0 0 10 10">
+                            <path d="M1 3 L5 7 L9 3" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     </button>
                     <div id="f7-humedad-explica-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
                         <div style="padding:12px 2px 2px;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,0.9);">
@@ -1193,10 +1216,12 @@
                 </div>
 
                 <!-- Desplegable: QUÉ ES LA PRESIÓN BAROMÉTRICA -->
-                <div style="padding:0 16px 14px;">
-                    <button id="f7-presion-explica-toggle" onclick="toggleF7SimplePanel('f7-presion-explica-panel','f7-presion-explica-toggle-icon')" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
-                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">¿Qué es la presión barométrica?</span>
-                        <span id="f7-presion-explica-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                <div style="padding:0 16px 14px;text-align:center;">
+                    <button id="f7-presion-explica-toggle" class="f7-toggle-btn" onclick="toggleF7SimplePanel('f7-presion-explica-panel','f7-presion-explica-toggle-icon','f7-presion-explica-toggle')">
+                        <span class="f7-toggle-label">¿Qué es la presión barométrica?</span>
+                        <svg id="f7-presion-explica-toggle-icon" class="f7-toggle-chevron" width="9" height="9" viewBox="0 0 10 10">
+                            <path d="M1 3 L5 7 L9 3" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     </button>
                     <div id="f7-presion-explica-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
                         <div style="padding:12px 2px 2px;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,0.9);">
@@ -1219,10 +1244,12 @@
                 </div>
 
                 <!-- Desplegable: POR QUÉ SE GENERA EL VIENTO -->
-                <div style="padding:0 16px 40px;">
-                    <button id="f7-viento-explica-toggle" onclick="toggleF7SimplePanel('f7-viento-explica-panel','f7-viento-explica-toggle-icon')" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
-                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">¿Por qué se genera el viento?</span>
-                        <span id="f7-viento-explica-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                <div style="padding:0 16px 40px;text-align:center;">
+                    <button id="f7-viento-explica-toggle" class="f7-toggle-btn" onclick="toggleF7SimplePanel('f7-viento-explica-panel','f7-viento-explica-toggle-icon','f7-viento-explica-toggle')">
+                        <span class="f7-toggle-label">¿Por qué se genera el viento?</span>
+                        <svg id="f7-viento-explica-toggle-icon" class="f7-toggle-chevron" width="9" height="9" viewBox="0 0 10 10">
+                            <path d="M1 3 L5 7 L9 3" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     </button>
                     <div id="f7-viento-explica-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
                         <div style="padding:12px 2px 2px;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,0.9);">
@@ -1295,10 +1322,12 @@
                     </div>
 
                     <!-- Botón + desplegable: guía de interpretación del meteograma de inestabilidad -->
-                    <div style="padding-top:10px;padding-bottom:14px;">
-                        <button id="meteograma-guia-toggle" onclick="toggleMeteogramaGuiaPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(0,0,0,0.18);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
-                            <span style="flex:1;text-align:center;font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Guía de interpretación</span>
-                            <span id="meteograma-guia-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                    <div style="padding-top:22px;padding-bottom:14px;text-align:center;">
+                        <button id="meteograma-guia-toggle" class="f7-toggle-btn" onclick="toggleMeteogramaGuiaPanel()">
+                            <span class="f7-toggle-label">Guía de interpretación</span>
+                            <svg id="meteograma-guia-toggle-icon" class="f7-toggle-chevron" width="9" height="9" viewBox="0 0 10 10">
+                                <path d="M1 3 L5 7 L9 3" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </button>
                         <div id="meteograma-guia-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
                             <div style="padding:12px 2px 2px;font-size:12px;line-height:1.55;color:rgba(255,255,255,0.9);">
@@ -1339,10 +1368,12 @@
                     </div>
 
                     <!-- Botón + desplegable: guía de interpretación del meteograma de humedad/cizalladura -->
-                    <div style="padding-top:10px;padding-bottom:14px;">
-                        <button id="meteograma-humedad-guia-toggle" onclick="toggleMeteogramaHumedadGuiaPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(0,0,0,0.18);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
-                            <span style="flex:1;text-align:center;font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Guía de interpretación</span>
-                            <span id="meteograma-humedad-guia-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                    <div style="padding-top:22px;padding-bottom:14px;text-align:center;">
+                        <button id="meteograma-humedad-guia-toggle" class="f7-toggle-btn" onclick="toggleMeteogramaHumedadGuiaPanel()">
+                            <span class="f7-toggle-label">Guía de interpretación</span>
+                            <svg id="meteograma-humedad-guia-toggle-icon" class="f7-toggle-chevron" width="9" height="9" viewBox="0 0 10 10">
+                                <path d="M1 3 L5 7 L9 3" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </button>
                         <div id="meteograma-humedad-guia-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
                             <div style="padding:12px 2px 2px;font-size:12px;line-height:1.55;color:rgba(255,255,255,0.9);">
@@ -1363,10 +1394,12 @@
                 </div>
 
                 <!-- Botón + desplegable: último radiosondeo (UB/SMC) -->
-                <div style="padding:0 16px 14px;">
-                    <button id="f7-radiosondeo-toggle" onclick="toggleF7RadiosondeoPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
-                        <span style="flex:1;text-align:center;font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Último radiosondeo (UB/SMC)</span>
-                        <span id="f7-radiosondeo-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                <div style="padding:22px 16px 14px;text-align:center;">
+                    <button id="f7-radiosondeo-toggle" class="f7-toggle-btn" onclick="toggleF7RadiosondeoPanel()">
+                        <span class="f7-toggle-label">Último radiosondeo (UB/SMC)</span>
+                        <svg id="f7-radiosondeo-toggle-icon" class="f7-toggle-chevron" width="9" height="9" viewBox="0 0 10 10">
+                            <path d="M1 3 L5 7 L9 3" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     </button>
                     <div id="f7-radiosondeo-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
                         <div style="padding:12px 2px 2px;">
@@ -5882,45 +5915,45 @@
         // ── Desplegable: por qué mostramos probabilidad y acumulado por separado ──
         function toggleF7InfoPanel() {
             const panel = document.getElementById('f7-info-panel');
-            const icon  = document.getElementById('f7-info-toggle-icon');
+            const btn   = document.getElementById('f7-info-toggle');
             if (!panel) return;
             const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
             if (isOpen) {
                 panel.style.maxHeight = '0px';
-                if (icon) icon.style.transform = 'rotate(0deg)';
+                if (btn) btn.classList.remove('is-open');
             } else {
                 panel.style.maxHeight = panel.scrollHeight + 'px';
-                if (icon) icon.style.transform = 'rotate(180deg)';
+                if (btn) btn.classList.add('is-open');
             }
         }
 
         // ── Desplegable genérico "Saber +" (humedad / presión / viento del meteograma semanal) ──
-        function toggleF7SimplePanel(panelId, iconId) {
+        function toggleF7SimplePanel(panelId, iconId, btnId) {
             const panel = document.getElementById(panelId);
-            const icon  = document.getElementById(iconId);
+            const btn   = document.getElementById(btnId || iconId);
             if (!panel) return;
             const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
             if (isOpen) {
                 panel.style.maxHeight = '0px';
-                if (icon) icon.style.transform = 'rotate(0deg)';
+                if (btn) btn.classList.remove('is-open');
             } else {
                 panel.style.maxHeight = panel.scrollHeight + 'px';
-                if (icon) icon.style.transform = 'rotate(180deg)';
+                if (btn) btn.classList.add('is-open');
             }
         }
 
         // ── Desplegable: último radiosondeo (UB/SMC), misma imagen que la sección de radiosondeo ──
         function toggleF7RadiosondeoPanel() {
             const panel = document.getElementById('f7-radiosondeo-panel');
-            const icon  = document.getElementById('f7-radiosondeo-toggle-icon');
+            const btn   = document.getElementById('f7-radiosondeo-toggle');
             if (!panel) return;
             const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
             if (isOpen) {
                 panel.style.maxHeight = '0px';
-                if (icon) icon.style.transform = 'rotate(0deg)';
+                if (btn) btn.classList.remove('is-open');
             } else {
                 panel.style.maxHeight = panel.scrollHeight + 'px';
-                if (icon) icon.style.transform = 'rotate(180deg)';
+                if (btn) btn.classList.add('is-open');
                 // Si la imagen tarda en cargar, reajustar la altura del desplegable
                 const img = panel.querySelector('img');
                 if (img && !img.complete) {
@@ -5934,29 +5967,29 @@
         // ── Desplegable: guía de interpretación del meteograma de inestabilidad ──
         function toggleMeteogramaGuiaPanel() {
             const panel = document.getElementById('meteograma-guia-panel');
-            const icon  = document.getElementById('meteograma-guia-toggle-icon');
+            const btn   = document.getElementById('meteograma-guia-toggle');
             if (!panel) return;
             const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
             if (isOpen) {
                 panel.style.maxHeight = '0px';
-                if (icon) icon.style.transform = 'rotate(0deg)';
+                if (btn) btn.classList.remove('is-open');
             } else {
                 panel.style.maxHeight = panel.scrollHeight + 'px';
-                if (icon) icon.style.transform = 'rotate(180deg)';
+                if (btn) btn.classList.add('is-open');
             }
         }
 
         function toggleMeteogramaHumedadGuiaPanel() {
             const panel = document.getElementById('meteograma-humedad-guia-panel');
-            const icon  = document.getElementById('meteograma-humedad-guia-toggle-icon');
+            const btn   = document.getElementById('meteograma-humedad-guia-toggle');
             if (!panel) return;
             const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
             if (isOpen) {
                 panel.style.maxHeight = '0px';
-                if (icon) icon.style.transform = 'rotate(0deg)';
+                if (btn) btn.classList.remove('is-open');
             } else {
                 panel.style.maxHeight = panel.scrollHeight + 'px';
-                if (icon) icon.style.transform = 'rotate(180deg)';
+                if (btn) btn.classList.add('is-open');
             }
         }
 
