@@ -1271,25 +1271,35 @@
                 <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">ATMÓSFERA LIBRE</span>
             </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
-                <!-- Panel inferior: niveles 850hPa/500hPa (atmósfera libre) / cota de isocero -->
-                <div id="f7-panel-wrap-bottom" style="position:relative;height:560px;">
-                <div id="f7-panel-combo-bottom" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
-                    <canvas id="f7-chart-bottom" style="display:block;width:100%;"></canvas>
+                <!-- Panel niveles 850hPa/500hPa (atmósfera libre), 7 días -->
+                <div id="f7-panel-wrap-levels" style="position:relative;height:560px;">
+                <div id="f7-panel-combo-levels" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
+                    <canvas id="f7-chart-levels" style="display:block;width:100%;"></canvas>
                 </div>
                 </div>
 
                 <!-- Panel adicional: misma temperatura 850hPa/500hPa pero a 15 días,
-                     solo líneas de tendencia (sin puntos ni etiquetas de dato), dos
-                     franjas horarias (00h/12h) por día. Mismo estilo que la gráfica de 7 días. -->
+                     solo líneas de tendencia (con punto y cifra únicamente en la máxima
+                     y la mínima más importante de cada línea), dos franjas horarias
+                     (00h/12h) por día. Mismo estilo que la gráfica de 7 días.
+                     Colocado justo debajo de la gráfica de 7 días y encima de la de
+                     cota de isocero. -->
                 <div id="f7-panel-wrap-bottom15" style="position:relative;height:280px;">
                 <div id="f7-panel-combo-bottom15" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
                     <canvas id="f7-chart-bottom15" style="display:block;width:100%;"></canvas>
                 </div>
                 </div>
 
+                <!-- Panel cota de isocero (0°C), 7 días -->
+                <div id="f7-panel-wrap-iso" style="position:relative;height:150px;">
+                <div id="f7-panel-combo-iso" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
+                    <canvas id="f7-chart-iso" style="display:block;width:100%;"></canvas>
+                </div>
+                </div>
+
                 <!-- Meteograma Sintético de Inestabilidad Convectiva: CAPE + CIN + Lifted Index fusionados (Chart.js)
                      Trasladado justo después de la cota de isocero. Mismo ancho que la gráfica 850hPa/500hPa/isocero
-                     (padding 14px 16px, igual que #f7-panel-combo-bottom) y fondo azul heredado del contenedor. -->
+                     (padding 14px 16px, igual que #f7-panel-combo-levels) y fondo azul heredado del contenedor. -->
                 <div style="background:transparent;padding:14px 16px 4px;margin-bottom:12px;">
                     <div style="position:relative;height:260px;">
                         <canvas id="meteograma-inestabilidad-canvas"></canvas>
@@ -5866,9 +5876,19 @@
                 console.error('[Meteograma] Error dibujando gráfico superior (temperatura/lluvia):', e);
             }
             try {
-                drawF7ChartBottom();
+                drawF7ChartLevels();
             } catch (e) {
-                console.error('[Meteograma] Error dibujando gráfico inferior (atmósfera libre):', e);
+                console.error('[Meteograma] Error dibujando gráfico de niveles 850/500hPa (7 días):', e);
+            }
+            try {
+                drawF7ChartBottom15();
+            } catch (e) {
+                console.error('[Meteograma] Error dibujando gráfico de niveles 850/500hPa (15 días):', e);
+            }
+            try {
+                drawF7ChartIso();
+            } catch (e) {
+                console.error('[Meteograma] Error dibujando gráfico de cota de isocero:', e);
             }
             try {
                 updateMeteogramaInestabilidad();
@@ -6572,13 +6592,13 @@
         }
 
         // ── Canvas inferior: niveles 850hPa/500hPa (atmósfera libre) / cota de isocero ──
-        function drawF7ChartBottom() {
+        function drawF7ChartLevels() {
             const levels = window._f7LevelData || [];
             const rows   = window._f7Data;
-            const canvas = document.getElementById('f7-chart-bottom');
+            const canvas = document.getElementById('f7-chart-levels');
             if (!canvas || !levels || levels.length < 2) {
                 // Sin datos de niveles: colapsar el contenedor para no dejar hueco vacío
-                const wrap = document.getElementById('f7-panel-wrap-bottom');
+                const wrap = document.getElementById('f7-panel-wrap-levels');
                 if (wrap) wrap.style.height = '0px';
                 return;
             }
@@ -6587,25 +6607,21 @@
             const W   = canvas.parentElement.offsetWidth - 32;
             const ctx = canvas.getContext('2d');
 
-            const PAD = { t:161, r:16, b:24, l:16 };
+            const PAD = { t:161, r:16, b:48, l:16 };
             const cw  = W - PAD.l - PAD.r;
             const n   = (rows && rows.length) || 7;
             const xPos = i => PAD.l + (i / (n - 1)) * cw;
 
             const levelsH = 170;   // alto zona 850hPa/500hPa (con espacio para ambas líneas y etiquetas)
-            const gap3    = 135;   // separación antes de isocero (fila de días de ATMÓSFERA LIBRE → título "COTA DE ISOCERO" = 65px reales)
-            const isoH    = 70;    // alto zona cota isocero
-
             const levelsTop    = PAD.t;
             const levelsBottom = levelsTop + levelsH;
-            const isoTop     = levelsBottom + gap3;
-            const isoBottom  = isoTop + isoH;
 
             // Nota: CAPE, Lifted Index y CIN ya no se dibujan aquí — se fusionaron en
             // el Meteograma Sintético de Inestabilidad Convectiva (Chart.js), ver
             // updateMeteogramaInestabilidad(). El semáforo de riesgo de tormenta pasó
-            // a su propio canvas: ver drawF7ChartRisk().
-            const H = isoBottom + PAD.b;
+            // a su propio canvas: ver drawF7ChartRisk(). La cota de isocero pasó a su
+            // propio canvas: ver drawF7ChartIso().
+            const H = levelsBottom + PAD.b;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -6613,7 +6629,7 @@
             ctx.scale(dpr, dpr);
             ctx.clearRect(0, 0, W, H);
 
-            _f7SyncWrapHeight('f7-panel-wrap-bottom', 'f7-panel-combo-bottom', H);
+            _f7SyncWrapHeight('f7-panel-wrap-levels', 'f7-panel-combo-levels', H);
 
             if (levels.length >= 2) {
                 const m = levels.length;
@@ -6724,55 +6740,88 @@
                 ctx.beginPath();
                 ctx.moveTo(PAD.l, levelsBottom); ctx.lineTo(PAD.l + cw, levelsBottom);
                 ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
-
-                // ══════════════════════════════════════════════
-                // Zona cota de isocero (0°C) — línea + área
-                // ══════════════════════════════════════════════
-                const cotaV = levels.map(l => l.cota);
-                const cMin = Math.min(...cotaV, 0);
-                const cMax = Math.max(...cotaV, 500);
-                const isoHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "COTA DE ISOCERO"
-                const yIso = v => isoTop + isoH - ((v - cMin) / (cMax - cMin || 1)) * (isoH - isoHeadroom);
-
-                // Área bajo la línea
-                ctx.beginPath();
-                ctx.moveTo(xPos2(0), yIso(cotaV[0]));
-                for (let j = 1; j < m; j++) ctx.lineTo(xPos2(j), yIso(cotaV[j]));
-                ctx.lineTo(xPos2(m-1), isoBottom);
-                ctx.lineTo(xPos2(0), isoBottom);
-                ctx.closePath();
-                const gIso = ctx.createLinearGradient(0, isoTop, 0, isoBottom);
-                gIso.addColorStop(0, 'rgba(255,255,255,0.22)');
-                gIso.addColorStop(1, 'rgba(255,255,255,0)');
-                ctx.fillStyle = gIso; ctx.fill();
-
-                // Línea de cota isocero — blanca continua
-                ctx.beginPath();
-                levels.forEach((l, j) => { const x = xPos2(j), y = yIso(l.cota); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
-                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
-
-                levels.forEach((l, j) => {
-                    const x = xPos2(j), y = yIso(l.cota);
-                    ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
-                    // Solo etiquetar a las 00h para no saturar; se omite forzar el último punto
-                    // para no solapar su texto con el del punto anterior
-                    if (l.hour === 0) {
-                        ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                        ctx.fillText(l.cota + 'm', x, y - 7);
-                    }
-                });
-
-                // Título (con espacio respecto a la gráfica)
-                ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif';
-                ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText('COTA DE ISOCERO (0°C)', PAD.l + cw / 2, isoTop - 30);
-
-                // Línea base
-                ctx.beginPath();
-                ctx.moveTo(PAD.l, isoBottom); ctx.lineTo(PAD.l + cw, isoBottom);
-                ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
-
             }
+        }
+
+        // ── Canvas: cota de isocero (0°C), 7 días — separado del de niveles ──
+        function drawF7ChartIso() {
+            const levels = window._f7LevelData || [];
+            const canvas = document.getElementById('f7-chart-iso');
+            if (!canvas || !levels || levels.length < 2) {
+                const wrap = document.getElementById('f7-panel-wrap-iso');
+                if (wrap) wrap.style.height = '0px';
+                return;
+            }
+
+            const dpr = window.devicePixelRatio || 1;
+            const W   = canvas.parentElement.offsetWidth - 32;
+            const ctx = canvas.getContext('2d');
+
+            const PAD = { t:40, r:16, b:16, l:16 };
+            const cw  = W - PAD.l - PAD.r;
+            const m   = levels.length;
+            const xPos2 = j => PAD.l + (j / (m - 1)) * cw;
+
+            const isoH    = 70;    // alto zona cota isocero
+            const isoTop    = PAD.t;
+            const isoBottom = isoTop + isoH;
+            const H = isoBottom + PAD.b;
+
+            canvas.width  = W * dpr;
+            canvas.height = H * dpr;
+            canvas.style.width  = W + 'px';
+            canvas.style.height = H + 'px';
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, W, H);
+
+            _f7SyncWrapHeight('f7-panel-wrap-iso', 'f7-panel-combo-iso', H);
+
+            // ══════════════════════════════════════════════
+            // Zona cota de isocero (0°C) — línea + área
+            // ══════════════════════════════════════════════
+            const cotaV = levels.map(l => l.cota);
+            const cMin = Math.min(...cotaV, 0);
+            const cMax = Math.max(...cotaV, 500);
+            const isoHeadroom = 14; // deja aire entre el pico de línea/etiqueta y el título "COTA DE ISOCERO"
+            const yIso = v => isoTop + isoH - ((v - cMin) / (cMax - cMin || 1)) * (isoH - isoHeadroom);
+
+            // Área bajo la línea
+            ctx.beginPath();
+            ctx.moveTo(xPos2(0), yIso(cotaV[0]));
+            for (let j = 1; j < m; j++) ctx.lineTo(xPos2(j), yIso(cotaV[j]));
+            ctx.lineTo(xPos2(m-1), isoBottom);
+            ctx.lineTo(xPos2(0), isoBottom);
+            ctx.closePath();
+            const gIso = ctx.createLinearGradient(0, isoTop, 0, isoBottom);
+            gIso.addColorStop(0, 'rgba(255,255,255,0.22)');
+            gIso.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = gIso; ctx.fill();
+
+            // Línea de cota isocero — blanca continua
+            ctx.beginPath();
+            levels.forEach((l, j) => { const x = xPos2(j), y = yIso(l.cota); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+
+            levels.forEach((l, j) => {
+                const x = xPos2(j), y = yIso(l.cota);
+                ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
+                // Solo etiquetar a las 00h para no saturar; se omite forzar el último punto
+                // para no solapar su texto con el del punto anterior
+                if (l.hour === 0) {
+                    ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                    ctx.fillText(l.cota + 'm', x, y - 7);
+                }
+            });
+
+            // Título (con espacio respecto a la gráfica)
+            ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            ctx.fillText('COTA DE ISOCERO (0°C)', PAD.l + cw / 2, isoTop - 26);
+
+            // Línea base
+            ctx.beginPath();
+            ctx.moveTo(PAD.l, isoBottom); ctx.lineTo(PAD.l + cw, isoBottom);
+            ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
         }
 
         // ── Canvas: tendencia niveles 850hPa/500hPa a 15 días ──
@@ -6819,13 +6868,16 @@
             const lvMax = Math.ceil(Math.max(...allLv)) + 8;
             const yLv   = v => levelsTop + levelsH - ((v - lvMin) / (lvMax - lvMin)) * levelsH;
 
-            // Líneas guía cada 10°C
+            // Líneas guía cada 10°C, con su valor a la izquierda
             const guideTemps = [40, 30, 20, 10, 0, -10, -20, -30, -40];
             guideTemps.forEach(v => {
                 if (v < lvMin || v > lvMax) return;
                 const y = yLv(v);
                 ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
                 ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1; ctx.stroke();
+                ctx.textAlign = 'left'; ctx.font = '7px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.45)';
+                ctx.fillText(v + '°', PAD.l, y - 3);
             });
 
             // Líneas verticales discontinuas y sutiles marcando las 00h (separación entre días)
@@ -6850,6 +6902,27 @@
             ctx.setLineDash([5, 4]);
             ctx.strokeStyle = '#7DD3FC'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
             ctx.setLineDash([]);
+
+            // Como dato: solo se marca (punto + cifra) la máxima y la mínima más
+            // importante de cada línea, no el resto de valores intermedios.
+            const markExtremes = (arr, color) => {
+                let maxIdx = 0, minIdx = 0;
+                arr.forEach((v, i) => {
+                    if (v > arr[maxIdx]) maxIdx = i;
+                    if (v < arr[minIdx]) minIdx = i;
+                });
+                [{ idx: maxIdx, isMax: true }, { idx: minIdx, isMax: false }].forEach(({ idx, isMax }) => {
+                    const x = xPos(idx), y = yLv(arr[idx]);
+                    ctx.beginPath(); ctx.arc(x, y, 2.8, 0, Math.PI*2);
+                    ctx.fillStyle = color; ctx.fill();
+                    ctx.strokeStyle = 'rgba(18,54,83,0.9)'; ctx.lineWidth = 1; ctx.stroke();
+                    ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = color;
+                    ctx.textAlign = (idx === 0) ? 'left' : (idx === arr.length - 1) ? 'right' : 'center';
+                    ctx.fillText(arr[idx] + '°', x, isMax ? y - 8 : y + 14);
+                });
+            };
+            markExtremes(t850v, '#FF8A65');
+            markExtremes(t500v, '#7DD3FC');
 
             // Fila de días (abreviatura), centrada entre la franja de 00h y la de 12h de cada día
             const DIAS_ES15 = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
