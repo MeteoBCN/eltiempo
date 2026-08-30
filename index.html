@@ -1319,12 +1319,13 @@
 
                     <!-- Tabla: HR 850hPa / HR 700hPa / Cizalladura 850-500hPa por franja horaria -->
                     <div style="overflow-x:auto;margin-top:14px;">
-                        <table id="meteograma-humedad-tabla" style="width:100%;min-width:480px;border-collapse:collapse;font-size:11.5px;">
+                        <table id="meteograma-humedad-tabla" style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:10px;">
                             <thead>
                                 <tr id="meteograma-humedad-tabla-head"></tr>
                             </thead>
                             <tbody id="meteograma-humedad-tabla-body"></tbody>
                         </table>
+                        <p style="margin:4px 2px 0;font-size:9.5px;color:rgba(255,255,255,0.45);">HR = humedad relativa (%) · Cizall. = cizalladura 850-500hPa (km/h)</p>
                     </div>
 
                     <!-- Botón + desplegable: guía de interpretación del meteograma de humedad/cizalladura -->
@@ -7134,6 +7135,33 @@
                 }
             ];
 
+            // Plugin local: línea horizontal discontinua en el umbral PWAT = 40mm (combustible alto)
+            const pwatThresholdLinePlugin = {
+                id: 'pwatThresholdLine',
+                afterDraw(chart) {
+                    const { ctx, chartArea, scales: { yLeft } } = chart;
+                    if (!chartArea || !yLeft) return;
+                    const THRESHOLD = 40;
+                    if (THRESHOLD > yLeft.max) return;
+                    const yPos = yLeft.getPixelForValue(THRESHOLD);
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(239,68,68,0.55)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([5, 4]);
+                    ctx.beginPath();
+                    ctx.moveTo(chartArea.left, yPos);
+                    ctx.lineTo(chartArea.right, yPos);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = 'rgba(239,68,68,0.75)';
+                    ctx.font = '9px sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillText('40mm', chartArea.right, yPos - 2);
+                    ctx.restore();
+                }
+            };
+
             // Plugin local: separador vertical entre días (idéntico al del meteograma de inestabilidad)
             const daySeparatorPluginHum = {
                 id: 'daySeparatorLinesHum',
@@ -7164,7 +7192,7 @@
             const config = {
                 type: 'bar',
                 data: { labels, datasets },
-                plugins: [daySeparatorPluginHum],
+                plugins: [pwatThresholdLinePlugin, daySeparatorPluginHum],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -7215,18 +7243,18 @@
             const body = document.getElementById('meteograma-humedad-tabla-body');
             if (!head || !body || !stormRows || !stormRows.length) return;
 
-            const thStyle = 'padding:6px 4px;text-align:center;color:rgba(255,255,255,0.6);font-weight:400;border-bottom:1px solid rgba(255,255,255,0.15);white-space:nowrap;';
-            head.innerHTML = '<th style="' + thStyle + 'text-align:left;min-width:110px;"></th>' +
+            const thStyle = 'padding:4px 2px;text-align:center;color:rgba(255,255,255,0.6);font-weight:400;border-bottom:1px solid rgba(255,255,255,0.15);font-size:9px;line-height:1.3;';
+            head.innerHTML = '<th style="' + thStyle + 'text-align:left;width:62px;"></th>' +
                 stormRows.map(r => '<th style="' + thStyle + '">' + r.periodLabel + '<br>' + (r.isToday ? 'HOY' : r.dayName) + '</th>').join('');
 
             const rowDefs = [
-                { label: 'HR 850hPa (%)',       field: 'rh850', umbrales: [55, 75], suffix: '%' },
-                { label: 'HR 700hPa (%)',       field: 'rh700', umbrales: [45, 65], suffix: '%' },
-                { label: 'Cizalladura (km/h)',  field: 'shear', umbrales: [30, 50], suffix: '' }
+                { label: 'HR 850hPa',   field: 'rh850', umbrales: [55, 75], suffix: '%' },
+                { label: 'HR 700hPa',   field: 'rh700', umbrales: [45, 65], suffix: '%' },
+                { label: 'Cizall.',     field: 'shear', umbrales: [30, 50], suffix: '' }
             ];
 
-            const labelTdStyle = 'padding:7px 6px;color:rgba(255,255,255,0.85);font-weight:400;border-bottom:1px solid rgba(255,255,255,0.08);white-space:nowrap;';
-            const cellBaseStyle = 'padding:7px 4px;text-align:center;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.08);';
+            const labelTdStyle = 'padding:5px 2px;color:rgba(255,255,255,0.85);font-weight:400;border-bottom:1px solid rgba(255,255,255,0.08);font-size:9.5px;white-space:nowrap;';
+            const cellBaseStyle = 'padding:5px 2px;text-align:center;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.08);';
 
             body.innerHTML = rowDefs.map(def => {
                 const cells = stormRows.map(r => {
