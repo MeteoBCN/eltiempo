@@ -5974,7 +5974,7 @@
             const W   = canvas.parentElement.offsetWidth - 32;
             const ctx = canvas.getContext('2d');
 
-            const PAD = { t:56, r:16, b:50, l:16 };
+            const PAD = { t:100, r:16, b:50, l:16 };
             const cw  = W - PAD.l - PAD.r;
             const n   = rows.length;
 
@@ -6039,6 +6039,25 @@
             const dayW  = cw / n;
 
             ctx.clearRect(0, 0, W, H);
+
+            // Título de sección "- METEOGRAMAS · 7DÍAS -" estilo METEOFLASH: guiones y
+            // "METEOGRAMAS ·" en fino, "7DÍAS" en negrita, mismo tamaño y estilo que
+            // el título "- ATMÓSFERA LIBRE -" del panel de niveles 850/500hPa
+            (() => {
+                const size = 24;
+                const thinFont = '300 ' + size + 'px Inter,sans-serif';
+                const boldFont = '900 ' + size + 'px Inter,sans-serif';
+                const seg1 = '- METEOGRAMAS · ', seg2 = '7DÍAS', seg3 = ' -';
+                ctx.font = thinFont; const w1 = ctx.measureText(seg1).width;
+                ctx.font = boldFont; const w2 = ctx.measureText(seg2).width;
+                ctx.font = thinFont; const w3 = ctx.measureText(seg3).width;
+                const y = PAD.t - 20;
+                let x = PAD.l + cw / 2 - (w1 + w2 + w3) / 2;
+                ctx.textAlign = 'left'; ctx.fillStyle = '#ffffff';
+                ctx.font = thinFont; ctx.fillText(seg1, x, y); x += w1;
+                ctx.font = boldFont; ctx.fillText(seg2, x, y); x += w2;
+                ctx.font = thinFont; ctx.fillText(seg3, x, y);
+            })();
 
             // Líneas guía Y de la zona de temperatura (blancas translúcidas)
             const steps = 3;
@@ -6715,7 +6734,7 @@
                 // "- ATMÓSFERA LIBRE -", antes de bajar el título grande "7 DÍAS"
                 ctx.textAlign = 'center'; ctx.font = 'bold 10.5px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText('TEMPERATURA 850-500hPa', PAD.l + cw / 2, levelsTop - 90);
+                ctx.fillText('TEMPERATURA 850-500hPa', PAD.l + cw / 2, levelsTop - 65);
 
                 ctx.font = 'bold 9px Inter,sans-serif';
                 ctx.textAlign = 'left';
@@ -6725,20 +6744,20 @@
                 const legSwatch = 14, legGap = 14;
                 const legTotalW = legSwatch + legW850 + legGap + legSwatch + legW500;
                 let legX = PAD.l + cw / 2 - legTotalW / 2;
-                ctx.beginPath(); ctx.moveTo(legX, levelsTop - 74); ctx.lineTo(legX + legSwatch, levelsTop - 74);
+                ctx.beginPath(); ctx.moveTo(legX, levelsTop - 49); ctx.lineTo(legX + legSwatch, levelsTop - 49);
                 ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 2; ctx.stroke();
                 ctx.fillStyle = '#FF8A65';
-                ctx.fillText(' 850hPa', legX + legSwatch, levelsTop - 71);
+                ctx.fillText(' 850hPa', legX + legSwatch, levelsTop - 46);
                 legX += legSwatch + legW850 + legGap;
-                ctx.beginPath(); ctx.moveTo(legX, levelsTop - 74); ctx.lineTo(legX + legSwatch, levelsTop - 74);
+                ctx.beginPath(); ctx.moveTo(legX, levelsTop - 49); ctx.lineTo(legX + legSwatch, levelsTop - 49);
                 ctx.strokeStyle = '#7DD3FC';
                 ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
                 ctx.fillStyle = '#7DD3FC';
-                ctx.fillText(' 500hPa', legX + legSwatch, levelsTop - 71);
+                ctx.fillText(' 500hPa', legX + legSwatch, levelsTop - 46);
 
                 // Título grande estilo METEOFLASH: "7" fino + "DÍAS" en negrita (centrado),
                 // bajado para ir después de la leyenda 850hPa/500hPa
-                _f7DrawSplitTitle(ctx, '7', 'DÍAS', PAD.l + cw / 2, levelsTop - 40, 18, 'center');
+                _f7DrawSplitTitle(ctx, '7', 'DÍAS', PAD.l + cw / 2, levelsTop - 15, 18, 'center');
 
                 // Línea base
                 ctx.beginPath();
