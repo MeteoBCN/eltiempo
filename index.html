@@ -1260,10 +1260,8 @@
              GRÁFICOS SEMANA (METEOGRAMA) — SECCIÓN 2: ATMÓSFERA LIBRE
         ════════════════════════════════════════════ -->
         <div id="forecast7-charts-section-2" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <!-- Cabecera -->
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);gap:3px;">
-                <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">ATMÓSFERA LIBRE</span>
-            </div>
+            <!-- Cabecera eliminada: el título "ATMÓSFERA LIBRE" ahora se dibuja dentro
+                 del propio canvas de niveles 850hPa/500hPa, encima del título "7 DÍAS". -->
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <!-- Panel niveles 850hPa/500hPa (atmósfera libre), 7 días -->
                 <div id="f7-panel-wrap-levels" style="position:relative;height:560px;">
@@ -6691,13 +6689,13 @@
                     });
                 }
 
-                // Título grande estilo METEOFLASH: "7" fino + "DÍAS" en negrita (centrado)
-                _f7DrawSplitTitle(ctx, '7', 'DÍAS', PAD.l + cw / 2, levelsTop - 95, 20, 'center');
-
-                // Título de sección "ATMÓSFERA LIBRE" (con espacio respecto a la fila de días de arriba)
+                // Título de sección "ATMÓSFERA LIBRE" (ahora encima del título "7 DÍAS")
                 ctx.textAlign = 'center'; ctx.font = 'bold 11px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                ctx.fillText('ATMÓSFERA LIBRE', PAD.l + cw / 2, levelsTop - 51);
+                ctx.fillText('ATMÓSFERA LIBRE', PAD.l + cw / 2, levelsTop - 95);
+
+                // Título grande estilo METEOFLASH: "7" fino + "DÍAS" en negrita (centrado)
+                _f7DrawSplitTitle(ctx, '7', 'DÍAS', PAD.l + cw / 2, levelsTop - 62, 20, 'center');
 
                 // Título + leyenda (leyenda debajo del título)
                 ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif';
@@ -6744,7 +6742,8 @@
             const W   = canvas.parentElement.offsetWidth - 32;
             const ctx = canvas.getContext('2d');
 
-            const PAD = { t:40, r:16, b:16, l:16 };
+            const rows = window._f7Data;
+            const PAD = { t:40, r:16, b:26, l:16 };
             const cw  = W - PAD.l - PAD.r;
             const m   = levels.length;
             const xPos2 = j => PAD.l + (j / (m - 1)) * cw;
@@ -6762,6 +6761,17 @@
             ctx.clearRect(0, 0, W, H);
 
             _f7SyncWrapHeight('f7-panel-wrap-iso', 'f7-panel-combo-iso', H);
+
+            // Líneas verticales discontinuas y sutiles marcando las 00h (separación
+            // entre días), mismo estilo que en la gráfica de niveles 850hPa/500hPa
+            levels.forEach((l, j) => {
+                if (l.hour !== 0 || j === 0) return;
+                const x = xPos2(j);
+                ctx.beginPath(); ctx.moveTo(x, isoTop); ctx.lineTo(x, isoBottom);
+                ctx.setLineDash([3, 3]);
+                ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1; ctx.stroke();
+                ctx.setLineDash([]);
+            });
 
             // ══════════════════════════════════════════════
             // Zona cota de isocero (0°C) — línea + área
@@ -6809,6 +6819,20 @@
             ctx.beginPath();
             ctx.moveTo(PAD.l, isoBottom); ctx.lineTo(PAD.l + cw, isoBottom);
             ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+
+            // Fila de días con nombre abreviado, misma lógica que en la gráfica de
+            // niveles 850hPa/500hPa a 7 días (etiqueta a la altura de las 06h de cada día)
+            if (rows) {
+                ctx.textAlign = 'left'; ctx.font = '9px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                rows.forEach((r, i) => {
+                    const lbl = r.isToday ? 'HOY' : r.dayName;
+                    const j00 = levels.findIndex(l => l.dateStr === r.dateStr && l.hour === 0);
+                    const j12 = levels.findIndex(l => l.dateStr === r.dateStr && l.hour === 12);
+                    const x06 = (j00 !== -1 && j12 !== -1) ? (xPos2(j00) + xPos2(j12)) / 2 : null;
+                    const x = x06 !== null ? x06 : (j00 !== -1 ? xPos2(j00) : xPos2(i));
+                    ctx.fillText(lbl, x, isoBottom + 16);
+                });
+            }
         }
 
         // ── Canvas: tendencia niveles 850hPa/500hPa a 15 días ──
@@ -6919,11 +6943,12 @@
             markExtremes(t850v, '#FF8A65');
             markExtremes(t500v, '#7DD3FC');
 
-            // Fila de días: fecha DD/MM, salvo hoy que se mantiene como "HOY"
+            // Fila de días: día arriba y mes debajo (p.ej. "30" y, debajo, "08"),
+            // salvo hoy que se mantiene igual que antes como "HOY" en una sola línea.
             const todayStr15 = new Date().toISOString().slice(0,10);
             const seenDays = [];
             levels.forEach(l => { if (!seenDays.includes(l.dateStr)) seenDays.push(l.dateStr); });
-            ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.55)';
+            ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(255,255,255,0.55)';
             seenDays.forEach(ds => {
                 const j00 = levels.findIndex(l => l.dateStr === ds && l.hour === 0);
                 const j12 = levels.findIndex(l => l.dateStr === ds && l.hour === 12);
@@ -6931,8 +6956,17 @@
                 const dt = new Date(ds + 'T12:00:00');
                 const dd = String(dt.getDate()).padStart(2,'0');
                 const mm = String(dt.getMonth() + 1).padStart(2,'0');
-                const lbl = ds === todayStr15 ? 'HOY' : (dd + '/' + mm);
-                ctx.fillText(lbl, x, levelsBottom + 16);
+                if (ds === todayStr15) {
+                    ctx.font = '8px Inter,sans-serif';
+                    ctx.fillText('HOY', x, levelsBottom + 16);
+                } else {
+                    ctx.font = 'bold 8px Inter,sans-serif';
+                    ctx.fillText(dd, x, levelsBottom + 13);
+                    ctx.font = '7px Inter,sans-serif';
+                    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+                    ctx.fillText(mm, x, levelsBottom + 23);
+                    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+                }
             });
 
             // Título grande estilo METEOFLASH: "15" fino + "DÍAS" en negrita (centrado)
