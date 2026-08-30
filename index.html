@@ -1292,7 +1292,8 @@
                 <!-- Meteograma Sintético de Inestabilidad Convectiva: CAPE + CIN + Lifted Index fusionados (Chart.js)
                      Trasladado justo después de la cota de isocero. Mismo ancho que la gráfica 850hPa/500hPa/isocero
                      (padding 14px 16px, igual que #f7-panel-combo-levels) y fondo azul heredado del contenedor. -->
-                <div style="background:transparent;padding:14px 16px 4px;margin-bottom:12px;">
+                <div style="background:transparent;padding:28px 16px 4px;margin-bottom:12px;">
+                    <div style="text-align:center;font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">INESTABILIDAD CONVECTIVA</div>
                     <div style="position:relative;height:260px;">
                         <canvas id="meteograma-inestabilidad-canvas"></canvas>
                     </div>
@@ -1300,7 +1301,7 @@
                     <!-- Botón + desplegable: guía de interpretación del meteograma de inestabilidad -->
                     <div style="padding-top:10px;padding-bottom:14px;">
                         <button id="meteograma-guia-toggle" onclick="toggleMeteogramaGuiaPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(0,0,0,0.18);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
-                            <span style="flex:1;text-align:center;font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Guía de interpretación: Diagnóstico de Inestabilidad Convectiva</span>
+                            <span style="flex:1;text-align:center;font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Guía de interpretación</span>
                             <span id="meteograma-guia-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
                         </button>
                         <div id="meteograma-guia-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
@@ -1324,6 +1325,7 @@
                 <!-- Meteograma de Humedad en Columna (PWAT, barras) + tabla de HR 850/700hPa y Cizalladura debajo.
                      Mismo ancho y estilo que el meteograma de Inestabilidad Convectiva, justo debajo. -->
                 <div style="background:transparent;padding:14px 16px 4px;margin-bottom:12px;">
+                    <div style="text-align:center;font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">HUMEDAD EN COLUMNA · CIZALLADURA</div>
                     <div style="position:relative;height:190px;">
                         <canvas id="meteograma-humedad-canvas"></canvas>
                     </div>
@@ -1342,7 +1344,7 @@
                     <!-- Botón + desplegable: guía de interpretación del meteograma de humedad/cizalladura -->
                     <div style="padding-top:10px;padding-bottom:14px;">
                         <button id="meteograma-humedad-guia-toggle" onclick="toggleMeteogramaHumedadGuiaPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(0,0,0,0.18);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
-                            <span style="flex:1;text-align:center;font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Guía de interpretación: Humedad en Columna y Cizalladura</span>
+                            <span style="flex:1;text-align:center;font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Guía de interpretación</span>
                             <span id="meteograma-humedad-guia-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
                         </button>
                         <div id="meteograma-humedad-guia-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
@@ -6687,9 +6689,10 @@
                     });
                 }
 
-                // Título de sección "ATMÓSFERA LIBRE" estilo METEOFLASH: "ATMÓSFERA" fino +
-                // "LIBRE" en negrita, más grande que el título "7 DÍAS" de abajo
-                _f7DrawSplitTitle(ctx, 'ATMÓSFERA ', 'LIBRE', PAD.l + cw / 2, levelsTop - 92, 24, 'center');
+                // Título de sección "ATMÓSFERALIBRE" estilo METEOFLASH: "ATMÓSFERA" fino +
+                // "LIBRE" en negrita, más grande que el título "7 DÍAS" de abajo,
+                // pegado arriba y con aire respecto al título "7 DÍAS"
+                _f7DrawSplitTitle(ctx, 'ATMÓSFERA', 'LIBRE', PAD.l + cw / 2, levelsTop - 104, 24, 'center');
 
                 // Título grande estilo METEOFLASH: "7" fino + "DÍAS" en negrita (centrado)
                 _f7DrawSplitTitle(ctx, '7', 'DÍAS', PAD.l + cw / 2, levelsTop - 56, 20, 'center');
