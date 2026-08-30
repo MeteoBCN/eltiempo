@@ -1310,11 +1310,21 @@
                     </div>
                 </div>
 
-                <!-- Meteograma de Humedad en Columna y Cizalladura: PWAT + HR 850/700hPa + Cizalladura 850-500hPa (Chart.js)
+                <!-- Meteograma de Humedad en Columna (PWAT, barras) + tabla de HR 850/700hPa y Cizalladura debajo.
                      Mismo ancho y estilo que el meteograma de Inestabilidad Convectiva, justo debajo. -->
                 <div style="background:transparent;padding:14px 16px 4px;margin-bottom:12px;">
-                    <div style="position:relative;height:260px;">
+                    <div style="position:relative;height:190px;">
                         <canvas id="meteograma-humedad-canvas"></canvas>
+                    </div>
+
+                    <!-- Tabla: HR 850hPa / HR 700hPa / Cizalladura 850-500hPa por franja horaria -->
+                    <div style="overflow-x:auto;margin-top:14px;">
+                        <table id="meteograma-humedad-tabla" style="width:100%;min-width:480px;border-collapse:collapse;font-size:11.5px;">
+                            <thead>
+                                <tr id="meteograma-humedad-tabla-head"></tr>
+                            </thead>
+                            <tbody id="meteograma-humedad-tabla-body"></tbody>
+                        </table>
                     </div>
 
                     <!-- Botón + desplegable: guía de interpretación del meteograma de humedad/cizalladura -->
@@ -1325,13 +1335,13 @@
                         </button>
                         <div id="meteograma-humedad-guia-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
                             <div style="padding:12px 2px 2px;font-size:12px;line-height:1.55;color:rgba(255,255,255,0.9);">
-                                <p style="margin:0 0 10px;">Este gráfico complementa al de CAPE/LI/CIN con tres variables clave para tormentas intensas y lluvias torrenciales en el Mediterráneo:</p>
+                                <p style="margin:0 0 10px;">Este bloque complementa al meteograma de CAPE/LI/CIN con cuatro variables clave para tormentas intensas y lluvias torrenciales en el Mediterráneo:</p>
                                 <ul style="margin:0 0 12px;padding-left:18px;">
-                                    <li style="margin-bottom:8px;"><b>PWAT — Agua Precipitable (Barras Verde Agua):</b> Cantidad total de humedad disponible en toda la columna de aire (mm). Valores altos (&gt;35-40 mm) indican combustible para lluvias torrenciales, con independencia del CAPE.</li>
-                                    <li style="margin-bottom:8px;"><b>HR 850hPa / 700hPa (Líneas Turquesa y Violeta):</b> Humedad relativa en niveles medios. Si están secas aunque la humedad en superficie sea alta, el desarrollo de nubosidad se frena; si están húmedas, favorecen tormentas de mayor desarrollo vertical.</li>
-                                    <li><b>Cizalladura 850-500hPa (Línea Naranja Discontinua):</b> Diferencia vectorial del viento entre niveles bajos y medios (km/h). Cuanto mayor sea, más organizada y severa puede ser la tormenta (potencial de supercélulas o líneas de turbonada).</li>
+                                    <li style="margin-bottom:8px;"><b>PWAT — Agua Precipitable (Barras Verde Agua, gráfico):</b> Cantidad total de humedad disponible en toda la columna de aire (mm). Valores altos (&gt;35-40 mm) indican combustible para lluvias torrenciales, con independencia del CAPE.</li>
+                                    <li style="margin-bottom:8px;"><b>HR 850hPa / 700hPa (tabla):</b> Humedad relativa en niveles medios. Si están secas aunque la humedad en superficie sea alta, el desarrollo de nubosidad se frena; si están húmedas, favorecen tormentas de mayor desarrollo vertical.</li>
+                                    <li><b>Cizalladura 850-500hPa (tabla):</b> Diferencia vectorial del viento entre niveles bajos y medios (km/h). Cuanto mayor sea, más organizada y severa puede ser la tormenta (potencial de supercélulas o líneas de turbonada).</li>
                                 </ul>
-                                <p style="margin:0 0 8px;font-weight:700;">💡 ¿Cómo leer el gráfico en un vistazo?</p>
+                                <p style="margin:0 0 8px;font-weight:700;">💡 ¿Cómo leerlo en un vistazo?</p>
                                 <ul style="margin:0;padding-left:18px;">
                                     <li style="margin-bottom:8px;"><b>Riesgo de lluvias torrenciales:</b> PWAT alto + HR 850/700hPa alta = columna de aire saturada de humedad, capaz de generar precipitaciones muy intensas aunque el CAPE no sea extremo.</li>
                                     <li><b>Riesgo de tormentas severas organizadas:</b> Cizalladura alta (&gt;40-50 km/h) combinada con CAPE relevante en el gráfico de arriba apunta a tormentas más organizadas y potencialmente severas, no solo chubascos aislados.</li>
@@ -7101,77 +7111,28 @@
             });
         }
 
-        // ── Meteograma de Humedad en Columna y Cizalladura: PWAT (barras) + HR 850/700hPa
-        //    (líneas, % en eje derecho) + Cizalladura 850-500hPa (línea discontinua) ──
+        // ── Meteograma de Humedad en Columna: PWAT (barras, única serie) ──
         function drawMeteogramaHumedad(canvasId, hourly) {
             const canvas = document.getElementById(canvasId);
             if (!canvas || typeof Chart === 'undefined') return null;
 
-            const labels    = hourly.time || hourly.labels || [];
-            const pwatData  = hourly.pwat  || [];
-            const rh850Data = hourly.rh850 || [];
-            const rh700Data = hourly.rh700 || [];
-            const shearData = hourly.shear || [];
+            const labels   = hourly.time || hourly.labels || [];
+            const pwatData = hourly.pwat || [];
 
-            const PWAT_MAX  = 60; // mm — techo del eje izquierdo (PWAT + cizalladura comparten escala visual)
+            const PWAT_MAX = Math.max(45, ...(pwatData.filter(v => v != null)), 0) + 8;
 
             if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
 
             const datasets = [
                 {
                     label: 'PWAT', type: 'bar', data: pwatData, backgroundColor: 'rgba(45, 212, 191, 0.55)',
-                    yAxisID: 'yLeft', barPercentage: 0.55, categoryPercentage: 0.85, order: 3,
+                    yAxisID: 'yLeft', barPercentage: 0.55, categoryPercentage: 0.85,
                     datalabels: {
-                        color: '#ffffff', font: { weight: 'bold', size: 9 }, anchor: 'end', align: 'top', offset: 2,
-                        formatter: v => `${Math.round(v)}`
-                    }
-                },
-                {
-                    label: 'HR 850hPa', type: 'line', data: rh850Data, borderColor: '#38bdf8', backgroundColor: '#38bdf8',
-                    yAxisID: 'yPct', pointRadius: 3, pointBackgroundColor: '#38bdf8', borderWidth: 2, tension: 0.3, order: 1,
-                    datalabels: {
-                        color: '#38bdf8', font: { weight: 'bold', size: 9 }, anchor: 'end', align: 'top', offset: 4,
-                        formatter: v => `${Math.round(v)}%`
-                    }
-                },
-                {
-                    label: 'HR 700hPa', type: 'line', data: rh700Data, borderColor: '#c084fc', backgroundColor: '#c084fc',
-                    yAxisID: 'yPct', pointRadius: 3, pointBackgroundColor: '#c084fc', borderWidth: 2, tension: 0.3, order: 1,
-                    datalabels: {
-                        color: '#c084fc', font: { weight: 'bold', size: 9 }, anchor: 'end', align: 'bottom', offset: 4,
-                        formatter: v => `${Math.round(v)}%`
-                    }
-                },
-                {
-                    label: 'Cizalladura 850-500hPa', type: 'line', data: shearData, borderColor: '#fb923c', backgroundColor: '#fb923c',
-                    yAxisID: 'yShear', pointRadius: 3, pointBackgroundColor: '#fb923c', borderWidth: 2, borderDash: [5, 4], tension: 0.3, order: 2,
-                    datalabels: {
-                        color: '#fb923c', font: { weight: 'bold', size: 9 }, anchor: 'start', align: 'bottom', offset: 4,
+                        color: '#ffffff', font: { weight: 'bold', size: 11 }, anchor: 'end', align: 'top', offset: 4,
                         formatter: v => `${Math.round(v)}`
                     }
                 }
             ];
-
-            // Plugin local: líneas horizontales discontinuas cada 20% (misma estética que capeGridLinesPlugin)
-            const humedadGridLinesPlugin = {
-                id: 'humedadGridLines',
-                beforeDraw(chart) {
-                    const { ctx, chartArea, scales: { yPct } } = chart;
-                    if (!chartArea || !yPct) return;
-                    ctx.save();
-                    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-                    ctx.lineWidth = 1;
-                    ctx.setLineDash([4, 4]);
-                    for (let v = 0; v <= 100; v += 20) {
-                        const yPos = yPct.getPixelForValue(v);
-                        ctx.beginPath();
-                        ctx.moveTo(chartArea.left, yPos);
-                        ctx.lineTo(chartArea.right, yPos);
-                        ctx.stroke();
-                    }
-                    ctx.restore();
-                }
-            };
 
             // Plugin local: separador vertical entre días (idéntico al del meteograma de inestabilidad)
             const daySeparatorPluginHum = {
@@ -7203,7 +7164,7 @@
             const config = {
                 type: 'bar',
                 data: { labels, datasets },
-                plugins: [humedadGridLinesPlugin, daySeparatorPluginHum],
+                plugins: [daySeparatorPluginHum],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -7212,14 +7173,6 @@
                         x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.6)' } },
                         yLeft: {
                             type: 'linear', position: 'left', min: 0, max: PWAT_MAX,
-                            display: true, ticks: { display: false }, border: { display: false }, grid: { display: false }
-                        },
-                        yPct: {
-                            type: 'linear', position: 'right', min: 0, max: 100,
-                            display: true, ticks: { display: false }, border: { display: false }, grid: { display: false }
-                        },
-                        yShear: {
-                            type: 'linear', position: 'right', min: 0, max: 100,
                             display: true, ticks: { display: false }, border: { display: false }, grid: { display: false }
                         }
                     },
@@ -7231,13 +7184,7 @@
                                 boxHeight: 10,
                                 generateLabels: chart => {
                                     const original = Chart.defaults.plugins.legend.labels.generateLabels(chart);
-                                    const renombrar = {
-                                        'PWAT': 'PWAT (mm)',
-                                        'HR 850hPa': 'HR 850hPa (%)',
-                                        'HR 700hPa': 'HR 700hPa (%)',
-                                        'Cizalladura 850-500hPa': 'Cizalladura (km/h)'
-                                    };
-                                    return original.map(item => ({ ...item, text: renombrar[item.text] || item.text }));
+                                    return original.map(item => ({ ...item, text: 'PWAT — agua precipitable (mm)' }));
                                 }
                             }
                         },
@@ -7253,17 +7200,53 @@
             return window._meteogramaHumedadChart;
         }
 
+        // ── Tabla: HR 850hPa / HR 700hPa / Cizalladura 850-500hPa por franja horaria,
+        //    con celdas coloreadas según nivel (verde/ámbar/rojo) para lectura rápida ──
+        function _f7HumedadCellColor(valor, umbrales) {
+            // umbrales = [bajo, medio] — por debajo de 'bajo' => neutro, entre 'bajo' y 'medio' => ámbar, por encima => rojo
+            if (valor == null) return { bg: 'rgba(255,255,255,0.06)', fg: 'rgba(255,255,255,0.5)' };
+            if (valor >= umbrales[1]) return { bg: 'rgba(251,146,60,0.35)',  fg: '#ffedd5' };
+            if (valor >= umbrales[0]) return { bg: 'rgba(250,204,21,0.22)', fg: '#fef9c3' };
+            return { bg: 'rgba(255,255,255,0.05)', fg: 'rgba(255,255,255,0.85)' };
+        }
+
+        function updateMeteogramaHumedadTabla(stormRows) {
+            const head = document.getElementById('meteograma-humedad-tabla-head');
+            const body = document.getElementById('meteograma-humedad-tabla-body');
+            if (!head || !body || !stormRows || !stormRows.length) return;
+
+            const thStyle = 'padding:6px 4px;text-align:center;color:rgba(255,255,255,0.6);font-weight:400;border-bottom:1px solid rgba(255,255,255,0.15);white-space:nowrap;';
+            head.innerHTML = '<th style="' + thStyle + 'text-align:left;min-width:110px;"></th>' +
+                stormRows.map(r => '<th style="' + thStyle + '">' + r.periodLabel + '<br>' + (r.isToday ? 'HOY' : r.dayName) + '</th>').join('');
+
+            const rowDefs = [
+                { label: 'HR 850hPa (%)',       field: 'rh850', umbrales: [55, 75], suffix: '%' },
+                { label: 'HR 700hPa (%)',       field: 'rh700', umbrales: [45, 65], suffix: '%' },
+                { label: 'Cizalladura (km/h)',  field: 'shear', umbrales: [30, 50], suffix: '' }
+            ];
+
+            const labelTdStyle = 'padding:7px 6px;color:rgba(255,255,255,0.85);font-weight:400;border-bottom:1px solid rgba(255,255,255,0.08);white-space:nowrap;';
+            const cellBaseStyle = 'padding:7px 4px;text-align:center;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.08);';
+
+            body.innerHTML = rowDefs.map(def => {
+                const cells = stormRows.map(r => {
+                    const v = r[def.field];
+                    const c = _f7HumedadCellColor(v, def.umbrales);
+                    return '<td style="' + cellBaseStyle + 'background:' + c.bg + ';color:' + c.fg + ';">' + (v != null ? v + def.suffix : '—') + '</td>';
+                }).join('');
+                return '<tr><td style="' + labelTdStyle + '">' + def.label + '</td>' + cells + '</tr>';
+            }).join('');
+        }
+
         function updateMeteogramaHumedad() {
             const rows = window._f7Data;
             const stormRows = window._f7StormRows || _f7BuildStormRows(window._hourlyCache, rows);
             if (!stormRows || !stormRows.length) return;
             drawMeteogramaHumedad('meteograma-humedad-canvas', {
                 time:  stormRows.map(r => [r.periodLabel, r.isToday ? 'HOY' : r.dayName]),
-                pwat:  stormRows.map(r => r.pwat),
-                rh850: stormRows.map(r => r.rh850),
-                rh700: stormRows.map(r => r.rh700),
-                shear: stormRows.map(r => r.shear)
+                pwat:  stormRows.map(r => r.pwat)
             });
+            updateMeteogramaHumedadTabla(stormRows);
         }
 
         /* ══════════════════════════════════════════════
