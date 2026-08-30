@@ -1061,15 +1061,9 @@
                         <div id="paraguas-days-day-row" style="position:relative;height:13px;margin:0;"></div>
                         <div id="paraguas-days-hour-row" style="position:relative;height:12px;margin:14px 0 -2px 0;"></div>
                         <canvas id="paraguas-days-chart" style="width:100%;display:block;"></canvas>
-                        <div style="display:flex;flex-direction:row;align-items:center;justify-content:center;gap:18px;margin-top:2px;">
-                            <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#ffffff;opacity:0.85;">
-                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(255,255,255,0.12);flex-shrink:0;"></span>
-                                <span style="text-transform:uppercase;font-weight:400;">Cuidado, podría llover</span>
-                            </span>
-                            <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#ffffff;opacity:0.85;">
-                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(255,255,255,0.28);flex-shrink:0;"></span>
-                                <span style="text-transform:uppercase;font-weight:400;">No olvides el paraguas</span>
-                            </span>
+                        <div id="paraguas-days-rain-legend" style="display:none;flex-direction:row;align-items:center;justify-content:center;gap:7px;margin-top:2px;font-size:9px;color:#ffffff;opacity:0.85;">
+                            <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(255,255,255,0.28);flex-shrink:0;"></span>
+                            <span style="text-transform:uppercase;font-weight:400;">Riesgo de lluvia</span>
                         </div>
                     </div>
                     <!-- ═══ FIN GRÁFICA METEOFLASH ═══ -->
@@ -3096,8 +3090,9 @@
             if (!canvas || !hourly?.time) return;
             _lastParaguasDaysHourly = hourly;
 
-            const BLOCK_H = 6;      // tamaño de cada bloque, en horas
-            const N_BLOCKS = 12;    // 12 bloques de 6h = 3 días
+            const BLOCK_H = 6;          // tamaño de cada bloque, en horas
+            const TARGET_BLOCKS = 12;   // 12 bloques de 6h = 3 días completos (día0, día1, día2), incluyendo el bloque 18-24h del día2
+            const CANDIDATE_BLOCKS = 20; // margen extra: si el primer bloque de hoy no tiene datos (horas ya pasadas) y se descarta, seguimos teniendo 12 bloques válidos para completar los 3 días
 
             const now = new Date();
             // Punto de partida fijo: las 00h de hoy. Así la gráfica muestra siempre
@@ -3123,7 +3118,7 @@
                 if (wc !== null && wc !== undefined) b.codes.push(wc);
             }
 
-            const keys = Array.from(blocksMap.keys()).sort((a, b) => a - b).slice(0, N_BLOCKS);
+            const keys = Array.from(blocksMap.keys()).sort((a, b) => a - b).slice(0, CANDIDATE_BLOCKS);
             if (keys.length < 2) return;
 
             // Redondeamos UNA sola vez y usamos ese entero para todo (posición, color, etiqueta),
@@ -3146,7 +3141,7 @@
                     hourLabel: String(b.start.getHours()).padStart(2, '0') + 'h',
                     isNewDay
                 };
-            }).filter(bl => bl.tMin !== null && bl.tMax !== null);
+            }).filter(bl => bl.tMin !== null && bl.tMax !== null).slice(0, TARGET_BLOCKS);
             if (blocks.length < 2) return;
 
             const dpr = window.devicePixelRatio || 1;
@@ -3181,21 +3176,19 @@
 
             const LINE_COLOR = '#ffffff';
 
-            // Misma categorización de lluvia que en la gráfica de horas, aplicada por bloque de 6h
-            const rainCat = blocks.map(b => {
-                const isStrongRain = b.prob >= 60 && b.mm >= 0.5;
-                const isLightRain  = !isStrongRain && (b.prob >= 40 || b.mm >= 0.2);
-                return isStrongRain ? 2 : (isLightRain ? 1 : 0);
-            });
+            // Riesgo de lluvia elevado por bloque de 6h (un único nivel: sí/no)
+            const rainCat = blocks.map(b => (b.prob >= 60 && b.mm >= 0.5) ? 1 : 0);
+            const hasRainRisk = rainCat.some(c => c > 0);
+            const rainLegendEl = document.getElementById('paraguas-days-rain-legend');
+            if (rainLegendEl) rainLegendEl.style.display = hasRainRisk ? 'flex' : 'none';
 
-            const RAIN_BAND_LOW = 'rgba(255,255,255,0.12)';
-            const RAIN_BAND_HIGH = 'rgba(255,255,255,0.28)';
+            const RAIN_BAND_COLOR = 'rgba(255,255,255,0.28)';
             const segW = cw / (blocks.length - 1);
             blocks.forEach((b, i) => {
                 if (rainCat[i] > 0) {
                     const left = xPos(i);
                     const right = (i < blocks.length - 1) ? xPos(i + 1) : xPos(i) + segW;
-                    ctx.fillStyle = rainCat[i] === 2 ? RAIN_BAND_HIGH : RAIN_BAND_LOW;
+                    ctx.fillStyle = RAIN_BAND_COLOR;
                     ctx.fillRect(left, PAD.top, right - left, ch);
                 }
             });
@@ -5143,6 +5136,8 @@
                 const isNight = isNightTime(ht);
                 const wmo = bbcHourly.weather_code?.[i] ?? 0;
                 const pp = Math.round(bbcHourly.precipitation_probability?.[i] ?? 0);
+                const mm = bbcHourly.precipitation?.[i] ?? 0;
+                const mmTxt = mm.toFixed(1).replace(/\.0$/, '') + 'mm';
                 const isFog = (wmo === 45 || wmo === 48);
                 const isRain = (wmo >= 51 && wmo <= 82) || (wmo >= 85 && wmo <= 86) || (wmo >= 95 && wmo <= 99);
                 let eWmo = wmo;
@@ -5162,7 +5157,7 @@
                     </div>
                     <div class="bbc-hour-precip">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a9 9 0 0 0-9 9h18a9 9 0 0 0-9-9z" fill="#ffffff"/><line x1="12" y1="11" x2="12" y2="19" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/><path d="M12 19a2 2 0 1 0 4 0" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
-                        <span>${pp}%</span>
+                        <span>${pp}%-${mmTxt}</span>
                     </div>
                     <div class="bbc-hour-wind">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(${(wd + 180) % 360}deg)"><path d="M12 2L6 20l6-4 6 4L12 2z" fill="#cfe8f7"/></svg>
