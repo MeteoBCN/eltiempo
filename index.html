@@ -1047,6 +1047,26 @@
 
                 </div>
 
+                <!-- Mapa de Temperatura Actual (10 localidades) -->
+                <div style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(28,79,120,0.15);">
+                    <div style="font-size:12px;font-weight:bold;color:#123653;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Temperatura Actual (10 localidades)</div>
+                    <div style="position:relative;width:100%;height:320px;border-radius:12px;overflow:hidden;background:#1a1a1a;">
+                        <div id="temp-map" style="width:100%;height:100%;"></div>
+                    </div>
+                    <div style="padding-top:10px;">
+                        <div style="width:100%;height:8px;border-radius:4px;background:linear-gradient(90deg, #2563eb 0%, #3b82f6 18%, #22c55e 38%, #eab308 55%, #f97316 72%, #ef4444 86%, #991b1b 100%);"></div>
+                        <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                            <span style="font-size:9px;color:#64748b;font-weight:600;">≤0°</span>
+                            <span style="font-size:9px;color:#64748b;font-weight:600;">15°</span>
+                            <span style="font-size:9px;color:#64748b;font-weight:600;">25°</span>
+                            <span style="font-size:9px;color:#64748b;font-weight:600;">≥30°</span>
+                        </div>
+                    </div>
+                    <div style="text-align:center;padding-top:6px;">
+                        <span style="font-size:9px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">Fuente: Open-Meteo</span>
+                    </div>
+                </div>
+
                 <div id="sun-countdown" style="text-align:center;margin-top:18px;font-size:13px;font-weight:600;color:#123653;letter-spacing:0.2px;"></div>
                 <div id="moon-info" style="text-align:center;margin-top:6px;font-size:13px;font-weight:600;color:#123653;letter-spacing:0.2px;"></div>
 
@@ -1526,37 +1546,6 @@
                                 <div style="text-align:center;padding-top:4px;">
                                     <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Windy</span>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Columna 4 (ancho completo): Mapa de Temperaturas con deslizante horario -->
-                        <div style="grid-column:1/-1;background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
-                            <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Mapa de Temperaturas (10 localidades)</div>
-                            <div style="position:relative;width:100%;height:340px;border-radius:8px;overflow:hidden;background:#1a1a1a;">
-                                <div id="temp-map" style="width:100%;height:100%;"></div>
-                            </div>
-                            <div style="padding-top:14px;">
-                                <div style="text-align:center;margin-bottom:8px;">
-                                    <span id="temp-map-time-label" style="font-size:13px;color:#ffffff;font-weight:700;">--</span>
-                                </div>
-                                <input id="temp-map-slider" type="range" min="0" max="23" value="0" step="1" style="width:100%;accent-color:#3b82f6;">
-                                <div style="display:flex;justify-content:space-between;margin-top:4px;">
-                                    <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Ahora</span>
-                                    <span style="font-size:9px;color:#8a8a8a;font-weight:600;">+12h</span>
-                                    <span style="font-size:9px;color:#8a8a8a;font-weight:600;">+23h</span>
-                                </div>
-                            </div>
-                            <div style="padding-top:10px;">
-                                <div style="width:100%;height:8px;border-radius:4px;background:linear-gradient(90deg, #2563eb 0%, #3b82f6 18%, #22c55e 38%, #eab308 55%, #f97316 72%, #ef4444 86%, #991b1b 100%);"></div>
-                                <div style="display:flex;justify-content:space-between;margin-top:4px;">
-                                    <span style="font-size:9px;color:#8a8a8a;font-weight:600;">≤0°</span>
-                                    <span style="font-size:9px;color:#8a8a8a;font-weight:600;">15°</span>
-                                    <span style="font-size:9px;color:#8a8a8a;font-weight:600;">25°</span>
-                                    <span style="font-size:9px;color:#8a8a8a;font-weight:600;">≥30°</span>
-                                </div>
-                            </div>
-                            <div style="text-align:center;padding-top:6px;">
-                                <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Open-Meteo</span>
                             </div>
                         </div>
 
@@ -9601,7 +9590,7 @@
             setTimeout(() => { map2.invalidateSize(); }, 100);
         }
 
-        /* ── Mapa de Temperaturas (10 localidades) — Leaflet + Open-Meteo + deslizante horario ── */
+        /* ── Mapa de Temperatura Actual (10 localidades) — Leaflet + Open-Meteo ── */
         let tempMapInited = false;
         function tryInitTempMap() {
             if (window.L) {
@@ -9620,9 +9609,9 @@
             if (!window.L) return;
 
             const TEMP_LOCS = [
-                { name: 'Barcelona',           lat: 41.3851, lon: 2.1734 },
-                { name: 'Badalona',             lat: 41.4500, lon: 2.2474 },
-                { name: "L'Hospitalet",         lat: 41.3598, lon: 2.0997 },
+                { name: 'Barcelona',            lat: 41.3851, lon: 2.1734 },
+                { name: 'Badalona',              lat: 41.4500, lon: 2.2474 },
+                { name: "L'Hospitalet",          lat: 41.3598, lon: 2.0997 },
                 { name: 'Sta. Coloma Gramenet',  lat: 41.4519, lon: 2.2081 },
                 { name: 'Cornellà Llobregat',    lat: 41.3558, lon: 2.0703 },
                 { name: 'Sabadell',              lat: 41.5483, lon: 2.1075 },
@@ -9662,53 +9651,25 @@
 
             const markers = TEMP_LOCS.map(loc => L.marker([loc.lat, loc.lon], { icon: tempIcon(null), interactive: false }).addTo(tempMap));
 
-            let hourlyData = [], timeLabels = [], startIdx = 0;
-
             async function loadTempData() {
                 try {
                     const lats = TEMP_LOCS.map(l => l.lat).join(',');
                     const lons = TEMP_LOCS.map(l => l.lon).join(',');
-                    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=temperature_2m&timezone=Europe%2FMadrid&forecast_days=2`;
+                    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m&timezone=Europe%2FMadrid`;
                     const resp = await fetch(url);
                     if (!resp.ok) throw new Error('Open-Meteo HTTP ' + resp.status);
                     const data = await resp.json();
-                    hourlyData = Array.isArray(data) ? data : [data];
-                    timeLabels = hourlyData[0]?.hourly?.time || [];
+                    const results = Array.isArray(data) ? data : [data];
 
-                    const now = new Date();
-                    startIdx = 0;
-                    for (let i = 0; i < timeLabels.length; i++) {
-                        if (new Date(timeLabels[i]) >= now) { startIdx = i; break; }
-                    }
-
-                    const slider = document.getElementById('temp-map-slider');
-                    const maxOffset = Math.max(0, Math.min(23, timeLabels.length - 1 - startIdx));
-                    if (slider) { slider.max = maxOffset; slider.value = 0; }
-
-                    updateTempFrame(0);
+                    TEMP_LOCS.forEach((loc, i) => {
+                        const t = results[i]?.current?.temperature_2m;
+                        if (t !== undefined) markers[i].setIcon(tempIcon(t));
+                    });
                 } catch (e) { console.warn('[TempMap]', e); }
             }
 
-            function updateTempFrame(offset) {
-                const idx = startIdx + offset;
-                TEMP_LOCS.forEach((loc, i) => {
-                    const t = hourlyData[i]?.hourly?.temperature_2m?.[idx];
-                    if (t !== undefined) markers[i].setIcon(tempIcon(t));
-                });
-                const label = document.getElementById('temp-map-time-label');
-                const timeStr = timeLabels[idx];
-                if (label && timeStr) {
-                    const d = new Date(timeStr);
-                    const isToday = d.toDateString() === new Date().toDateString();
-                    label.textContent = (isToday ? 'Hoy ' : 'Mañana ') + String(d.getHours()).padStart(2, '0') + ':00';
-                }
-            }
-
-            const slider = document.getElementById('temp-map-slider');
-            if (slider) slider.addEventListener('input', () => updateTempFrame(parseInt(slider.value, 10)));
-
             loadTempData();
-            setInterval(loadTempData, 30 * 60 * 1000);
+            setInterval(loadTempData, 10 * 60 * 1000);
             setTimeout(() => { tempMap.invalidateSize(); }, 100);
         }
 
