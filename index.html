@@ -6689,10 +6689,24 @@
                     });
                 }
 
-                // Título de sección "ATMÓSFERALIBRE" estilo METEOFLASH: "ATMÓSFERA" fino +
-                // "LIBRE" en negrita, más grande que el título "7 DÍAS" de abajo,
+                // Título de sección "- ATMÓSFERA LIBRE -" estilo METEOFLASH: guiones y
+                // "ATMÓSFERA" en fino, "LIBRE" en negrita, más grande que "7 DÍAS" de abajo,
                 // pegado arriba y con aire respecto al título "7 DÍAS"
-                _f7DrawSplitTitle(ctx, 'ATMÓSFERA ', 'LIBRE', PAD.l + cw / 2, levelsTop - 114, 24, 'center');
+                (() => {
+                    const size = 24;
+                    const thinFont = '300 ' + size + 'px Inter,sans-serif';
+                    const boldFont = '900 ' + size + 'px Inter,sans-serif';
+                    const seg1 = '- ATMÓSFERA ', seg2 = 'LIBRE', seg3 = ' -';
+                    ctx.font = thinFont; const w1 = ctx.measureText(seg1).width;
+                    ctx.font = boldFont; const w2 = ctx.measureText(seg2).width;
+                    ctx.font = thinFont; const w3 = ctx.measureText(seg3).width;
+                    const y = levelsTop - 114;
+                    let x = PAD.l + cw / 2 - (w1 + w2 + w3) / 2;
+                    ctx.textAlign = 'left'; ctx.fillStyle = '#ffffff';
+                    ctx.font = thinFont; ctx.fillText(seg1, x, y); x += w1;
+                    ctx.font = boldFont; ctx.fillText(seg2, x, y); x += w2;
+                    ctx.font = thinFont; ctx.fillText(seg3, x, y);
+                })();
 
                 // Título grande estilo METEOFLASH: "7" fino + "DÍAS" en negrita (centrado)
                 _f7DrawSplitTitle(ctx, '7', 'DÍAS', PAD.l + cw / 2, levelsTop - 56, 18, 'center');
