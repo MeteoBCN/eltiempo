@@ -1047,9 +1047,9 @@
 
                 </div>
 
-                <!-- Mapa de Temperatura Actual (10 localidades) -->
+                <!-- Mapa de Temperatura Actual · Área Metropolitana (10 localidades) -->
                 <div style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(28,79,120,0.15);">
-                    <div style="font-size:12px;font-weight:bold;color:#123653;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Temperatura Actual (10 localidades)</div>
+                    <div style="font-size:12px;font-weight:bold;color:#123653;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Temperatura Actual · Área Metropolitana</div>
                     <div style="position:relative;width:100%;height:320px;border-radius:12px;overflow:hidden;background:#1a1a1a;">
                         <div id="temp-map" style="width:100%;height:100%;"></div>
                     </div>
@@ -1064,6 +1064,28 @@
                     </div>
                     <div style="text-align:center;padding-top:6px;">
                         <span style="font-size:9px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">Fuente: Open-Meteo</span>
+                    </div>
+                </div>
+
+                <!-- Mapa de Temperatura Actual · Barcelona Ciudad (estaciones Meteoclimatic en tiempo real) -->
+                <div style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(28,79,120,0.15);">
+                    <div style="font-size:12px;font-weight:bold;color:#123653;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;text-align:center;">Barcelona Ciudad</div>
+                    <div style="font-size:9px;font-weight:600;color:#64748b;letter-spacing:0.5px;text-align:center;margin-bottom:10px;">Estaciones en tiempo real</div>
+                    <div style="position:relative;width:100%;height:320px;border-radius:12px;overflow:hidden;background:#1a1a1a;">
+                        <div id="temp-map-bcn" style="width:100%;height:100%;"></div>
+                        <div id="temp-map-bcn-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:11px;">Cargando estaciones…</div>
+                    </div>
+                    <div style="padding-top:10px;">
+                        <div style="width:100%;height:8px;border-radius:4px;background:linear-gradient(90deg, #2563eb 0%, #3b82f6 18%, #22c55e 38%, #eab308 55%, #f97316 72%, #ef4444 86%, #991b1b 100%);"></div>
+                        <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                            <span style="font-size:9px;color:#64748b;font-weight:600;">≤0°</span>
+                            <span style="font-size:9px;color:#64748b;font-weight:600;">15°</span>
+                            <span style="font-size:9px;color:#64748b;font-weight:600;">25°</span>
+                            <span style="font-size:9px;color:#64748b;font-weight:600;">≥30°</span>
+                        </div>
+                    </div>
+                    <div style="text-align:center;padding-top:6px;">
+                        <a href="https://www.meteoclimatic.net" target="_blank" rel="noopener" style="font-size:9px;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;text-decoration:none;">Datos: Meteoclimatic.net</a>
                     </div>
                 </div>
 
@@ -9671,6 +9693,165 @@
             loadTempData();
             setInterval(loadTempData, 10 * 60 * 1000);
             setTimeout(() => { tempMap.invalidateSize(); }, 100);
+        }
+
+        /* ── Mapa de Temperatura Actual · Barcelona Ciudad — Leaflet + Meteoclimatic ── */
+        let tempMapBcnInited = false;
+        function tryInitTempMapBcn() {
+            if (window.L) {
+                if (!tempMapBcnInited) { initTempMapBcn(); tempMapBcnInited = true; }
+            } else {
+                setTimeout(tryInitTempMapBcn, 100);
+            }
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', tryInitTempMapBcn);
+        } else {
+            tryInitTempMapBcn();
+        }
+
+        async function initTempMapBcn() {
+            if (!window.L) return;
+
+            const MC_WORKER = 'https://proxy-meteoclimatic.lojasergi.workers.dev';
+            const MC_BCN = { latMin: 41.32, latMax: 41.47, lngMin: 2.05, lngMax: 2.23 };
+            const MC_EXCLUIR = new Set([
+                'ESCAT0800000008080A', 'ESCAT0800000008913B', 'ESCAT0800000008940C',
+                'ESCAT0800000008820D', 'ESCAT0800000008901D', 'ESCAT0800000008198A',
+                'ESCAT0800000008980A', 'ESCAT0800000008980C'
+            ]);
+
+            function mcNum(s) { return parseFloat(String(s).replace(',', '.')); }
+
+            function mcCorregirNombre(n) {
+                if (n.includes('betev')) return 'Poblenou (Betevé)';
+                if (n.includes('Torguineu') || n.includes('torguineu')) return 'Navas';
+                if (n.includes('Can Bruixa') || n.includes('can bruixa')) return 'Les Corts (Can Bruixa)';
+                if (n.includes('Aigua') || n.includes('aigua')) return "Trinitat Vella (Casa l'Aigua)";
+                return n;
+            }
+
+            function mcParseRSS(txt) {
+                const estaciones = [];
+                const items = txt.split('<item>');
+                items.shift();
+                for (const item of items) {
+                    try {
+                        const latM = item.match(/<geo:lat>([\d.]+)<\/geo:lat>/);
+                        const lngM = item.match(/<geo:long>([\d.]+)<\/geo:long>/);
+                        if (!latM || !lngM) continue;
+                        const lat = parseFloat(latM[1]);
+                        const lng = parseFloat(lngM[1]);
+                        if (isNaN(lat) || isNaN(lng)) continue;
+                        if (lat < MC_BCN.latMin || lat > MC_BCN.latMax || lng < MC_BCN.lngMin || lng > MC_BCN.lngMax) continue;
+                        const linkM = item.match(/perfil\/(ESCAT[A-Z0-9]+)/i);
+                        const id = linkM ? linkM[1].toUpperCase() : '';
+                        if (MC_EXCLUIR.has(id)) continue;
+                        const dataM = item.match(/\[\[<(ESCAT[^;>]+;[^>]+)>\]\]/);
+                        if (!dataM) continue;
+                        const raw = dataM[1].trim();
+                        const grupos = [];
+                        const reG = /\(([^)]+)\)/g;
+                        let g;
+                        while ((g = reG.exec(raw)) !== null) {
+                            grupos.push(g[1].split(';').map(mcNum));
+                        }
+                        if (grupos.length < 1) continue;
+                        let nombre = raw.substring(raw.lastIndexOf(')') + 2).trim().replace(/^Barcelona\s*[-\u2013]\s*/i, '').replace(/^Barcelona\s+/i, '');
+                        nombre = mcCorregirNombre(nombre);
+                        if (!nombre) continue;
+                        const temp = grupos[0]?.[0] ?? null;
+                        if (temp === null || isNaN(temp)) continue;
+                        estaciones.push({ id, lat, lng, nombre, temp });
+                    } catch (e) {}
+                }
+                return estaciones;
+            }
+
+            // Selección de hasta 10 estaciones con máxima dispersión geográfica
+            // (farthest-point sampling), para que la muestra siempre quede bien
+            // repartida por la ciudad aunque cambien qué estaciones están online.
+            function mcSeleccionarDispersas(estaciones, n = 10) {
+                if (estaciones.length <= n) return estaciones;
+                const dist = (a, b) => Math.hypot(a.lat - b.lat, a.lng - b.lng);
+                const centro = {
+                    lat: (MC_BCN.latMin + MC_BCN.latMax) / 2,
+                    lng: (MC_BCN.lngMin + MC_BCN.lngMax) / 2
+                };
+                const restantes = [...estaciones];
+                let seedIdx = 0, seedDist = -1;
+                restantes.forEach((e, i) => { const d = dist(e, centro); if (d > seedDist) { seedDist = d; seedIdx = i; } });
+                const seleccion = [restantes.splice(seedIdx, 1)[0]];
+                while (seleccion.length < n && restantes.length) {
+                    let bestIdx = 0, bestMinDist = -1;
+                    restantes.forEach((e, i) => {
+                        const minDist = Math.min(...seleccion.map(s => dist(e, s)));
+                        if (minDist > bestMinDist) { bestMinDist = minDist; bestIdx = i; }
+                    });
+                    seleccion.push(restantes.splice(bestIdx, 1)[0]);
+                }
+                return seleccion;
+            }
+
+            function tempColorBcn(t) {
+                if (t <= 0) return '#2563eb';
+                if (t <= 10) return '#3b82f6';
+                if (t <= 15) return '#22c55e';
+                if (t <= 20) return '#eab308';
+                if (t <= 25) return '#f97316';
+                if (t <= 30) return '#ef4444';
+                return '#991b1b';
+            }
+            function tempIconBcn(t, nombre) {
+                const c = tempColorBcn(t);
+                const val = (t === null || t === undefined || isNaN(t)) ? '--' : Math.round(t) + '°';
+                return L.divIcon({
+                    className: '',
+                    html: `<div style="display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);white-space:nowrap;">
+                        <div style="background:${c};color:#fff;font-weight:700;font-size:12px;padding:4px 8px;border-radius:14px;border:1.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4);">${val}</div>
+                        <div style="margin-top:2px;font-size:8px;font-weight:600;color:#fff;background:rgba(0,0,0,0.55);padding:1px 5px;border-radius:5px;">${nombre}</div>
+                    </div>`,
+                    iconSize: [0, 0], iconAnchor: [0, 0]
+                });
+            }
+
+            const tempMapBcn = L.map('temp-map-bcn', {
+                center: [(MC_BCN.latMin + MC_BCN.latMax) / 2, (MC_BCN.lngMin + MC_BCN.lngMax) / 2],
+                zoom: 12.3, zoomControl: false, attributionControl: false,
+                dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false,
+                boxZoom: false, keyboard: false, tap: false, interactive: false
+            });
+            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, opacity: 1, crossOrigin: true }).addTo(tempMapBcn);
+            tempMapBcn.getPane('tilePane').style.filter = 'invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9)';
+
+            let bcnMarkers = [];
+
+            async function loadTempMapBcnData() {
+                const loadingEl = document.getElementById('temp-map-bcn-loading');
+                try {
+                    const resp = await fetch(MC_WORKER, { signal: AbortSignal.timeout(15000) });
+                    if (!resp.ok) throw new Error('Meteoclimatic HTTP ' + resp.status);
+                    const xml = await resp.text();
+                    if (!xml || xml.includes('QUERY ERROR') || xml.length < 200) throw new Error('Respuesta inválida');
+
+                    const todas = mcParseRSS(xml);
+                    const seleccion = mcSeleccionarDispersas(todas, 10);
+
+                    bcnMarkers.forEach(m => tempMapBcn.removeLayer(m));
+                    bcnMarkers = seleccion.map(e =>
+                        L.marker([e.lat, e.lng], { icon: tempIconBcn(e.temp, e.nombre), interactive: false }).addTo(tempMapBcn)
+                    );
+
+                    if (loadingEl) loadingEl.style.display = 'none';
+                } catch (e) {
+                    console.warn('[TempMapBCN]', e);
+                    if (loadingEl) loadingEl.textContent = 'Estaciones no disponibles ahora';
+                }
+            }
+
+            loadTempMapBcnData();
+            setInterval(loadTempMapBcnData, 10 * 60 * 1000);
+            setTimeout(() => { tempMapBcn.invalidateSize(); }, 100);
         }
 
         /* ══════ WIDGET PREVISIÓN 3 DÍAS ══════ */
