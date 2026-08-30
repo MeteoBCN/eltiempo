@@ -267,7 +267,7 @@
         .bbc-hour-wind { font-size: 11px; color: rgba(255,255,255,0.85); display: flex; flex-direction: column; align-items: center; gap: 5px; }
         .bbc-week-loading { padding: 24px; text-align: center; color: rgba(255,255,255,0.7); font-size: 13px; grid-column: 1/-1; width: 100%; }
         .bbc-sun-uvi { display: grid; grid-template-columns: repeat(3, 1fr); row-gap: 24px; column-gap: 10px; border-top: 1px solid rgba(255,255,255,0.14); padding: 20px 16px 22px; background: rgba(255,255,255,0.055); }
-        .bbc-sun-item { display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .bbc-sun-item { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 0; }
         .bbc-sun-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
         .bbc-sun-value { font-size: 13px; font-weight: 700; color: #ffffff; white-space: nowrap; }
         .bbc-sun-sub { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.7); margin-left: 2px; }
@@ -3241,26 +3241,23 @@
             // Hermite monótona (Fritsch-Carlson) — ver definición de monotoneTangents/hermiteAt
             // más arriba, compartida con la gráfica de horas.
             function drawTempLine(values) {
-                ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.globalAlpha = 0.6;
+                ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.globalAlpha = 0.9;
+                ctx.strokeStyle = '#ffffff';
                 const m = monotoneTangents(values);
                 const STEPS = 12; // sub-segmentos por tramo, para una curva fluida
                 for (let i = 1; i < blocks.length; i++) {
                     let prevX = xPos(i - 1), prevY = yTemp(values[i - 1]), prevV = values[i - 1];
+                    ctx.beginPath();
+                    ctx.moveTo(prevX, prevY);
                     for (let s = 1; s <= STEPS; s++) {
                         const t = s / STEPS;
                         const v = hermiteAt(values[i - 1], values[i], m[i - 1], m[i], t);
                         const x = xPos(i - 1) + (xPos(i) - xPos(i - 1)) * t;
                         const y = yTemp(v);
-                        ctx.beginPath();
-                        ctx.moveTo(prevX, prevY);
                         ctx.lineTo(x, y);
-                        const grad = ctx.createLinearGradient(prevX, prevY, x, y);
-                        grad.addColorStop(0, `rgb(${tempToColor(prevV).join(',')})`);
-                        grad.addColorStop(1, `rgb(${tempToColor(v).join(',')})`);
-                        ctx.strokeStyle = grad;
-                        ctx.stroke();
                         prevX = x; prevY = y; prevV = v;
                     }
+                    ctx.stroke();
                 }
                 ctx.globalAlpha = 1;
             }
@@ -3289,8 +3286,8 @@
             const lineValues = blocks.map((b, i) => minIdxOfDay[i] ? b.tMin : b.tMax);
             drawTempLine(lineValues);
 
-            const MAX_COLOR = '#dc2626';
-            const MIN_COLOR = '#2563eb';
+            const MAX_COLOR = '#fca5a5';
+            const MIN_COLOR = '#93c5fd';
 
             // Puntos: se marca el punto de cada bloque sobre la línea. La cifra en grados
             // solo se muestra en la franja donde se produce la máxima del día (en rojo,
@@ -3339,7 +3336,8 @@
                 let dHtml = '';
                 groups.forEach(g => {
                     const xs = g.idxs.map(i => xPos(i));
-                    const xCenter = (xs[0] + xs[xs.length - 1]) / 2;
+                    const idx12h = g.idxs.find(i => blocks[i].start.getHours() === 12);
+                    const xCenter = (idx12h !== undefined) ? xPos(idx12h) : (xs[0] + xs[xs.length - 1]) / 2;
                     // Solo "hoy" se muestra como texto especial; el resto de días,
                     // incluido mañana, muestran su nombre real (p. ej. "Sábado").
                     const label = (g.dateKey === todayStr) ? 'Hoy' : DIAS[g.date.getDay()];
