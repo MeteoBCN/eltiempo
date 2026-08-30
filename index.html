@@ -6853,7 +6853,7 @@
             const W   = canvas.parentElement.offsetWidth - 32;
             const ctx = canvas.getContext('2d');
 
-            const PAD = { t:100, r:16, b:40, l:16 };
+            const PAD = { t:46, r:16, b:40, l:16 };
             const cw  = W - PAD.l - PAD.r;
             const m   = levels.length;
             const xPos = j => PAD.l + (j / (m - 1)) * cw;
@@ -6960,31 +6960,7 @@
             });
 
             // Título grande estilo METEOFLASH: "15" fino + "DÍAS" en negrita (centrado)
-            _f7DrawSplitTitle(ctx, '15', 'DÍAS', PAD.l + cw / 2, levelsTop - 62, 18, 'center');
-
-            // Subtítulo
-            ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif';
-            ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.fillText('TEMPERATURA 850hPa / 500hPa · TENDENCIA', PAD.l + cw / 2, levelsTop - 38);
-
-            // Leyenda centrada (línea + texto x2)
-            ctx.font = 'bold 9px Inter,sans-serif';
-            ctx.textAlign = 'left';
-            const legW850 = ctx.measureText(' 850hPa').width;
-            const legW500 = ctx.measureText(' 500hPa').width;
-            const legSwatch = 14, legGap = 14;
-            const legTotalW = legSwatch + legW850 + legGap + legSwatch + legW500;
-            let legX = PAD.l + cw / 2 - legTotalW / 2;
-            ctx.beginPath(); ctx.moveTo(legX, levelsTop - 24); ctx.lineTo(legX + legSwatch, levelsTop - 24);
-            ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 2; ctx.stroke();
-            ctx.fillStyle = '#FF8A65';
-            ctx.fillText(' 850hPa', legX + legSwatch, levelsTop - 21);
-            legX += legSwatch + legW850 + legGap;
-            ctx.beginPath(); ctx.moveTo(legX, levelsTop - 24); ctx.lineTo(legX + legSwatch, levelsTop - 24);
-            ctx.strokeStyle = '#7DD3FC';
-            ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
-            ctx.fillStyle = '#7DD3FC';
-            ctx.fillText(' 500hPa', legX + legSwatch, levelsTop - 21);
+            _f7DrawSplitTitle(ctx, '15', 'DÍAS', PAD.l + cw / 2, levelsTop - 16, 18, 'center');
 
             // Línea base
             ctx.beginPath();
