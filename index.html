@@ -1278,6 +1278,15 @@
                 </div>
                 </div>
 
+                <!-- Panel adicional: misma temperatura 850hPa/500hPa pero a 15 días,
+                     solo líneas de tendencia (sin puntos ni etiquetas de dato), dos
+                     franjas horarias (00h/12h) por día. Mismo estilo que la gráfica de 7 días. -->
+                <div id="f7-panel-wrap-bottom15" style="position:relative;height:280px;">
+                <div id="f7-panel-combo-bottom15" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
+                    <canvas id="f7-chart-bottom15" style="display:block;width:100%;"></canvas>
+                </div>
+                </div>
+
                 <!-- Meteograma Sintético de Inestabilidad Convectiva: CAPE + CIN + Lifted Index fusionados (Chart.js)
                      Trasladado justo después de la cota de isocero. Mismo ancho que la gráfica 850hPa/500hPa/isocero
                      (padding 14px 16px, igual que #f7-panel-combo-bottom) y fondo azul heredado del contenedor. -->
@@ -6765,6 +6774,172 @@
 
             }
         }
+
+        // ── Canvas: tendencia niveles 850hPa/500hPa a 15 días ──
+        // Misma variable que drawF7ChartBottom() pero a más largo plazo: solo las
+        // dos líneas de temperatura (850hPa continua naranja / 500hPa discontinua
+        // celeste), sin puntos ni etiquetas numéricas, con una franja a las 00h y
+        // otra a las 12h por cada uno de los 15 días.
+        function drawF7ChartBottom15() {
+            const levels = window._f7LevelData15 || [];
+            const canvas = document.getElementById('f7-chart-bottom15');
+            if (!canvas || !levels || levels.length < 2) {
+                const wrap = document.getElementById('f7-panel-wrap-bottom15');
+                if (wrap) wrap.style.height = '0px';
+                return;
+            }
+
+            const dpr = window.devicePixelRatio || 1;
+            const W   = canvas.parentElement.offsetWidth - 32;
+            const ctx = canvas.getContext('2d');
+
+            const PAD = { t:100, r:16, b:40, l:16 };
+            const cw  = W - PAD.l - PAD.r;
+            const m   = levels.length;
+            const xPos = j => PAD.l + (j / (m - 1)) * cw;
+
+            const levelsH      = 170;
+            const levelsTop    = PAD.t;
+            const levelsBottom = levelsTop + levelsH;
+            const H = levelsBottom + PAD.b;
+
+            canvas.width  = W * dpr;
+            canvas.height = H * dpr;
+            canvas.style.width  = W + 'px';
+            canvas.style.height = H + 'px';
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, W, H);
+
+            _f7SyncWrapHeight('f7-panel-wrap-bottom15', 'f7-panel-combo-bottom15', H);
+
+            const t850v = levels.map(l => l.t850);
+            const t500v = levels.map(l => l.t500);
+            const allLv = [...t850v, ...t500v];
+            const lvMin = Math.floor(Math.min(...allLv)) - 8;
+            const lvMax = Math.ceil(Math.max(...allLv)) + 8;
+            const yLv   = v => levelsTop + levelsH - ((v - lvMin) / (lvMax - lvMin)) * levelsH;
+
+            // Líneas guía cada 10°C
+            const guideTemps = [40, 30, 20, 10, 0, -10, -20, -30, -40];
+            guideTemps.forEach(v => {
+                if (v < lvMin || v > lvMax) return;
+                const y = yLv(v);
+                ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
+                ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1; ctx.stroke();
+            });
+
+            // Líneas verticales discontinuas y sutiles marcando las 00h (separación entre días)
+            levels.forEach((l, j) => {
+                if (l.hour !== 0 || j === 0) return;
+                const x = xPos(j);
+                ctx.beginPath(); ctx.moveTo(x, levelsTop); ctx.lineTo(x, levelsBottom);
+                ctx.setLineDash([3, 3]);
+                ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1; ctx.stroke();
+                ctx.setLineDash([]);
+            });
+
+            // Línea 850hPa — naranja continua (sin puntos)
+            ctx.beginPath();
+            levels.forEach((l, j) => { const x = xPos(j), y = yLv(l.t850); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
+            ctx.setLineDash([]);
+            ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+
+            // Línea 500hPa — celeste discontinua (sin puntos)
+            ctx.beginPath();
+            levels.forEach((l, j) => { const x = xPos(j), y = yLv(l.t500); j === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
+            ctx.setLineDash([5, 4]);
+            ctx.strokeStyle = '#7DD3FC'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Fila de días (abreviatura), centrada entre la franja de 00h y la de 12h de cada día
+            const DIAS_ES15 = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+            const todayStr15 = new Date().toISOString().slice(0,10);
+            const seenDays = [];
+            levels.forEach(l => { if (!seenDays.includes(l.dateStr)) seenDays.push(l.dateStr); });
+            ctx.textAlign = 'center'; ctx.font = '8px Inter,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.55)';
+            seenDays.forEach(ds => {
+                const j00 = levels.findIndex(l => l.dateStr === ds && l.hour === 0);
+                const j12 = levels.findIndex(l => l.dateStr === ds && l.hour === 12);
+                const x = (j00 !== -1 && j12 !== -1) ? (xPos(j00) + xPos(j12)) / 2 : xPos(j00 !== -1 ? j00 : j12);
+                const dt = new Date(ds + 'T12:00:00');
+                const lbl = ds === todayStr15 ? 'HOY' : DIAS_ES15[dt.getDay()];
+                ctx.fillText(lbl, x, levelsBottom + 16);
+            });
+
+            // Título grande estilo METEOFLASH: "15" fino + "DÍAS" en negrita (centrado)
+            _f7DrawSplitTitle(ctx, '15', 'DÍAS', PAD.l + cw / 2, levelsTop - 62, 18, 'center');
+
+            // Subtítulo
+            ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            ctx.fillText('TEMPERATURA 850hPa / 500hPa · TENDENCIA', PAD.l + cw / 2, levelsTop - 38);
+
+            // Leyenda centrada (línea + texto x2)
+            ctx.font = 'bold 9px Inter,sans-serif';
+            ctx.textAlign = 'left';
+            const legW850 = ctx.measureText(' 850hPa').width;
+            const legW500 = ctx.measureText(' 500hPa').width;
+            const legSwatch = 14, legGap = 14;
+            const legTotalW = legSwatch + legW850 + legGap + legSwatch + legW500;
+            let legX = PAD.l + cw / 2 - legTotalW / 2;
+            ctx.beginPath(); ctx.moveTo(legX, levelsTop - 24); ctx.lineTo(legX + legSwatch, levelsTop - 24);
+            ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.fillStyle = '#FF8A65';
+            ctx.fillText(' 850hPa', legX + legSwatch, levelsTop - 21);
+            legX += legSwatch + legW850 + legGap;
+            ctx.beginPath(); ctx.moveTo(legX, levelsTop - 24); ctx.lineTo(legX + legSwatch, levelsTop - 24);
+            ctx.strokeStyle = '#7DD3FC';
+            ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+            ctx.fillStyle = '#7DD3FC';
+            ctx.fillText(' 500hPa', legX + legSwatch, levelsTop - 21);
+
+            // Línea base
+            ctx.beginPath();
+            ctx.moveTo(PAD.l, levelsBottom); ctx.lineTo(PAD.l + cw, levelsBottom);
+            ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+        }
+
+        // ── Carga independiente de los niveles 850hPa/500hPa a 15 días para la
+        // gráfica de tendencia extendida. Se hace con un fetch propio (ligero,
+        // solo esas dos variables) porque el resto de la web solo pide 8 días.
+        async function loadForecast15Levels() {
+            try {
+                const PROXY_BASE15 = 'https://muddy-truth-8fff.lojasergi.workers.dev';
+                const url15 = `${PROXY_BASE15}/forecast?latitude=${LAT}&longitude=${LON}&hourly=temperature_850hPa,temperature_500hPa&timezone=Europe/Madrid&forecast_days=15`;
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 10000);
+                const r = await fetch(url15, { cache: 'no-store', signal: controller.signal });
+                clearTimeout(timer);
+                if (!r.ok) throw new Error(r.status);
+                const d15 = await r.json();
+                const h15 = d15?.hourly;
+                if (!h15?.time || !h15?.temperature_850hPa || !h15?.temperature_500hPa) {
+                    const wrap = document.getElementById('f7-panel-wrap-bottom15');
+                    if (wrap) wrap.style.height = '0px';
+                    return;
+                }
+
+                const levelRows15 = [];
+                for (let i = 0; i < h15.time.length; i++) {
+                    const dt = new Date(h15.time[i]);
+                    const hour = dt.getHours();
+                    if (hour !== 0 && hour !== 12) continue;
+                    levelRows15.push({
+                        dateStr : h15.time[i].slice(0,10),
+                        hour    : hour,
+                        t850    : Math.round(h15.temperature_850hPa[i] ?? 0),
+                        t500    : Math.round(h15.temperature_500hPa[i] ?? 0),
+                    });
+                }
+                window._f7LevelData15 = levelRows15;
+                requestAnimationFrame(() => requestAnimationFrame(() => drawF7ChartBottom15()));
+            } catch(e) {
+                console.warn('Forecast 15d levels error:', e);
+                const wrap = document.getElementById('f7-panel-wrap-bottom15');
+                if (wrap) wrap.style.height = '0px';
+            }
+        }
+        loadForecast15Levels();
 
         /* ══════════════════════════════════════════════
            SEMÁFORO DE RIESGO DE TORMENTA (canvas propio)
