@@ -1330,15 +1330,16 @@
                         <canvas id="meteograma-humedad-canvas"></canvas>
                     </div>
 
-                    <!-- Tabla: HR 850hPa / HR 700hPa / Cizalladura 850-500hPa por franja horaria -->
-                    <div style="overflow-x:auto;margin-top:14px;">
+                    <!-- Tabla: HR 850hPa / HR 700hPa / Cizalladura 850-500hPa, sin columna de
+                         etiquetas ni cabecera propia de días/horas: queda alineada a la misma
+                         franja de días/horas que la gráfica de arriba. Cada fila se identifica
+                         por su color (ver leyenda debajo de la tabla). -->
+                    <div style="overflow-x:auto;margin-top:6px;">
                         <table id="meteograma-humedad-tabla" style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:10px;">
-                            <thead>
-                                <tr id="meteograma-humedad-tabla-head"></tr>
-                            </thead>
                             <tbody id="meteograma-humedad-tabla-body"></tbody>
                         </table>
-                        <p style="margin:4px 2px 0;font-size:9.5px;color:rgba(255,255,255,0.45);">HR = humedad relativa (%) · Cizall. = cizalladura 850-500hPa (km/h)</p>
+                        <div id="meteograma-humedad-tabla-leyenda" style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:8px;"></div>
+                        <p style="margin:6px 2px 0;font-size:9.5px;color:rgba(255,255,255,0.45);">HR = humedad relativa (%) · Cizall. = cizalladura 850-500hPa (km/h)</p>
                     </div>
 
                     <!-- Botón + desplegable: guía de interpretación del meteograma de humedad/cizalladura -->
@@ -1365,10 +1366,35 @@
                     </div>
                 </div>
 
+                <!-- Botón + desplegable: último radiosondeo (UB/SMC) -->
+                <div style="padding:0 16px 14px;">
+                    <button id="f7-radiosondeo-toggle" onclick="toggleF7RadiosondeoPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
+                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Último radiosondeo (UB/SMC)</span>
+                        <span id="f7-radiosondeo-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
+                    </button>
+                    <div id="f7-radiosondeo-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
+                        <div style="padding:12px 2px 2px;">
+                            <img src="https://static-m.meteo.cat/content/radiosondatge/images/ultim.png"
+                                 alt="Último radiosondeo Barcelona"
+                                 style="width:100%;display:block;border-radius:8px;"
+                                 loading="lazy"/>
+                            <div style="text-align:center;padding-top:6px;">
+                                <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Meteocat</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ═══════════════════════════════════════════
                      INDICADORES CRÍTICOS EN SUPERFICIE
                 ════════════════════════════════════════════ -->
                 <div id="indicadores-criticos-superficie" style="padding:18px 16px 4px;background:transparent;">
+
+                    <!-- Título de sección "METEOPANEL" estilo METEOFLASH (igual que "- ATMÓSFERA
+                         LIBRE -" arriba): "METEO" en fino, "PANEL" en negrita -->
+                    <div style="text-align:center;margin-bottom:16px;">
+                        <span style="font-family:'Inter',sans-serif;font-size:24px;font-weight:300;color:#ffffff;">METEO</span><span style="font-family:'Inter',sans-serif;font-size:24px;font-weight:900;color:#ffffff;">PANEL</span>
+                    </div>
 
                     <div id="ics-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:12px;">
 
@@ -1474,32 +1500,6 @@
                             </div>
                         </div>
 
-                    </div>
-                </div>
-
-                <!-- Semáforo de riesgo de tormenta -->
-                <div id="f7-panel-wrap-risk" style="position:relative;height:140px;">
-                <div id="f7-panel-combo-risk" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
-                    <canvas id="f7-chart-risk" style="display:block;width:100%;"></canvas>
-                </div>
-                </div>
-
-                <!-- Botón + desplegable: último radiosondeo (UB/SMC) -->
-                <div style="padding:0 16px 14px;">
-                    <button id="f7-radiosondeo-toggle" onclick="toggleF7RadiosondeoPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
-                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Último radiosondeo (UB/SMC)</span>
-                        <span id="f7-radiosondeo-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
-                    </button>
-                    <div id="f7-radiosondeo-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
-                        <div style="padding:12px 2px 2px;">
-                            <img src="https://static-m.meteo.cat/content/radiosondatge/images/ultim.png"
-                                 alt="Último radiosondeo Barcelona"
-                                 style="width:100%;display:block;border-radius:8px;"
-                                 loading="lazy"/>
-                            <div style="text-align:center;padding-top:6px;">
-                                <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Meteocat</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -5877,11 +5877,6 @@
                 console.error('[Meteograma] Error dibujando meteograma de humedad/cizalladura (PWAT/HR/Shear):', e);
             }
             try {
-                drawF7ChartRisk();
-            } catch (e) {
-                console.error('[Meteograma] Error dibujando semáforo de riesgo de tormenta:', e);
-            }
-            try {
                 updateIndicadoresCriticosSuperficie();
             } catch (e) {
                 console.error('[Indicadores críticos] Error actualizando punto de rocío / temperatura del mar:', e);
@@ -7296,10 +7291,10 @@
                     ctx.strokeStyle = 'rgba(255,255,255,0.15)';
                     ctx.lineWidth = 1;
                     ctx.setLineDash([4, 4]);
+                    // Cada día ocupa 2 franjas (AM/PM), así que el cambio de día
+                    // cae siempre en los índices pares (2, 4, 6...).
                     for (let i = 1; i < chartLabels.length; i++) {
-                        const prevDay = Array.isArray(chartLabels[i - 1]) ? chartLabels[i - 1][1] : null;
-                        const currDay = Array.isArray(chartLabels[i]) ? chartLabels[i][1] : null;
-                        if (prevDay !== null && currDay !== null && prevDay !== currDay) {
+                        if (i % 2 === 0) {
                             const xPos = (x.getPixelForValue(i - 1) + x.getPixelForValue(i)) / 2;
                             ctx.beginPath();
                             ctx.moveTo(xPos, chartArea.top);
@@ -7322,7 +7317,7 @@
                     maintainAspectRatio: false,
                     events: [],   // sin interacción con el ratón (ni hover ni click)
                     scales: {
-                        x: { stacked: true, grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.6)' } },
+                        x: { stacked: true, grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.6)', font: { size: 9 } } },
                         yCAPE: {
                             type: 'linear', position: 'left', min: 0, max: CAPE_MAX, stacked: true,
                             display: true,
@@ -7372,7 +7367,7 @@
             const stormRows = window._f7StormRows || _f7BuildStormRows(window._hourlyCache, rows);
             if (!stormRows || !stormRows.length) return;
             drawMeteogramaInestabilidad('meteograma-inestabilidad-canvas', {
-                time: stormRows.map(r => [r.periodLabel, r.isToday ? 'HOY' : r.dayName]),
+                time: stormRows.map(r => [r.periodLabel, r.period === 'AM' ? (r.isToday ? 'HOY' : r.dayName) : '']),
                 cape: stormRows.map(r => r.cape),
                 cin:  stormRows.map(r => r.cin),
                 li:   stormRows.map(r => r.li)
@@ -7441,10 +7436,10 @@
                     ctx.strokeStyle = 'rgba(255,255,255,0.15)';
                     ctx.lineWidth = 1;
                     ctx.setLineDash([4, 4]);
+                    // Cada día ocupa 2 franjas (AM/PM), así que el cambio de día
+                    // cae siempre en los índices pares (2, 4, 6...).
                     for (let i = 1; i < chartLabels.length; i++) {
-                        const prevDay = Array.isArray(chartLabels[i - 1]) ? chartLabels[i - 1][1] : null;
-                        const currDay = Array.isArray(chartLabels[i]) ? chartLabels[i][1] : null;
-                        if (prevDay !== null && currDay !== null && prevDay !== currDay) {
+                        if (i % 2 === 0) {
                             const xPos = (xScale.getPixelForValue(i - 1) + xScale.getPixelForValue(i)) / 2;
                             ctx.beginPath();
                             ctx.moveTo(xPos, chartArea.top);
@@ -7465,7 +7460,7 @@
                     maintainAspectRatio: false,
                     events: [],
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.6)' } },
+                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.6)', font: { size: 9 } } },
                         yLeft: {
                             type: 'linear', position: 'left', min: 0, max: PWAT_MAX,
                             display: true, ticks: { display: false }, border: { display: false }, grid: { display: false }
@@ -7496,41 +7491,46 @@
         }
 
         // ── Tabla: HR 850hPa / HR 700hPa / Cizalladura 850-500hPa por franja horaria,
-        //    con celdas coloreadas según nivel (verde/ámbar/rojo) para lectura rápida ──
-        function _f7HumedadCellColor(valor, umbrales) {
-            // umbrales = [bajo, medio] — por debajo de 'bajo' => neutro, entre 'bajo' y 'medio' => ámbar, por encima => rojo
-            if (valor == null) return { bg: 'rgba(255,255,255,0.06)', fg: 'rgba(255,255,255,0.5)' };
-            if (valor >= umbrales[1]) return { bg: 'rgba(251,146,60,0.35)',  fg: '#ffedd5' };
-            if (valor >= umbrales[0]) return { bg: 'rgba(250,204,21,0.22)', fg: '#fef9c3' };
-            return { bg: 'rgba(255,255,255,0.05)', fg: 'rgba(255,255,255,0.85)' };
-        }
+        //    sin columna de etiquetas ni cabecera propia (las columnas quedan alineadas
+        //    a la misma franja de días/horas que la gráfica de arriba). Cada fila se
+        //    pinta de un color fijo y distinto; la leyenda debajo indica qué representa
+        //    cada color (850hPa / 700hPa / Cizalladura) ──
+        const F7_HUMEDAD_ROW_COLORS = {
+            rh850: { color: '#38bdf8', label: 'HR 850hPa' },
+            rh700: { color: '#a78bfa', label: 'HR 700hPa' },
+            shear: { color: '#fb923c', label: 'Cizalladura' }
+        };
 
         function updateMeteogramaHumedadTabla(stormRows) {
-            const head = document.getElementById('meteograma-humedad-tabla-head');
-            const body = document.getElementById('meteograma-humedad-tabla-body');
-            if (!head || !body || !stormRows || !stormRows.length) return;
-
-            const thStyle = 'padding:4px 2px;text-align:center;color:rgba(255,255,255,0.6);font-weight:400;border-bottom:1px solid rgba(255,255,255,0.15);font-size:9px;line-height:1.3;';
-            head.innerHTML = '<th style="' + thStyle + 'text-align:left;width:62px;"></th>' +
-                stormRows.map(r => '<th style="' + thStyle + '">' + r.periodLabel + '<br>' + (r.isToday ? 'HOY' : r.dayName) + '</th>').join('');
+            const body    = document.getElementById('meteograma-humedad-tabla-body');
+            const leyenda = document.getElementById('meteograma-humedad-tabla-leyenda');
+            if (!body || !stormRows || !stormRows.length) return;
 
             const rowDefs = [
-                { label: 'HR 850hPa',   field: 'rh850', umbrales: [55, 75], suffix: '%' },
-                { label: 'HR 700hPa',   field: 'rh700', umbrales: [45, 65], suffix: '%' },
-                { label: 'Cizall.',     field: 'shear', umbrales: [30, 50], suffix: '' }
+                { field: 'rh850', suffix: '%' },
+                { field: 'rh700', suffix: '%' },
+                { field: 'shear', suffix: '' }
             ];
 
-            const labelTdStyle = 'padding:5px 2px;color:rgba(255,255,255,0.85);font-weight:400;border-bottom:1px solid rgba(255,255,255,0.08);font-size:9.5px;white-space:nowrap;';
             const cellBaseStyle = 'padding:5px 2px;text-align:center;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.08);';
 
             body.innerHTML = rowDefs.map(def => {
+                const meta = F7_HUMEDAD_ROW_COLORS[def.field];
                 const cells = stormRows.map(r => {
                     const v = r[def.field];
-                    const c = _f7HumedadCellColor(v, def.umbrales);
-                    return '<td style="' + cellBaseStyle + 'background:' + c.bg + ';color:' + c.fg + ';">' + (v != null ? v + def.suffix : '—') + '</td>';
+                    return '<td style="' + cellBaseStyle + 'color:' + meta.color + ';">' + (v != null ? v + def.suffix : '—') + '</td>';
                 }).join('');
-                return '<tr><td style="' + labelTdStyle + '">' + def.label + '</td>' + cells + '</tr>';
+                return '<tr>' + cells + '</tr>';
             }).join('');
+
+            if (leyenda) {
+                leyenda.innerHTML = rowDefs.map(def => {
+                    const meta = F7_HUMEDAD_ROW_COLORS[def.field];
+                    return '<span style="display:inline-flex;align-items:center;gap:5px;font-size:9.5px;color:rgba(255,255,255,0.75);">' +
+                        '<span style="width:10px;height:10px;border-radius:3px;background:' + meta.color + ';display:inline-block;flex-shrink:0;"></span>' +
+                        meta.label + '</span>';
+                }).join('');
+            }
         }
 
         function updateMeteogramaHumedad() {
@@ -7538,7 +7538,7 @@
             const stormRows = window._f7StormRows || _f7BuildStormRows(window._hourlyCache, rows);
             if (!stormRows || !stormRows.length) return;
             drawMeteogramaHumedad('meteograma-humedad-canvas', {
-                time:  stormRows.map(r => [r.periodLabel, r.isToday ? 'HOY' : r.dayName]),
+                time:  stormRows.map(r => [r.periodLabel, r.period === 'AM' ? (r.isToday ? 'HOY' : r.dayName) : '']),
                 pwat:  stormRows.map(r => r.pwat)
             });
             updateMeteogramaHumedadTabla(stormRows);
