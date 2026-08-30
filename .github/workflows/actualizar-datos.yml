@@ -2,9 +2,12 @@ name: Actualizar datos meteorológicos
 
 on:
   schedule:
-    # Cada 3 horas (en UTC). GitHub Actions no garantiza el minuto exacto
-    # en horas de mucha carga, pero siempre se ejecuta dentro de esa franja.
-    - cron: '0 */3 * * *'
+    # FASE DE DISEÑO: cada 10 minutos (en UTC), para iterar rápido mientras
+    # solo tú ves la web. GitHub Actions no garantiza el minuto exacto en
+    # horas de mucha carga, pero siempre se ejecuta dentro de esa franja.
+    # ⚠️ Antes de abrir la web al público, volver a '0 */3 * * *' (cada 3h)
+    # para no agotar los minutos de Actions si el repo es privado.
+    - cron: '*/10 * * * *'
   workflow_dispatch: {}   # permite lanzarlo a mano desde la pestaña "Actions"
 
 # Permite que el workflow haga commit/push del JSON actualizado
