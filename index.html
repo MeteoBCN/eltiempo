@@ -242,7 +242,7 @@
         .bbc-dprow-rain-icon svg { width: 16px; height: 16px; display: block; }
         .bbc-dprow-sub { font-size: 10px; font-weight: 400; color: rgba(255,255,255,0.65); margin-left: 2px; }
         .bbc-dprow-sun { background: transparent; padding-top: 16px; padding-bottom: 16px; }
-        .bbc-dprow-sun-data { grid-column: 2 / -1; display: flex; justify-content: flex-start; align-items: center; gap: 24px; align-self: center; }
+        .bbc-dprow-sun-data { grid-column: 2 / -1; display: flex; justify-content: center; align-items: center; gap: 24px; align-self: center; }
         .bbc-dprow-sun-item { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.65); white-space: nowrap; line-height: 1.3; }
         .bbc-dprow-sun-item .bbc-dprow-sub { color: rgba(255,255,255,0.45); line-height: 1.3; }
 
@@ -3298,8 +3298,6 @@
                 const x = xPos(i);
                 const v = lineValues[i];
                 const y = yTemp(v);
-                ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-                ctx.fillStyle = `rgb(${tempToColor(v).join(',')})`; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
 
                 if (maxIdxOfDay[i]) {
                     ctx.fillStyle = MAX_COLOR; ctx.font = 'bold 14px Inter,sans-serif';
