@@ -1293,7 +1293,7 @@
                      Trasladado justo después de la cota de isocero. Mismo ancho que la gráfica 850hPa/500hPa/isocero
                      (padding 14px 16px, igual que #f7-panel-combo-levels) y fondo azul heredado del contenedor. -->
                 <div style="background:transparent;padding:52px 16px 4px;margin-bottom:12px;">
-                    <div style="text-align:center;font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">INESTABILIDAD CONVECTIVA</div>
+                    <div style="text-align:center;font-size:10.5px;font-weight:700;color:rgba(255,255,255,0.65);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">INESTABILIDAD CONVECTIVA</div>
                     <div style="position:relative;height:260px;">
                         <canvas id="meteograma-inestabilidad-canvas"></canvas>
                     </div>
@@ -1325,7 +1325,7 @@
                 <!-- Meteograma de Humedad en Columna (PWAT, barras) + tabla de HR 850/700hPa y Cizalladura debajo.
                      Mismo ancho y estilo que el meteograma de Inestabilidad Convectiva, justo debajo. -->
                 <div style="background:transparent;padding:14px 16px 4px;margin-bottom:12px;">
-                    <div style="text-align:center;font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">HUMEDAD EN COLUMNA · CIZALLADURA</div>
+                    <div style="text-align:center;font-size:10.5px;font-weight:700;color:rgba(255,255,255,0.65);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">HUMEDAD EN COLUMNA · CIZALLADURA</div>
                     <div style="position:relative;height:190px;">
                         <canvas id="meteograma-humedad-canvas"></canvas>
                     </div>
@@ -5992,21 +5992,21 @@
             const accValueY  = rainBottom + 20;   // fila con la probabilidad de lluvia (%), justo debajo de las barras de acumulado
 
             // ── Zona humedad relativa máxima/mínima (%) ──
-            const gapHum     = 140;  // separación tras la cifra de acumulación → título "HUMEDAD" (doble de la anterior)
+            const gapHum     = 124;  // separación tras la cifra de acumulación → título "HUMEDAD" (100px de aire real hasta el título)
             const humH       = 160;  // alto zona humedad
             const humTop     = accValueY + gapHum;
             const humBottom  = humTop + humH;
             const humDayLabelY = humBottom + 40;
 
             // ── Zona presión a nivel del mar (hPa) ──
-            const gapPres    = 90;   // separación tras fila de días de humedad → título "PRESIÓN"
+            const gapPres    = 110;   // separación tras fila de días de humedad → título "PRESIÓN" (100px de aire real hasta el título)
             const presH      = 110;  // alto zona presión
             const presTop    = humDayLabelY + gapPres;
             const presBottom = presTop + presH;
             const presDayLabelY = presBottom + 14;
 
             // ── Zona viento previsto + rachas máximas (km/h) ──
-            const gapWind    = 90;   // separación tras fila de días de presión → título "VIENTO"
+            const gapWind    = 124;  // separación tras fila de días de presión → título "VIENTO" (100px de aire real hasta el título)
             const windH      = 160;  // alto zona viento
             const windTop    = presDayLabelY + gapWind;
             const windBottom = windTop + windH;
@@ -6106,12 +6106,20 @@
             //    supera rainMmCap, la barra llega al tope y se marca con un
             //    borde "roto"/en zigzag en vez de agrandar el gráfico. ──
             const barW  = dayW * 0.72;
+            // Centro real de cada barra (ya con el clamp aplicado en los extremos),
+            // reutilizado luego tanto para la etiqueta "mm" como para el "%" de
+            // probabilidad, de forma que en los días de los extremos todo quede
+            // alineado entre sí igual que en el resto de columnas.
+            const barCenters = rows.map((r, i) => {
+                let x = xPos(i) - barW / 2;
+                x = Math.max(2, Math.min(x, W - barW - 2));
+                return x + barW / 2;
+            });
             rows.forEach((r, i) => {
                 const mm = Math.round((r.precip ?? 0) * 10) / 10;
                 const capped = mm > rainMmCap;
                 const barH = (Math.min(mm, rainMmCap) / rainMmCap) * rainH;
-                let x  = xPos(i) - barW / 2;
-                x = Math.max(2, Math.min(x, W - barW - 2));
+                const x = barCenters[i] - barW / 2;
                 ctx.fillStyle = 'rgba(56,189,248,0.85)';
                 ctx.beginPath();
                 if (ctx.roundRect) {
@@ -6149,7 +6157,7 @@
                 const barH = (Math.min(mm, rainMmCap) / rainMmCap) * rainH;
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif';
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText(mm + ' mm', xPos(i), rainBottom - barH - 5);
+                ctx.fillText(mm + ' mm', barCenters[i], rainBottom - barH - 5);
             });
             // Línea base de la zona de lluvia
             ctx.beginPath();
@@ -6162,7 +6170,7 @@
             rows.forEach((r, i) => {
                 const v = r.pprob;
                 ctx.fillStyle = v === 0 ? 'rgba(255,255,255,0.85)' : 'rgba(56,189,248,0.95)';
-                ctx.fillText(v + '%', xPos(i), accValueY);
+                ctx.fillText(v + '%', barCenters[i], accValueY);
             });
 
             // ══════════════════════════════════════════════
@@ -6705,9 +6713,9 @@
 
                 // Título + leyenda (leyenda debajo del subtítulo) — va justo después de
                 // "- ATMÓSFERA LIBRE -", antes de bajar el título grande "7 DÍAS"
-                ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif';
+                ctx.textAlign = 'center'; ctx.font = 'bold 10.5px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText('TEMPERATURA 850hPa / 500hPa · CADA 12H', PAD.l + cw / 2, levelsTop - 90);
+                ctx.fillText('TEMPERATURA 850-500hPa', PAD.l + cw / 2, levelsTop - 90);
 
                 ctx.font = 'bold 9px Inter,sans-serif';
                 ctx.textAlign = 'left';
@@ -6822,9 +6830,9 @@
             });
 
             // Título (con espacio respecto a la gráfica)
-            ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif';
+            ctx.textAlign = 'center'; ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.fillText('COTA DE ISOCERO (0°C)', PAD.l + cw / 2, isoTop - 26);
+            ctx.fillText('COTA DE ISOCERO (ºC)', PAD.l + cw / 2, isoTop - 26);
 
             // Línea base
             ctx.beginPath();
