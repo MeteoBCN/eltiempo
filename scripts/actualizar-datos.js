@@ -23,7 +23,7 @@ const LON = 2.1734;
 const FORECAST_URL =
     `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
     `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover` +
-    `&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_850hPa,temperature_500hPa,freezing_level_height,cape,lifted_index,convective_inhibition` +
+    `&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_850hPa,temperature_500hPa,freezing_level_height,cape,lifted_index,convective_inhibition,total_column_integrated_water_vapour,relative_humidity_850hPa,relative_humidity_700hPa,wind_speed_850hPa,wind_direction_850hPa,wind_speed_500hPa,wind_direction_500hPa` +
     `&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean,cape_max` +
     `&timezone=Europe/Madrid&forecast_days=8`;
 
