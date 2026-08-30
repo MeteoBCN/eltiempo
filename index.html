@@ -1388,7 +1388,7 @@
                 <!-- ═══════════════════════════════════════════
                      INDICADORES CRÍTICOS EN SUPERFICIE
                 ════════════════════════════════════════════ -->
-                <div id="indicadores-criticos-superficie" style="padding:18px 16px 4px;background:transparent;">
+                <div id="indicadores-criticos-superficie" style="padding:18px 16px 50px;background:transparent;">
 
                     <!-- Título de sección "METEOPANEL" estilo METEOFLASH (igual que "- ATMÓSFERA
                          LIBRE -" arriba): "METEO" en fino, "PANEL" en negrita -->
@@ -6703,13 +6703,11 @@
                     ctx.font = thinFont; ctx.fillText(seg3, x, y);
                 })();
 
-                // Título grande estilo METEOFLASH: "7" fino + "DÍAS" en negrita (centrado)
-                _f7DrawSplitTitle(ctx, '7', 'DÍAS', PAD.l + cw / 2, levelsTop - 56, 18, 'center');
-
-                // Título + leyenda (leyenda debajo del título)
+                // Título + leyenda (leyenda debajo del subtítulo) — va justo después de
+                // "- ATMÓSFERA LIBRE -", antes de bajar el título grande "7 DÍAS"
                 ctx.textAlign = 'center'; ctx.font = 'bold 8px Inter,sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText('TEMPERATURA 850hPa / 500hPa · CADA 12H', PAD.l + cw / 2, levelsTop - 35);
+                ctx.fillText('TEMPERATURA 850hPa / 500hPa · CADA 12H', PAD.l + cw / 2, levelsTop - 90);
 
                 ctx.font = 'bold 9px Inter,sans-serif';
                 ctx.textAlign = 'left';
@@ -6719,16 +6717,20 @@
                 const legSwatch = 14, legGap = 14;
                 const legTotalW = legSwatch + legW850 + legGap + legSwatch + legW500;
                 let legX = PAD.l + cw / 2 - legTotalW / 2;
-                ctx.beginPath(); ctx.moveTo(legX, levelsTop - 24); ctx.lineTo(legX + legSwatch, levelsTop - 24);
+                ctx.beginPath(); ctx.moveTo(legX, levelsTop - 74); ctx.lineTo(legX + legSwatch, levelsTop - 74);
                 ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 2; ctx.stroke();
                 ctx.fillStyle = '#FF8A65';
-                ctx.fillText(' 850hPa', legX + legSwatch, levelsTop - 21);
+                ctx.fillText(' 850hPa', legX + legSwatch, levelsTop - 71);
                 legX += legSwatch + legW850 + legGap;
-                ctx.beginPath(); ctx.moveTo(legX, levelsTop - 24); ctx.lineTo(legX + legSwatch, levelsTop - 24);
+                ctx.beginPath(); ctx.moveTo(legX, levelsTop - 74); ctx.lineTo(legX + legSwatch, levelsTop - 74);
                 ctx.strokeStyle = '#7DD3FC';
                 ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
                 ctx.fillStyle = '#7DD3FC';
-                ctx.fillText(' 500hPa', legX + legSwatch, levelsTop - 21);
+                ctx.fillText(' 500hPa', legX + legSwatch, levelsTop - 71);
+
+                // Título grande estilo METEOFLASH: "7" fino + "DÍAS" en negrita (centrado),
+                // bajado para ir después de la leyenda 850hPa/500hPa
+                _f7DrawSplitTitle(ctx, '7', 'DÍAS', PAD.l + cw / 2, levelsTop - 40, 18, 'center');
 
                 // Línea base
                 ctx.beginPath();
