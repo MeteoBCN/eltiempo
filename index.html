@@ -1057,20 +1057,17 @@
                     <div class="bbc-sun-uvi" id="bbc-sun-uvi-48h"></div>
 
                     <!-- ═══ GRÁFICA METEOFLASH — fija, no cambia con el día (0/1/2) seleccionado ═══ -->
-                    <div id="paraguas-chart-wrap-days" style="width:100%;margin:0;background:#f7f8fa;padding:14px 0 14px;border-top:1px solid rgba(255,255,255,0.25);">
-                        <div style="font-size:20px;font-weight:300;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">METEO<span style="font-weight:900;">FLASH</span></div>
-                        <div style="font-size:10px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:26px;">Avance próximos días</div>
+                    <div id="paraguas-chart-wrap-days" style="width:100%;margin:0;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);padding:18px 0 14px;border-top:1px solid rgba(255,255,255,0.14);">
                         <div id="paraguas-days-day-row" style="position:relative;height:13px;margin:0;"></div>
-                        <div id="paraguas-days-icon-row" style="position:relative;height:24px;margin:10px 0 0 0;"></div>
-                        <div id="paraguas-days-hour-row" style="position:relative;height:12px;margin:4px 0 -2px 0;"></div>
+                        <div id="paraguas-days-hour-row" style="position:relative;height:12px;margin:14px 0 -2px 0;"></div>
                         <canvas id="paraguas-days-chart" style="width:100%;display:block;"></canvas>
                         <div style="display:flex;flex-direction:row;align-items:center;justify-content:center;gap:18px;margin-top:2px;">
-                            <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
-                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(59,130,246,0.10);flex-shrink:0;"></span>
+                            <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#ffffff;opacity:0.85;">
+                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(255,255,255,0.12);flex-shrink:0;"></span>
                                 <span style="text-transform:uppercase;font-weight:400;">Cuidado, podría llover</span>
                             </span>
-                            <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#123653;opacity:0.9;">
-                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(28,79,120,0.20);flex-shrink:0;"></span>
+                            <span style="display:flex;align-items:center;gap:7px;font-size:9px;color:#ffffff;opacity:0.85;">
+                                <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgba(255,255,255,0.28);flex-shrink:0;"></span>
                                 <span style="text-transform:uppercase;font-weight:400;">No olvides el paraguas</span>
                             </span>
                         </div>
@@ -3182,7 +3179,7 @@
                 return PAD.top + LINE_GUTTER_TOP + innerCh - ((t - tMin) / (tMax - tMin)) * innerCh;
             };
 
-            const LINE_COLOR = '#1c4f78';
+            const LINE_COLOR = '#ffffff';
 
             // Misma categorización de lluvia que en la gráfica de horas, aplicada por bloque de 6h
             const rainCat = blocks.map(b => {
@@ -3191,8 +3188,8 @@
                 return isStrongRain ? 2 : (isLightRain ? 1 : 0);
             });
 
-            const RAIN_BAND_LOW = 'rgba(59,130,246,0.10)';
-            const RAIN_BAND_HIGH = 'rgba(28,79,120,0.20)';
+            const RAIN_BAND_LOW = 'rgba(255,255,255,0.12)';
+            const RAIN_BAND_HIGH = 'rgba(255,255,255,0.28)';
             const segW = cw / (blocks.length - 1);
             blocks.forEach((b, i) => {
                 if (rainCat[i] > 0) {
@@ -3324,24 +3321,9 @@
                 let hHtml = '';
                 blocks.forEach((b, i) => {
                     const x = xPos(i);
-                    hHtml += `<span style="position:absolute;left:${x}px;top:0;transform:translateX(-50%);font-size:9px;font-weight:500;color:#64748B;font-family:Inter,sans-serif;white-space:nowrap;">${b.hourLabel}</span>`;
+                    hHtml += `<span style="position:absolute;left:${x}px;top:0;transform:translateX(-50%);font-size:9px;font-weight:500;color:rgba(255,255,255,0.65);font-family:Inter,sans-serif;white-space:nowrap;">${b.hourLabel}</span>`;
                 });
                 hourRow.innerHTML = hHtml;
-            }
-
-            // ── Fila de iconos: el más repetido (moda) entre las 6 horas de cada bloque ──
-            const iconRow = document.getElementById('paraguas-days-icon-row');
-            if (iconRow) {
-                let iHtml = '';
-                blocks.forEach((b, i) => {
-                    if (b.code === null || b.code === undefined) return;
-                    // El bloque de 00h (madrugada) no lleva icono de estado del cielo.
-                    if (b.start.getHours() === 0) return;
-                    const x = xPos(i);
-                    const icon = getSvgIcon(b.code, 22, false);
-                    iHtml += `<span style="position:absolute;left:${x}px;top:0;transform:translateX(-50%);line-height:1;white-space:nowrap;">${icon}</span>`;
-                });
-                iconRow.innerHTML = iHtml;
             }
 
             // ── Fila de días: una etiqueta centrada sobre cada grupo de bloques del mismo día ──
@@ -3361,7 +3343,7 @@
                     // Solo "hoy" se muestra como texto especial; el resto de días,
                     // incluido mañana, muestran su nombre real (p. ej. "Sábado").
                     const label = (g.dateKey === todayStr) ? 'Hoy' : DIAS[g.date.getDay()];
-                    dHtml += `<span style="position:absolute;left:${xCenter}px;top:0;transform:translateX(-50%);font-size:10px;font-weight:700;color:#123653;font-family:Inter,sans-serif;white-space:nowrap;letter-spacing:0.3px;text-transform:uppercase;">${label}</span>`;
+                    dHtml += `<span style="position:absolute;left:${xCenter}px;top:0;transform:translateX(-50%);font-size:10px;font-weight:700;color:#ffffff;font-family:Inter,sans-serif;white-space:nowrap;letter-spacing:0.3px;text-transform:uppercase;">${label}</span>`;
                 });
                 dayRow.innerHTML = dHtml;
             }
