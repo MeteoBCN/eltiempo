@@ -1339,7 +1339,7 @@
                             <tbody id="meteograma-humedad-tabla-body"></tbody>
                         </table>
                         <div id="meteograma-humedad-tabla-leyenda" style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:8px;"></div>
-                        <p style="margin:6px 2px 0;font-size:9.5px;color:rgba(255,255,255,0.45);">HR = humedad relativa (%) · Cizall. = cizalladura 850-500hPa (km/h)</p>
+                        <p style="margin:6px 2px 0;font-size:9.5px;color:rgba(255,255,255,0.45);text-align:center;">HR = humedad relativa (%) · Cizall. = cizalladura 850-500hPa (km/h)</p>
                     </div>
 
                     <!-- Botón + desplegable: guía de interpretación del meteograma de humedad/cizalladura -->
@@ -1369,7 +1369,7 @@
                 <!-- Botón + desplegable: último radiosondeo (UB/SMC) -->
                 <div style="padding:0 16px 14px;">
                     <button id="f7-radiosondeo-toggle" onclick="toggleF7RadiosondeoPanel()" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
-                        <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Último radiosondeo (UB/SMC)</span>
+                        <span style="flex:1;text-align:center;font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">Último radiosondeo (UB/SMC)</span>
                         <span id="f7-radiosondeo-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
                     </button>
                     <div id="f7-radiosondeo-panel" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
@@ -7407,7 +7407,7 @@
                     if (THRESHOLD > yLeft.max) return;
                     const yPos = yLeft.getPixelForValue(THRESHOLD);
                     ctx.save();
-                    ctx.strokeStyle = 'rgba(239,68,68,0.55)';
+                    ctx.strokeStyle = 'rgba(251,146,60,0.4)';
                     ctx.lineWidth = 1;
                     ctx.setLineDash([5, 4]);
                     ctx.beginPath();
@@ -7415,7 +7415,7 @@
                     ctx.lineTo(chartArea.right, yPos);
                     ctx.stroke();
                     ctx.setLineDash([]);
-                    ctx.fillStyle = 'rgba(239,68,68,0.75)';
+                    ctx.fillStyle = 'rgba(251,146,60,0.6)';
                     ctx.font = '9px sans-serif';
                     ctx.textAlign = 'right';
                     ctx.textBaseline = 'bottom';
@@ -7463,7 +7463,7 @@
                         x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.6)', font: { size: 9 } } },
                         yLeft: {
                             type: 'linear', position: 'left', min: 0, max: PWAT_MAX,
-                            display: true, ticks: { display: false }, border: { display: false }, grid: { display: false }
+                            display: false, ticks: { display: false }, border: { display: false }, grid: { display: false }
                         }
                     },
                     plugins: {
