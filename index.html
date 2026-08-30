@@ -1138,10 +1138,6 @@
              GRÁFICOS SEMANA (METEOGRAMA) — SECCIÓN 1: TEMPERATURA/LLUVIA
         ════════════════════════════════════════════ -->
         <div id="forecast7-charts-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <!-- Cabecera -->
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 8px;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);gap:3px;">
-                <span style="font-size:11px;font-weight:700;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">METEOGRAMA SEMANAL</span>
-            </div>
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <!-- Panel superior: temperatura / probabilidad de lluvia / acumulado -->
                 <div id="f7-panel-wrap-top" style="position:relative;height:502px;">
@@ -1223,7 +1219,7 @@
                 </div>
 
                 <!-- Desplegable: POR QUÉ SE GENERA EL VIENTO -->
-                <div style="padding:0 16px 14px;">
+                <div style="padding:0 16px 40px;">
                     <button id="f7-viento-explica-toggle" onclick="toggleF7SimplePanel('f7-viento-explica-panel','f7-viento-explica-toggle-icon')" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;text-align:left;">
                         <span style="font-size:11.5px;font-weight:400;color:#ffffff;line-height:1.3;">¿Por qué se genera el viento?</span>
                         <span id="f7-viento-explica-toggle-icon" style="flex-shrink:0;color:#ffffff;font-size:13px;transition:transform 0.25s ease;">▾</span>
@@ -1390,10 +1386,10 @@
                 ════════════════════════════════════════════ -->
                 <div id="indicadores-criticos-superficie" style="padding:18px 16px 50px;background:transparent;">
 
-                    <!-- Título de sección "METEOPANEL" estilo METEOFLASH (igual que "- ATMÓSFERA
+                    <!-- Título de sección "- METEOPANEL -" estilo METEOFLASH (igual que "- ATMÓSFERA
                          LIBRE -" arriba): "METEO" en fino, "PANEL" en negrita -->
                     <div style="text-align:center;margin-bottom:16px;">
-                        <span style="font-family:'Inter',sans-serif;font-size:24px;font-weight:300;color:#ffffff;">METEO</span><span style="font-family:'Inter',sans-serif;font-size:24px;font-weight:900;color:#ffffff;">PANEL</span>
+                        <span style="font-family:'Inter',sans-serif;font-size:24px;font-weight:300;color:#ffffff;">- METEO</span><span style="font-family:'Inter',sans-serif;font-size:24px;font-weight:900;color:#ffffff;">PANEL</span><span style="font-family:'Inter',sans-serif;font-size:24px;font-weight:300;color:#ffffff;"> -</span>
                     </div>
 
                     <div id="ics-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:12px;">
@@ -5974,7 +5970,7 @@
             const W   = canvas.parentElement.offsetWidth - 32;
             const ctx = canvas.getContext('2d');
 
-            const PAD = { t:100, r:16, b:50, l:16 };
+            const PAD = { t:122, r:16, b:50, l:16 };
             const cw  = W - PAD.l - PAD.r;
             const n   = rows.length;
 
@@ -6051,7 +6047,7 @@
                 ctx.font = thinFont; const w1 = ctx.measureText(seg1).width;
                 ctx.font = boldFont; const w2 = ctx.measureText(seg2).width;
                 ctx.font = thinFont; const w3 = ctx.measureText(seg3).width;
-                const y = PAD.t - 20;
+                const y = PAD.t - 94;
                 let x = PAD.l + cw / 2 - (w1 + w2 + w3) / 2;
                 ctx.textAlign = 'left'; ctx.fillStyle = '#ffffff';
                 ctx.font = thinFont; ctx.fillText(seg1, x, y); x += w1;
@@ -6549,7 +6545,7 @@
             // Título + leyenda de temperatura (línea continua = máx, discontinua = mín)
             ctx.textAlign = 'center'; ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.fillText('TEMPERATURA / PROB. LLUVIA (%) · ACUMULADO (mm)', PAD.l + cw / 2, PAD.t - 30);
+            ctx.fillText('TEMPERATURA / PROB. LLUVIA (%) · ACUMULADO (mm)', PAD.l + cw / 2, PAD.t - 56);
 
             ctx.font = 'bold 9px Inter,sans-serif';
             {
@@ -6560,16 +6556,16 @@
                 let lx = PAD.l + cw / 2 - totalW / 2;
 
                 ctx.textAlign = 'left';
-                ctx.beginPath(); ctx.moveTo(lx, PAD.t - 15); ctx.lineTo(lx + swatchW, PAD.t - 15);
+                ctx.beginPath(); ctx.moveTo(lx, PAD.t - 40); ctx.lineTo(lx + swatchW, PAD.t - 40);
                 ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 1.1; ctx.stroke();
                 ctx.fillStyle = '#FF8A65';
-                ctx.fillText(t1, lx + swatchW + textPad, PAD.t - 12);
+                ctx.fillText(t1, lx + swatchW + textPad, PAD.t - 37);
                 lx += swatchW + textPad + w1 + groupGap;
-                ctx.beginPath(); ctx.moveTo(lx, PAD.t - 15); ctx.lineTo(lx + swatchW, PAD.t - 15);
+                ctx.beginPath(); ctx.moveTo(lx, PAD.t - 40); ctx.lineTo(lx + swatchW, PAD.t - 40);
                 ctx.strokeStyle = '#7DD3FC';
                 ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
                 ctx.fillStyle = '#7DD3FC';
-                ctx.fillText(t2, lx + swatchW + textPad, PAD.t - 12);
+                ctx.fillText(t2, lx + swatchW + textPad, PAD.t - 37);
             }
         }
 
