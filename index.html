@@ -5970,7 +5970,7 @@
             const W   = canvas.parentElement.offsetWidth - 32;
             const ctx = canvas.getContext('2d');
 
-            const PAD = { t:122, r:16, b:50, l:16 };
+            const PAD = { t:161, r:16, b:100, l:16 };
             const cw  = W - PAD.l - PAD.r;
             const n   = rows.length;
 
@@ -6047,7 +6047,7 @@
                 ctx.font = thinFont; const w1 = ctx.measureText(seg1).width;
                 ctx.font = boldFont; const w2 = ctx.measureText(seg2).width;
                 ctx.font = thinFont; const w3 = ctx.measureText(seg3).width;
-                const y = PAD.t - 94;
+                const y = PAD.t - 114;
                 let x = PAD.l + cw / 2 - (w1 + w2 + w3) / 2;
                 ctx.textAlign = 'left'; ctx.fillStyle = '#ffffff';
                 ctx.font = thinFont; ctx.fillText(seg1, x, y); x += w1;
@@ -6545,7 +6545,7 @@
             // Título + leyenda de temperatura (línea continua = máx, discontinua = mín)
             ctx.textAlign = 'center'; ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.fillText('TEMPERATURA / PROB. LLUVIA (%) · ACUMULADO (mm)', PAD.l + cw / 2, PAD.t - 56);
+            ctx.fillText('TEMPERATURA / PROB. LLUVIA (%) · ACUMULADO (mm)', PAD.l + cw / 2, PAD.t - 65);
 
             ctx.font = 'bold 9px Inter,sans-serif';
             {
@@ -6556,16 +6556,16 @@
                 let lx = PAD.l + cw / 2 - totalW / 2;
 
                 ctx.textAlign = 'left';
-                ctx.beginPath(); ctx.moveTo(lx, PAD.t - 40); ctx.lineTo(lx + swatchW, PAD.t - 40);
+                ctx.beginPath(); ctx.moveTo(lx, PAD.t - 49); ctx.lineTo(lx + swatchW, PAD.t - 49);
                 ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 1.1; ctx.stroke();
                 ctx.fillStyle = '#FF8A65';
-                ctx.fillText(t1, lx + swatchW + textPad, PAD.t - 37);
+                ctx.fillText(t1, lx + swatchW + textPad, PAD.t - 46);
                 lx += swatchW + textPad + w1 + groupGap;
-                ctx.beginPath(); ctx.moveTo(lx, PAD.t - 40); ctx.lineTo(lx + swatchW, PAD.t - 40);
+                ctx.beginPath(); ctx.moveTo(lx, PAD.t - 49); ctx.lineTo(lx + swatchW, PAD.t - 49);
                 ctx.strokeStyle = '#7DD3FC';
                 ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
                 ctx.fillStyle = '#7DD3FC';
-                ctx.fillText(t2, lx + swatchW + textPad, PAD.t - 37);
+                ctx.fillText(t2, lx + swatchW + textPad, PAD.t - 46);
             }
         }
 
