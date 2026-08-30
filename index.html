@@ -6642,13 +6642,24 @@
                 const lvMax = Math.ceil(Math.max(...allLv)) + 8;
                 const yLv   = v => levelsTop + levelsH - ((v - lvMin) / (lvMax - lvMin)) * levelsH;
 
-                // Líneas guía cada 10°C (40, 30, 20, 10, 0, -10, -20, -30, -40)
+                // Líneas guía cada 10°C (40, 30, 20, 10, 0, -10, -20, -30, -40), con su
+                // valor a la izquierda. La de 0°C se resalta más (línea más marcada).
                 const guideTemps = [40, 30, 20, 10, 0, -10, -20, -30, -40];
                 guideTemps.forEach(v => {
                     if (v < lvMin || v > lvMax) return;
                     const y = yLv(v);
+                    const isZero = v === 0;
                     ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
-                    ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1; ctx.stroke();
+                    if (isZero) {
+                        ctx.strokeStyle = 'rgba(255,255,255,0.42)'; ctx.lineWidth = 1.4;
+                    } else {
+                        ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1;
+                    }
+                    ctx.stroke();
+                    ctx.textAlign = 'left';
+                    ctx.font = isZero ? 'bold 7.5px Inter,sans-serif' : '7px Inter,sans-serif';
+                    ctx.fillStyle = isZero ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.45)';
+                    ctx.fillText(v + '°', PAD.l, y - 3);
                 });
 
                 // Líneas verticales discontinuas y sutiles marcando las 00h (separación entre días)
@@ -6868,15 +6879,23 @@
             const lvMax = Math.ceil(Math.max(...allLv)) + 8;
             const yLv   = v => levelsTop + levelsH - ((v - lvMin) / (lvMax - lvMin)) * levelsH;
 
-            // Líneas guía cada 10°C, con su valor a la izquierda
+            // Líneas guía cada 10°C, con su valor a la izquierda.
+            // La de 0°C se resalta más (línea más marcada) para verla mejor.
             const guideTemps = [40, 30, 20, 10, 0, -10, -20, -30, -40];
             guideTemps.forEach(v => {
                 if (v < lvMin || v > lvMax) return;
                 const y = yLv(v);
+                const isZero = v === 0;
                 ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
-                ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1; ctx.stroke();
-                ctx.textAlign = 'left'; ctx.font = '7px Inter,sans-serif';
-                ctx.fillStyle = 'rgba(255,255,255,0.45)';
+                if (isZero) {
+                    ctx.strokeStyle = 'rgba(255,255,255,0.42)'; ctx.lineWidth = 1.4;
+                } else {
+                    ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1;
+                }
+                ctx.stroke();
+                ctx.textAlign = 'left';
+                ctx.font = isZero ? 'bold 7.5px Inter,sans-serif' : '7px Inter,sans-serif';
+                ctx.fillStyle = isZero ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.45)';
                 ctx.fillText(v + '°', PAD.l, y - 3);
             });
 
@@ -6924,8 +6943,7 @@
             markExtremes(t850v, '#FF8A65');
             markExtremes(t500v, '#7DD3FC');
 
-            // Fila de días (abreviatura), centrada entre la franja de 00h y la de 12h de cada día
-            const DIAS_ES15 = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+            // Fila de días: fecha DD/MM, salvo hoy que se mantiene como "HOY"
             const todayStr15 = new Date().toISOString().slice(0,10);
             const seenDays = [];
             levels.forEach(l => { if (!seenDays.includes(l.dateStr)) seenDays.push(l.dateStr); });
@@ -6935,7 +6953,9 @@
                 const j12 = levels.findIndex(l => l.dateStr === ds && l.hour === 12);
                 const x = (j00 !== -1 && j12 !== -1) ? (xPos(j00) + xPos(j12)) / 2 : xPos(j00 !== -1 ? j00 : j12);
                 const dt = new Date(ds + 'T12:00:00');
-                const lbl = ds === todayStr15 ? 'HOY' : DIAS_ES15[dt.getDay()];
+                const dd = String(dt.getDate()).padStart(2,'0');
+                const mm = String(dt.getMonth() + 1).padStart(2,'0');
+                const lbl = ds === todayStr15 ? 'HOY' : (dd + '/' + mm);
                 ctx.fillText(lbl, x, levelsBottom + 16);
             });
 
