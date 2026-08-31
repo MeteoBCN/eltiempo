@@ -1734,10 +1734,17 @@
                                     }
                                 ];
 
+                                const tib = window.tibidaboLiveData || null;
                                 const annotationLevels = [
                                     { id: 'lcl', icon: '', label: 'BASE NUBES', height: lclMetros, type: 'lcl' },
                                     { id: 'frz', icon: '', label: 'ISOCERO (0°C)', height: freezingLevel, type: 'frz' },
-                                    { id: 'tibidabo', icon: '', label: 'TIBIDABO', height: 512, type: 'tibidabo' }
+                                    {
+                                        id: 'tibidabo', icon: '', label: 'TIBIDABO', height: 512, type: 'tibidabo',
+                                        temp: tib ? tib.temp : undefined,
+                                        hum: tib ? tib.hum : undefined,
+                                        wind: tib ? tib.wind : undefined,
+                                        windDir: tib ? tib.windDir : undefined
+                                    }
                                 ];
 
                                 const graph = containerEl.querySelector('#colairGraph') || containerEl;
@@ -1766,9 +1773,19 @@
                                     row.className = 'colair-row annotation-' + lvl.type;
                                     row.style.bottom = pct(lvl.height) + '%';
 
+                                    const hasTemp = lvl.temp !== undefined && lvl.temp !== null && !isNaN(lvl.temp);
+                                    const hasHum  = lvl.hum  !== undefined && lvl.hum  !== null && !isNaN(lvl.hum);
+                                    const hasWind = lvl.wind !== undefined && lvl.wind !== null && !isNaN(lvl.wind);
+
                                     row.innerHTML = `
                                         <div class="connector"></div>
                                         <div class="colair-label">${lvl.icon ? lvl.icon + ' ' : ''}${lvl.label}<span class="h">${Math.round(lvl.height)}m</span></div>
+                                        ${hasTemp ? `
+                                        <div class="colair-data">
+                                            <span class="temp-value">${Math.round(lvl.temp)}°</span>
+                                            ${hasHum ? `<span>${Math.round(lvl.hum)}%</span>` : ''}
+                                            ${hasWind ? `<span><span class="arrow-wind" style="transform:rotate(${lvl.windDir || 0}deg)">⬆</span>${Math.round(lvl.wind)}km/h</span>` : ''}
+                                        </div>` : ''}
                                     `;
                                     graph.appendChild(row);
                                 });
@@ -1790,6 +1807,52 @@
                             };
 
                             renderColumnaAire(document.getElementById('colairWidget'), colairDemoData);
+
+                            /* ════════════════════════════════════════════════════════════
+                               DATO EN VIVO DEL TIBIDABO (512m) — misma fuente/worker que
+                               usa mapa.html (proxy de Meteoclimatic). Estación:
+                               "Barcelona - Tibidabo" (ESCAT0800000008023C).
+                               ════════════════════════════════════════════════════════════ */
+                            const TIBIDABO_ID = 'ESCAT0800000008023C';
+                            const METEO_WORKER = 'https://proxy-meteoclimatic.lojasergi.workers.dev';
+
+                            async function fetchTibidaboLive() {
+                                try {
+                                    const r = await fetch(METEO_WORKER, { signal: AbortSignal.timeout(15000) });
+                                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                                    const xml = await r.text();
+                                    if (!xml || xml.includes('QUERY ERROR') || xml.length < 200) throw new Error('Respuesta inválida');
+
+                                    const items = xml.split('<item>');
+                                    items.shift();
+                                    for (const item of items) {
+                                        if (!item.includes(TIBIDABO_ID)) continue;
+                                        const dataM = item.match(/\[\[<(ESCAT[^;>]+;[^>]+)>\]\]/);
+                                        if (!dataM) continue;
+                                        const raw = dataM[1].trim();
+                                        const grupos = [];
+                                        const reG = /\(([^)]+)\)/g;
+                                        let g;
+                                        while ((g = reG.exec(raw)) !== null) {
+                                            grupos.push(g[1].split(';').map(s => parseFloat(String(s).replace(',', '.'))));
+                                        }
+                                        if (grupos.length < 4) continue;
+                                        window.tibidaboLiveData = {
+                                            temp: grupos[0]?.[0] ?? null,
+                                            hum:  grupos[1]?.[0] ?? null,
+                                            wind: grupos[3]?.[0] ?? null,
+                                            windDir: grupos[3]?.[2] ?? null
+                                        };
+                                        break;
+                                    }
+                                } catch (e) {
+                                    console.warn('No se pudo obtener el dato en vivo del Tibidabo:', e.message);
+                                }
+                                renderColumnaAire(document.getElementById('colairWidget'), colairDemoData);
+                            }
+
+                            fetchTibidaboLive();
+                            setInterval(fetchTibidaboLive, 10 * 60 * 1000);
                             </script>
 
                             <!-- Webcam Vila Olímpica: misma característica de tarjeta que el radar -->
