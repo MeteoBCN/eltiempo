@@ -1044,7 +1044,7 @@
            con texto más grande + una 2ª línea con Punto de Rocío y Presión. */
         .colair-row.row-surface .colair-data {
             top:0;
-            transform:translateY(calc(100% + 6px)); /* debajo de la línea, en vez de encima */
+            transform:translateY(6px); /* debajo de la línea, pegado (no +100% de su propia altura) */
             width:60%;
             flex-direction:column;
             align-items:flex-end;
@@ -1847,12 +1847,12 @@
                                         const hasPres = lvl.pressure !== undefined && lvl.pressure !== null && !isNaN(lvl.pressure);
                                         row.innerHTML = `
                                             <div class="connector"></div>
-                                            <div class="colair-label">${lvl.label}<span class="h">${Math.round(lvl.height)}m</span></div>
+                                            <div class="colair-label"><span class="h" style="margin-top:0;margin-bottom:1px;">${Math.round(lvl.height)}m</span>${lvl.label}</div>
                                             <div class="colair-data">
                                                 <div class="colair-data-line">
                                                     <span class="temp-value">${Math.round(lvl.temp)}°</span>
                                                     <span>${Math.round(lvl.hum)}%</span>
-                                                    <span><span class="arrow-wind" style="transform:rotate(${lvl.windDir + 180}deg)">⬆</span>${Math.round(lvl.wind)}km/h</span>
+                                                    <span><span class="arrow-wind" style="transform:rotate(${lvl.windDir}deg)">⬆</span>${Math.round(lvl.wind)}km/h</span>
                                                 </div>
                                                 ${(hasDew || hasPres) ? `
                                                 <div class="colair-data-line">
