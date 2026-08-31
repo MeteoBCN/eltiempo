@@ -919,7 +919,7 @@
         .colair-body {
             position:relative;
             height:440px;
-            padding:38px 14px 48px;
+            padding:38px 14px 74px;
             /* Textura base de nubes: ruido sutil (feTurbulence) en tonos
                grises muy claros sobre transparente. Aporta la superficie
                "granulada" sobre la que luego actúa el blur de condensación. */
@@ -1038,6 +1038,35 @@
             display:inline-block;
             transform-origin:50% 50%;
             font-size:12.5px;
+        }
+        /* Fila SUPERFICIE: los datos van DEBAJO de su línea (al contrario que
+           el resto de niveles, que se quedan tal cual arriba de la suya), y
+           con texto más grande + una 2ª línea con Punto de Rocío y Presión. */
+        .colair-row.row-surface .colair-data {
+            top:0;
+            transform:translateY(calc(100% + 6px)); /* debajo de la línea, en vez de encima */
+            width:60%;
+            flex-direction:column;
+            align-items:flex-end;
+            gap:6px;
+        }
+        .colair-data-line {
+            display:flex;
+            align-items:center;
+            justify-content:flex-end;
+            gap:9px;
+            white-space:nowrap;
+        }
+        .colair-row.row-surface .colair-data,
+        .colair-row.row-surface .colair-data .temp-value,
+        .colair-row.row-surface .colair-data .arrow-wind {
+            font-size:16px; /* más grande que el resto de niveles (12.5px), incl. flecha */
+        }
+        .colair-row.row-surface .colair-data .temp-value { font-weight:800; }
+        .colair-row.row-surface .colair-data .dewpoint-value,
+        .colair-row.row-surface .colair-data .pressure-value {
+            font-weight:600;
+            color:rgba(255,255,255,0.82);
         }
         .colair-footer {
             padding:8px 14px 14px;
@@ -1726,7 +1755,7 @@
                                ════════════════════════════════════════════════════════════ */
                             function renderColumnaAire(containerEl, data) {
                                 const {
-                                    tempSurface, dewPointSurface, humSurface, windSpeedSurface, windDirSurface,
+                                    tempSurface, dewPointSurface, humSurface, windSpeedSurface, windDirSurface, pressureSurface,
                                     freezingLevel,
                                     temp850, rh850, windSpeed850, windDir850, geoHeight850,
                                     temp700, rh700, windSpeed700, windDir700, geoHeight700,
@@ -1760,7 +1789,8 @@
                                 const dataLevels = [
                                     {
                                         id: 'surface', icon: '', label: 'SUPERFICIE', height: 0,
-                                        temp: tempSurface, hum: humSurface, wind: windSpeedSurface, windDir: windDirSurface
+                                        temp: tempSurface, hum: humSurface, wind: windSpeedSurface, windDir: windDirSurface,
+                                        dewPoint: dewPointSurface, pressure: pressureSurface
                                     },
                                     {
                                         id: '850', icon: '', label: '850 hPa', height: geoHeight850,
@@ -1809,8 +1839,31 @@
 
                                 dataLevels.forEach(lvl => {
                                     const row = document.createElement('div');
-                                    row.className = 'colair-row';
+                                    row.className = lvl.id === 'surface' ? 'colair-row row-surface' : 'colair-row';
                                     row.style.bottom = pct(lvl.height) + '%';
+
+                                    if (lvl.id === 'surface') {
+                                        const hasDew  = lvl.dewPoint !== undefined && lvl.dewPoint !== null && !isNaN(lvl.dewPoint);
+                                        const hasPres = lvl.pressure !== undefined && lvl.pressure !== null && !isNaN(lvl.pressure);
+                                        row.innerHTML = `
+                                            <div class="connector"></div>
+                                            <div class="colair-label">${lvl.label}<span class="h">${Math.round(lvl.height)}m</span></div>
+                                            <div class="colair-data">
+                                                <div class="colair-data-line">
+                                                    <span class="temp-value">${Math.round(lvl.temp)}°</span>
+                                                    <span>${Math.round(lvl.hum)}%</span>
+                                                    <span><span class="arrow-wind" style="transform:rotate(${lvl.windDir + 180}deg)">⬆</span>${Math.round(lvl.wind)}km/h</span>
+                                                </div>
+                                                ${(hasDew || hasPres) ? `
+                                                <div class="colair-data-line">
+                                                    ${hasDew ? `<span class="dewpoint-value">Td ${Math.round(lvl.dewPoint)}°</span>` : ''}
+                                                    ${hasPres ? `<span class="pressure-value">${Math.round(lvl.pressure)} hPa</span>` : ''}
+                                                </div>` : ''}
+                                            </div>
+                                        `;
+                                        graph.appendChild(row);
+                                        return;
+                                    }
 
                                     row.innerHTML = `
                                         <div class="connector"></div>
@@ -1853,7 +1906,7 @@
                                ════════════════════════════════════════════════════════════ */
                             const colairDemoData = {
                                 tempSurface: 27, dewPointSurface: 19, humSurface: 62,
-                                windSpeedSurface: 14, windDirSurface: 140,
+                                windSpeedSurface: 14, windDirSurface: 140, pressureSurface: 1015,
 
                                 freezingLevel: 4650,
 
@@ -1879,7 +1932,7 @@
 
                             const COLAIR_HOURLY_VARS = [
                                 'temperature_2m', 'relative_humidity_2m', 'dew_point_2m',
-                                'wind_speed_10m', 'wind_direction_10m',
+                                'wind_speed_10m', 'wind_direction_10m', 'pressure_msl',
                                 'freezing_level_height',
                                 'temperature_850hPa', 'relative_humidity_850hPa',
                                 'wind_speed_850hPa', 'wind_direction_850hPa', 'geopotential_height_850hPa',
@@ -1917,6 +1970,7 @@
                                         humSurface:       h.relative_humidity_2m[idx],
                                         windSpeedSurface: h.wind_speed_10m[idx],
                                         windDirSurface:   h.wind_direction_10m[idx],
+                                        pressureSurface:  h.pressure_msl[idx],
 
                                         // Isocero (0°C) — mismo campo que el Meteopanel superior
                                         freezingLevel: h.freezing_level_height[idx],
