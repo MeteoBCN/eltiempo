@@ -882,6 +882,159 @@
             letter-spacing: 0.3px;
         }
         /* ══════════ FIN MENÚ NAVEGACIÓN ══════════ */
+
+        /* ══════════════════════════════════════════════════════════
+           COLUMNA DE AIRE (NOWCASTING) — mismo look que el resto
+           del dashboard: fondo negro/gris translúcido, blur.
+           ══════════════════════════════════════════════════════════ */
+        .colair-widget {
+            width:100%;
+            background:rgba(24,26,30,0.62);
+            backdrop-filter:blur(14px);
+            -webkit-backdrop-filter:blur(14px);
+            border:1px solid rgba(255,255,255,0.06);
+            border-radius:8px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.35);
+            overflow:hidden;
+        }
+        .colair-header {
+            padding:14px 14px 10px;
+            border-bottom:1px solid rgba(255,255,255,0.06);
+        }
+        .colair-header h3 {
+            font-size:12px;
+            font-weight:800;
+            letter-spacing:1.6px;
+            color:#ffffff;
+            text-transform:uppercase;
+            font-family:'Inter', sans-serif;
+        }
+        .colair-header .colair-sub {
+            margin-top:3px;
+            font-size:9.5px;
+            color:rgba(255,255,255,0.4);
+            font-weight:500;
+            letter-spacing:0.3px;
+        }
+        .colair-body {
+            position:relative;
+            height:440px;
+            padding:18px 14px 16px;
+        }
+        .colair-graph {
+            position:relative;
+            width:100%;
+            height:100%;
+        }
+        .colair-center-band {
+            position:absolute;
+            top:0; bottom:0;
+            left:36%;
+            width:28%;
+            border-radius:10px;
+            background:linear-gradient(to top,
+                #0a2038 0%,
+                #071627 25%,
+                #050d18 50%,
+                #02060c 75%,
+                #000000 100%);
+            border:1px solid rgba(255,255,255,0.05);
+            overflow:hidden;
+        }
+        .colair-center-band::before {
+            content:'';
+            position:absolute; inset:0;
+            background:
+                radial-gradient(ellipse at 50% 100%, rgba(120,170,220,0.10), transparent 55%),
+                radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.03), transparent 60%);
+        }
+        .colair-row {
+            position:absolute;
+            left:0; right:0;
+            height:0;
+            transform:translateY(50%);
+        }
+        .colair-row .connector {
+            position:absolute;
+            left:0; right:0;
+            top:0;
+            height:1px;
+            background:rgba(255,255,255,0.10);
+        }
+        .colair-row.annotation-lcl .connector {
+            background:none;
+            border-top:1.5px dashed #2dd4bf;
+            opacity:0.85;
+        }
+        .colair-row.annotation-frz .connector {
+            background:#4da3ff;
+            height:1.5px;
+            opacity:0.9;
+        }
+        .colair-label {
+            position:absolute;
+            left:0;
+            width:35%;
+            top:0;
+            transform:translateY(-50%);
+            text-align:left;
+            font-size:11px;
+            font-weight:600;
+            color:rgba(255,255,255,0.88);
+            line-height:1.25;
+            white-space:nowrap;
+        }
+        .colair-label .h {
+            display:block;
+            font-size:9.5px;
+            font-weight:500;
+            color:rgba(255,255,255,0.45);
+            margin-top:1px;
+        }
+        .colair-row.annotation-lcl .colair-label { color:#5eead4; }
+        .colair-row.annotation-frz .colair-label { color:#7ec2ff; }
+        .colair-node {
+            position:absolute;
+            left:36%;
+            width:28%;
+            top:0;
+            transform:translate(0,-50%);
+            text-align:center;
+            font-size:11px;
+            color:#ffffff;
+            text-shadow:0 0 6px rgba(255,255,255,0.5);
+            z-index:3;
+        }
+        .colair-data {
+            position:absolute;
+            right:0;
+            width:37%;
+            top:0;
+            transform:translateY(-50%);
+            text-align:right;
+            font-size:11px;
+            font-weight:600;
+            color:rgba(255,255,255,0.92);
+            white-space:nowrap;
+            display:flex;
+            justify-content:flex-end;
+            align-items:center;
+            gap:6px;
+        }
+        .colair-data span { display:inline-flex; align-items:center; gap:2px; }
+        .colair-data .arrow-wind {
+            display:inline-block;
+            transform-origin:50% 50%;
+            font-size:11px;
+        }
+        .colair-footer {
+            padding:8px 14px 14px;
+            font-size:9.5px;
+            color:rgba(255,255,255,0.35);
+            text-align:center;
+            letter-spacing:0.3px;
+        }
+        /* ══════════ FIN COLUMNA DE AIRE ══════════ */
     </style>
 </head>
 <body>
@@ -1527,6 +1680,122 @@
 
                                 </div>
                             </div>
+
+                            <!-- Columna de Aire (Nowcasting): perfil vertical atmosférico -->
+                            <div class="colair-widget" id="colairWidget">
+                                <div class="colair-header">
+                                    <h3>Columna de Aire (Nowcasting)</h3>
+                                    <div class="colair-sub">Perfil vertical atmosférico · próximas horas</div>
+                                </div>
+                                <div class="colair-body">
+                                    <div class="colair-graph" id="colairGraph">
+                                        <div class="colair-center-band"></div>
+                                        <!-- filas inyectadas por JS -->
+                                    </div>
+                                </div>
+                                <div class="colair-footer">☁️ base de nubes · ❄️ isocero · ⏺ niveles de presión</div>
+                            </div>
+                            <script>
+                            /* ════════════════════════════════════════════════════════════
+                               COLUMNA DE AIRE (NOWCASTING)
+                               Componente de perfil vertical atmosférico — estático, sin
+                               interacción táctil, pensado para lectura rápida en móvil.
+                               ════════════════════════════════════════════════════════════ */
+                            function renderColumnaAire(containerEl, data) {
+                                const {
+                                    tempSurface, dewPointSurface, humSurface, windSpeedSurface, windDirSurface,
+                                    freezingLevel,
+                                    temp850, rh850, windSpeed850, windDir850, geoHeight850,
+                                    temp700, rh700, windSpeed700, windDir700, geoHeight700,
+                                    temp500, rh500, windSpeed500, windDir500, geoHeight500
+                                } = data;
+
+                                // ── 1. LCL (base de nubes) — Fórmula de Espy ──────────────────
+                                const lclMetros = Math.round(Math.max(0, (tempSurface - dewPointSurface) * 125));
+
+                                // ── 2. Tope dinámico del eje Y = geopotencial de 500 hPa ──────
+                                const topMax = geoHeight500;
+
+                                // % de altura respecto al tope (0m = base, topMax = techo)
+                                const pct = (h) => Math.min(100, Math.max(0, (h / topMax) * 100));
+
+                                // ── 3. Definición de niveles a dibujar ─────────────────────────
+                                const dataLevels = [
+                                    {
+                                        id: 'surface', icon: '🌍', label: 'SUPERFICIE', height: 0,
+                                        temp: tempSurface, hum: humSurface, wind: windSpeedSurface, windDir: windDirSurface
+                                    },
+                                    {
+                                        id: '850', icon: '⏺', label: '850 hPa', height: geoHeight850,
+                                        temp: temp850, hum: rh850, wind: windSpeed850, windDir: windDir850
+                                    },
+                                    {
+                                        id: '700', icon: '⏺', label: '700 hPa', height: geoHeight700,
+                                        temp: temp700, hum: rh700, wind: windSpeed700, windDir: windDir700
+                                    },
+                                    {
+                                        id: '500', icon: '⏺', label: '500 hPa', height: geoHeight500,
+                                        temp: temp500, hum: rh500, wind: windSpeed500, windDir: windDir500
+                                    }
+                                ];
+
+                                const annotationLevels = [
+                                    { id: 'lcl', icon: '☁️', label: 'BASE NUBES', height: lclMetros, type: 'lcl' },
+                                    { id: 'frz', icon: '❄️', label: 'ISOCERO', height: freezingLevel, type: 'frz' }
+                                ];
+
+                                const graph = containerEl.querySelector('#colairGraph') || containerEl;
+
+                                graph.querySelectorAll('.colair-row').forEach(el => el.remove());
+
+                                dataLevels.forEach(lvl => {
+                                    const row = document.createElement('div');
+                                    row.className = 'colair-row';
+                                    row.style.bottom = pct(lvl.height) + '%';
+
+                                    row.innerHTML = `
+                                        <div class="connector"></div>
+                                        <div class="colair-label">${lvl.icon} ${lvl.label}<span class="h">${Math.round(lvl.height)}m</span></div>
+                                        <div class="colair-node">⏺</div>
+                                        <div class="colair-data">
+                                            <span>🌡️${Math.round(lvl.temp)}°</span>
+                                            <span>💧${Math.round(lvl.hum)}%</span>
+                                            <span><span class="arrow-wind" style="transform:rotate(${lvl.windDir}deg)">⬆</span>${Math.round(lvl.wind)}km/h</span>
+                                        </div>
+                                    `;
+                                    graph.appendChild(row);
+                                });
+
+                                annotationLevels.forEach(lvl => {
+                                    const row = document.createElement('div');
+                                    row.className = 'colair-row annotation-' + lvl.type;
+                                    row.style.bottom = pct(lvl.height) + '%';
+
+                                    row.innerHTML = `
+                                        <div class="connector"></div>
+                                        <div class="colair-label">${lvl.icon} ${lvl.label}<span class="h">${Math.round(lvl.height)}m</span></div>
+                                    `;
+                                    graph.appendChild(row);
+                                });
+                            }
+
+                            /* ════════════════════════════════════════════════════════════
+                               DEMO — datos de ejemplo (sustituir por la respuesta real
+                               de la llamada a Open-Meteo)
+                               ════════════════════════════════════════════════════════════ */
+                            const colairDemoData = {
+                                tempSurface: 27, dewPointSurface: 19, humSurface: 62,
+                                windSpeedSurface: 14, windDirSurface: 140,
+
+                                freezingLevel: 4650,
+
+                                temp850: 15, rh850: 58, windSpeed850: 22, windDir850: 210, geoHeight850: 1480,
+                                temp700: 4,  rh700: 71, windSpeed700: 34, windDir700: 250, geoHeight700: 3050,
+                                temp500: -18, rh500: 45, windSpeed500: 55, windDir500: 275, geoHeight500: 5560
+                            };
+
+                            renderColumnaAire(document.getElementById('colairWidget'), colairDemoData);
+                            </script>
 
                             <!-- Webcam Vila Olímpica: misma característica de tarjeta que el radar -->
                             <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
