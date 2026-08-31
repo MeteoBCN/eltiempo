@@ -1658,7 +1658,6 @@
                                         <!-- filas inyectadas por JS -->
                                     </div>
                                 </div>
-                                <div class="colair-footer">Base de nubes · Isocero (0°C) · Niveles de presión</div>
                             </div>
                             <script>
                             /* ════════════════════════════════════════════════════════════
@@ -1674,6 +1673,20 @@
                                     temp700, rh700, windSpeed700, windDir700, geoHeight700,
                                     temp500, rh500, windSpeed500, windDir500, geoHeight500
                                 } = data;
+
+                                // ── Auditoría de precisión (dev-check) ─────────────────────────
+                                // La fórmula de Espy amplifica x125 cualquier pérdida de precisión
+                                // en (T - Td). Si estos valores llegan como enteros exactos, lo más
+                                // probable es que alguien haya introducido un Math.round() antes de
+                                // esta función (regresión), en vez de pasar los floats crudos de la
+                                // API. No bloquea el render, solo avisa por consola.
+                                if (Number.isInteger(tempSurface) || Number.isInteger(dewPointSurface)) {
+                                    console.warn(
+                                        '[ColumnaAire] ⚠️ tempSurface/dewPointSurface llegan como enteros exactos ' +
+                                        `(T=${tempSurface}°C, Td=${dewPointSurface}°C). La fórmula de Espy amplifica x125 ` +
+                                        'cualquier redondeo previo: revisa que no se estén truncando los decimales antes de calcular la base de nubes.'
+                                    );
+                                }
 
                                 // ── 1. LCL (base de nubes) — Fórmula de Espy ──────────────────
                                 const lclMetros = Math.round(Math.max(0, (tempSurface - dewPointSurface) * 125));
