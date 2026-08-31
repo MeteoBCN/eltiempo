@@ -993,18 +993,6 @@
         }
         .colair-row.annotation-lcl .colair-label { color:#5eead4; }
         .colair-row.annotation-frz .colair-label { color:#7ec2ff; }
-        .colair-node {
-            position:absolute;
-            left:36%;
-            width:28%;
-            top:0;
-            transform:translate(0,-50%);
-            text-align:center;
-            font-size:11px;
-            color:#ffffff;
-            text-shadow:0 0 6px rgba(255,255,255,0.5);
-            z-index:3;
-        }
         .colair-data {
             position:absolute;
             right:0;
@@ -1693,7 +1681,7 @@
                                         <!-- filas inyectadas por JS -->
                                     </div>
                                 </div>
-                                <div class="colair-footer">☁️ base de nubes · ❄️ isocero · ⏺ niveles de presión</div>
+                                <div class="colair-footer">☁️ base de nubes</div>
                             </div>
                             <script>
                             /* ════════════════════════════════════════════════════════════
@@ -1722,26 +1710,26 @@
                                 // ── 3. Definición de niveles a dibujar ─────────────────────────
                                 const dataLevels = [
                                     {
-                                        id: 'surface', icon: '🌍', label: 'SUPERFICIE', height: 0,
+                                        id: 'surface', icon: '', label: 'SUPERFICIE', height: 0,
                                         temp: tempSurface, hum: humSurface, wind: windSpeedSurface, windDir: windDirSurface
                                     },
                                     {
-                                        id: '850', icon: '⏺', label: '850 hPa', height: geoHeight850,
+                                        id: '850', icon: '', label: '850 hPa', height: geoHeight850,
                                         temp: temp850, hum: rh850, wind: windSpeed850, windDir: windDir850
                                     },
                                     {
-                                        id: '700', icon: '⏺', label: '700 hPa', height: geoHeight700,
+                                        id: '700', icon: '', label: '700 hPa', height: geoHeight700,
                                         temp: temp700, hum: rh700, wind: windSpeed700, windDir: windDir700
                                     },
                                     {
-                                        id: '500', icon: '⏺', label: '500 hPa', height: geoHeight500,
+                                        id: '500', icon: '', label: '500 hPa', height: geoHeight500,
                                         temp: temp500, hum: rh500, wind: windSpeed500, windDir: windDir500
                                     }
                                 ];
 
                                 const annotationLevels = [
                                     { id: 'lcl', icon: '☁️', label: 'BASE NUBES', height: lclMetros, type: 'lcl' },
-                                    { id: 'frz', icon: '❄️', label: 'ISOCERO', height: freezingLevel, type: 'frz' }
+                                    { id: 'frz', icon: '', label: 'ISOCERO', height: freezingLevel, type: 'frz' }
                                 ];
 
                                 const graph = containerEl.querySelector('#colairGraph') || containerEl;
@@ -1755,8 +1743,7 @@
 
                                     row.innerHTML = `
                                         <div class="connector"></div>
-                                        <div class="colair-label">${lvl.icon} ${lvl.label}<span class="h">${Math.round(lvl.height)}m</span></div>
-                                        <div class="colair-node">⏺</div>
+                                        <div class="colair-label">${lvl.label}<span class="h">${Math.round(lvl.height)}m</span></div>
                                         <div class="colair-data">
                                             <span>🌡️${Math.round(lvl.temp)}°</span>
                                             <span>💧${Math.round(lvl.hum)}%</span>
@@ -1773,7 +1760,7 @@
 
                                     row.innerHTML = `
                                         <div class="connector"></div>
-                                        <div class="colair-label">${lvl.icon} ${lvl.label}<span class="h">${Math.round(lvl.height)}m</span></div>
+                                        <div class="colair-label">${lvl.icon ? lvl.icon + ' ' : ''}${lvl.label}<span class="h">${Math.round(lvl.height)}m</span></div>
                                     `;
                                     graph.appendChild(row);
                                 });
