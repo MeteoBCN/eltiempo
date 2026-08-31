@@ -1777,8 +1777,8 @@
                             }
 
                             /* ════════════════════════════════════════════════════════════
-                               DEMO — datos de ejemplo (sustituir por la respuesta real
-                               de la llamada a Open-Meteo)
+                               DEMO — datos de ejemplo, se usan como pintado inicial y como
+                               fallback si la llamada a Open-Meteo falla.
                                ════════════════════════════════════════════════════════════ */
                             const colairDemoData = {
                                 tempSurface: 27, dewPointSurface: 19, humSurface: 62,
@@ -1791,7 +1791,96 @@
                                 temp500: -18, rh500: 45, windSpeed500: 55, windDir500: 275, geoHeight500: 5560
                             };
 
-                            renderColumnaAire(document.getElementById('colairWidget'), colairDemoData);
+                            // Estado actual del widget: arranca con demo, se sustituye por
+                            // datos reales en cuanto responde Open-Meteo.
+                            let colairCurrentData = colairDemoData;
+
+                            function colairRerender() {
+                                renderColumnaAire(document.getElementById('colairWidget'), colairCurrentData);
+                            }
+
+                            colairRerender();
+
+                            /* ════════════════════════════════════════════════════════════
+                               COLUMNA DE AIRE — datos reales Open-Meteo (niveles de presión)
+                               ════════════════════════════════════════════════════════════ */
+                            const COLAIR_LAT = 41.3851, COLAIR_LON = 2.1734;
+
+                            const COLAIR_HOURLY_VARS = [
+                                'temperature_2m', 'relative_humidity_2m', 'dew_point_2m',
+                                'wind_speed_10m', 'wind_direction_10m',
+                                'freezing_level_height',
+                                'temperature_850hPa', 'relative_humidity_850hPa',
+                                'wind_speed_850hPa', 'wind_direction_850hPa', 'geopotential_height_850hPa',
+                                'temperature_700hPa', 'relative_humidity_700hPa',
+                                'wind_speed_700hPa', 'wind_direction_700hPa', 'geopotential_height_700hPa',
+                                'temperature_500hPa', 'relative_humidity_500hPa',
+                                'wind_speed_500hPa', 'wind_direction_500hPa', 'geopotential_height_500hPa'
+                            ].join(',');
+
+                            async function fetchColumnaAireData() {
+                                const url = `https://api.open-meteo.com/v1/forecast` +
+                                    `?latitude=${COLAIR_LAT}&longitude=${COLAIR_LON}` +
+                                    `&hourly=${COLAIR_HOURLY_VARS}` +
+                                    `&timezone=Europe/Madrid&forecast_days=2`;
+
+                                try {
+                                    const resp = await fetch(url, { signal: AbortSignal.timeout(15000) });
+                                    if (!resp.ok) throw new Error('Open-Meteo HTTP ' + resp.status);
+                                    const json = await resp.json();
+                                    const h = json.hourly;
+                                    if (!h || !h.time) throw new Error('Respuesta sin datos horarios');
+
+                                    // Índice de la hora actual (la más cercana a "ahora")
+                                    const now = new Date();
+                                    let idx = 0, bestDiff = Infinity;
+                                    h.time.forEach((t, i) => {
+                                        const diff = Math.abs(new Date(t).getTime() - now.getTime());
+                                        if (diff < bestDiff) { bestDiff = diff; idx = i; }
+                                    });
+
+                                    colairCurrentData = {
+                                        // Superficie (0m)
+                                        tempSurface:      h.temperature_2m[idx],
+                                        dewPointSurface:  h.dew_point_2m[idx],
+                                        humSurface:       h.relative_humidity_2m[idx],
+                                        windSpeedSurface: h.wind_speed_10m[idx],
+                                        windDirSurface:   h.wind_direction_10m[idx],
+
+                                        // Isocero (0°C) — mismo campo que el Meteopanel superior
+                                        freezingLevel: h.freezing_level_height[idx],
+
+                                        // 850 hPa
+                                        temp850:      h.temperature_850hPa[idx],
+                                        rh850:        h.relative_humidity_850hPa[idx],
+                                        windSpeed850: h.wind_speed_850hPa[idx],
+                                        windDir850:   h.wind_direction_850hPa[idx],
+                                        geoHeight850: h.geopotential_height_850hPa[idx],
+
+                                        // 700 hPa
+                                        temp700:      h.temperature_700hPa[idx],
+                                        rh700:        h.relative_humidity_700hPa[idx],
+                                        windSpeed700: h.wind_speed_700hPa[idx],
+                                        windDir700:   h.wind_direction_700hPa[idx],
+                                        geoHeight700: h.geopotential_height_700hPa[idx],
+
+                                        // 500 hPa (techo dinámico del gráfico)
+                                        temp500:      h.temperature_500hPa[idx],
+                                        rh500:        h.relative_humidity_500hPa[idx],
+                                        windSpeed500: h.wind_speed_500hPa[idx],
+                                        windDir500:   h.wind_direction_500hPa[idx],
+                                        geoHeight500: h.geopotential_height_500hPa[idx]
+                                    };
+                                } catch (e) {
+                                    console.warn('[ColumnaAire] Error al obtener datos de Open-Meteo:', e.message);
+                                    // Si aún no había datos reales, se mantiene el fallback demo
+                                    if (colairCurrentData === colairDemoData) colairCurrentData = colairDemoData;
+                                }
+                                colairRerender();
+                            }
+
+                            fetchColumnaAireData();
+                            setInterval(fetchColumnaAireData, 15 * 60 * 1000);
 
                             /* ════════════════════════════════════════════════════════════
                                DATO EN VIVO DEL TIBIDABO (512m) — misma fuente/worker que
@@ -1833,7 +1922,7 @@
                                 } catch (e) {
                                     console.warn('No se pudo obtener el dato en vivo del Tibidabo:', e.message);
                                 }
-                                renderColumnaAire(document.getElementById('colairWidget'), colairDemoData);
+                                colairRerender();
                             }
 
                             fetchTibidaboLive();
