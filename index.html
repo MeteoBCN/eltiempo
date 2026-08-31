@@ -945,8 +945,8 @@
             opacity:0.85;
         }
         .colair-row.annotation-frz .connector {
-            background:#4da3ff;
-            height:1.5px;
+            background:none;
+            border-top:1.5px dashed #4da3ff;
             opacity:0.9;
         }
         .colair-row.annotation-tibidabo .connector {
@@ -976,7 +976,7 @@
         }
         .colair-row.annotation-lcl .colair-label { color:#5eead4; }
         .colair-row.annotation-frz .colair-label { color:#7ec2ff; }
-        .colair-row.annotation-tibidabo .colair-label { color:rgba(255,255,255,0.7); }
+        .colair-row.annotation-tibidabo .colair-label { color:rgba(255,255,255,0.88); }
         /* Isocero y Base Nubes: etiqueta centrada sobre la banda del gráfico
            en vez de pegada al margen izquierdo (Tibidabo se queda a la izq.) */
         .colair-row.annotation-lcl .colair-label,
@@ -993,7 +993,7 @@
             transform:translateY(calc(-100% - 1px));
             text-align:right;
             font-size:12.5px;
-            font-weight:600;
+            font-weight:400;
             color:rgba(255,255,255,0.92);
             white-space:nowrap;
             display:flex;
@@ -1001,8 +1001,8 @@
             align-items:center;
             gap:6px;
         }
-        .colair-data span { display:inline-flex; align-items:center; gap:2px; }
-        .colair-data .temp-value { font-size:14.5px; font-weight:700; }
+        .colair-data span { display:inline-flex; align-items:center; gap:5px; }
+        .colair-data .temp-value { font-size:12.5px; font-weight:700; }
         .colair-data .arrow-wind {
             display:inline-block;
             transform-origin:50% 50%;
@@ -1745,7 +1745,7 @@
                                         <div class="colair-data">
                                             <span class="temp-value">${Math.round(lvl.temp)}°</span>
                                             <span>${Math.round(lvl.hum)}%</span>
-                                            <span><span class="arrow-wind" style="transform:rotate(${lvl.windDir}deg)">⬆</span>${Math.round(lvl.wind)}km/h</span>
+                                            <span><span class="arrow-wind" style="transform:rotate(${lvl.windDir + 180}deg)">⬆</span>${Math.round(lvl.wind)}km/h</span>
                                         </div>
                                     `;
                                     graph.appendChild(row);
@@ -1767,7 +1767,7 @@
                                         <div class="colair-data">
                                             <span class="temp-value">${Math.round(lvl.temp)}°</span>
                                             ${hasHum ? `<span>${Math.round(lvl.hum)}%</span>` : ''}
-                                            ${hasWind ? `<span><span class="arrow-wind" style="transform:rotate(${lvl.windDir || 0}deg)">⬆</span>${Math.round(lvl.wind)}km/h</span>` : ''}
+                                            ${hasWind ? `<span><span class="arrow-wind" style="transform:rotate(${(lvl.windDir || 0) + 180}deg)">⬆</span>${Math.round(lvl.wind)}km/h</span>` : ''}
                                         </div>` : ''}
                                     `;
                                     graph.appendChild(row);
