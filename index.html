@@ -1047,6 +1047,32 @@
             letter-spacing:0.3px;
         }
         /* ══════════ FIN COLUMNA DE AIRE ══════════ */
+
+        /* ══════════════════════════════════════════════════════════
+           METEOPANEL (#ics-grid) — masonry solo en escritorio.
+           Por debajo de 513px, auto-fit ya colapsa el grid a 1 sola
+           columna (móvil, intacto). A partir de 513px, auto-fit pasa
+           a 2 columnas y, al haber tarjetas de alturas muy distintas
+           (Radar corto vs. Columna de Aire muy alta), Grid estira la
+           más corta dejando un hueco enorme. Con column-count en vez
+           de grid, el navegador reparte las 4 tarjetas equilibrando
+           la altura total de cada columna, sin huecos.
+           ══════════════════════════════════════════════════════════ */
+        @media (min-width: 513px) {
+            #ics-grid {
+                display:block !important;
+                column-count:2;
+                column-gap:12px;
+            }
+            #ics-grid > div {
+                break-inside:avoid;
+                -webkit-column-break-inside:avoid;
+                page-break-inside:avoid;
+                margin-bottom:12px;
+                width:100%;
+            }
+        }
+        /* ══════════ FIN METEOPANEL MASONRY ══════════ */
     </style>
 </head>
 <body>
@@ -1615,9 +1641,11 @@
                             </div>
                         </div>
 
-                        <!-- Columna 2: Punto de Rocío + Temp. Actual/Humedad + Temperatura del Mar, y debajo la Webcam -->
-                        <div style="display:flex;flex-direction:column;gap:12px;">
-                            <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
+                        <!-- Tarjeta: Punto de Rocío + Temp. Actual/Humedad + Inestabilidad
+                             (antes agrupada junto a Columna de Aire y Webcam en un wrapper
+                             flex; ahora es un hijo directo de #ics-grid para que el masonry
+                             de escritorio pueda equilibrar alturas entre las 4 tarjetas) -->
+                        <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
                                 <div style="flex:1;display:flex;align-items:stretch;justify-content:center;gap:14px;">
                                     <!-- Columna 1: Punto Rocío / Nivel de Congelación / Gradiente 850-500hPa -->
                                     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:10px 0;gap:16px;">
@@ -1986,7 +2014,6 @@
                                     <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Fuente: Windy</span>
                                 </div>
                             </div>
-                        </div>
 
                     </div>
                 </div>
@@ -6308,7 +6335,17 @@
                     const liTxtEl = document.getElementById('ics-li-value');
                     if (liTxtEl) liTxtEl.textContent = (liNow !== null && liNow !== undefined) ? `${liNow > 0 ? '+' : ''}${liNow.toFixed(1)}°C` : '—';
                     const cinTxtEl = document.getElementById('ics-cin-value');
-                    if (cinTxtEl) cinTxtEl.textContent = (cinNow !== null && cinNow !== undefined) ? `${Math.round(Math.abs(cinNow))} J/kg` : '—';
+                    if (cinTxtEl) {
+                        if (cinNow !== null && cinNow !== undefined) {
+                            const cinAbs = Math.round(Math.abs(cinNow));
+                            // El CIN es siempre energía negativa (o nula); se normaliza con
+                            // Math.abs() por si el proxy la envía ya en magnitud, y se antepone
+                            // el signo "-" al mostrar, igual que en el meteograma grande.
+                            cinTxtEl.textContent = cinAbs === 0 ? '0 J/kg' : `-${cinAbs} J/kg`;
+                        } else {
+                            cinTxtEl.textContent = '—';
+                        }
+                    }
                 }
             } catch (e) {
                 console.error('[Indicadores críticos] Error calculando punto de rocío:', e);
