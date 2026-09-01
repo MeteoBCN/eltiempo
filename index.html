@@ -1673,32 +1673,41 @@
                     <div id="ics-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:30px;">
 
                         <!-- Columna 1: Radar de Lluvia (RainViewer) -->
-                        <div class="card-sky-gradient" style="border-radius:8px;padding:14px;display:flex;flex-direction:column;">
-                            <div class="card-title" style="margin-bottom:10px;">Radar de Lluvia (RainViewer)</div>
-                            <div style="position:relative;width:100%;height:220px;border-radius:8px;overflow:hidden;background:#1a1a1a;">
-                                <div id="ahora-radar-map" style="width:100%;height:100%;"></div>
-                                <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:1000;pointer-events:none;">
-                                    <span id="ahora-radar-time-label" style="font-size:11px;color:#ffffff;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,0.9);">--:--</span>
+                        <div class="colair-widget" style="display:flex;flex-direction:column;">
+                            <div class="colair-header">
+                                <h3>Radar de Lluvia</h3>
+                                <div class="colair-sub">RainViewer</div>
+                            </div>
+                            <div class="card-sky-gradient" style="box-shadow:none;border-radius:0;padding:14px;flex:1;">
+                                <div style="position:relative;width:100%;height:220px;border-radius:8px;overflow:hidden;background:#1a1a1a;">
+                                    <div id="ahora-radar-map" style="width:100%;height:100%;"></div>
+                                    <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:1000;pointer-events:none;">
+                                        <span id="ahora-radar-time-label" style="font-size:11px;color:#ffffff;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,0.9);">--:--</span>
+                                    </div>
+                                </div>
+                                <div style="padding-top:10px;">
+                                    <div style="width:100%;height:8px;border-radius:4px;background:linear-gradient(90deg, rgba(136,221,238,0.45) 0%, rgb(136,221,238) 13%, rgb(0,163,224) 25%, rgb(0,85,136) 38%, rgb(255,238,0) 50%, rgb(255,170,0) 63%, rgb(255,68,0) 75%, rgb(193,0,0) 88%, rgb(255,170,255) 100%);"></div>
+                                    <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                                        <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Débil</span>
+                                        <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Moderada</span>
+                                        <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Fuerte</span>
+                                        <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Extrema</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div style="padding-top:10px;">
-                                <div style="width:100%;height:8px;border-radius:4px;background:linear-gradient(90deg, rgba(136,221,238,0.45) 0%, rgb(136,221,238) 13%, rgb(0,163,224) 25%, rgb(0,85,136) 38%, rgb(255,238,0) 50%, rgb(255,170,0) 63%, rgb(255,68,0) 75%, rgb(193,0,0) 88%, rgb(255,170,255) 100%);"></div>
-                                <div style="display:flex;justify-content:space-between;margin-top:4px;">
-                                    <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Débil</span>
-                                    <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Moderada</span>
-                                    <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Fuerte</span>
-                                    <span style="font-size:9px;color:#8a8a8a;font-weight:600;">Extrema</span>
-                                </div>
-                            </div>
-                            <div class="card-legend">Fuente: RainViewer</div>
+                            <div class="colair-footer">Fuente: RainViewer</div>
                         </div>
 
                         <!-- Tarjeta: Punto de Rocío + Temp. Actual/Humedad + Inestabilidad
                              (antes agrupada junto a Columna de Aire y Webcam en un wrapper
                              flex; ahora es un hijo directo de #ics-grid para que el masonry
                              de escritorio pueda equilibrar alturas entre las 4 tarjetas) -->
-                        <div class="card-sky-gradient" style="border-radius:8px;padding:14px;display:flex;flex-direction:column;">
-                                <div class="card-title" style="margin-bottom:10px;">Dato Actual</div>
+                        <div class="colair-widget" style="display:flex;flex-direction:column;">
+                            <div class="colair-header">
+                                <h3>Dato Actual</h3>
+                                <div class="colair-sub">Temperatura, humedad e inestabilidad</div>
+                            </div>
+                            <div class="card-sky-gradient" style="box-shadow:none;border-radius:0;padding:14px;flex:1;display:flex;">
                                 <div style="flex:1;display:flex;align-items:stretch;justify-content:center;gap:14px;">
                                     <!-- Columna izquierda: Temp. Actual / Punto Rocío / Humedad / Viento Sostenido / Presión -->
                                     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:10px 0;gap:14px;">
@@ -1745,8 +1754,9 @@
                                     </div>
 
                                 </div>
-                            <div class="card-legend">Fuente: Open-Meteo</div>
                             </div>
+                            <div class="colair-footer">Fuente: Open-Meteo</div>
+                        </div>
 
                             <!-- Columna de Aire (Nowcasting): perfil vertical atmosférico -->
                             <div class="colair-widget" id="colairWidget">
@@ -2060,16 +2070,21 @@
                             </script>
 
                             <!-- Webcam Vila Olímpica: misma característica de tarjeta que el radar -->
-                            <div class="card-sky-gradient" style="border-radius:8px;padding:14px;display:flex;flex-direction:column;">
-                                <div class="card-title" style="margin-bottom:10px;">Webcam Vila Olímpica</div>
-                                <div style="position:relative;width:100%;height:220px;border-radius:8px;overflow:hidden;background:#1a1a1a;">
-                                    <img src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg"
-                                         alt="Vila Olímpica"
-                                         style="width:100%;height:100%;object-fit:cover;display:block;"
-                                         loading="lazy"
-                                         onerror="this.style.background='#1a1a1a'"/>
+                            <div class="colair-widget" style="display:flex;flex-direction:column;">
+                                <div class="colair-header">
+                                    <h3>Webcam</h3>
+                                    <div class="colair-sub">Vila Olímpica</div>
                                 </div>
-                                <div class="card-legend">Fuente: Windy</div>
+                                <div class="card-sky-gradient" style="box-shadow:none;border-radius:0;padding:14px;flex:1;">
+                                    <div style="position:relative;width:100%;height:220px;border-radius:8px;overflow:hidden;background:#1a1a1a;">
+                                        <img src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg"
+                                             alt="Vila Olímpica"
+                                             style="width:100%;height:100%;object-fit:cover;display:block;"
+                                             loading="lazy"
+                                             onerror="this.style.background='#1a1a1a'"/>
+                                    </div>
+                                </div>
+                                <div class="colair-footer">Fuente: Windy</div>
                             </div>
 
                     </div>
