@@ -970,15 +970,9 @@
             height:1px;
             background:rgba(255,255,255,0.10);
         }
-        .colair-row.annotation-lcl .connector {
-            background:none;
-            border-top:1.5px dashed #2dd4bf;
-            opacity:0.85;
-        }
+        .colair-row.annotation-lcl .connector,
         .colair-row.annotation-frz .connector {
-            background:none;
-            border-top:1.5px dashed #4da3ff;
-            opacity:0.9;
+            display:none; /* probando: sin línea punteada, solo la "galleta" flotante */
         }
         .colair-row.annotation-tibidabo .connector {
             background:none;
@@ -1011,13 +1005,27 @@
         /* Fila SUPERFICIE: la etiqueta se queda IGUAL que el resto de filas
            (encima de la línea, mismo tamaño). Solo el dato secundario
            (Punto de Rocío + Presión) baja por debajo de la línea. */
-        /* Isocero y Base Nubes: etiqueta centrada sobre la banda del gráfico
-           en vez de pegada al margen izquierdo (Tibidabo se queda a la izq.) */
+        /* Isocero y Base Nubes: sin línea -> etiqueta como "galleta" flotante,
+           centrada sobre la banda del gráfico, con sombra y altura en línea. */
         .colair-row.annotation-lcl .colair-label,
         .colair-row.annotation-frz .colair-label {
-            left:28%;
-            width:28%;
+            left:50%;
+            width:auto;
+            transform:translate(-50%, -50%);
             text-align:center;
+            background:rgba(15,23,35,0.78);
+            border:1px solid rgba(255,255,255,0.09);
+            border-radius:999px;
+            padding:5px 14px;
+            box-shadow:0 3px 10px rgba(0,0,0,0.4);
+            white-space:nowrap;
+        }
+        .colair-row.annotation-lcl .colair-label .h,
+        .colair-row.annotation-frz .colair-label .h {
+            display:inline;
+            margin-top:0;
+            margin-left:7px;
+            font-size:10px;
         }
         .colair-data {
             position:absolute;
