@@ -919,7 +919,7 @@
         .colair-body {
             position:relative;
             height:440px;
-            padding:38px 14px 74px;
+            padding:38px 14px 56px;
             /* Textura base de nubes: ruido sutil (feTurbulence) en tonos
                grises muy claros sobre transparente. Aporta la superficie
                "granulada" sobre la que luego actúa el blur de condensación. */
@@ -1008,12 +1008,9 @@
         .colair-row.annotation-lcl .colair-label { color:#5eead4; }
         .colair-row.annotation-frz .colair-label { color:#7ec2ff; }
         .colair-row.annotation-tibidabo .colair-label { color:rgba(255,255,255,0.88); }
-        /* Fila SUPERFICIE: la etiqueta (0m / SUPERFICIE) va DEBAJO de su línea,
-           igual que el bloque de datos, en vez de centrada sobre ella. */
-        .colair-row.row-surface .colair-label {
-            top:0;
-            transform:translateY(6px);
-        }
+        /* Fila SUPERFICIE: la etiqueta se queda IGUAL que el resto de filas
+           (encima de la línea, mismo tamaño). Solo el dato secundario
+           (Punto de Rocío + Presión) baja por debajo de la línea. */
         /* Isocero y Base Nubes: etiqueta centrada sobre la banda del gráfico
            en vez de pegada al margen izquierdo (Tibidabo se queda a la izq.) */
         .colair-row.annotation-lcl .colair-label,
@@ -1045,34 +1042,23 @@
             transform-origin:50% 50%;
             font-size:12.5px;
         }
-        /* Fila SUPERFICIE: los datos van DEBAJO de su línea (al contrario que
-           el resto de niveles, que se quedan tal cual arriba de la suya), y
-           con texto más grande + una 2ª línea con Punto de Rocío y Presión. */
-        .colair-row.row-surface .colair-data {
+        /* Fila SUPERFICIE: dato secundario (Td + Presión), DEBAJO de la línea,
+           en letra pequeña y apagada -> mismo espíritu que el "512m" gris que
+           acompaña a TIBIDABO, para que no compita con el dato principal. */
+        .colair-data-secondary {
+            position:absolute;
+            right:0;
             top:0;
-            transform:translateY(6px); /* debajo de la línea, pegado (no +100% de su propia altura) */
+            transform:translateY(6px);
             width:60%;
-            flex-direction:column;
-            align-items:flex-end;
-            gap:6px;
-        }
-        .colair-data-line {
             display:flex;
-            align-items:center;
             justify-content:flex-end;
+            align-items:center;
             gap:9px;
+            font-size:10.5px;
+            font-weight:500;
+            color:rgba(255,255,255,0.45);
             white-space:nowrap;
-        }
-        .colair-row.row-surface .colair-data,
-        .colair-row.row-surface .colair-data .temp-value,
-        .colair-row.row-surface .colair-data .arrow-wind {
-            font-size:16px; /* más grande que el resto de niveles (12.5px), incl. flecha */
-        }
-        .colair-row.row-surface .colair-data .temp-value { font-weight:800; }
-        .colair-row.row-surface .colair-data .dewpoint-value,
-        .colair-row.row-surface .colair-data .pressure-value {
-            font-weight:600;
-            color:rgba(255,255,255,0.82);
         }
         .colair-footer {
             padding:8px 14px 14px;
@@ -1853,19 +1839,17 @@
                                         const hasPres = lvl.pressure !== undefined && lvl.pressure !== null && !isNaN(lvl.pressure);
                                         row.innerHTML = `
                                             <div class="connector"></div>
-                                            <div class="colair-label"><span class="h" style="margin-top:0;margin-bottom:1px;">${Math.round(lvl.height)}m</span>${lvl.label}</div>
+                                            <div class="colair-label">${lvl.label}<span class="h">${Math.round(lvl.height)}m</span></div>
                                             <div class="colair-data">
-                                                <div class="colair-data-line">
-                                                    <span class="temp-value">${Math.round(lvl.temp)}°</span>
-                                                    <span>${Math.round(lvl.hum)}%</span>
-                                                    <span><span class="arrow-wind" style="transform:rotate(${lvl.windDir + 180}deg)">⬆</span>${Math.round(lvl.wind)}km/h</span>
-                                                </div>
-                                                ${(hasDew || hasPres) ? `
-                                                <div class="colair-data-line">
-                                                    ${hasDew ? `<span class="dewpoint-value">Td ${Math.round(lvl.dewPoint)}°</span>` : ''}
-                                                    ${hasPres ? `<span class="pressure-value">${Math.round(lvl.pressure)} hPa</span>` : ''}
-                                                </div>` : ''}
+                                                <span class="temp-value">${Math.round(lvl.temp)}°</span>
+                                                <span>${Math.round(lvl.hum)}%</span>
+                                                <span><span class="arrow-wind" style="transform:rotate(${lvl.windDir + 180}deg)">⬆</span>${Math.round(lvl.wind)}km/h</span>
                                             </div>
+                                            ${(hasDew || hasPres) ? `
+                                            <div class="colair-data-secondary">
+                                                ${hasDew ? `<span>Td ${Math.round(lvl.dewPoint)}°</span>` : ''}
+                                                ${hasPres ? `<span>${Math.round(lvl.pressure)} hPa</span>` : ''}
+                                            </div>` : ''}
                                         `;
                                         graph.appendChild(row);
                                         return;
