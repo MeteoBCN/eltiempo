@@ -916,6 +916,18 @@
             font-weight:500;
             letter-spacing:0.3px;
         }
+        /* Fondo reutilizable "cielo" (mismo degradado + grano que la Columna de
+           Aire) para las tarjetas de Radar, Dato actual y Webcam, sustituyendo
+           su antiguo fondo plano #242424. */
+        .card-sky-gradient {
+            background-color:#1c2430;
+            background-image:
+                linear-gradient(to bottom, rgba(77,163,255,0.07) 0%, rgba(77,163,255,0.02) 35%, rgba(255,255,255,0) 55%, rgba(255,181,107,0.025) 80%, rgba(255,140,66,0.05) 100%),
+                radial-gradient(ellipse 140% 60% at 50% 0%, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 70%),
+                url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.035 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+            background-repeat:no-repeat, no-repeat, repeat;
+            background-size:100% 100%, 100% 100%, 180px 180px;
+        }
         .colair-body {
             position:relative;
             height:440px;
@@ -1630,7 +1642,7 @@
                     <div id="ics-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:12px;">
 
                         <!-- Columna 1: Radar de Lluvia (RainViewer) -->
-                        <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
+                        <div class="card-sky-gradient" style="border-radius:8px;padding:14px;display:flex;flex-direction:column;">
                             <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Radar de Lluvia (RainViewer)</div>
                             <div style="position:relative;width:100%;height:220px;border-radius:8px;overflow:hidden;background:#1a1a1a;">
                                 <div id="ahora-radar-map" style="width:100%;height:100%;"></div>
@@ -1656,7 +1668,7 @@
                              (antes agrupada junto a Columna de Aire y Webcam en un wrapper
                              flex; ahora es un hijo directo de #ics-grid para que el masonry
                              de escritorio pueda equilibrar alturas entre las 4 tarjetas) -->
-                        <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
+                        <div class="card-sky-gradient" style="border-radius:8px;padding:14px;display:flex;flex-direction:column;">
                                 <div style="flex:1;display:flex;align-items:stretch;justify-content:center;gap:14px;">
                                     <!-- Columna 1: Punto Rocío / Nivel de Congelación / Gradiente 850-500hPa -->
                                     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:10px 0;gap:16px;">
@@ -2026,7 +2038,7 @@
                             </script>
 
                             <!-- Webcam Vila Olímpica: misma característica de tarjeta que el radar -->
-                            <div style="background:#242424;border-radius:8px;padding:14px;display:flex;flex-direction:column;">
+                            <div class="card-sky-gradient" style="border-radius:8px;padding:14px;display:flex;flex-direction:column;">
                                 <div style="font-size:12px;font-weight:bold;color:#aaaaaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Webcam Vila Olímpica</div>
                                 <div style="position:relative;width:100%;height:220px;border-radius:8px;overflow:hidden;background:#1a1a1a;">
                                     <img src="https://imgproxy.windy.com/_/full/plain/current/1647901683/original.jpg"
