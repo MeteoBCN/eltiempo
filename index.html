@@ -897,6 +897,35 @@
             box-shadow:0 10px 30px rgba(0,0,0,0.35);
             overflow:hidden;
         }
+        /* Cabecera y leyenda compartidas: mismo tamaño/color que usa la
+           Columna de Aire (.colair-header / .colair-footer), pero sin
+           padding propio -> el padding:14px de cada tarjeta ya hace ese
+           trabajo, así las 4 tarjetas quedan con la misma altura de cabecera. */
+        .card-title {
+            text-align:center;
+            font-size:12px;
+            font-weight:800;
+            letter-spacing:1.6px;
+            color:#ffffff;
+            text-transform:uppercase;
+            font-family:'Inter', sans-serif;
+        }
+        .card-title-sub {
+            text-align:center;
+            margin-top:3px;
+            font-size:10.5px;
+            color:rgba(255,255,255,0.4);
+            font-weight:500;
+            letter-spacing:0.3px;
+        }
+        .card-legend {
+            text-align:center;
+            padding-top:8px;
+            font-size:10.5px;
+            line-height:1.4;
+            color:rgba(255,255,255,0.35);
+            letter-spacing:0.3px;
+        }
         .colair-header {
             padding:14px 14px 10px;
             text-align:center;
@@ -1672,43 +1701,31 @@
                              de escritorio pueda equilibrar alturas entre las 4 tarjetas) -->
                         <div class="card-sky-gradient" style="border-radius:8px;padding:14px;display:flex;flex-direction:column;">
                                 <div style="flex:1;display:flex;align-items:stretch;justify-content:center;gap:14px;">
-                                    <!-- Columna 1: Punto Rocío / Nivel de Congelación / Gradiente 850-500hPa -->
-                                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:10px 0;gap:16px;">
-                                        <div>
-                                            <div style="font-size:10.5px;font-weight:600;color:#a39887;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Punto Rocío</div>
-                                            <div id="ics-dewpoint-value" style="font-size:15px;font-weight:700;color:#ffffff;line-height:1;margin-top:6px;">—</div>
-                                        </div>
-                                        <div>
-                                            <div style="font-size:10.5px;font-weight:600;color:#a39887;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;line-height:1.2;">Nivel de<br>Congelación</div>
-                                            <div id="ics-freezing-value" style="font-size:15px;font-weight:400;color:#cccccc;line-height:1;">—</div>
-                                        </div>
-                                        <div>
-                                            <div style="font-size:10.5px;font-weight:600;color:#a39887;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;line-height:1.2;">Gradiente<br>850-500hPa</div>
-                                            <div id="ics-lapse-value" style="font-size:15px;font-weight:400;color:#cccccc;line-height:1;">—</div>
-                                        </div>
-                                    </div>
-                                    <div style="width:1px;background:rgba(255,255,255,0.12);"></div>
-                                    <!-- Columna 2 (medio): Temp. Actual / Humedad / Presión / Racha Viento -->
+                                    <!-- Columna izquierda: Temp. Actual / Punto Rocío / Humedad / Viento Sostenido / Presión -->
                                     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:10px 0;gap:14px;">
                                         <div>
                                             <div style="font-size:10.5px;font-weight:600;color:#a39887;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Temp. Actual</div>
                                             <div id="ics-currenttemp-value" style="font-size:15px;font-weight:700;color:#ffffff;line-height:1;margin-top:6px;">—</div>
                                         </div>
                                         <div>
+                                            <div style="font-size:10.5px;font-weight:600;color:#a39887;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Punto Rocío</div>
+                                            <div id="ics-dewpoint-value" style="font-size:15px;font-weight:700;color:#ffffff;line-height:1;margin-top:6px;">—</div>
+                                        </div>
+                                        <div>
                                             <div style="font-size:10.5px;font-weight:600;color:#a39887;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Humedad</div>
                                             <div id="ics-humidity-value" style="font-size:15px;font-weight:400;color:#cccccc;line-height:1;">—</div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size:10.5px;font-weight:600;color:#a39887;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Viento Sostenido</div>
+                                            <div id="ics-wind-value" style="font-size:15px;font-weight:400;color:#cccccc;line-height:1;">—</div>
                                         </div>
                                         <div>
                                             <div style="font-size:10.5px;font-weight:600;color:#a39887;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Presión</div>
                                             <div id="ics-pressure-value" style="font-size:15px;font-weight:400;color:#cccccc;line-height:1;">—</div>
                                         </div>
-                                        <div>
-                                            <div style="font-size:10.5px;font-weight:600;color:#a39887;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Racha Viento</div>
-                                            <div id="ics-gust-value" style="font-size:15px;font-weight:400;color:#cccccc;line-height:1;">—</div>
-                                        </div>
                                     </div>
                                     <div style="width:1px;background:rgba(255,255,255,0.12);"></div>
-                                    <!-- Columna 3 (derecha): mini "foto" del meteograma CAPE/LI/CIN, franja actual -->
+                                    <!-- Columna derecha: mini "foto" del meteograma CAPE/LI/CIN, franja actual (tal cual estaba) -->
                                     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:10px 0;">
                                         <div style="font-size:10.5px;font-weight:600;color:#a39887;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Inestabilidad</div>
                                         <svg id="ics-inestabilidad-mini" width="66" height="100" viewBox="0 0 66 100"></svg>
@@ -6315,30 +6332,21 @@
                     }
                 }
 
-                // 2. Racha de viento actual
-                const gustEl = document.getElementById('ics-gust-value');
-                if (gustEl) {
-                    const gust = cur?.wind_gusts_10m;
-                    gustEl.textContent = (gust !== null && gust !== undefined) ? `${Math.round(gust)} km/h` : '—';
+                // 2. Viento sostenido actual + dirección (texto entre paréntesis, ej. "18 km/h (SO)")
+                const windEl = document.getElementById('ics-wind-value');
+                if (windEl) {
+                    const ws = cur?.wind_speed_10m;
+                    const wd = cur?.wind_direction_10m;
+                    if (ws !== null && ws !== undefined) {
+                        const _icsDirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+                        const dirTxt = (wd !== null && wd !== undefined) ? ` (${_icsDirs[Math.round(wd / 22.5) % 16]})` : '';
+                        windEl.textContent = `${Math.round(ws)} km/h${dirTxt}`;
+                    } else {
+                        windEl.textContent = '—';
+                    }
                 }
 
-                // 3. Nivel de congelación (altura 0°C)
-                const freezingEl = document.getElementById('ics-freezing-value');
-                if (freezingEl) {
-                    const fz = (idxAhoraGlobal >= 0) ? hourly?.freezing_level_height?.[idxAhoraGlobal] : null;
-                    freezingEl.textContent = (fz !== null && fz !== undefined) ? `${Math.round(fz / 10) * 10}m` : '—';
-                }
-
-                // 4. Gradiente térmico 850hPa - 500hPa (proxy de lapse rate)
-                const lapseEl = document.getElementById('ics-lapse-value');
-                if (lapseEl) {
-                    const t850 = (idxAhoraGlobal >= 0) ? hourly?.temperature_850hPa?.[idxAhoraGlobal] : null;
-                    const t500 = (idxAhoraGlobal >= 0) ? hourly?.temperature_500hPa?.[idxAhoraGlobal] : null;
-                    lapseEl.textContent = (t850 !== null && t850 !== undefined && t500 !== null && t500 !== undefined)
-                        ? `${Math.round(t850 - t500)}°C` : '—';
-                }
-
-                // 5. Tendencia térmica (últimas 3h), misma lógica visual que la de presión
+                // 3. Tendencia térmica (últimas 3h), misma lógica visual que la de presión
                 const tempTrendEl = document.getElementById('ics-temptrend-icon');
                 if (tempTrendEl) {
                     const idxHace3hTemp = idxAhoraGlobal - 3;
