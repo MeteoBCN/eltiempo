@@ -934,28 +934,6 @@
             width:100%;
             height:100%;
         }
-        /* Capa de condensación dinámica: densifica sutilmente el aire
-           por debajo de la base de nubes (LCL). Se actualiza en JS según
-           lclMetros. Puramente decorativa -> pointer-events:none. */
-        .colair-condensation {
-            position:absolute;
-            left:0; right:0; bottom:0;
-            /* height se fija dinámicamente por JS según lclMetros/topMax */
-            height:0%;
-            background:linear-gradient(
-                to bottom,
-                rgba(255,255,255,0.045) 0%,
-                rgba(255,255,255,0.025) 40%,
-                rgba(255,255,255,0) 80%   /* completamente transparente ANTES del suelo */
-            );
-            backdrop-filter:blur(1.5px);
-            -webkit-backdrop-filter:blur(1.5px);
-            border-radius:inherit;
-            pointer-events:none;
-            z-index:1;
-            transition:height 0.6s ease;
-            will-change:height;
-        }
         .colair-row {
             position:absolute;
             left:0; right:0;
@@ -1009,7 +987,7 @@
            centrada sobre la banda del gráfico, con sombra y altura en línea. */
         .colair-row.annotation-lcl .colair-label,
         .colair-row.annotation-frz .colair-label {
-            left:50%;
+            left:42%;
             width:auto;
             transform:translate(-50%, -50%);
             text-align:center;
@@ -1822,19 +1800,10 @@
 
                                 const graph = containerEl.querySelector('#colairGraph') || containerEl;
 
-                                // ── Capa de condensación dinámica (bajo la base de nubes) ────
-                                // Reutiliza si ya existe (persiste entre renders); si no, la crea
-                                // como PRIMER hijo del grafo para que quede por debajo de las filas.
-                                let condensationEl = graph.querySelector('#colairCondensation');
-                                if (!condensationEl) {
-                                    condensationEl = document.createElement('div');
-                                    condensationEl.id = 'colairCondensation';
-                                    condensationEl.className = 'colair-condensation';
-                                    graph.insertBefore(condensationEl, graph.firstChild);
-                                }
-                                // Altura = % de lclMetros respecto al techo del eje Y (500hPa).
-                                // Si mañana lclMetros sube/baja, esta capa se mueve con la línea LCL.
-                                condensationEl.style.height = pct(lclMetros) + '%';
+                                // Capa de condensación (gradiente oscuro bajo BASE NUBES) retirada.
+                                // Si quedó un elemento de un render anterior, se elimina.
+                                const oldCondensationEl = graph.querySelector('#colairCondensation');
+                                if (oldCondensationEl) oldCondensationEl.remove();
 
                                 graph.querySelectorAll('.colair-row').forEach(el => el.remove());
 
