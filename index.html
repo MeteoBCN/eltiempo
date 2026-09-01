@@ -920,14 +920,17 @@
             position:relative;
             height:440px;
             padding:38px 14px 56px;
-            /* Textura base de nubes: ruido sutil (feTurbulence) en tonos
-               grises muy claros sobre transparente. Aporta la superficie
-               "granulada" sobre la que luego actúa el blur de condensación. */
+            /* 1) Degradado "cielo": frío arriba (500hPa, -10°C) -> cálido tenue
+               abajo (superficie), muy sutil, para que el fondo cuente la misma
+               historia que los datos sin competir con el texto.
+               2) Textura de grano (feTurbulence) sobre el degradado, aporta la
+               superficie "granulada" del conjunto. */
             background-image:
+                linear-gradient(to bottom, rgba(77,163,255,0.07) 0%, rgba(77,163,255,0.02) 35%, rgba(255,255,255,0) 55%, rgba(255,181,107,0.025) 80%, rgba(255,140,66,0.05) 100%),
                 radial-gradient(ellipse 140% 60% at 50% 0%, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 70%),
                 url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.035 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-            background-repeat:no-repeat, repeat;
-            background-size:100% 100%, 180px 180px;
+            background-repeat:no-repeat, no-repeat, repeat;
+            background-size:100% 100%, 100% 100%, 180px 180px;
         }
         .colair-graph {
             position:relative;
