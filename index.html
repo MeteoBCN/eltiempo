@@ -8853,9 +8853,20 @@
         // ── Puntuación de condiciones para hacer deporte en un instante dado ──
         function _sportScoreAt(temp, hum, wind, uv, aqi, wmo) {
             var s = 100;
-            if      (temp < 5)  s -= 25; else if (temp < 10) s -= 10;
-            else if (temp > 30) s -= 55; else if (temp > 26) s -= 42;
-            else if (temp > 22) s -= 25; else if (temp > 18) s -= 5;
+            // Curva de temperatura ajustada a un clima mediterráneo (Barcelona): la
+            // franja 15-24º es la ideal para correr, y el calor típico del verano
+            // (26-30º) resta puntos de forma progresiva en vez de un salto brusco
+            // que marcaba "mejorable" casi cualquier día del año.
+            if      (temp < 0)   s -= 35;
+            else if (temp < 5)   s -= 22;
+            else if (temp < 10)  s -= 10;
+            else if (temp < 15)  s -= 3;
+            else if (temp <= 24) s -= 0;
+            else if (temp <= 27) s -= 8;
+            else if (temp <= 30) s -= 18;
+            else if (temp <= 33) s -= 30;
+            else if (temp <= 36) s -= 45;
+            else                 s -= 60;
             if      (hum > 85) s -= 28; else if (hum > 75) s -= 18; else if (hum > 65) s -= 8;
             if      (wind > 35) s -= 18; else if (wind > 25) s -= 10; else if (wind > 15) s -= 5;
             if      (uv >= 8) s -= 18; else if (uv >= 6) s -= 8;
@@ -8884,11 +8895,13 @@
 
             // Temperatura real vs sensación térmica: solo se muestra la más destacada de las dos
             var tempCause = null;
-            if      (temp < 5)   tempCause = { p:25, txt:'frío intenso de ' + t + 'º' };
+            if      (temp < 0)   tempCause = { p:35, txt:'frío extremo de ' + t + 'º' };
+            else if (temp < 5)   tempCause = { p:22, txt:'frío intenso de ' + t + 'º' };
             else if (temp < 10)  tempCause = { p:10, txt:'frío de ' + t + 'º' };
-            else if (temp > 35)  tempCause = { p:45, txt:'calor extremo de ' + t + 'º' };
-            else if (temp > 30)  tempCause = { p:28, txt:'calor de ' + t + 'º' };
-            else if (temp > 26)  tempCause = { p:20, txt:'calor moderado de ' + t + 'º' };
+            else if (temp > 36)  tempCause = { p:60, txt:'calor extremo de ' + t + 'º' };
+            else if (temp > 33)  tempCause = { p:45, txt:'calor muy fuerte de ' + t + 'º' };
+            else if (temp > 30)  tempCause = { p:30, txt:'calor fuerte de ' + t + 'º' };
+            else if (temp > 27)  tempCause = { p:18, txt:'calor de ' + t + 'º' };
 
             var feelsCause = null;
             if (f != null) {
