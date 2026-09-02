@@ -1260,16 +1260,8 @@
 
                         <div id="sport-section-wrap" style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(28,79,120,0.15);">
                             <div style="font-family:'Fraunces',serif;font-style:italic;font-size:19px;font-weight:500;color:#123653;text-align:center;margin-bottom:2px;letter-spacing:0.2px;">¿Sales a correr por Barcelona?</div>
-                            <div style="font-family:'Fraunces',serif;font-style:italic;font-size:19px;font-weight:500;color:#123653;text-align:center;margin-bottom:2px;letter-spacing:0.2px;">¿Tienes un evento o solo quieres pasear?</div>
                             <div id="sport-section-subtitle" style="font-size:10px;font-weight:600;color:#123653;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:10px;margin-bottom:16px;">Elige la hora perfecta para tu plan</div>
                             <div id="sport-section-cards" style="display:flex;flex-direction:column;gap:0;padding:6px 8px;background:#F3FAF4;border-radius:12px;">
-                                <div style="flex:1;text-align:center;padding:14px 6px;color:#94a3b8;font-size:11px;">Cargando…</div>
-                            </div>
-                        </div>
-
-                        <div id="walk-section-wrap" style="margin-top:28px;padding-top:20px;position:relative;">
-                            <div style="position:absolute;top:0;left:25%;width:50%;height:1px;background:rgba(28,79,120,0.15);"></div>
-                            <div id="walk-section-cards" style="display:flex;flex-direction:column;gap:0;padding:6px 8px;background:#F2FBFC;border-radius:12px;">
                                 <div style="flex:1;text-align:center;padding:14px 6px;color:#94a3b8;font-size:11px;">Cargando…</div>
                             </div>
                             <div style="display:flex;flex-direction:row;align-items:center;justify-content:center;flex-wrap:wrap;gap:14px;margin-top:24px;">
@@ -8109,7 +8101,6 @@
                 updateProximaLluvia(data.hourly);
                 updateRunningIndex(data.current, data.hourly, data.daily, aqData?.current ?? null);
                 updateSportSection(data.current, data.hourly, aqData?.current ?? null);
-                updateWalkSection(data.current, data.hourly, aqData?.current ?? null);
                 updateParaguasSection(data.hourly);
                 drawParaguasHourlyChart(data.hourly);
                 drawParaguasDaysChart(data.hourly);
@@ -8796,142 +8787,6 @@
             var nextHTML = points.slice(1).map(function(p) {
                 var d = computePoint(p);
                 var icon = maskedIconHtml(runSvg, 18, d.lvl.color);
-                return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">' +
-                    '<div style="display:flex;align-items:center;justify-content:center;">' + icon + '</div>' +
-                    '<div style="font-size:11px;font-weight:700;color:#123653;">' + d.p.label + 'h</div>' +
-                '</div>';
-            }).join('');
-
-            var nextRowHTML = '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;row-gap:16px;column-gap:14px;padding:10px 6px 4px;margin-top:2px;">' + nextHTML + '</div>';
-
-            wrap.innerHTML = mainHTML + nextRowHTML;
-        }
-
-        // ── Puntuación de condiciones para PASEAR (más permisiva que para correr) ──
-        function _walkScoreAt(temp, hum, wind, uv, aqi, wmo) {
-            var s = 100;
-            if      (temp < 3)  s -= 20; else if (temp < 8) s -= 8;
-            else if (temp > 34) s -= 45; else if (temp > 30) s -= 30; else if (temp > 26) s -= 15;
-            if      (hum > 88) s -= 20; else if (hum > 78) s -= 12; else if (hum > 68) s -= 5;
-            if      (wind > 45) s -= 30; else if (wind > 32) s -= 15;
-            if      (uv >= 9) s -= 14; else if (uv >= 7) s -= 6;
-            if      (aqi > 80) s -= 28; else if (aqi > 60) s -= 18; else if (aqi > 40) s -= 8; else if (aqi > 20) s -= 3;
-            var isRain    = (wmo >= 51 && wmo <= 67) || (wmo >= 80 && wmo <= 82);
-            var isThunder = wmo >= 95;
-            var isSnow    = wmo >= 71 && wmo <= 77;
-            if      (isThunder) s -= 50;
-            else if (isRain)    s -= 40;
-            else if (isSnow)    s -= 40;
-            return Math.max(0, Math.min(100, Math.round(s)));
-        }
-
-        // ── Frase final para pasear, según el nivel ──
-        function _walkPhrase(lvl, temp, hum, wind, uv, aqi, wmo, feels) {
-            if (lvl.label === 'Buena') {
-                return 'Tiempo ideal para pasear y disfrutar al aire libre.';
-            }
-            var causes = _sportReason(temp, hum, wind, uv, aqi, wmo, feels);
-            if (!causes.length) return 'condiciones poco favorables';
-            var top = causes.slice(0, 2).map(function(c){ return c.txt; });
-            return top.join(', ');
-        }
-
-        function updateWalkSection(current, hourly, aq) {
-            var wrap = document.getElementById('walk-section-cards');
-            if (!wrap || !current) return;
-
-            var aqi = aq?.european_aqi ?? aq?.us_aqi ?? 0;
-            var now = new Date();
-
-            function findHourlyIdx(targetDate) {
-                if (!hourly?.time) return -1;
-                var ts = targetDate.getFullYear() + '-' + String(targetDate.getMonth()+1).padStart(2,'0') + '-' +
-                         String(targetDate.getDate()).padStart(2,'0') + 'T' + String(targetDate.getHours()).padStart(2,'0');
-                for (var i = 0; i < hourly.time.length; i++) {
-                    if (hourly.time[i].startsWith(ts)) return i;
-                }
-                return -1;
-            }
-
-            var points = [
-                { label: String(now.getHours()), offset: 0 },
-                { label: String((now.getHours()+1) % 24), offset: 1 },
-                { label: String((now.getHours()+2) % 24), offset: 2 },
-                { label: String((now.getHours()+3) % 24), offset: 3 },
-                { label: String((now.getHours()+4) % 24), offset: 4 },
-                { label: String((now.getHours()+5) % 24), offset: 5 },
-                { label: String((now.getHours()+6) % 24), offset: 6 }
-            ];
-
-            var walkSvg = '<svg viewBox="0 0 26 22" xmlns="http://www.w3.org/2000/svg">' +
-                // Árbol
-                '<circle cx="3.5" cy="6.5" r="3.8"/>' +
-                '<rect x="2.6" y="10" width="1.8" height="4" rx="0.4"/>' +
-                // Mujer (de frente)
-                '<circle cx="11" cy="3.8" r="2.1"/>' +
-                '<polygon points="8.4,8 13.6,8 14.6,16 7.4,16"/>' +
-                '<rect x="9.2" y="16" width="1.5" height="6" rx="0.6"/>' +
-                '<rect x="12.3" y="16" width="1.5" height="6" rx="0.6"/>' +
-                // Hombre (de frente)
-                '<circle cx="19.8" cy="3.8" r="2.1"/>' +
-                '<rect x="17.1" y="7.9" width="5.4" height="7.6" rx="1.1"/>' +
-                '<rect x="17.4" y="15.5" width="2.1" height="7" rx="0.8"/>' +
-                '<rect x="20" y="15.5" width="2.1" height="7" rx="0.8"/>' +
-                '</svg>';
-
-            function computePoint(p) {
-                var temp, hum, wind, uv, wmo, feels, dt;
-                if (p.offset === 0) {
-                    dt = now;
-                    temp = current.temperature_2m ?? 20;
-                    hum  = current.relative_humidity_2m ?? 50;
-                    wind = current.wind_speed_10m ?? 0;
-                    wmo  = current.weather_code ?? 0;
-                    feels = current.apparent_temperature ?? temp;
-                    var idxNow = findHourlyIdx(now);
-                    uv = idxNow !== -1 ? (hourly?.uv_index?.[idxNow] ?? 0) : 0;
-                } else {
-                    var future = new Date(now.getTime() + p.offset * 3600000);
-                    dt = future;
-                    var idx = findHourlyIdx(future);
-                    if (idx === -1) {
-                        temp = current.temperature_2m ?? 20;
-                        hum  = current.relative_humidity_2m ?? 50;
-                        wind = current.wind_speed_10m ?? 0;
-                        wmo  = current.weather_code ?? 0;
-                        feels = current.apparent_temperature ?? temp;
-                        uv   = 0;
-                    } else {
-                        temp = hourly.temperature_2m?.[idx] ?? 20;
-                        hum  = hourly.relative_humidity_2m?.[idx] ?? 50;
-                        wind = hourly.wind_speed_10m?.[idx] ?? 0;
-                        wmo  = hourly.weather_code?.[idx] ?? 0;
-                        uv   = hourly.uv_index?.[idx] ?? 0;
-                        feels = hourly.apparent_temperature?.[idx] ?? temp;
-                    }
-                }
-                var score = _walkScoreAt(temp, hum, wind, uv, aqi, wmo);
-                var lvl = _sportLevel(score);
-                var reason = _walkPhrase(lvl, temp, hum, wind, uv, aqi, wmo, feels);
-                return { p:p, lvl:lvl, reason:reason };
-            }
-
-            // ── Tarjeta principal: hora actual ──
-            var mainData = computePoint(points[0]);
-            var mainIcon = maskedIconHtml(walkSvg, 22, mainData.lvl.color);
-            var mainHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px;border-bottom:none;">' +
-                '<div style="display:flex;align-items:center;justify-content:center;gap:8px;">' +
-                    '<div style="font-size:12px;font-weight:700;color:#123653;">Ahora</div>' +
-                    '<div style="display:flex;align-items:center;justify-content:center;">' + mainIcon + '</div>' +
-                    '<div style="font-size:11px;font-weight:700;color:' + mainData.lvl.color + ';text-transform:uppercase;">' + mainData.lvl.title + '</div>' +
-                '</div>' +
-                '<div style="text-align:center;font-size:10.5px;font-weight:400;font-style:normal;color:#123653;text-transform:uppercase;margin-top:4px;">' + mainData.reason + '</div>' +
-            '</div>';
-
-            // ── Las 6 horas siguientes: fila compacta con solo icono + hora ──
-            var nextHTML = points.slice(1).map(function(p) {
-                var d = computePoint(p);
-                var icon = maskedIconHtml(walkSvg, 18, d.lvl.color);
                 return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">' +
                     '<div style="display:flex;align-items:center;justify-content:center;">' + icon + '</div>' +
                     '<div style="font-size:11px;font-weight:700;color:#123653;">' + d.p.label + 'h</div>' +
