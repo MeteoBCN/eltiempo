@@ -5574,6 +5574,7 @@
                             pres    : Math.round(d.pressure_msl_mean?.[i] ?? 0),
                             wind    : Math.round(d.wind_speed_10m_max?.[i] ?? 0),
                             gusts   : Math.round(d.wind_gusts_10m_max?.[i] ?? 0),
+                            windDir : Math.round(d.wind_direction_10m_dominant?.[i] ?? 0),
                             capeMax : capeMax !== null ? Math.round(capeMax) : null,
                             liMin   : liMin !== null ? Math.round(liMin * 10) / 10 : null,
                             cinMin  : cinMin !== null ? Math.round(cinMin) : null,
@@ -6597,7 +6598,8 @@
             const windH      = 160;  // alto zona viento
             const windTop    = presDayLabelY + gapWind;
             const windBottom = windTop + windH;
-            const windDayLabelY = windBottom + 26;
+            const windDirRowY   = windBottom + 20;  // fila de iconos con la dirección del viento
+            const windDayLabelY = windDirRowY + 20;
 
             const dayLabelY  = windDayLabelY;
 
@@ -7000,6 +7002,28 @@
                 ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
                 ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
                 ctx.fillText(v, x, yWind(v) - 8);
+            });
+
+            // Fila de iconos con la dirección del viento (mismo estilo que en la
+            // revisión horaria: flecha en forma de cometa, apuntando hacia donde
+            // sopla el viento, es decir dirección + 180°)
+            const drawWindDirArrow = (x, y, deg, size, color) => {
+                const angle = (deg + 180) * Math.PI / 180;
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle);
+                ctx.beginPath();
+                ctx.moveTo(0, -size);
+                ctx.lineTo(-size * 0.5, size * 0.83);
+                ctx.lineTo(0, size * 0.33);
+                ctx.lineTo(size * 0.5, size * 0.83);
+                ctx.closePath();
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.restore();
+            };
+            rows.forEach((r, i) => {
+                drawWindDirArrow(xPos(i), windDirRowY, r.windDir, 7, '#cfe8f7');
             });
 
             // Fila de días bajo el viento
