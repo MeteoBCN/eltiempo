@@ -6598,8 +6598,7 @@
             const windH      = 160;  // alto zona viento
             const windTop    = presDayLabelY + gapWind;
             const windBottom = windTop + windH;
-            const windDirRowY   = windBottom + 20;  // fila de iconos con la dirección del viento
-            const windDayLabelY = windDirRowY + 20;
+            const windDayLabelY = windBottom + 26;
 
             const dayLabelY  = windDayLabelY;
 
@@ -6989,24 +6988,9 @@
             drawWindLine(gustVals, '#ffffff', false);
             drawWindLine(windVals, '#ffffff', true);
 
-            windVals.forEach((v, i) => {
-                const x = xPos(i);
-                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
-                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                ctx.textBaseline = 'top';
-                ctx.fillText(v, x, yWind(v) + 8);
-                ctx.textBaseline = 'alphabetic';
-            });
-            gustVals.forEach((v, i) => {
-                const x = xPos(i);
-                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
-                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
-                ctx.fillText(v, x, yWind(v) - 8);
-            });
-
-            // Fila de iconos con la dirección del viento (mismo estilo que en la
-            // revisión horaria: flecha en forma de cometa, apuntando hacia donde
-            // sopla el viento, es decir dirección + 180°)
+            // Flecha de dirección del viento debajo de cada dato (mismo estilo que
+            // en la revisión horaria: flecha en forma de cometa, apuntando hacia
+            // donde sopla el viento, es decir dirección + 180°)
             const drawWindDirArrow = (x, y, deg, size, color) => {
                 const angle = (deg + 180) * Math.PI / 180;
                 ctx.save();
@@ -7022,8 +7006,21 @@
                 ctx.fill();
                 ctx.restore();
             };
-            rows.forEach((r, i) => {
-                drawWindDirArrow(xPos(i), windDirRowY, r.windDir, 7, '#cfe8f7');
+
+            windVals.forEach((v, i) => {
+                const x = xPos(i);
+                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
+                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                ctx.textBaseline = 'top';
+                ctx.fillText(v, x, yWind(v) + 8);
+                ctx.textBaseline = 'alphabetic';
+                drawWindDirArrow(x, Math.min(yWind(v) + 24, windBottom + 8), rows[i].windDir, 6, '#cfe8f7');
+            });
+            gustVals.forEach((v, i) => {
+                const x = xPos(i);
+                ctx.beginPath(); ctx.arc(x, yWind(v), 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
+                ctx.textAlign = 'center'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.fillStyle = '#ffffff';
+                ctx.fillText(v, x, yWind(v) - 8);
             });
 
             // Fila de días bajo el viento
