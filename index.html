@@ -10191,6 +10191,51 @@
                 if (wh >= 0.5  || ws >= 25) return { txt:'Aceptable',      color:'#f59e0b', consejo:'Mar y viento moderados. Apto para el baño, pero mantente atento si nadas lejos de la orilla.' };
                 return                       { txt:'Ideal',                color:'#10b981', consejo:'Condiciones óptimas para el baño: mar en calma y viento suave. Disfruta con tranquilidad.' };
             }
+            // ── Calidad del baño (5 niveles: Excelente/Buena/Aceptable/Mejorable/No aconsejable) ──
+            function calidadBanyo(avgWH, avgWS, avgSST, uvi) {
+                let score = 5;
+                if (avgWH !== null) {
+                    if (avgWH >= 2.5) score -= 3;
+                    else if (avgWH >= 1.25) score -= 2;
+                    else if (avgWH >= 0.5)  score -= 1;
+                }
+                if (avgWS !== null) {
+                    if (avgWS >= 50) score -= 2;
+                    else if (avgWS >= 29) score -= 1;
+                }
+                if (avgSST !== null) {
+                    if (avgSST < 16) score -= 2;
+                    else if (avgSST < 20) score -= 1;
+                    else if (avgSST >= 28) score -= 1;
+                }
+                if (uvi !== null && uvi >= 10) score -= 1;
+                score = Math.max(1, Math.min(5, score));
+                const niveles = {
+                    5: { texto:'Excelente',     color:'#10b981' },
+                    4: { texto:'Buena',         color:'#10b981' },
+                    3: { texto:'Aceptable',     color:'#f59e0b' },
+                    2: { texto:'Mejorable',     color:'#f97316' },
+                    1: { texto:'No aconsejable',color:'#ef4444' },
+                };
+                return { score, ...niveles[score] };
+            }
+            // ── Texto descriptivo del estado del mar ──
+            function marDesc(estado) {
+                const map = {
+                    'Calma':'Mar en calma', 'Rizada':'Mar rizada',
+                    'Marejadilla':'Marejadilla', 'Marejada':'Marejada',
+                    'Fuerte':'Mar fuerte', 'Muy fuerte':'Mar muy fuerte',
+                };
+                return map[estado] || estado;
+            }
+            // ── Texto descriptivo del viento ──
+            function windDesc(ws) {
+                if (ws === null) return '—';
+                if (ws < 12) return 'suave';
+                if (ws < 29) return 'moderado';
+                if (ws < 50) return 'fuerte';
+                return 'muy fuerte';
+            }
             function uviInfo(uvi) {
                 if (uvi === null) return { nivel:'Sin datos', color:'#94a3b8', mins:'—', fps:'—', consejo:'Sin datos UV disponibles.' };
                 const u = Math.round(uvi);
@@ -10514,43 +10559,47 @@
                     : _maxRainProb >= 60 ? '#3b82f6'
                     : _maxRainProb >= 40 ? '#eab308'
                     : '#86efac';
+                // ── Franjas MAÑANA / TARDE — estilo minimalista ──
+                const mananaSlots = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8  && hh < 14; });
+                const tardeSlots  = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 14 && hh < 20; });
+
+                function buildFranjaMinimal(label, slots, uviVal, isLast) {
+                    const whs  = slots.map(s=>s.wh).filter(v=>v!==null);
+                    const wss  = slots.map(s=>s.ws).filter(v=>v!==null);
+                    const ssts = slots.map(s=>s.sst).filter(v=>v!==null);
+                    const avgWHf  = whs.length  ? avg(whs) : null;
+                    const avgWSf  = wss.length  ? Math.round(avg(wss)) : null;
+                    const avgSSTf = ssts.length ? Math.round(avg(ssts)) : null;
+                    if (!slots.length) {
+                        return `<div style="padding:14px 0;${isLast ? '' : 'border-bottom:1px solid #eef2f7;'}text-align:center;color:#94a3b8;font-size:12px;">${label} — sin datos</div>`;
+                    }
+                    const estadoF  = waveLabel(avgWHf ?? 0).txt;
+                    const calidadF = calidadBanyo(avgWHf, avgWSf, avgSSTf, uviVal);
+                    const marTxt    = marDesc(estadoF);
+                    const vientoTxt = windDesc(avgWSf);
+                    const aguaTxt   = avgSSTf !== null ? avgSSTf + '°' : '—';
+                    return `
+                        <div style="padding:14px 2px;${isLast ? '' : 'border-bottom:1px solid #eef2f7;'}">
+                            <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;">${label}</div>
+                            <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">
+                                <span style="width:8px;height:8px;border-radius:50%;background:${calidadF.color};flex-shrink:0;"></span>
+                                <span style="font-size:17px;font-weight:800;color:${calidadF.color};letter-spacing:0.2px;">${calidadF.texto}</span>
+                            </div>
+                            <div style="font-size:13px;color:#64748b;padding-left:15px;">${aguaTxt} agua · ${marTxt} · Viento ${vientoTxt}</div>
+                        </div>`;
+                }
+
                 const chartHtml = `
-                    <div style="background:#ffffff;padding:10px 0 0;">
-                        <div style="display:flex;justify-content:space-around;align-items:flex-start;padding:0 16px 12px;">
-                            <!-- Círculo AGUA -->
-                            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-                                <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,#1c4f78 0%,#123653 100%);box-shadow:0 4px 10px rgba(18,54,83,0.22);display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                                    <span style="font-size:15px;font-weight:700;color:#fff;line-height:1;">${avgSST !== null ? avgSST+'°C' : '—'}</span>
-                                </div>
-                                <span style="font-size:11px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;">Agua</span>
-                            </div>
-                            <!-- Círculo UV MÁXIMO -->
-                            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-                                <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,#1c4f78 0%,#123653 100%);box-shadow:0 4px 10px rgba(18,54,83,0.22);display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                                    <span style="font-size:15px;font-weight:700;color:#fff;line-height:1;">${uviRedondeado !== null ? uviRedondeado : '—'}</span>
-                                </div>
-                                <span style="font-size:11px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;">UVI${uviRedondeado !== null ? ' · '+_uvi3.nivel : ''}</span>
-                            </div>
-                            <!-- Círculo LLUVIA -->
-                            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-                                <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,#1c4f78 0%,#123653 100%);box-shadow:0 4px 10px rgba(18,54,83,0.22);display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                                    <span style="font-size:15px;font-weight:700;color:#fff;line-height:1;">${_maxRainProb !== null ? _maxRainProb+'%' : '—'}</span>
-                                </div>
-                                <span style="font-size:11px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:0.4px;">Lluvia</span>
-                            </div>
+                    <div style="background:#ffffff;padding:6px 18px 2px;">
+                        ${buildFranjaMinimal('Mañana', mananaSlots, uviMax, false)}
+                        ${buildFranjaMinimal('Tarde',  tardeSlots,  uviMax, true)}
+                        <div style="margin-top:2px;padding:12px 2px 12px;border-top:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between;">
+                            <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1.2px;">Temp. del mar</span>
+                            <span style="font-size:14px;font-weight:800;color:#123653;">${avgSST !== null ? avgSST+'°C' : '—'}</span>
                         </div>
-                        <div style="padding:2px 8px 6px;background:#ffffff;display:flex;justify-content:center;">
-                            <canvas id="wave-chart-${cardId}" style="display:block;max-width:100%;"></canvas>
-                        </div>
-                        <div style="display:flex;border-bottom:1px solid #e2e8f0;border-top:1px solid #e2e8f0;">
-                            <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;border-right:1px solid #e2e8f0;font-size:10px;font-weight:700;color:#123653;letter-spacing:0.5px;">08 a 12H</div>
-                            <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;border-right:1px solid #e2e8f0;font-size:10px;font-weight:700;color:#123653;letter-spacing:0.5px;">12 a 16H</div>
-                            <div style="flex:1;text-align:center;padding:6px 2px;background:#ffffff;font-size:10px;font-weight:700;color:#123653;letter-spacing:0.5px;">16 a 20H</div>
-                        </div>
-                        <div style="display:flex;">
-                            ${buildCell(f1, bdr, cardId + '-f1')}
-                            ${buildCell(f2, bdr, cardId + '-f2')}
-                            ${buildCell(f3, '', cardId + '-f3')}
+                        <div style="padding:0 2px 14px;display:flex;align-items:center;justify-content:space-between;">
+                            <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1.2px;">UVI máximo</span>
+                            <span style="font-size:14px;font-weight:800;color:${_uvi3.color};">${uviRedondeado !== null ? uviRedondeado : '—'}${_uvi3.nivel ? ' · '+_uvi3.nivel : ''}</span>
                         </div>
                         <div onclick="mar3ToggleCellInfo('${cardId}')" style="padding:7px 16px;background:#ffffff;border-top:1px solid #e2e8f0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;user-select:none;">
                             <span style="font-size:10.5px;font-weight:700;color:#123653;text-transform:uppercase;letter-spacing:0.6px;">Ampliar informaci\u00f3n</span>
