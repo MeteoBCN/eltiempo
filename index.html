@@ -9995,14 +9995,14 @@
             if (!el) return;
             const now = new Date();
             const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-            const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+            const MESES_ABR = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
             const diaSemana = DIAS[now.getDay()];
             const diaMes = now.getDate();
-            const mes = MESES[now.getMonth()];
+            const mes = MESES_ABR[now.getMonth()];
             const roundedMin = Math.floor(now.getMinutes() / 10) * 10;
             const hh = String(now.getHours()).padStart(2, '0');
             const mm = String(roundedMin).padStart(2, '0');
-            el.innerHTML = `${diaSemana}, ${diaMes} de ${mes} · <span style="font-size:15px;font-weight:600;">${hh}:${mm}</span>`;
+            el.innerHTML = `${diaSemana}, ${diaMes} ${mes} · <span style="font-size:15px;font-weight:600;">${hh}:${mm}</span>`;
         }
         updateCurrentDateTime();
         setInterval(updateCurrentDateTime, 60000);
