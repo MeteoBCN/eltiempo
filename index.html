@@ -8723,42 +8723,61 @@
             var isHeavyRainNow = (wmo === 65 || wmo === 67 || wmo === 82 || wmo >= 95);
 
             // ═══ 3. ESTADO: MALAS CONDICIONES (Rojo) ═══
-            // Se identifica el factor crítico y se fija ese estado + esa frase.
+            // Se acumulan TODOS los factores críticos que se cumplen, en orden
+            // de gravedad (el primero de la lista es el más grave).
+            var rojoCandidatos = [];
             if (t > 29 && h > 80) {
-                return { estado: 'rojo', frase: 'Riesgo de deshidratación por combinación de calor y bochorno.' };
+                rojoCandidatos.push('Riesgo de deshidratación por combinación de calor y bochorno.');
             }
             if (a > 100) {
-                return { estado: 'rojo', frase: 'Umbral de esfuerzo alterado por alta concentración de partículas.' };
+                rojoCandidatos.push('Umbral de esfuerzo alterado por alta concentración de partículas.');
             }
-            if (t > 32) {
-                return { estado: 'rojo', frase: 'Resistencia aeróbica reducida debido al estrés térmico.' };
+            if (t > 30) {
+                rojoCandidatos.push('Resistencia aeróbica reducida debido al estrés térmico.');
             }
             if (w > 35) {
-                return { estado: 'rojo', frase: 'Rachas de viento frontales superiores al límite recomendado.' };
+                rojoCandidatos.push('Rachas de viento frontales superiores al límite recomendado.');
             }
             if (pp > 60 || isHeavyRainNow) {
-                return { estado: 'rojo', frase: 'Saturación de agua en el pavimento: riesgo alto de deslizamiento.' };
+                rojoCandidatos.push('Saturación de agua en el pavimento: riesgo alto de deslizamiento.');
             }
 
             // ═══ 2. ESTADO: CONDICIONES MEJORABLES (Naranja) ═══
-            // Se identifica el factor principal que penaliza el tiempo.
+            // Se acumulan TODOS los factores que penalizan el tiempo, en orden
+            // de relevancia (el primero de la lista es el más relevante).
+            var naranjaCandidatos = [];
             if (h >= 76 && h <= 85) {
-                return { estado: 'naranja', frase: 'Pérdida de eficiencia por ascenso de humedad.' };
+                naranjaCandidatos.push('Pérdida de eficiencia por ascenso de humedad.');
+            }
+            if (t > 28) {
+                naranjaCandidatos.push('Calor moderado.');
             }
             if ((f - t) > 2) {
-                return { estado: 'naranja', frase: 'Sensación térmica ligeramente superior a la real.' };
+                naranjaCandidatos.push('Sensación térmica elevada (BOCHORNO).');
             }
             if (w >= 21 && w <= 35) {
-                return { estado: 'naranja', frase: 'Viento moderado: puede afectar el ritmo en zonas abiertas.' };
+                naranjaCandidatos.push('Viento moderado: puede afectar el ritmo en zonas abiertas.');
             }
             if (a >= 51 && a <= 100) {
-                return { estado: 'naranja', frase: 'Calidad del aire regular. Hidrátate con mayor frecuencia.' };
+                naranjaCandidatos.push('Calidad del aire regular. Hidrátate con mayor frecuencia.');
             }
             if (pp > 0 && pp < 40) {
-                return { estado: 'naranja', frase: 'Ligera inestabilidad con baja probabilidad de chubasco.' };
+                naranjaCandidatos.push('Ligera inestabilidad con baja probabilidad de chubasco.');
+            }
+
+            // Si hay al menos un factor rojo o naranja, el estado NUNCA es verde.
+            // Si hay al menos un factor rojo (aunque también haya uno naranja),
+            // el estado final es rojo ("una mala + una mejorable = mala").
+            // Se muestran las 2 frases más destacables: primero las rojas
+            // (más graves) y, si falta hueco, se completa con las naranjas.
+            if (rojoCandidatos.length > 0 || naranjaCandidatos.length > 0) {
+                var estadoFinal = rojoCandidatos.length > 0 ? 'rojo' : 'naranja';
+                var destacadas = rojoCandidatos.concat(naranjaCandidatos).slice(0, 2);
+                return { estado: estadoFinal, frase: destacadas.join(' ') };
             }
 
             // ═══ 1. ESTADO: BUENAS CONDICIONES (Verde) ═══
+            // Se muestra UNA sola descripción (a diferencia de rojo/naranja).
             // Matriz que cruza Calidad del Aire (ICA) con el estado del cielo,
             // para evitar contradicciones visuales (p.ej. "despejado" de noche).
             // Cielo despejado/soleado → WMO 0 (despejado) o 1 (mayormente despejado).
