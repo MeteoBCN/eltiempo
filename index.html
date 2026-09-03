@@ -8895,12 +8895,20 @@
                 return { p:p, lvl:lvl, reason:reason };
             }
 
-            // ── Tarjeta principal: hora actual, sin cambios de diseño ──
+            // ── Tarjeta principal: hora actual (redondeada a 00/15/30/45) ──
             var mainData = computePoint(points[0]);
             var mainIcon = maskedIconHtml(runSvg, 22, mainData.lvl.color);
+            var mins = now.getMinutes();
+            var roundedMins = Math.round(mins / 15) * 15;
+            var displayHour = now.getHours();
+            if (roundedMins === 60) {
+                roundedMins = 0;
+                displayHour = (displayHour + 1) % 24;
+            }
+            var horaActualTexto = String(displayHour).padStart(2, '0') + ':' + String(roundedMins).padStart(2, '0');
             var mainHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px;border-bottom:none;">' +
                 '<div style="display:flex;align-items:center;justify-content:center;gap:8px;">' +
-                    '<div style="font-size:12px;font-weight:700;color:#123653;">Ahora</div>' +
+                    '<div style="font-size:12px;font-weight:700;color:#123653;">' + horaActualTexto + '</div>' +
                     '<div style="display:flex;align-items:center;justify-content:center;">' + mainIcon + '</div>' +
                     '<div style="font-size:11px;font-weight:700;color:' + mainData.lvl.color + ';text-transform:uppercase;">' + mainData.lvl.title + '</div>' +
                 '</div>' +
