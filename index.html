@@ -6379,14 +6379,20 @@
                 ctx.font = thinFont; ctx.fillText(seg3, x, y);
             })();
 
-            // Líneas guía Y de la zona de temperatura (blancas translúcidas)
-            const steps = 3;
-            for (let s = 0; s <= steps; s++) {
-                const v = tMin + (tMax - tMin) * s / steps;
+            // Líneas guía Y de la zona de temperatura (blancas translúcidas).
+            // Se calculan a partir de los valores REALES de temperatura de la semana
+            // (no del rango con margen tMin/tMax, que incluye +/-2° de aire extra para
+            // las etiquetas) para que la línea superior pase justo por el punto más
+            // caliente y la inferior por el más frío — antes quedaban "flotando" sin
+            // tocar ningún punto porque usaban el rango con margen.
+            const dataTMin = Math.min(...allT);
+            const dataTMax = Math.max(...allT);
+            const guideValues = [dataTMin, (dataTMin + dataTMax) / 2, dataTMax];
+            guideValues.forEach(v => {
                 const y = yTemp(v);
                 ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
                 ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1; ctx.stroke();
-            }
+            });
 
             // ── Zona temperatura: área + línea máxima/mínima ──
             // (posición "de punto" xPos(), igual que la gráfica de humedad: el
