@@ -6379,20 +6379,28 @@
                 ctx.font = thinFont; ctx.fillText(seg3, x, y);
             })();
 
-            // Líneas guía Y de la zona de temperatura (blancas translúcidas).
-            // Se calculan a partir de los valores REALES de temperatura de la semana
-            // (no del rango con margen tMin/tMax, que incluye +/-2° de aire extra para
-            // las etiquetas) para que la línea superior pase justo por el punto más
-            // caliente y la inferior por el más frío — antes quedaban "flotando" sin
-            // tocar ningún punto porque usaban el rango con margen.
-            const dataTMin = Math.min(...allT);
-            const dataTMax = Math.max(...allT);
-            const guideValues = [dataTMin, (dataTMin + dataTMax) / 2, dataTMax];
-            guideValues.forEach(v => {
+            // Líneas guía Y de la zona de temperatura (blancas translúcidas), en
+            // valores redondos fijos (5° en 5°: ..20°,25°,30°..) con su etiqueta.
+            // yTemp() es una función lineal del valor de grados sobre el mismo
+            // rango tMin/tMax que usan los puntos, así que cualquier punto cuyo
+            // valor caiga exactamente en uno de estos redondos (p.ej. 20°) queda
+            // dibujado justo sobre su línea.
+            const niceStep = (() => {
+                const span = tMax - tMin;
+                const candidates = [1, 2, 5, 10, 20];
+                for (const c of candidates) if (span / c <= 6) return c;
+                return 20;
+            })();
+            const firstGuide = Math.ceil(tMin / niceStep) * niceStep;
+            ctx.font = '9px Inter,sans-serif';
+            ctx.textAlign = 'left';
+            for (let v = firstGuide; v <= tMax; v += niceStep) {
                 const y = yTemp(v);
                 ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cw, y);
                 ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1; ctx.stroke();
-            });
+                ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                ctx.fillText(Math.round(v) + '°', PAD.l, y - 4);
+            }
 
             // ── Zona temperatura: área + línea máxima/mínima ──
             // (posición "de punto" xPos(), igual que la gráfica de humedad: el
