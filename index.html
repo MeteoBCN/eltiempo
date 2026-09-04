@@ -3410,6 +3410,12 @@
 
             const BLOCK_H = 6;          // tamaño de cada bloque, en horas
             const TARGET_BLOCKS = 12;   // 12 bloques de 6h = 3 días completos (día0, día1, día2), incluyendo el bloque 18-24h del día2
+            // Los puntos de la curva marcan el INICIO de cada bloque de 6h, así que el
+            // tramo 18h→24h del día2 solo se puede dibujar si existe un punto siguiente
+            // (00h del día3) hasta el que trazar la línea. Por eso pedimos un bloque extra
+            // (EXTRA_BLOCK) que se usa únicamente para completar ese último tramo visual:
+            // no se le pone etiqueta de hora, ni de día, ni número de máx/mín.
+            const EXTRA_BLOCK = 1;
             const CANDIDATE_BLOCKS = 20; // margen extra: si el primer bloque de hoy no tiene datos (horas ya pasadas) y se descarta, seguimos teniendo 12 bloques válidos para completar los 3 días
 
             const now = new Date();
@@ -3459,8 +3465,11 @@
                     hourLabel: String(b.start.getHours()).padStart(2, '0') + 'h',
                     isNewDay
                 };
-            }).filter(bl => bl.tMin !== null && bl.tMax !== null).slice(0, TARGET_BLOCKS);
+            }).filter(bl => bl.tMin !== null && bl.tMax !== null).slice(0, TARGET_BLOCKS + EXTRA_BLOCK);
             if (blocks.length < 2) return;
+            // N = número de bloques "reales" (con etiqueta). Si no llegó el bloque extra
+            // (p.ej. faltan datos para más allá del día2), lo detectamos y no lo pedimos.
+            const N = Math.min(TARGET_BLOCKS, blocks.length);
 
             const dpr = window.devicePixelRatio || 1;
             const wrap = canvas.parentElement;
@@ -3482,7 +3491,7 @@
 
             // Dominio vertical: contempla tanto las máximas como las mínimas de cada
             // bloque, para que el punto de la mínima del día también quepa en la gráfica.
-            const allTemps = blocks.flatMap(b => [b.tMin, b.tMax]);
+            const allTemps = blocks.slice(0, N).flatMap(b => [b.tMin, b.tMax]);
             const tMin = Math.min(...allTemps);
             const tMax = Math.max(...allTemps);
             const xPos = i => PAD.left + (i / (blocks.length - 1)) * cw;
@@ -3496,13 +3505,13 @@
 
             // Riesgo de lluvia elevado por bloque de 6h (un único nivel: sí/no)
             const rainCat = blocks.map(b => (b.prob >= 60 && b.mm >= 0.5) ? 1 : 0);
-            const hasRainRisk = rainCat.some(c => c > 0);
+            const hasRainRisk = rainCat.slice(0, N).some(c => c > 0);
             const rainLegendEl = document.getElementById('paraguas-days-rain-legend');
             if (rainLegendEl) rainLegendEl.style.display = hasRainRisk ? 'flex' : 'none';
 
             const RAIN_BAND_COLOR = 'rgba(255,255,255,0.28)';
             const segW = cw / (blocks.length - 1);
-            blocks.forEach((b, i) => {
+            blocks.slice(0, N).forEach((b, i) => {
                 if (rainCat[i] > 0) {
                     const left = xPos(i);
                     const right = (i < blocks.length - 1) ? xPos(i + 1) : xPos(i) + segW;
@@ -3533,7 +3542,7 @@
 
             // Líneas verticales: sutiles para cada bloque, más marcadas en el cambio de día
             ctx.save();
-            blocks.forEach((b, i) => {
+            blocks.slice(0, N).forEach((b, i) => {
                 const x = xPos(i);
                 ctx.beginPath();
                 ctx.setLineDash(b.isNewDay ? [] : [3, 3]);
@@ -3575,7 +3584,7 @@
             // Agrupamos los bloques por día para saber, dentro de cada día, en qué
             // franja concreta cae la máxima y en cuál la mínima.
             const dayGroups = [];
-            blocks.forEach((b, i) => {
+            blocks.slice(0, N).forEach((b, i) => {
                 if (b.isNewDay || !dayGroups.length) dayGroups.push({ idxs: [] });
                 dayGroups[dayGroups.length - 1].idxs.push(i);
             });
@@ -3605,7 +3614,7 @@
             // encima del punto) y en la franja donde se produce la mínima del día (en
             // azul, debajo del punto). El resto de franjas no lleva cifra.
             ctx.textAlign = 'center';
-            blocks.forEach((b, i) => {
+            blocks.slice(0, N).forEach((b, i) => {
                 const x = xPos(i);
                 const v = lineValues[i];
                 const y = yTemp(v);
@@ -3625,7 +3634,7 @@
             const hourRow = document.getElementById('paraguas-days-hour-row');
             if (hourRow) {
                 let hHtml = '';
-                blocks.forEach((b, i) => {
+                blocks.slice(0, N).forEach((b, i) => {
                     const x = xPos(i);
                     hHtml += `<span style="position:absolute;left:${x}px;top:0;transform:translateX(-50%);font-size:9px;font-weight:500;color:rgba(255,255,255,0.65);font-family:Inter,sans-serif;white-space:nowrap;">${b.hourLabel}</span>`;
                 });
@@ -3638,7 +3647,7 @@
                 const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
                 const todayStr = now.toDateString();
                 const groups = [];
-                blocks.forEach((b, i) => {
+                blocks.slice(0, N).forEach((b, i) => {
                     if (b.isNewDay || !groups.length) groups.push({ dateKey: b.start.toDateString(), date: b.start, idxs: [] });
                     groups[groups.length - 1].idxs.push(i);
                 });
