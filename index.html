@@ -1276,8 +1276,9 @@
 
                         <div id="sport-section-wrap" style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(28,79,120,0.15);">
                             <div style="font-family:'Fraunces',serif;font-style:italic;font-size:19px;font-weight:500;color:#123653;text-align:center;margin-bottom:2px;letter-spacing:0.2px;">¿Sales a correr por Barcelona?</div>
-                            <div id="sport-section-subtitle" style="font-size:10px;font-weight:600;color:#123653;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:10px;margin-bottom:16px;">Elige la hora perfecta para tu plan</div>
-                            <div id="sport-section-cards" style="display:flex;flex-direction:column;gap:0;padding:6px 8px;background:#F3FAF4;border-radius:12px;">
+                            <div id="sport-section-subtitle" style="font-size:10px;font-weight:600;color:#123653;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:10px;margin-bottom:6px;">Elige la hora perfecta para tu plan</div>
+                            <div id="sport-section-hint" style="font-size:10.5px;font-weight:400;color:#94a3b8;text-align:center;margin-bottom:16px;">💡 Elige tu hora para ver las mejores condiciones donde entrenar</div>
+                            <div id="sport-section-cards" style="display:flex;flex-direction:column;gap:0;padding:14px 10px 10px;background:#f0fdf4;border-radius:14px;transition:background-color 0.3s ease;">
                                 <div style="flex:1;text-align:center;padding:14px 6px;color:#94a3b8;font-size:11px;">Cargando…</div>
                             </div>
                             <div style="display:flex;flex-direction:row;align-items:center;justify-content:center;flex-wrap:wrap;gap:14px;margin-top:24px;">
@@ -9162,17 +9163,41 @@
         // ── Traduce el estado (rojo/naranja/verde) al mismo formato de "lvl"
         //    que ya usaba el resto del widget (label, title, color, bg) ──
         function _estadoToLevel(estado) {
-            if (estado === 'verde')   return { label: 'Buena',   title: 'buenas condiciones',    color: '#16a34a', bg: '#f0fdf4' };
-            if (estado === 'naranja') return { label: 'Regular', title: 'condiciones mejorables', color: '#f97316', bg: '#fff7ed' };
-            return { label: 'Mala', title: 'no recomendable', color: '#9d174d', bg: '#fdf2f8' };
+            if (estado === 'verde')   return { label: 'Buena',   title: 'buenas condiciones',    color: '#16a34a', bg: '#f0fdf4', textDark: '#14532d' };
+            if (estado === 'naranja') return { label: 'Regular', title: 'condiciones mejorables', color: '#c2410c', bg: '#fff7ed', textDark: '#7c2d12' };
+            return { label: 'Mala', title: 'no recomendable', color: '#9d174d', bg: '#fef2f2', textDark: '#7f1d1d' };
         }
 
-        function updateSportSection(current, hourly, aq) {
-            var wrap = document.getElementById('sport-section-cards');
-            if (!wrap || !current) return;
+        // Estado persistente de la tarjeta "¿Sales a correr?": guarda los datos
+        // de la última carga y qué hora tiene seleccionada el usuario, para
+        // poder repintar la tarjeta al vuelo sin volver a pedir datos al API.
+        var runState = { current: null, hourly: null, aqi: 0, now: null, selectedOffset: 0 };
 
-            var aqi = aq?.european_aqi ?? aq?.us_aqi ?? 0;
-            var now = new Date();
+        function updateSportSection(current, hourly, aq) {
+            if (!current) return;
+            runState.current = current;
+            runState.hourly  = hourly;
+            runState.aqi     = aq?.european_aqi ?? aq?.us_aqi ?? 0;
+            runState.now     = new Date();
+            runState.selectedOffset = 0;
+            renderSportSection();
+        }
+
+        // Se llama al pulsar cualquiera de los botones de hora.
+        function selectRunHour(offset) {
+            runState.selectedOffset = offset;
+            renderSportSection();
+        }
+        window.selectRunHour = selectRunHour;
+
+        function renderSportSection() {
+            var wrap = document.getElementById('sport-section-cards');
+            if (!wrap || !runState.current) return;
+
+            var current = runState.current;
+            var hourly  = runState.hourly;
+            var aqi     = runState.aqi;
+            var now     = runState.now || new Date();
 
             function findHourlyIdx(targetDate) {
                 if (!hourly?.time) return -1;
@@ -9240,42 +9265,73 @@
                 var resultado = getEstadoYFrase(temp, hum, wind, aqi, feels, pprob, wmo, tempIn4h, horaLocal);
                 var lvl = _estadoToLevel(resultado.estado);
                 var reason = resultado.frase;
-                return { p:p, lvl:lvl, reason:reason };
+                return { p:p, lvl:lvl, reason:reason, temp:temp, hum:hum, wind:wind };
             }
 
-            // ── Tarjeta principal: hora actual (redondeada a 00/15/30/45) ──
-            var mainData = computePoint(points[0]);
+            // ── Tarjeta principal: la hora que el usuario tenga seleccionada ──
+            var selectedOffset = runState.selectedOffset || 0;
+            var selectedPoint = points[selectedOffset] || points[0];
+            var mainData = computePoint(selectedPoint);
             var mainIcon = maskedIconHtml(runSvg, 22, mainData.lvl.color);
-            var mins = now.getMinutes();
-            var roundedMins = Math.round(mins / 15) * 15;
-            var displayHour = now.getHours();
-            if (roundedMins === 60) {
-                roundedMins = 0;
-                displayHour = (displayHour + 1) % 24;
+
+            var horaTexto;
+            if (selectedOffset === 0) {
+                // Hora actual redondeada a 00/15/30/45
+                var mins = now.getMinutes();
+                var roundedMins = Math.round(mins / 15) * 15;
+                var displayHour = now.getHours();
+                if (roundedMins === 60) {
+                    roundedMins = 0;
+                    displayHour = (displayHour + 1) % 24;
+                }
+                horaTexto = String(displayHour).padStart(2, '0') + ':' + String(roundedMins).padStart(2, '0');
+            } else {
+                horaTexto = String(selectedPoint.label).padStart(2, '0') + ':00';
             }
-            var horaActualTexto = String(displayHour).padStart(2, '0') + ':' + String(roundedMins).padStart(2, '0');
-            var mainHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px;border-bottom:none;">' +
+
+            // 1. FONDO DINÁMICO: el color pastel de la tarjeta cambia según el
+            //    estado calculado para la hora seleccionada (bug corregido: antes
+            //    el fondo se quedaba fijo en verde pasase lo que pasase).
+            wrap.style.backgroundColor = mainData.lvl.bg;
+
+            var mainHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 6px 4px;">' +
                 '<div style="display:flex;align-items:center;justify-content:center;gap:8px;">' +
-                    '<div style="font-size:12px;font-weight:700;color:#123653;">' + horaActualTexto + '</div>' +
+                    '<div style="font-size:13px;font-weight:700;color:' + mainData.lvl.textDark + ';">' + horaTexto + '</div>' +
                     '<div style="display:flex;align-items:center;justify-content:center;">' + mainIcon + '</div>' +
                     '<div style="font-size:11px;font-weight:700;color:' + mainData.lvl.color + ';text-transform:uppercase;">' + mainData.lvl.title + '</div>' +
                 '</div>' +
-                '<div style="text-align:center;font-size:10.5px;font-weight:400;font-style:normal;color:#123653;text-transform:uppercase;margin-top:4px;">' + mainData.reason + '</div>' +
+                '<div style="text-align:center;font-size:10.5px;font-weight:400;font-style:normal;color:' + mainData.lvl.textDark + ';text-transform:uppercase;margin-top:6px;max-width:290px;">' + mainData.reason + '</div>' +
+                // 4. LÍNEA DE DATOS METEOROLÓGICOS CLAVE: separador fino + datos reales
+                '<div style="width:100%;max-width:220px;height:1px;background:rgba(0,0,0,0.08);margin:10px 0 8px;"></div>' +
+                '<div style="text-align:center;font-size:10.5px;font-weight:600;color:' + mainData.lvl.textDark + ';opacity:0.85;letter-spacing:0.2px;">' +
+                    '🌡️ ' + Math.round(mainData.temp) + '°C &nbsp;|&nbsp; 💧 ' + Math.round(mainData.hum) + '% Hum. &nbsp;|&nbsp; 💨 ' + Math.round(mainData.wind) + ' km/h' +
+                '</div>' +
             '</div>';
 
-            // ── Las 6 horas siguientes: fila compacta con solo icono + hora ──
-            var nextHTML = points.slice(1).map(function(p) {
+            // 3. BOTONES DE HORA (mobile-first): cada hora va en su propio
+            //    "botón" con borde fino y esquinas redondeadas, separados entre
+            //    sí, y la hora activa se resalta en azul oscuro sólido.
+            var buttonsHTML = points.map(function(p) {
                 var d = computePoint(p);
-                var icon = maskedIconHtml(runSvg, 18, d.lvl.color);
-                return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">' +
-                    '<div style="display:flex;align-items:center;justify-content:center;">' + icon + '</div>' +
-                    '<div style="font-size:11px;font-weight:700;color:#123653;">' + d.p.label + 'h</div>' +
-                '</div>';
+                var isActive = (p.offset === selectedOffset);
+                var icon = maskedIconHtml(runSvg, 18, isActive ? '#ffffff' : d.lvl.color);
+                var labelTxt = (p.offset === 0) ? 'Ahora' : (p.label + 'h');
+                var boxStyle = isActive
+                    ? 'background:#123653;border-color:#123653;'
+                    : 'background:#ffffff;border-color:#e5e7eb;';
+                var textStyle = isActive ? 'color:#ffffff;' : 'color:#123653;';
+                return '<button type="button" onclick="selectRunHour(' + p.offset + ')" ' +
+                    'style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;' +
+                    'min-width:46px;padding:9px 7px;margin:5px 6px;border:1.5px solid;border-radius:12px;' +
+                    'cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit;transition:all 0.15s ease;' + boxStyle + '">' +
+                        '<div style="display:flex;align-items:center;justify-content:center;">' + icon + '</div>' +
+                        '<div style="font-size:10.5px;font-weight:700;' + textStyle + '">' + labelTxt + '</div>' +
+                    '</button>';
             }).join('');
 
-            var nextRowHTML = '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;row-gap:16px;column-gap:14px;padding:10px 6px 4px;margin-top:2px;">' + nextHTML + '</div>';
+            var buttonsRowHTML = '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;padding:6px 0 2px;margin-top:4px;">' + buttonsHTML + '</div>';
 
-            wrap.innerHTML = mainHTML + nextRowHTML;
+            wrap.innerHTML = mainHTML + buttonsRowHTML;
         }
 
         function updateRunningIndex(current, hourly, daily, aq) {
