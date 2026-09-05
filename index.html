@@ -2151,34 +2151,81 @@
                             (function(){
 
                                 // ═══════════════════════════════════════════════════════════
-                                // PANEL DE CONTROL DE DATOS — Columna Atmosférica (Nowcasting)
+                                // FUENTE DE DATOS — Columna Atmosférica (Nowcasting)
                                 // ═══════════════════════════════════════════════════════════
-                                // Mapea aquí tus variables reales (salida de tu modelo/API de
-                                // sondeo para 500/700/850 hPa, y las lecturas en vivo de tus
-                                // estaciones de Cota 0 y Tibidabo).
+                                // Este widget NO tiene datos propios: reutiliza en vivo las
+                                // mismas variables que ya rellena el widget "Columna de Aire"
+                                // de justo arriba (colairCurrentData, actualizado desde
+                                // Open-Meteo cada 15 min, y window.tibidaboLiveData, actualizado
+                                // desde la estación del Tibidabo cada 10 min). No hace ninguna
+                                // petición nueva ni duplica llamadas a APIs.
                                 //
-                                // Campos por nivel:
-                                //   id          -> identificador único (para actualizar luego con acnowUpdateLevel)
-                                //   label       -> nombre mostrado ("500 hPa", "TIBIDABO", etc.)
-                                //   altitude    -> altura en metros (número)
-                                //   temp        -> temperatura en °C
-                                //   hum         -> humedad relativa en % (0-100)
-                                //   windDeg     -> dirección del viento en grados meteorológicos (0=N, 90=E, 180=S, 270=O)
-                                //   windSpeed   -> velocidad del viento en km/h (0 o ausente = calma)
-                                //   live        -> true si es un dato dinámico en tiempo real (Tibidabo/Superficie) → muestra punto verde
-                                //
-                                // El ORDEN del array es el orden visual de arriba (cielo) a abajo (suelo).
-                                // El degradado continuo de toda la columna se calcula automáticamente
-                                // a partir de la temperatura de cada uno de estos 5 niveles.
-                                const ACNOW_DATA = {
-                                    levels: [
-                                        { id:'l500',        label:'500 hPa',      altitude:5500, temp:-18, hum:45, windDeg:260, windSpeed:55 },
-                                        { id:'l700',        label:'700 hPa',      altitude:3000, temp:-2,  hum:60, windDeg:245, windSpeed:38 },
-                                        { id:'l850',        label:'850 hPa',      altitude:1500, temp:8,   hum:70, windDeg:220, windSpeed:28 },
-                                        { id:'tibidabo',    label:'TIBIDABO',     altitude:512,  temp:14,  hum:55, windDeg:180, windSpeed:12, live:true },
-                                        { id:'superficie',  label:'SUPERFICIE',   altitude:0,    temp:22,  hum:48, windDeg:150, windSpeed:8,  live:true }
-                                    ]
-                                };
+                                // Si por lo que sea esas variables no existieran (orden de carga
+                                // distinto, script eliminado, etc.), se usa ACNOW_FALLBACK como
+                                // último recurso para que el widget no se quede vacío.
+                                const ACNOW_FALLBACK = [
+                                    { id:'l500',        label:'500 hPa',      altitude:5500, temp:-18, hum:45, windDeg:260, windSpeed:55 },
+                                    { id:'l700',        label:'700 hPa',      altitude:3000, temp:-2,  hum:60, windDeg:245, windSpeed:38 },
+                                    { id:'l850',        label:'850 hPa',      altitude:1500, temp:8,   hum:70, windDeg:220, windSpeed:28 },
+                                    { id:'tibidabo',    label:'TIBIDABO',     altitude:512,  temp:14,  hum:55, windDeg:180, windSpeed:12, live:true },
+                                    { id:'superficie',  label:'SUPERFICIE',   altitude:0,    temp:22,  hum:48, windDeg:150, windSpeed:8,  live:true }
+                                ];
+
+                                // Overrides manuales opcionales (ver acnowUpdateLevel más abajo),
+                                // se mezclan por encima de lo que venga de colairCurrentData.
+                                const acnowOverrides = {};
+
+                                // Traduce el objeto colairCurrentData (mismo que usa renderColumnaAire)
+                                // a los 5 niveles fijos de este widget.
+                                function acnowGetLiveLevels(){
+                                    const src = (typeof colairCurrentData !== 'undefined') ? colairCurrentData : null;
+                                    if (!src) return null;
+
+                                    const tib = window.tibidaboLiveData || null;
+
+                                    return [
+                                        {
+                                            id:'l500', label:'500 hPa',
+                                            altitude: src.geoHeight500 ?? 5500,
+                                            temp: src.temp500, hum: src.rh500,
+                                            windDeg: src.windDir500, windSpeed: src.windSpeed500
+                                        },
+                                        {
+                                            id:'l700', label:'700 hPa',
+                                            altitude: src.geoHeight700 ?? 3000,
+                                            temp: src.temp700, hum: src.rh700,
+                                            windDeg: src.windDir700, windSpeed: src.windSpeed700
+                                        },
+                                        {
+                                            id:'l850', label:'850 hPa',
+                                            altitude: src.geoHeight850 ?? 1500,
+                                            temp: src.temp850, hum: src.rh850,
+                                            windDeg: src.windDir850, windSpeed: src.windSpeed850
+                                        },
+                                        {
+                                            // Dato en vivo real del Tibidabo si ya ha llegado de la
+                                            // estación; si aún no, se usa el valor estimado de la
+                                            // superficie de Open-Meteo como aproximación temporal.
+                                            id:'tibidabo', label:'TIBIDABO', altitude:512,
+                                            temp: tib?.temp ?? src.tempSurface,
+                                            hum: tib?.hum ?? src.humSurface,
+                                            windDeg: tib?.windDir ?? src.windDirSurface,
+                                            windSpeed: tib?.wind ?? src.windSpeedSurface,
+                                            live: !!tib
+                                        },
+                                        {
+                                            id:'superficie', label:'SUPERFICIE', altitude:0,
+                                            temp: src.tempSurface, hum: src.humSurface,
+                                            windDeg: src.windDirSurface, windSpeed: src.windSpeedSurface,
+                                            live:true
+                                        }
+                                    ];
+                                }
+
+                                function acnowComposeLevels(){
+                                    const levels = acnowGetLiveLevels() || ACNOW_FALLBACK;
+                                    return levels.map(lvl => Object.assign({}, lvl, acnowOverrides[lvl.id] || {}));
+                                }
                                 // ═══════════════════════════════════════════════════════════
                                 // FIN PANEL DE CONTROL DE DATOS
                                 // ═══════════════════════════════════════════════════════════
@@ -2266,22 +2313,54 @@
                                     const widgetEl = document.getElementById('acnow-widget');
                                     const rowsEl = document.getElementById('acnow-rows');
                                     if(!widgetEl || !rowsEl) return;
+                                    const levels = acnowComposeLevels();
                                     // Degradado único aplicado a todo el contenedor (toda la columna).
-                                    widgetEl.style.backgroundImage = acnowBuildGradient(ACNOW_DATA.levels);
-                                    rowsEl.innerHTML = ACNOW_DATA.levels.map(acnowRenderRow).join('');
+                                    widgetEl.style.backgroundImage = acnowBuildGradient(levels);
+                                    rowsEl.innerHTML = levels.map(acnowRenderRow).join('');
                                 }
 
-                                // API pública mínima (prefijada) para conectar tus peticiones reales:
-                                // ej. tras recibir la respuesta de tu API de Tibidabo / Cota 0:
-                                //   window.acnowUpdateLevel('tibidabo', { temp: 16.4, hum: 62, windDeg: 210, windSpeed: 14 });
+                                // API pública mínima (prefijada) por si quieres forzar un valor
+                                // puntual encima de lo que llega de colairCurrentData:
+                                //   window.acnowUpdateLevel('tibidabo', { temp: 16.4, hum: 62 });
                                 window.acnowUpdateLevel = function(id, newData){
-                                    const level = ACNOW_DATA.levels.find(l => l.id === id);
-                                    if(!level) return;
-                                    Object.assign(level, newData);
+                                    acnowOverrides[id] = Object.assign({}, acnowOverrides[id], newData);
                                     acnowRenderColumn();
                                 };
 
                                 acnowRenderColumn();
+
+                                // ── Auto-actualización ──────────────────────────────────────
+                                // La Columna de Aire de arriba llama a colairRerender() cada vez
+                                // que llegan datos nuevos (carga inicial, refresco de Open-Meteo
+                                // cada 15 min, y refresco del Tibidabo cada 10 min). Enganchamos
+                                // ese mismo punto para repintar este widget justo después, sin
+                                // tocar el código de la Columna de Aire ni lanzar peticiones propias.
+                                if (typeof window.colairRerender === 'function') {
+                                    const acnowOriginalColairRerender = window.colairRerender;
+                                    window.colairRerender = function(){
+                                        acnowOriginalColairRerender();
+                                        acnowRenderColumn();
+                                    };
+                                } else {
+                                    // Red de seguridad por si colairRerender no está disponible
+                                    // como función global (orden de carga distinto): reintenta
+                                    // enganchar y, si no, refresca por sondeo cada minuto.
+                                    let acnowHookAttempts = 0;
+                                    const acnowHookTimer = setInterval(() => {
+                                        acnowHookAttempts++;
+                                        if (typeof window.colairRerender === 'function') {
+                                            const acnowOriginalColairRerender = window.colairRerender;
+                                            window.colairRerender = function(){
+                                                acnowOriginalColairRerender();
+                                                acnowRenderColumn();
+                                            };
+                                            clearInterval(acnowHookTimer);
+                                        } else if (acnowHookAttempts >= 20) {
+                                            clearInterval(acnowHookTimer);
+                                            setInterval(acnowRenderColumn, 60 * 1000);
+                                        }
+                                    }, 500);
+                                }
                             })();
                             </script>
 
