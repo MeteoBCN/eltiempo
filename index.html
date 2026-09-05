@@ -3705,7 +3705,7 @@
 
             const dpr = window.devicePixelRatio || 1;
             const W = canvas.parentElement.offsetWidth - 32; // menos el padding lateral del wrap
-            const H = 190; // algo más alto que antes: hace hueco a las "galletas" de hoy
+            const H = 160;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -3716,9 +3716,9 @@
             ctx.clearRect(0, 0, W, H);
 
             // ── Padding del lienzo ──
-            // t/b generosos: arriba cabe la galleta de máxima + su valor,
-            // abajo cabe la galleta de mínima + su valor + la etiqueta del día.
-            const PAD = { t: 46, r: 20, b: 46, l: 20 };
+            // Arriba cabe el valor de la máxima (+ su delta en HOY);
+            // abajo cabe el valor de la mínima (+ su delta en HOY) y la etiqueta del día.
+            const PAD = { t: 30, r: 20, b: 34, l: 20 };
             const cw = W - PAD.l - PAD.r;
             const ch = H - PAD.t - PAD.b;
 
@@ -3805,7 +3805,9 @@
 
             // Dibuja un nodo + su valor numérico, arriba (para máximas) o abajo
             // (para mínimas) del punto, evitando que el texto invada la banda.
-            function drawNode(x, y, value, color, labelAbove) {
+            // Si se pasa deltaText (solo ocurre en "HOY"), se añade pegado a la
+            // derecha del valor, con flecha ↑/↓/→ y color según suba o baje.
+            function drawNode(x, y, value, color, labelAbove, deltaText, deltaColor) {
                 ctx.beginPath();
                 ctx.arc(x, y, 6, 0, Math.PI * 2);
                 ctx.fillStyle = hexToRgba(color, 0.22); // halo suave alrededor del nodo
@@ -3819,10 +3821,36 @@
                 ctx.strokeStyle = '#123653';
                 ctx.stroke();
 
-                ctx.textAlign = 'center';
+                const textY = labelAbove ? y - 12 : y + 20;
+                const mainText = Math.round(value) + '°';
+
+                if (!deltaText) {
+                    ctx.textAlign = 'center';
+                    ctx.font = '700 12px Inter,sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(mainText, x, textY);
+                    return;
+                }
+
+                // Con delta: centramos el conjunto "18° ↑1°" sobre el nodo,
+                // calculando el ancho de cada parte para colocarlas en fila.
+                const gap = 4;
+                ctx.font = '700 12px Inter,sans-serif';
+                const mainW = ctx.measureText(mainText).width;
+                ctx.font = '700 10px Inter,sans-serif';
+                const deltaW = ctx.measureText(deltaText).width;
+                const totalW = mainW + gap + deltaW;
+                let cursorX = x - totalW / 2;
+
+                ctx.textAlign = 'left';
                 ctx.font = '700 12px Inter,sans-serif';
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText(Math.round(value) + '°', x, labelAbove ? y - 12 : y + 20);
+                ctx.fillText(mainText, cursorX, textY);
+                cursorX += mainW + gap;
+
+                ctx.font = '700 10px Inter,sans-serif';
+                ctx.fillStyle = deltaColor;
+                ctx.fillText(deltaText, cursorX, textY);
             }
 
             function hexToRgba(hex, alpha) {
@@ -3833,64 +3861,37 @@
                 return `rgba(${r},${g},${b},${alpha})`;
             }
 
+            // ── 6. Delta vs. ayer, solo en "HOY": se calcula antes de dibujar
+            //    los nodos para poder pasarlo directamente a drawNode() y que
+            //    aparezca pegado al valor, en vez de como galleta flotante.
+            function buildDelta(hoyVal, ayerVal) {
+                if (ayerVal == null || isNaN(ayerVal)) return null;
+                const diff = Math.round(hoyVal - ayerVal);
+                if (diff === 0) return { text: '→ igual', color: '#e2e8f0' };
+                const arrow = diff > 0 ? '↑' : '↓';
+                const color = diff > 0 ? TREND_COLOR_MAX : TREND_COLOR_MIN;
+                return { text: `${arrow}${Math.abs(diff)}°`, color };
+            }
+            const deltaMax = buildDelta(vals.hoyMax, vals.ayerMax);
+            const deltaMin = buildDelta(vals.hoyMin, vals.ayerMin);
+
             const dayPoints = [
                 { key: 'hoy',    label: 'HOY' },
                 { key: 'manana', label: vals.mananaLabel || 'MAÑANA' },
                 { key: 'pasado', label: vals.pasadoLabel || 'PASADO MAÑANA' }
             ];
             dayPoints.forEach(pt => {
-                drawNode(xs[pt.key], yMax[pt.key], vals[pt.key + 'Max'], TREND_COLOR_MAX, true);
-                drawNode(xs[pt.key], yMin[pt.key], vals[pt.key + 'Min'], TREND_COLOR_MIN, false);
+                const isHoy = pt.key === 'hoy';
+                drawNode(xs[pt.key], yMax[pt.key], vals[pt.key + 'Max'], TREND_COLOR_MAX, true,
+                         isHoy && deltaMax ? deltaMax.text : null, isHoy && deltaMax ? deltaMax.color : null);
+                drawNode(xs[pt.key], yMin[pt.key], vals[pt.key + 'Min'], TREND_COLOR_MIN, false,
+                         isHoy && deltaMin ? deltaMin.text : null, isHoy && deltaMin ? deltaMin.color : null);
 
                 ctx.textAlign = 'center';
                 ctx.font = '600 9px Inter,sans-serif';
                 ctx.fillStyle = pt.key === 'hoy' ? '#ffffff' : 'rgba(255,255,255,0.65)';
                 ctx.fillText(pt.label, xs[pt.key], H - PAD.b + 30);
             });
-
-            // ── 6. Doble "galleta" comparativa flotante, solo en HOY ──
-            // Óvalo cálido sobre el nodo de máxima; óvalo frío bajo el nodo de mínima.
-            function drawCookie(x, y, text, color, bgColor, above) {
-                ctx.save();
-                ctx.font = '700 10px Inter,sans-serif';
-                const paddingX = 8;
-                const textW = ctx.measureText(text).width;
-                const boxW = textW + paddingX * 2;
-                const boxH = 18;
-                const boxX = x - boxW / 2;
-                const boxY = above ? (y - 34) : (y + 24);
-
-                ctx.beginPath();
-                const r = boxH / 2;
-                ctx.moveTo(boxX + r, boxY);
-                ctx.arcTo(boxX + boxW, boxY, boxX + boxW, boxY + boxH, r);
-                ctx.arcTo(boxX + boxW, boxY + boxH, boxX, boxY + boxH, r);
-                ctx.arcTo(boxX, boxY + boxH, boxX, boxY, r);
-                ctx.arcTo(boxX, boxY, boxX + boxW, boxY, r);
-                ctx.closePath();
-                ctx.fillStyle = bgColor;
-                ctx.fill();
-
-                ctx.fillStyle = color;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(text, x, boxY + boxH / 2 + 0.5);
-                ctx.textBaseline = 'alphabetic';
-                ctx.restore();
-            }
-
-            if (vals.ayerMax != null && !isNaN(vals.ayerMax)) {
-                const diffMax = Math.round(vals.hoyMax - vals.ayerMax);
-                const arrowMax = diffMax === 0 ? '→' : (diffMax > 0 ? '↑' : '↓');
-                const textMax = diffMax === 0 ? '= máx' : `${arrowMax} ${Math.abs(diffMax)}° máx`;
-                drawCookie(xs.hoy, yMax.hoy - 12, textMax, '#7a3512', 'rgba(255,138,101,0.92)', true);
-            }
-            if (vals.ayerMin != null && !isNaN(vals.ayerMin)) {
-                const diffMin = Math.round(vals.hoyMin - vals.ayerMin);
-                const arrowMin = diffMin === 0 ? '→' : (diffMin > 0 ? '↑' : '↓');
-                const textMin = diffMin === 0 ? '= mín' : `${arrowMin} ${Math.abs(diffMin)}° mín`;
-                drawCookie(xs.hoy, yMin.hoy + 20, textMin, '#0f4c66', 'rgba(125,211,252,0.92)', false);
-            }
         }
 
         let _ghostTrendVals = null; // último dato calculado, para poder redibujar en resize
