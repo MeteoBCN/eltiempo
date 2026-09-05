@@ -9066,28 +9066,37 @@
             var f   = (feels != null) ? feels : temp;
             var pp  = (pprob != null) ? pprob : 0;
 
+            // Valores redondeados de temperatura real y sensación térmica, para
+            // añadirlos al final del texto cuando la frase hable de calor/temperatura.
+            var rt = Math.round(t);
+            var rf = Math.round(f);
+            var tempSufijo = ' ' + rt + '°C · Sensación ' + rf + '°C.';
+
             // ¿Ya está lloviendo con intensidad? (WMO: 65 lluvia fuerte, 67 lluvia
             // helada fuerte, 82 chubascos violentos, 95-99 tormenta)
             var isHeavyRainNow = (wmo === 65 || wmo === 67 || wmo === 82 || wmo >= 95);
 
             // ═══ 3. ESTADO: MALAS CONDICIONES (Rojo) ═══
             // Se acumulan TODOS los factores críticos que se cumplen, en orden
-            // de gravedad (el primero de la lista es el más grave).
+            // de gravedad (el primero de la lista es el más grave). Cada frase se
+            // guarda como { texto, esTemp } para poder añadir el sufijo de
+            // temperatura una sola vez al final, aunque se combinen dos frases
+            // que hablen ambas de calor.
             var rojoCandidatos = [];
             if (t > 29 && h > 80) {
-                rojoCandidatos.push('Riesgo de deshidratación por combinación de calor y bochorno.');
+                rojoCandidatos.push({ texto: 'Riesgo de deshidratación por combinación de calor y bochorno.', esTemp: true });
             }
             if (a > 100) {
-                rojoCandidatos.push('Umbral de esfuerzo alterado por alta concentración de partículas.');
+                rojoCandidatos.push({ texto: 'Umbral de esfuerzo alterado por alta concentración de partículas.', esTemp: false });
             }
             if (t > 30) {
-                rojoCandidatos.push('Resistencia aeróbica reducida debido al estrés térmico.');
+                rojoCandidatos.push({ texto: 'Resistencia aeróbica reducida debido al estrés térmico.', esTemp: true });
             }
             if (w > 35) {
-                rojoCandidatos.push('Rachas de viento frontales superiores al límite recomendado.');
+                rojoCandidatos.push({ texto: 'Rachas de viento frontales superiores al límite recomendado.', esTemp: false });
             }
             if (pp > 60 || isHeavyRainNow) {
-                rojoCandidatos.push('Saturación de agua en el pavimento: riesgo alto de deslizamiento.');
+                rojoCandidatos.push({ texto: 'Saturación de agua en el pavimento: riesgo alto de deslizamiento.', esTemp: false });
             }
 
             // ═══ 2. ESTADO: CONDICIONES MEJORABLES (Naranja) ═══
@@ -9095,22 +9104,22 @@
             // de relevancia (el primero de la lista es el más relevante).
             var naranjaCandidatos = [];
             if (h >= 76 && h <= 85) {
-                naranjaCandidatos.push('Pérdida de eficiencia por ascenso de humedad.');
+                naranjaCandidatos.push({ texto: 'Pérdida de eficiencia por ascenso de humedad.', esTemp: false });
             }
             if (t > 28) {
-                naranjaCandidatos.push('Calor moderado.');
+                naranjaCandidatos.push({ texto: 'Calor moderado.', esTemp: true });
             }
             if ((f - t) > 2) {
-                naranjaCandidatos.push('Sensación térmica elevada (BOCHORNO).');
+                naranjaCandidatos.push({ texto: 'Sensación térmica elevada (BOCHORNO).', esTemp: true });
             }
             if (w >= 21 && w <= 35) {
-                naranjaCandidatos.push('Viento moderado: puede afectar el ritmo en zonas abiertas.');
+                naranjaCandidatos.push({ texto: 'Viento moderado: puede afectar el ritmo en zonas abiertas.', esTemp: false });
             }
             if (a >= 51 && a <= 100) {
-                naranjaCandidatos.push('Calidad del aire regular. Hidrátate con mayor frecuencia.');
+                naranjaCandidatos.push({ texto: 'Calidad del aire regular. Hidrátate con mayor frecuencia.', esTemp: false });
             }
             if (pp > 0 && pp < 40) {
-                naranjaCandidatos.push('Ligera inestabilidad con baja probabilidad de chubasco.');
+                naranjaCandidatos.push({ texto: 'Ligera inestabilidad con baja probabilidad de chubasco.', esTemp: false });
             }
 
             // Si hay al menos un factor rojo o naranja, el estado NUNCA es verde.
@@ -9121,7 +9130,10 @@
             if (rojoCandidatos.length > 0 || naranjaCandidatos.length > 0) {
                 var estadoFinal = rojoCandidatos.length > 0 ? 'rojo' : 'naranja';
                 var destacadas = rojoCandidatos.concat(naranjaCandidatos).slice(0, 2);
-                return { estado: estadoFinal, frase: destacadas.join(' ') };
+                var textoFinal = destacadas.map(function(d) { return d.texto; }).join(' ');
+                var llevaTemp = destacadas.some(function(d) { return d.esTemp; });
+                if (llevaTemp) textoFinal += tempSufijo;
+                return { estado: estadoFinal, frase: textoFinal };
             }
 
             // ═══ 1. ESTADO: BUENAS CONDICIONES (Verde) ═══
@@ -9136,26 +9148,27 @@
             var opcionesVerde = [];
             if (a < 30) {
                 if (esNoche) {
-                    opcionesVerde.push('Ambiente limpio y calidad del aire excelente esta noche.');
+                    opcionesVerde.push({ texto: 'Ambiente limpio y calidad del aire excelente esta noche.', esTemp: false });
                 } else if (esCieloDespejado) {
-                    opcionesVerde.push('Atmósfera despejada y calidad del aire excelente.');
+                    opcionesVerde.push({ texto: 'Atmósfera despejada y calidad del aire excelente.', esTemp: false });
                 } else {
-                    opcionesVerde.push('Excelente calidad del aire bajo cielos cubiertos.');
+                    opcionesVerde.push({ texto: 'Excelente calidad del aire bajo cielos cubiertos.', esTemp: false });
                 }
             }
             if (h < 60 && w < 10) {
-                opcionesVerde.push('Oxígeno óptimo, humedad baja y viento en calma.');
+                opcionesVerde.push({ texto: 'Oxígeno óptimo, humedad baja y viento en calma.', esTemp: false });
             }
             if (t >= 15 && t <= 18) {
-                opcionesVerde.push('Sensación térmica ideal para entrenamientos de ritmo.');
+                opcionesVerde.push({ texto: 'Sensación térmica ideal para entrenamientos de ritmo.', esTemp: true });
             }
             if (tempIn4h != null && Math.abs(tempIn4h - t) < 1) {
-                opcionesVerde.push('Estabilidad térmica total durante las próximas horas.');
+                opcionesVerde.push({ texto: 'Estabilidad térmica total durante las próximas horas.', esTemp: false });
             }
             if (opcionesVerde.length === 0) {
-                opcionesVerde.push('Índice de calor mínimo: rendimiento óptimo asegurado.');
+                opcionesVerde.push({ texto: 'Índice de calor mínimo: rendimiento óptimo asegurado.', esTemp: true });
             }
-            var fraseVerde = opcionesVerde[Math.floor(Math.random() * opcionesVerde.length)];
+            var opcionVerde = opcionesVerde[Math.floor(Math.random() * opcionesVerde.length)];
+            var fraseVerde = opcionVerde.texto + (opcionVerde.esTemp ? tempSufijo : '');
             return { estado: 'verde', frase: fraseVerde };
         }
 
@@ -9296,7 +9309,7 @@
                     '<div style="display:flex;align-items:center;justify-content:center;">' + mainIcon + '</div>' +
                     '<div style="font-size:11px;font-weight:700;color:' + mainData.lvl.color + ';text-transform:uppercase;">' + mainData.lvl.title + '</div>' +
                 '</div>' +
-                '<div style="display:flex;align-items:center;justify-content:center;text-align:center;font-size:10.5px;line-height:14px;height:28px;font-weight:400;font-style:normal;color:#123653;text-transform:uppercase;margin-top:6px;max-width:290px;">' + mainData.reason + '</div>' +
+                '<div style="display:flex;align-items:center;justify-content:center;text-align:center;font-size:10.5px;line-height:14px;height:42px;font-weight:400;font-style:normal;color:#123653;text-transform:uppercase;margin-top:6px;max-width:290px;">' + mainData.reason + '</div>' +
             '</div>';
 
             // 3. BOTONES DE HORA (mobile-first): cada hora va en su propio
