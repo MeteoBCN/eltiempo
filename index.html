@@ -1276,8 +1276,8 @@
 
                         <div id="sport-section-wrap" style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(28,79,120,0.15);">
                             <div style="font-family:'Fraunces',serif;font-style:italic;font-size:19px;font-weight:500;color:#123653;text-align:center;margin-bottom:2px;letter-spacing:0.2px;">¿Sales a correr por Barcelona?</div>
-                            <div id="sport-section-subtitle" style="font-size:10px;font-weight:600;color:#123653;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:10px;margin-bottom:6px;">Elige la hora perfecta para tu plan</div>
-                            <div id="sport-section-cards" style="display:flex;flex-direction:column;gap:0;padding:14px 10px 10px;background:#f7f8fa;border-radius:14px;">
+                            <div id="sport-section-subtitle" style="font-size:10px;font-weight:600;color:#123653;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:10px;margin-bottom:16px;">Elige la hora perfecta para tu plan</div>
+                            <div id="sport-section-cards" style="display:flex;flex-direction:column;gap:0;padding:6px 8px;background:#F3FAF4;border-radius:12px;">
                                 <div style="flex:1;text-align:center;padding:14px 6px;color:#94a3b8;font-size:11px;">Cargando…</div>
                             </div>
                             <div style="display:flex;flex-direction:row;align-items:center;justify-content:center;flex-wrap:wrap;gap:14px;margin-top:24px;">
@@ -6628,7 +6628,7 @@
             const W   = canvas.parentElement.offsetWidth - 32;
             const ctx = canvas.getContext('2d');
 
-            const PAD = { t:161, r:16, b:83, l:16 };
+            const PAD = { t:161, r:16, b:100, l:16 };
             const cw  = W - PAD.l - PAD.r;
             const n   = rows.length;
 
@@ -9066,37 +9066,31 @@
             var f   = (feels != null) ? feels : temp;
             var pp  = (pprob != null) ? pprob : 0;
 
-            // Valores redondeados de temperatura real y sensación térmica, para
-            // añadirlos al final del texto cuando la frase hable de calor/temperatura.
-            var rt = Math.round(t);
-            var rf = Math.round(f);
-            var tempSufijo = ' ' + rt + '°C · Sensación ' + rf + '°C.';
-
             // ¿Ya está lloviendo con intensidad? (WMO: 65 lluvia fuerte, 67 lluvia
             // helada fuerte, 82 chubascos violentos, 95-99 tormenta)
             var isHeavyRainNow = (wmo === 65 || wmo === 67 || wmo === 82 || wmo >= 95);
 
             // ═══ 3. ESTADO: MALAS CONDICIONES (Rojo) ═══
             // Se acumulan TODOS los factores críticos que se cumplen, en orden
-            // de gravedad (el primero de la lista es el más grave). Cada frase se
-            // guarda como { texto, esTemp } para poder añadir el sufijo de
-            // temperatura una sola vez al final, aunque se combinen dos frases
-            // que hablen ambas de calor.
+            // de gravedad (el primero de la lista es el más grave).
             var rojoCandidatos = [];
             if (t > 29 && h > 80) {
-                rojoCandidatos.push({ texto: 'Riesgo de deshidratación por combinación de calor y bochorno.', esTemp: true });
+                rojoCandidatos.push('Riesgo de deshidratación por combinación de calor (' + Math.round(t) + 'ºC) y bochorno (' + Math.round(h) + '% hum.).');
             }
             if (a > 100) {
-                rojoCandidatos.push({ texto: 'Umbral de esfuerzo alterado por alta concentración de partículas.', esTemp: false });
+                rojoCandidatos.push('Umbral de esfuerzo alterado por alta concentración de partículas.');
             }
             if (t > 30) {
-                rojoCandidatos.push({ texto: 'Resistencia aeróbica reducida debido al estrés térmico.', esTemp: true });
+                rojoCandidatos.push('Calor intenso, ' + Math.round(t) + 'ºC: resistencia aeróbica reducida.');
+            }
+            if (t < 5) {
+                rojoCandidatos.push('Frío intenso, ' + Math.round(t) + 'ºC: mayor riesgo de lesión muscular.');
             }
             if (w > 35) {
-                rojoCandidatos.push({ texto: 'Rachas de viento frontales superiores al límite recomendado.', esTemp: false });
+                rojoCandidatos.push('Rachas de viento frontales superiores al límite recomendado.');
             }
             if (pp > 60 || isHeavyRainNow) {
-                rojoCandidatos.push({ texto: 'Saturación de agua en el pavimento: riesgo alto de deslizamiento.', esTemp: false });
+                rojoCandidatos.push('Saturación de agua en el pavimento: riesgo alto de deslizamiento.');
             }
 
             // ═══ 2. ESTADO: CONDICIONES MEJORABLES (Naranja) ═══
@@ -9104,22 +9098,28 @@
             // de relevancia (el primero de la lista es el más relevante).
             var naranjaCandidatos = [];
             if (h >= 76 && h <= 85) {
-                naranjaCandidatos.push({ texto: 'Pérdida de eficiencia por ascenso de humedad.', esTemp: false });
+                naranjaCandidatos.push('Pérdida de eficiencia por ascenso de humedad.');
             }
             if (t > 28) {
-                naranjaCandidatos.push({ texto: 'Calor moderado.', esTemp: true });
+                naranjaCandidatos.push('Calor moderado, ' + Math.round(t) + 'ºC.');
             }
             if ((f - t) > 2) {
-                naranjaCandidatos.push({ texto: 'Sensación térmica elevada (BOCHORNO).', esTemp: true });
+                naranjaCandidatos.push('Temperatura de sensación (bochorno) de ' + Math.round(f) + 'ºC.');
+            }
+            if (t < 10) {
+                naranjaCandidatos.push('Frío moderado, ' + Math.round(t) + 'ºC.');
+            }
+            if ((t - f) > 2) {
+                naranjaCandidatos.push('Temperatura de sensación (enfriamiento) de ' + Math.round(f) + 'ºC.');
             }
             if (w >= 21 && w <= 35) {
-                naranjaCandidatos.push({ texto: 'Viento moderado: puede afectar el ritmo en zonas abiertas.', esTemp: false });
+                naranjaCandidatos.push('Viento moderado: puede afectar el ritmo en zonas abiertas.');
             }
             if (a >= 51 && a <= 100) {
-                naranjaCandidatos.push({ texto: 'Calidad del aire regular. Hidrátate con mayor frecuencia.', esTemp: false });
+                naranjaCandidatos.push('Calidad del aire regular. Hidrátate con mayor frecuencia.');
             }
             if (pp > 0 && pp < 40) {
-                naranjaCandidatos.push({ texto: 'Ligera inestabilidad con baja probabilidad de chubasco.', esTemp: false });
+                naranjaCandidatos.push('Ligera inestabilidad con baja probabilidad de chubasco.');
             }
 
             // Si hay al menos un factor rojo o naranja, el estado NUNCA es verde.
@@ -9130,10 +9130,7 @@
             if (rojoCandidatos.length > 0 || naranjaCandidatos.length > 0) {
                 var estadoFinal = rojoCandidatos.length > 0 ? 'rojo' : 'naranja';
                 var destacadas = rojoCandidatos.concat(naranjaCandidatos).slice(0, 2);
-                var textoFinal = destacadas.map(function(d) { return d.texto; }).join(' ');
-                var llevaTemp = destacadas.some(function(d) { return d.esTemp; });
-                if (llevaTemp) textoFinal += tempSufijo;
-                return { estado: estadoFinal, frase: textoFinal };
+                return { estado: estadoFinal, frase: destacadas.join(' ') };
             }
 
             // ═══ 1. ESTADO: BUENAS CONDICIONES (Verde) ═══
@@ -9148,68 +9145,43 @@
             var opcionesVerde = [];
             if (a < 30) {
                 if (esNoche) {
-                    opcionesVerde.push({ texto: 'Ambiente limpio y calidad del aire excelente esta noche.', esTemp: false });
+                    opcionesVerde.push('Ambiente limpio y calidad del aire excelente esta noche.');
                 } else if (esCieloDespejado) {
-                    opcionesVerde.push({ texto: 'Atmósfera despejada y calidad del aire excelente.', esTemp: false });
+                    opcionesVerde.push('Atmósfera despejada y calidad del aire excelente.');
                 } else {
-                    opcionesVerde.push({ texto: 'Excelente calidad del aire bajo cielos cubiertos.', esTemp: false });
+                    opcionesVerde.push('Excelente calidad del aire bajo cielos cubiertos.');
                 }
             }
             if (h < 60 && w < 10) {
-                opcionesVerde.push({ texto: 'Oxígeno óptimo, humedad baja y viento en calma.', esTemp: false });
+                opcionesVerde.push('Oxígeno óptimo, humedad baja y viento en calma.');
             }
             if (t >= 15 && t <= 18) {
-                opcionesVerde.push({ texto: 'Sensación térmica ideal para entrenamientos de ritmo.', esTemp: true });
+                opcionesVerde.push('Sensación térmica ideal para entrenamientos de ritmo.');
             }
             if (tempIn4h != null && Math.abs(tempIn4h - t) < 1) {
-                opcionesVerde.push({ texto: 'Estabilidad térmica total durante las próximas horas.', esTemp: false });
+                opcionesVerde.push('Estabilidad térmica total durante las próximas horas.');
             }
             if (opcionesVerde.length === 0) {
-                opcionesVerde.push({ texto: 'Índice de calor mínimo: rendimiento óptimo asegurado.', esTemp: true });
+                opcionesVerde.push('Índice de calor mínimo: rendimiento óptimo asegurado.');
             }
-            var opcionVerde = opcionesVerde[Math.floor(Math.random() * opcionesVerde.length)];
-            var fraseVerde = opcionVerde.texto + (opcionVerde.esTemp ? tempSufijo : '');
+            var fraseVerde = opcionesVerde[Math.floor(Math.random() * opcionesVerde.length)];
             return { estado: 'verde', frase: fraseVerde };
         }
 
         // ── Traduce el estado (rojo/naranja/verde) al mismo formato de "lvl"
         //    que ya usaba el resto del widget (label, title, color, bg) ──
         function _estadoToLevel(estado) {
-            if (estado === 'verde')   return { label: 'Buena',   title: 'buenas condiciones',    color: '#16a34a', bg: '#f0fdf4', textDark: '#14532d' };
-            if (estado === 'naranja') return { label: 'Regular', title: 'condiciones mejorables', color: '#f97316', bg: '#fff7ed', textDark: '#7c2d12' };
-            return { label: 'Mala', title: 'no recomendable', color: '#9d174d', bg: '#fef2f2', textDark: '#7f1d1d' };
+            if (estado === 'verde')   return { label: 'Buena',   title: 'buenas condiciones',    color: '#16a34a', bg: '#f0fdf4' };
+            if (estado === 'naranja') return { label: 'Regular', title: 'condiciones mejorables', color: '#f97316', bg: '#fff7ed' };
+            return { label: 'Mala', title: 'no recomendable', color: '#9d174d', bg: '#fdf2f8' };
         }
-
-        // Estado persistente de la tarjeta "¿Sales a correr?": guarda los datos
-        // de la última carga y qué hora tiene seleccionada el usuario, para
-        // poder repintar la tarjeta al vuelo sin volver a pedir datos al API.
-        var runState = { current: null, hourly: null, aqi: 0, now: null, selectedOffset: 0 };
 
         function updateSportSection(current, hourly, aq) {
-            if (!current) return;
-            runState.current = current;
-            runState.hourly  = hourly;
-            runState.aqi     = aq?.european_aqi ?? aq?.us_aqi ?? 0;
-            runState.now     = new Date();
-            runState.selectedOffset = 0;
-            renderSportSection();
-        }
-
-        // Se llama al pulsar cualquiera de los botones de hora.
-        function selectRunHour(offset) {
-            runState.selectedOffset = offset;
-            renderSportSection();
-        }
-        window.selectRunHour = selectRunHour;
-
-        function renderSportSection() {
             var wrap = document.getElementById('sport-section-cards');
-            if (!wrap || !runState.current) return;
+            if (!wrap || !current) return;
 
-            var current = runState.current;
-            var hourly  = runState.hourly;
-            var aqi     = runState.aqi;
-            var now     = runState.now || new Date();
+            var aqi = aq?.european_aqi ?? aq?.us_aqi ?? 0;
+            var now = new Date();
 
             function findHourlyIdx(targetDate) {
                 if (!hourly?.time) return -1;
@@ -9226,7 +9198,9 @@
                 { label: String((now.getHours()+1) % 24), offset: 1 },
                 { label: String((now.getHours()+2) % 24), offset: 2 },
                 { label: String((now.getHours()+3) % 24), offset: 3 },
-                { label: String((now.getHours()+4) % 24), offset: 4 }
+                { label: String((now.getHours()+4) % 24), offset: 4 },
+                { label: String((now.getHours()+5) % 24), offset: 5 },
+                { label: String((now.getHours()+6) % 24), offset: 6 }
             ];
 
             var runSvg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg>';
@@ -9275,67 +9249,42 @@
                 var resultado = getEstadoYFrase(temp, hum, wind, aqi, feels, pprob, wmo, tempIn4h, horaLocal);
                 var lvl = _estadoToLevel(resultado.estado);
                 var reason = resultado.frase;
-                return { p:p, lvl:lvl, reason:reason, temp:temp, hum:hum, wind:wind };
+                return { p:p, lvl:lvl, reason:reason };
             }
 
-            // ── Tarjeta principal: la hora que el usuario tenga seleccionada ──
-            var selectedOffset = runState.selectedOffset || 0;
-            var selectedPoint = points[selectedOffset] || points[0];
-            var mainData = computePoint(selectedPoint);
+            // ── Tarjeta principal: hora actual (redondeada a 00/15/30/45) ──
+            var mainData = computePoint(points[0]);
             var mainIcon = maskedIconHtml(runSvg, 22, mainData.lvl.color);
-
-            var horaTexto;
-            if (selectedOffset === 0) {
-                // Hora actual redondeada a 00/15/30/45
-                var mins = now.getMinutes();
-                var roundedMins = Math.round(mins / 15) * 15;
-                var displayHour = now.getHours();
-                if (roundedMins === 60) {
-                    roundedMins = 0;
-                    displayHour = (displayHour + 1) % 24;
-                }
-                horaTexto = String(displayHour).padStart(2, '0') + ':' + String(roundedMins).padStart(2, '0');
-            } else {
-                horaTexto = String(selectedPoint.label).padStart(2, '0') + ':00';
+            var mins = now.getMinutes();
+            var roundedMins = Math.round(mins / 15) * 15;
+            var displayHour = now.getHours();
+            if (roundedMins === 60) {
+                roundedMins = 0;
+                displayHour = (displayHour + 1) % 24;
             }
-
-            // El fondo de la tarjeta se mantiene fijo (neutro), sin variar según
-            // el estado de la hora seleccionada.
-            wrap.style.backgroundColor = '#f7f8fa';
-
-            var mainHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 6px 4px;">' +
+            var horaActualTexto = String(displayHour).padStart(2, '0') + ':' + String(roundedMins).padStart(2, '0');
+            var mainHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px;border-bottom:none;">' +
                 '<div style="display:flex;align-items:center;justify-content:center;gap:8px;">' +
-                    '<div style="font-size:13px;font-weight:700;color:#123653;">' + horaTexto + '</div>' +
+                    '<div style="font-size:12px;font-weight:700;color:#123653;">' + horaActualTexto + '</div>' +
                     '<div style="display:flex;align-items:center;justify-content:center;">' + mainIcon + '</div>' +
                     '<div style="font-size:11px;font-weight:700;color:' + mainData.lvl.color + ';text-transform:uppercase;">' + mainData.lvl.title + '</div>' +
                 '</div>' +
-                '<div style="display:flex;align-items:center;justify-content:center;text-align:center;font-size:10.5px;line-height:14px;height:42px;font-weight:400;font-style:normal;color:#123653;text-transform:uppercase;margin-top:6px;max-width:290px;">' + mainData.reason + '</div>' +
+                '<div style="text-align:center;font-size:10.5px;font-weight:400;font-style:normal;color:#123653;text-transform:uppercase;margin-top:4px;">' + mainData.reason + '</div>' +
             '</div>';
 
-            // 3. BOTONES DE HORA (mobile-first): cada hora va en su propio
-            //    "botón" con borde fino y esquinas redondeadas, separados entre
-            //    sí, y la hora activa se resalta en azul oscuro sólido.
-            var buttonsHTML = points.map(function(p) {
+            // ── Las 6 horas siguientes: fila compacta con solo icono + hora ──
+            var nextHTML = points.slice(1).map(function(p) {
                 var d = computePoint(p);
-                var isActive = (p.offset === selectedOffset);
-                var icon = maskedIconHtml(runSvg, 18, isActive ? '#ffffff' : d.lvl.color);
-                var labelTxt = (p.offset === 0) ? 'Ahora' : (p.label + 'h');
-                var boxStyle = isActive
-                    ? 'background:#123653;border-color:#123653;'
-                    : 'background:#ffffff;border-color:#e5e7eb;';
-                var textStyle = isActive ? 'color:#ffffff;' : 'color:#123653;';
-                return '<button type="button" onclick="selectRunHour(' + p.offset + ')" ' +
-                    'style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;' +
-                    'min-width:46px;padding:9px 7px;margin:5px 6px;border:1.5px solid;border-radius:12px;' +
-                    'cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit;transition:all 0.15s ease;' + boxStyle + '">' +
-                        '<div style="display:flex;align-items:center;justify-content:center;">' + icon + '</div>' +
-                        '<div style="font-size:10.5px;font-weight:700;' + textStyle + '">' + labelTxt + '</div>' +
-                    '</button>';
+                var icon = maskedIconHtml(runSvg, 18, d.lvl.color);
+                return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">' +
+                    '<div style="display:flex;align-items:center;justify-content:center;">' + icon + '</div>' +
+                    '<div style="font-size:11px;font-weight:700;color:#123653;">' + d.p.label + 'h</div>' +
+                '</div>';
             }).join('');
 
-            var buttonsRowHTML = '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;padding:6px 0 2px;margin-top:4px;">' + buttonsHTML + '</div>';
+            var nextRowHTML = '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;row-gap:16px;column-gap:14px;padding:10px 6px 4px;margin-top:2px;">' + nextHTML + '</div>';
 
-            wrap.innerHTML = mainHTML + buttonsRowHTML;
+            wrap.innerHTML = mainHTML + nextRowHTML;
         }
 
         function updateRunningIndex(current, hourly, daily, aq) {
