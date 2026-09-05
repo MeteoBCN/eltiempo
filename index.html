@@ -1143,6 +1143,122 @@
             }
         }
         /* ══════════ FIN METEOPANEL MASONRY ══════════ */
+
+        /* ══════════════════════════════════════════════════════════
+           MICROCLIMAS RUNNING · Barra de horas + 3 zonas
+           ══════════════════════════════════════════════════════════ */
+        .microclima-hours-row {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 4px 10px;
+            margin: 0 -4px 12px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .microclima-hours-row::-webkit-scrollbar { display: none; }
+        .microclima-hour-btn {
+            flex: 0 0 auto;
+            min-width: 52px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(28,79,120,0.2);
+            background: #ffffff;
+            color: #123653;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .microclima-hour-btn:hover { border-color: rgba(28,79,120,0.4); }
+        .microclima-hour-btn.is-active {
+            background: #123653;
+            border-color: #123653;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+        .microclima-zones-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .microclima-zone-card {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px 10px;
+            border-radius: 12px;
+            background: #ffffff;
+            border: 1px solid rgba(28,79,120,0.12);
+        }
+        .microclima-zone-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+        .microclima-zone-name {
+            font-size: 12px;
+            font-weight: 800;
+            color: #123653;
+            line-height: 1.25;
+        }
+        .microclima-zone-sub {
+            font-size: 9px;
+            font-weight: 600;
+            color: #123653;
+            opacity: 0.55;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .microclima-zone-badge {
+            flex-shrink: 0;
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .microclima-zone-stats {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #123653;
+        }
+        .microclima-zone-stat {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .microclima-zone-stat svg { flex-shrink: 0; }
+        .microclima-zone-advice {
+            font-size: 10.5px;
+            font-weight: 400;
+            color: #123653;
+            opacity: 0.85;
+            line-height: 1.4;
+        }
+        @media (max-width: 640px) {
+            .microclima-zones-grid {
+                grid-template-columns: 1fr;
+            }
+            .microclima-zone-card {
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+            .microclima-zone-head { width: 100%; }
+            .microclima-zone-stats { width: 100%; }
+            .microclima-zone-advice { width: 100%; }
+        }
+        /* ══════════ FIN MICROCLIMAS RUNNING ══════════ */
     </style>
 </head>
 <body>
@@ -1276,9 +1392,12 @@
 
                         <div id="sport-section-wrap" style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(28,79,120,0.15);">
                             <div style="font-family:'Fraunces',serif;font-style:italic;font-size:19px;font-weight:500;color:#123653;text-align:center;margin-bottom:2px;letter-spacing:0.2px;">¿Sales a correr por Barcelona?</div>
-                            <div id="sport-section-subtitle" style="font-size:10px;font-weight:600;color:#123653;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:10px;margin-bottom:16px;">Elige la hora perfecta para tu plan</div>
-                            <div id="sport-section-cards" style="display:flex;flex-direction:column;gap:0;padding:6px 8px;background:#F3FAF4;border-radius:12px;">
-                                <div style="flex:1;text-align:center;padding:14px 6px;color:#94a3b8;font-size:11px;">Cargando…</div>
+                            <div id="sport-section-subtitle" style="font-size:10px;font-weight:600;color:#123653;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:10px;margin-bottom:16px;">Elige tu hora para ver las mejores zonas donde entrenar</div>
+
+                            <div id="microclima-hours-row" class="microclima-hours-row" role="tablist" aria-label="Selector de hora"></div>
+
+                            <div id="sport-section-cards" class="microclima-zones-grid">
+                                <div style="grid-column:1/-1;text-align:center;padding:14px 6px;color:#94a3b8;font-size:11px;">Cargando…</div>
                             </div>
                             <div style="display:flex;flex-direction:row;align-items:center;justify-content:center;flex-wrap:wrap;gap:14px;margin-top:24px;">
                                 <span style="font-size:8px;font-weight:700;color:#123653;text-transform:uppercase;">Condiciones:</span>
@@ -9042,240 +9161,222 @@
             return reasons;
         }
 
-        // ── Motor unificado "¿Sales a correr?" ──────────────────────────────
-        // Un único sistema de umbrales decide TANTO el estado (verde/naranja/rojo,
-        // que pinta el color de cada tarjeta) COMO la frase técnica que se muestra.
-        // Así no puede haber contradicción entre el color y el texto.
-        //
-        // Parámetros:
-        //   temp     → temperatura real (°C)
-        //   hum      → humedad relativa (%)
-        //   wind     → viento (km/h)
-        //   aqi      → índice de calidad del aire (ICA)
-        //   feels    → sensación térmica (°C)
-        //   pprob    → probabilidad de precipitación (%)
-        //   wmo      → código meteorológico WMO (para detectar lluvia fuerte)
-        //   tempIn4h → temperatura prevista dentro de 4h (°C), para estabilidad térmica
-        //
-        // Devuelve { estado: 'rojo'|'naranja'|'verde', frase: '...' }
-        function getEstadoYFrase(temp, hum, wind, aqi, feels, pprob, wmo, tempIn4h, hora) {
-            var t   = temp;
-            var h   = hum;
-            var w   = wind;
-            var a   = aqi;
-            var f   = (feels != null) ? feels : temp;
-            var pp  = (pprob != null) ? pprob : 0;
+        // ══════════════════════════════════════════════════════════════════
+        // MICROCLIMAS RUNNING · Barcelona
+        // ──────────────────────────────────────────────────────────────────
+        // Simula los 3 microclimas de running más representativos de la
+        // ciudad aplicando modificadores fijos a la Temperatura y Humedad
+        // base que devuelve la API meteorológica para la hora seleccionada.
+        // No hay estaciones reales en cada barrio: es una estimación útil
+        // para decidir "dónde" correr, no una medición exacta.
+        // ══════════════════════════════════════════════════════════════════
 
-            // ¿Ya está lloviendo con intensidad? (WMO: 65 lluvia fuerte, 67 lluvia
-            // helada fuerte, 82 chubascos violentos, 95-99 tormenta)
-            var isHeavyRainNow = (wmo === 65 || wmo === 67 || wmo === 82 || wmo >= 95);
+        // ── 1. Definición de las 3 zonas y sus modificadores fijos ──────────
+        var RUNNING_ZONES = [
+            {
+                id: 'maritima',
+                name: 'Zona Marítima',
+                sub: 'Barceloneta / Fòrum',
+                icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 17c1.2 1.3 2.6 1.3 3.8 0 1.2 1.3 2.6 1.3 3.8 0 1.2 1.3 2.6 1.3 3.8 0 1.2 1.3 2.6 1.3 3.8 0 1.2 1.3 2.6 1.3 3.8 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2 12c1.2 1.3 2.6 1.3 3.8 0 1.2 1.3 2.6 1.3 3.8 0 1.2 1.3 2.6 1.3 3.8 0 1.2 1.3 2.6 1.3 3.8 0 1.2 1.3 2.6 1.3 3.8 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.5"/></svg>',
+                // Temp igual | Humedad +8 puntos | Viento +30%
+                mod: { temp: 0, hum: 8, windFactor: 1.30 }
+            },
+            {
+                id: 'centro',
+                name: 'Centro Ciudad',
+                sub: 'Eixample / Diagonal',
+                icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="9" width="4" height="11" stroke="currentColor" stroke-width="1.6"/><rect x="10" y="4" width="4" height="16" stroke="currentColor" stroke-width="1.6"/><rect x="16" y="12" width="4" height="8" stroke="currentColor" stroke-width="1.6"/></svg>',
+                // Temp +1.5°C | Humedad igual | Viento -40%
+                mod: { temp: 1.5, hum: 0, windFactor: 0.60 }
+            },
+            {
+                id: 'collserola',
+                name: 'Collserola',
+                sub: 'Carretera de les Aigües',
+                icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 19l6-10 4 6 3-4 7 8H2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+                // Temp -2.5°C | Humedad -10 puntos | Viento igual
+                mod: { temp: -2.5, hum: -10, windFactor: 1.0 }
+            }
+        ];
 
-            // ═══ 3. ESTADO: MALAS CONDICIONES (Rojo) ═══
-            // Se acumulan TODOS los factores críticos que se cumplen, en orden
-            // de gravedad (el primero de la lista es el más grave).
-            var rojoCandidatos = [];
-            if (t > 29 && h > 80) {
-                rojoCandidatos.push('Riesgo de deshidratación por combinación de calor y bochorno.');
-            }
-            if (a > 100) {
-                rojoCandidatos.push('Umbral de esfuerzo alterado por alta concentración de partículas.');
-            }
-            if (t > 30) {
-                rojoCandidatos.push('Resistencia aeróbica reducida debido al estrés térmico.');
-            }
-            if (w > 35) {
-                rojoCandidatos.push('Rachas de viento frontales superiores al límite recomendado.');
-            }
-            if (pp > 60 || isHeavyRainNow) {
-                rojoCandidatos.push('Saturación de agua en el pavimento: riesgo alto de deslizamiento.');
-            }
-
-            // ═══ 2. ESTADO: CONDICIONES MEJORABLES (Naranja) ═══
-            // Se acumulan TODOS los factores que penalizan el tiempo, en orden
-            // de relevancia (el primero de la lista es el más relevante).
-            var naranjaCandidatos = [];
-            if (h >= 76 && h <= 85) {
-                naranjaCandidatos.push('Pérdida de eficiencia por ascenso de humedad.');
-            }
-            if (t > 28) {
-                naranjaCandidatos.push('Calor moderado.');
-            }
-            if ((f - t) > 2) {
-                naranjaCandidatos.push('Sensación térmica elevada (BOCHORNO).');
-            }
-            if (w >= 21 && w <= 35) {
-                naranjaCandidatos.push('Viento moderado: puede afectar el ritmo en zonas abiertas.');
-            }
-            if (a >= 51 && a <= 100) {
-                naranjaCandidatos.push('Calidad del aire regular. Hidrátate con mayor frecuencia.');
-            }
-            if (pp > 0 && pp < 40) {
-                naranjaCandidatos.push('Ligera inestabilidad con baja probabilidad de chubasco.');
-            }
-
-            // Si hay al menos un factor rojo o naranja, el estado NUNCA es verde.
-            // Si hay al menos un factor rojo (aunque también haya uno naranja),
-            // el estado final es rojo ("una mala + una mejorable = mala").
-            // Se muestran las 2 frases más destacables: primero las rojas
-            // (más graves) y, si falta hueco, se completa con las naranjas.
-            if (rojoCandidatos.length > 0 || naranjaCandidatos.length > 0) {
-                var estadoFinal = rojoCandidatos.length > 0 ? 'rojo' : 'naranja';
-                var destacadas = rojoCandidatos.concat(naranjaCandidatos).slice(0, 2);
-                return { estado: estadoFinal, frase: destacadas.join(' ') };
-            }
-
-            // ═══ 1. ESTADO: BUENAS CONDICIONES (Verde) ═══
-            // Se muestra UNA sola descripción (a diferencia de rojo/naranja).
-            // Matriz que cruza Calidad del Aire (ICA) con el estado del cielo,
-            // para evitar contradicciones visuales (p.ej. "despejado" de noche).
-            // Cielo despejado/soleado → WMO 0 (despejado) o 1 (mayormente despejado).
-            var esCieloDespejado = (wmo === 0 || wmo === 1);
-            // Noche/atardecer en Barcelona: a partir de las 20:00h (y hasta el amanecer).
-            var esNoche = (hora != null) && (hora >= 20 || hora < 6);
-
-            var opcionesVerde = [];
-            if (a < 30) {
-                if (esNoche) {
-                    opcionesVerde.push('Ambiente limpio y calidad del aire excelente esta noche.');
-                } else if (esCieloDespejado) {
-                    opcionesVerde.push('Atmósfera despejada y calidad del aire excelente.');
-                } else {
-                    opcionesVerde.push('Excelente calidad del aire bajo cielos cubiertos.');
-                }
-            }
-            if (h < 60 && w < 10) {
-                opcionesVerde.push('Oxígeno óptimo, humedad baja y viento en calma.');
-            }
-            if (t >= 15 && t <= 18) {
-                opcionesVerde.push('Sensación térmica ideal para entrenamientos de ritmo.');
-            }
-            if (tempIn4h != null && Math.abs(tempIn4h - t) < 1) {
-                opcionesVerde.push('Estabilidad térmica total durante las próximas horas.');
-            }
-            if (opcionesVerde.length === 0) {
-                opcionesVerde.push('Índice de calor mínimo: rendimiento óptimo asegurado.');
-            }
-            var fraseVerde = opcionesVerde[Math.floor(Math.random() * opcionesVerde.length)];
-            return { estado: 'verde', frase: fraseVerde };
+        // ── 2. Modificadores → datos corregidos por zona ────────────────────
+        // Recibe la temperatura y humedad BASE de la hora elegida (más el
+        // viento base, opcional) y devuelve un array con los datos ya
+        // corregidos para las 3 zonas.
+        function calcularMicroclimas(tempBase, humBase, windBase) {
+            windBase = windBase || 0;
+            return RUNNING_ZONES.map(function (zone) {
+                var temp = tempBase + zone.mod.temp;
+                var hum = Math.max(0, Math.min(100, humBase + zone.mod.hum));
+                var wind = Math.max(0, windBase * zone.mod.windFactor);
+                var veredicto = veredictoZona(temp, hum, wind);
+                return {
+                    id: zone.id,
+                    name: zone.name,
+                    sub: zone.sub,
+                    icon: zone.icon,
+                    temp: temp,
+                    hum: hum,
+                    wind: wind,
+                    veredicto: veredicto
+                };
+            }).sort(function (a, b) { return b.veredicto.score - a.veredicto.score; });
         }
 
-        // ── Traduce el estado (rojo/naranja/verde) al mismo formato de "lvl"
-        //    que ya usaba el resto del widget (label, title, color, bg) ──
-        function _estadoToLevel(estado) {
-            if (estado === 'verde')   return { label: 'Buena',   title: 'buenas condiciones',    color: '#16a34a', bg: '#f0fdf4' };
-            if (estado === 'naranja') return { label: 'Regular', title: 'condiciones mejorables', color: '#f97316', bg: '#fff7ed' };
-            return { label: 'Mala', title: 'no recomendable', color: '#9d174d', bg: '#fdf2f8' };
+        // ── 3. Veredicto térmico por zona (score 0-100 + etiqueta + consejo) ─
+        // Usa los mismos 3 niveles/colores que ya muestra la leyenda del
+        // bloque ("Buenas" / "Mejorables" / "Malas") para no introducir un
+        // código de color nuevo.
+        function veredictoZona(temp, hum, wind) {
+            var score = 100;
+
+            // Temperatura: rango ideal de carrera 12–18°C
+            if (temp < 5) score -= 35;
+            else if (temp < 10) score -= 18;
+            else if (temp <= 18) score -= 0;
+            else if (temp <= 22) score -= 6;
+            else if (temp <= 26) score -= 18;
+            else if (temp <= 30) score -= 32;
+            else score -= 50;
+
+            // Humedad: por debajo del 65% no penaliza
+            if (hum > 85) score -= 26;
+            else if (hum > 75) score -= 16;
+            else if (hum > 65) score -= 8;
+
+            // Viento: por debajo de 15 km/h no penaliza
+            if (wind > 35) score -= 22;
+            else if (wind > 25) score -= 13;
+            else if (wind > 15) score -= 6;
+
+            score = Math.max(0, Math.min(100, Math.round(score)));
+
+            var label, color, bg;
+            if (score >= 70) { label = 'Buena'; color = '#16a34a'; bg = '#f0fdf4'; }
+            else if (score >= 40) { label = 'Mejorable'; color = '#f97316'; bg = '#fff7ed'; }
+            else { label = 'Mala'; color = '#9d174d'; bg = '#fdf2f8'; }
+
+            return { score: score, label: label, color: color, bg: bg, consejo: consejoZona(temp, hum, wind, score) };
         }
 
-        function updateSportSection(current, hourly, aq) {
-            var wrap = document.getElementById('sport-section-cards');
-            if (!wrap || !current) return;
+        // ── 4. Consejo textual, adaptado a la combinación temp/hum/viento ───
+        function consejoZona(temp, hum, wind, score) {
+            var frases = [];
+            if (wind > 25) frases.push('Viento notable (' + Math.round(wind) + ' km/h): ajusta el ritmo en los tramos abiertos.');
+            else if (wind < 10) frases.push('Ambiente en calma, sin apenas viento.');
+            if (hum > 75) frases.push('Humedad alta: hidrátate con más frecuencia.');
+            else if (hum < 45) frases.push('Aire seco, buena sensación de frescor.');
+            if (temp > 26) frases.push('Calor notable: mejor evitar series exigentes.');
+            else if (temp < 8) frases.push('Fresco intenso: calienta bien antes de salir.');
+            else if (temp >= 12 && temp <= 18) frases.push('Temperatura ideal para rodajes y ritmos.');
+            if (frases.length === 0) {
+                frases.push(score >= 70 ? 'Condiciones equilibradas para entrenar.' : 'Condiciones aceptables, sin grandes riesgos.');
+            }
+            return frases.slice(0, 2).join(' ');
+        }
 
-            var aqi = aq?.european_aqi ?? aq?.us_aqi ?? 0;
+        // ── 5. Estado del selector de horas ──────────────────────────────────
+        var _microHourly = null;      // referencia a data.hourly (Open-Meteo)
+        var _microHourIdxList = [];   // índices de hourly.time disponibles a mostrar
+        var _microSelectedIdx = null; // índice de hourly.time actualmente seleccionado
+
+        // Construye la lista de horas a mostrar en la barra: desde la hora
+        // actual y hasta 11 horas hacia delante (12 en total).
+        function _microBuildHourList(hourly) {
+            var list = [];
+            if (!hourly || !hourly.time) return list;
             var now = new Date();
-
-            function findHourlyIdx(targetDate) {
-                if (!hourly?.time) return -1;
-                var ts = targetDate.getFullYear() + '-' + String(targetDate.getMonth()+1).padStart(2,'0') + '-' +
-                         String(targetDate.getDate()).padStart(2,'0') + 'T' + String(targetDate.getHours()).padStart(2,'0');
-                for (var i = 0; i < hourly.time.length; i++) {
-                    if (hourly.time[i].startsWith(ts)) return i;
-                }
-                return -1;
+            var nowTs = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0') + 'T' + String(now.getHours()).padStart(2, '0');
+            var startIdx = hourly.time.findIndex(function (t) { return t.startsWith(nowTs); });
+            if (startIdx === -1) startIdx = 0;
+            for (var i = startIdx; i < hourly.time.length && list.length < 12; i++) {
+                list.push(i);
             }
+            return list;
+        }
 
-            var points = [
-                { label: String(now.getHours()), offset: 0 },
-                { label: String((now.getHours()+1) % 24), offset: 1 },
-                { label: String((now.getHours()+2) % 24), offset: 2 },
-                { label: String((now.getHours()+3) % 24), offset: 3 },
-                { label: String((now.getHours()+4) % 24), offset: 4 },
-                { label: String((now.getHours()+5) % 24), offset: 5 },
-                { label: String((now.getHours()+6) % 24), offset: 6 }
-            ];
+        // ── 6. Pintar la barra horizontal de horas ───────────────────────────
+        function _microRenderHoursBar() {
+            var row = document.getElementById('microclima-hours-row');
+            if (!row || !_microHourly) return;
 
-            var runSvg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg>';
-
-            function computePoint(p) {
-                var temp, hum, wind, uv, wmo, feels, dt, pprob;
-                if (p.offset === 0) {
-                    dt = now;
-                    temp = current.temperature_2m ?? 20;
-                    hum  = current.relative_humidity_2m ?? 50;
-                    wind = current.wind_speed_10m ?? 0;
-                    wmo  = current.weather_code ?? 0;
-                    feels = current.apparent_temperature ?? temp;
-                    var idxNow = findHourlyIdx(now);
-                    uv = idxNow !== -1 ? (hourly?.uv_index?.[idxNow] ?? 0) : 0;
-                    pprob = idxNow !== -1 ? (hourly?.precipitation_probability?.[idxNow] ?? 0) : 0;
-                } else {
-                    var future = new Date(now.getTime() + p.offset * 3600000);
-                    dt = future;
-                    var idx = findHourlyIdx(future);
-                    if (idx === -1) {
-                        temp = current.temperature_2m ?? 20;
-                        hum  = current.relative_humidity_2m ?? 50;
-                        wind = current.wind_speed_10m ?? 0;
-                        wmo  = current.weather_code ?? 0;
-                        feels = current.apparent_temperature ?? temp;
-                        uv   = 0;
-                        pprob = 0;
-                    } else {
-                        temp = hourly.temperature_2m?.[idx] ?? 20;
-                        hum  = hourly.relative_humidity_2m?.[idx] ?? 50;
-                        wind = hourly.wind_speed_10m?.[idx] ?? 0;
-                        wmo  = hourly.weather_code?.[idx] ?? 0;
-                        uv   = hourly.uv_index?.[idx] ?? 0;
-                        feels = hourly.apparent_temperature?.[idx] ?? temp;
-                        pprob = hourly.precipitation_probability?.[idx] ?? 0;
-                    }
-                }
-                // Temperatura prevista dentro de 4h (para "estabilidad térmica")
-                var idx4h = findHourlyIdx(new Date(dt.getTime() + 4 * 3600000));
-                var tempIn4h = idx4h !== -1 ? (hourly?.temperature_2m?.[idx4h] ?? null) : null;
-
-                // Un único cálculo decide el estado (color) y la frase, así nunca
-                // pueden contradecirse entre sí.
-                var horaLocal = dt.getHours();
-                var resultado = getEstadoYFrase(temp, hum, wind, aqi, feels, pprob, wmo, tempIn4h, horaLocal);
-                var lvl = _estadoToLevel(resultado.estado);
-                var reason = resultado.frase;
-                return { p:p, lvl:lvl, reason:reason };
-            }
-
-            // ── Tarjeta principal: hora actual (redondeada a 00/15/30/45) ──
-            var mainData = computePoint(points[0]);
-            var mainIcon = maskedIconHtml(runSvg, 22, mainData.lvl.color);
-            var mins = now.getMinutes();
-            var roundedMins = Math.round(mins / 15) * 15;
-            var displayHour = now.getHours();
-            if (roundedMins === 60) {
-                roundedMins = 0;
-                displayHour = (displayHour + 1) % 24;
-            }
-            var horaActualTexto = String(displayHour).padStart(2, '0') + ':' + String(roundedMins).padStart(2, '0');
-            var mainHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px;border-bottom:none;">' +
-                '<div style="display:flex;align-items:center;justify-content:center;gap:8px;">' +
-                    '<div style="font-size:12px;font-weight:700;color:#123653;">' + horaActualTexto + '</div>' +
-                    '<div style="display:flex;align-items:center;justify-content:center;">' + mainIcon + '</div>' +
-                    '<div style="font-size:11px;font-weight:700;color:' + mainData.lvl.color + ';text-transform:uppercase;">' + mainData.lvl.title + '</div>' +
-                '</div>' +
-                '<div style="text-align:center;font-size:10.5px;font-weight:400;font-style:normal;color:#123653;text-transform:uppercase;margin-top:4px;">' + mainData.reason + '</div>' +
-            '</div>';
-
-            // ── Las 6 horas siguientes: fila compacta con solo icono + hora ──
-            var nextHTML = points.slice(1).map(function(p) {
-                var d = computePoint(p);
-                var icon = maskedIconHtml(runSvg, 18, d.lvl.color);
-                return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">' +
-                    '<div style="display:flex;align-items:center;justify-content:center;">' + icon + '</div>' +
-                    '<div style="font-size:11px;font-weight:700;color:#123653;">' + d.p.label + 'h</div>' +
-                '</div>';
+            row.innerHTML = _microHourIdxList.map(function (idx) {
+                var d = new Date(_microHourly.time[idx]);
+                var label = d.getHours() + 'h';
+                var active = idx === _microSelectedIdx;
+                return '<button type="button" class="microclima-hour-btn' + (active ? ' is-active' : '') +
+                    '" data-idx="' + idx + '" role="tab" aria-selected="' + active + '">' + label + '</button>';
             }).join('');
 
-            var nextRowHTML = '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;row-gap:16px;column-gap:14px;padding:10px 6px 4px;margin-top:2px;">' + nextHTML + '</div>';
+            // Delegación de eventos: click/touch en cualquier botón de hora
+            row.onclick = function (e) {
+                var btn = e.target.closest('.microclima-hour-btn');
+                if (!btn) return;
+                var idx = parseInt(btn.getAttribute('data-idx'), 10);
+                if (idx === _microSelectedIdx) return;
+                _microSelectedIdx = idx;
+                _microRenderHoursBar();
+                _microRenderZones();
+            };
+        }
 
-            wrap.innerHTML = mainHTML + nextRowHTML;
+        // ── 7. Pintar las 3 tarjetas de zona para la hora seleccionada ──────
+        // Las tarjetas salen siempre "abiertas" (consejo visible sin segundo
+        // clic) y, en el array ya vienen ordenadas de mejor a peor veredicto,
+        // por lo que tanto el grid de escritorio como la lista vertical en
+        // móvil respetan ese mismo orden.
+        function _microRenderZones() {
+            var wrap = document.getElementById('sport-section-cards');
+            if (!wrap || !_microHourly || _microSelectedIdx == null) return;
+
+            var tempBase = _microHourly.temperature_2m ? _microHourly.temperature_2m[_microSelectedIdx] : 20;
+            var humBase = _microHourly.relative_humidity_2m ? _microHourly.relative_humidity_2m[_microSelectedIdx] : 55;
+            var windBase = _microHourly.wind_speed_10m ? _microHourly.wind_speed_10m[_microSelectedIdx] : 10;
+
+            var zonas = calcularMicroclimas(tempBase, humBase, windBase);
+
+            var windSvg = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8h11a3 3 0 1 0-2.8-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3 16h14a3 3 0 1 1-2.8 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+            var humSvg = '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.5C12 2.5 5 11.2 5 15.6C5 19.6 8.13 22.5 12 22.5C15.87 22.5 19 19.6 19 15.6C19 11.2 12 2.5 12 2.5Z"/></svg>';
+
+            wrap.innerHTML = zonas.map(function (z) {
+                return '' +
+                    '<div class="microclima-zone-card">' +
+                        '<div class="microclima-zone-head">' +
+                            '<div>' +
+                                '<div class="microclima-zone-name">' + z.icon + ' ' + z.name + '</div>' +
+                                '<div class="microclima-zone-sub">' + z.sub + '</div>' +
+                            '</div>' +
+                            '<span class="microclima-zone-badge" style="color:' + z.veredicto.color + ';background:' + z.veredicto.bg + ';">' + z.veredicto.label + '</span>' +
+                        '</div>' +
+                        '<div class="microclima-zone-stats">' +
+                            '<span class="microclima-zone-stat">' + Math.round(z.temp) + '°C</span>' +
+                            '<span class="microclima-zone-stat">' + humSvg + ' ' + Math.round(z.hum) + '%</span>' +
+                            '<span class="microclima-zone-stat">' + windSvg + ' ' + Math.round(z.wind) + ' km/h</span>' +
+                        '</div>' +
+                        '<div class="microclima-zone-advice">' + z.veredicto.consejo + '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        // ── 8. Punto de entrada, llamado tras cargar los datos de la API ───
+        // Se mantiene el nombre updateSportSection para no tocar el resto
+        // del pipeline de carga de datos que ya invoca esta función.
+        function updateSportSection(current, hourly, aq) {
+            if (!hourly || !hourly.time) return;
+
+            _microHourly = hourly;
+            _microHourIdxList = _microBuildHourList(hourly);
+            if (_microHourIdxList.length === 0) return;
+
+            // Por defecto, al cargar, se activa la primera hora disponible
+            // (la hora actual) para que la interfaz no aparezca vacía.
+            if (_microSelectedIdx == null || _microHourIdxList.indexOf(_microSelectedIdx) === -1) {
+                _microSelectedIdx = _microHourIdxList[0];
+            }
+
+            _microRenderHoursBar();
+            _microRenderZones();
         }
 
         function updateRunningIndex(current, hourly, daily, aq) {
