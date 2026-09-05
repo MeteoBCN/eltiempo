@@ -7243,30 +7243,38 @@
                 ctx.fillText(lbl, xPos(i), humDayLabelY);
             });
 
-            // Título + leyenda de temperatura (línea continua = máx, discontinua = mín)
-            ctx.textAlign = 'center'; ctx.font = 'bold 10.5px Inter,sans-serif';
+            // Título con separador "·" cuya posición se calcula explícitamente,
+            // para poder alinear debajo el "·" de la leyenda con este mismo punto.
+            ctx.font = 'bold 10.5px Inter,sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.fillText('TEMPERATURA · PRECIPITACIÓN', PAD.l + cw / 2, PAD.t - 65);
-
-            ctx.font = 'bold 9px Inter,sans-serif';
             {
-                const swatchW = 14, textPad = 5, groupGap = 20;
-                const t1 = 'Máx', t2 = 'Mín';
-                const w1 = ctx.measureText(t1).width, w2 = ctx.measureText(t2).width;
-                const totalW = swatchW + textPad + w1 + groupGap + swatchW + textPad + w2;
-                let lx = PAD.l + cw / 2 - totalW / 2;
+                const titLeft  = 'TEMPERATURA ';
+                const titDot   = '·';
+                const titRight = ' PRECIPITACIÓN';
+                const wLeft  = ctx.measureText(titLeft).width;
+                const wDot   = ctx.measureText(titDot).width;
+                const wRight = ctx.measureText(titRight).width;
+                const titX0  = PAD.l + cw / 2 - (wLeft + wDot + wRight) / 2;
+                const titDotCenterX = titX0 + wLeft + wDot / 2;
 
                 ctx.textAlign = 'left';
-                ctx.beginPath(); ctx.moveTo(lx, PAD.t - 49); ctx.lineTo(lx + swatchW, PAD.t - 49);
-                ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 1.1; ctx.stroke();
-                ctx.fillStyle = '#FF8A65';
-                ctx.fillText(t1, lx + swatchW + textPad, PAD.t - 46);
-                lx += swatchW + textPad + w1 + groupGap;
-                ctx.beginPath(); ctx.moveTo(lx, PAD.t - 49); ctx.lineTo(lx + swatchW, PAD.t - 49);
-                ctx.strokeStyle = '#7DD3FC';
-                ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
-                ctx.fillStyle = '#7DD3FC';
-                ctx.fillText(t2, lx + swatchW + textPad, PAD.t - 46);
+                ctx.fillText(titLeft, titX0, PAD.t - 65);
+                ctx.fillText(titDot, titX0 + wLeft, PAD.t - 65);
+                ctx.fillText(titRight, titX0 + wLeft + wDot, PAD.t - 65);
+
+                // Leyenda: línea roja para máx y discontinua para mín · Prob. (%)  Acumulado (mm)
+                ctx.font = '9px Inter,sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.65)';
+                const legLeft  = 'Línea roja para máx y discontinua para mín ';
+                const legDot   = '·';
+                const legRight = ' Prob. (%)   Acumulado (mm)';
+                const lwLeft = ctx.measureText(legLeft).width;
+                const lwDot  = ctx.measureText(legDot).width;
+                const legX0  = titDotCenterX - lwLeft - lwDot / 2;
+
+                ctx.fillText(legLeft, legX0, PAD.t - 46);
+                ctx.fillText(legDot, legX0 + lwLeft, PAD.t - 46);
+                ctx.fillText(legRight, legX0 + lwLeft + lwDot, PAD.t - 46);
             }
         }
 
