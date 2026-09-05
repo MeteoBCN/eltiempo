@@ -5931,7 +5931,9 @@
                     const rowDimClass = isNightSlot ? ' bbc-dprow-dim' : '';
                     const rainIconColor = isNightSlot ? 'rgba(255,255,255,0.55)' : '#ffffff';
 
-                    const tempColorStyle = (typeof tempValue === 'number') ? ` style="color:${bbcTempColor(tempValue)}"` : '';
+                    const tempColorStyle = isNightSlot
+                        ? ' style="color:#ffffff"'
+                        : ((typeof tempValue === 'number') ? ` style="color:${bbcTempColor(tempValue)}"` : '');
 
                     return `<div class="bbc-dprow${rowDimClass}">
                         <div class="bbc-dprow-label">
