@@ -2080,6 +2080,211 @@
                             setInterval(fetchTibidaboLive, 10 * 60 * 1000);
                             </script>
 
+                            <!-- ═══════════════════════════════════════════════════════════════════
+                                 WIDGET: COLUMNA ATMOSFÉRICA (NOWCASTING) — degradado continuo
+                                 Bloque 100% independiente, colocado justo DEBAJO del widget
+                                 "Columna de Aire (Nowcasting)" (colair-widget / #colairWidget) y
+                                 justo ANTES de la tarjeta de Webcam. No sustituye a ningún widget
+                                 existente, ambos conviven en la misma página.
+                                 Solo 5 niveles fijos (sin isocero ni base de nubes). Todo el
+                                 contenedor lleva UN degradado térmico continuo (cálido arriba/
+                                 abajo según temperatura real de cada nivel, no colores por fila).
+                                 Todos los selectores, IDs y funciones usan el prefijo "acnow-" / "ACNOW"
+                                 / "acnow" para no colisionar con ningún ID ni función ya existentes
+                                 (meteograma-*, f7-*, drawTempRainChart, drawHumChart, etc). -->
+                            <div style="background:transparent;padding:14px 16px 4px;margin-bottom:12px;">
+                                <div style="text-align:center;font-size:10.5px;font-weight:700;color:rgba(255,255,255,0.65);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">COLUMNA ATMOSFÉRICA · NOWCASTING</div>
+
+                                <div id="acnow-widget" class="acnow-container">
+                                    <div id="acnow-rows"><!-- filas generadas dinámicamente por JS (acnowRenderColumn) --></div>
+                                </div>
+
+                                <p style="margin:8px 2px 0;font-size:9.5px;color:rgba(255,255,255,0.45);text-align:center;">Degradado térmico continuo (cálido = temperaturas altas, frío = temperaturas bajas) · una inversión térmica se ve como un tramo más cálido por encima de otro más frío · flecha = dirección real del flujo de viento</p>
+                            </div>
+
+                            <style>
+                                /* ── Widget "Columna Atmosférica (Nowcasting)" · estilos con prefijo acnow- ── */
+                                .acnow-container{
+                                    border-radius:18px;
+                                    padding:14px 10px;
+                                    display:flex;
+                                    flex-direction:column;
+                                    gap:0;
+                                    box-shadow:0 10px 26px rgba(0,0,0,0.35);
+                                    overflow:hidden;
+                                    /* El degradado real se inyecta por JS (acnowRenderColumn) como
+                                       background-image inline, mezclado sobre esta base oscura. */
+                                    background-color:#0b1424;
+                                }
+                                .acnow-level-row{
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:space-between;
+                                    gap:8px;
+                                    padding:12px;
+                                    border-bottom:1px solid rgba(255,255,255,0.08);
+                                }
+                                .acnow-level-row:last-child{ border-bottom:none; }
+                                .acnow-level-name{ flex:0 0 96px; min-width:0; }
+                                .acnow-level-title{ font-size:12px; font-weight:700; color:#ffffff; letter-spacing:0.3px; display:flex; align-items:center; gap:5px; white-space:nowrap; text-shadow:0 1px 3px rgba(0,0,0,0.6); }
+                                .acnow-level-alt{ font-size:9.5px; color:rgba(255,255,255,0.65); margin-top:2px; letter-spacing:0.2px; text-shadow:0 1px 3px rgba(0,0,0,0.6); }
+                                .acnow-level-data{ display:flex; gap:14px; flex:1; justify-content:center; }
+                                .acnow-data-item{ text-align:center; min-width:34px; }
+                                .acnow-data-value{ font-size:13px; font-weight:600; color:#ffffff; line-height:1.1; text-shadow:0 1px 3px rgba(0,0,0,0.6); }
+                                .acnow-data-label{ font-size:8px; color:rgba(255,255,255,0.55); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; text-shadow:0 1px 3px rgba(0,0,0,0.6); }
+                                .acnow-wind{ display:flex; flex-direction:column; align-items:center; gap:2px; flex:0 0 44px; }
+                                .acnow-wind-icon svg{ display:block; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.6)); }
+                                .acnow-wind-speed{ font-size:8.5px; color:rgba(255,255,255,0.7); white-space:nowrap; text-shadow:0 1px 3px rgba(0,0,0,0.6); }
+                                .acnow-live-dot{
+                                    width:6px; height:6px; border-radius:50%; background:#10B981;
+                                    box-shadow:0 0 6px #10B981; display:inline-block; flex-shrink:0;
+                                    animation:acnow-pulse 2s ease-in-out infinite;
+                                }
+                                @keyframes acnow-pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+                                @media (max-width:360px){
+                                    .acnow-level-name{ flex-basis:80px; }
+                                    .acnow-level-data{ gap:8px; }
+                                }
+                            </style>
+
+                            <script>
+                            (function(){
+
+                                // ═══════════════════════════════════════════════════════════
+                                // PANEL DE CONTROL DE DATOS — Columna Atmosférica (Nowcasting)
+                                // ═══════════════════════════════════════════════════════════
+                                // Mapea aquí tus variables reales (salida de tu modelo/API de
+                                // sondeo para 500/700/850 hPa, y las lecturas en vivo de tus
+                                // estaciones de Cota 0 y Tibidabo).
+                                //
+                                // Campos por nivel:
+                                //   id          -> identificador único (para actualizar luego con acnowUpdateLevel)
+                                //   label       -> nombre mostrado ("500 hPa", "TIBIDABO", etc.)
+                                //   altitude    -> altura en metros (número)
+                                //   temp        -> temperatura en °C
+                                //   hum         -> humedad relativa en % (0-100)
+                                //   windDeg     -> dirección del viento en grados meteorológicos (0=N, 90=E, 180=S, 270=O)
+                                //   windSpeed   -> velocidad del viento en km/h (0 o ausente = calma)
+                                //   live        -> true si es un dato dinámico en tiempo real (Tibidabo/Superficie) → muestra punto verde
+                                //
+                                // El ORDEN del array es el orden visual de arriba (cielo) a abajo (suelo).
+                                // El degradado continuo de toda la columna se calcula automáticamente
+                                // a partir de la temperatura de cada uno de estos 5 niveles.
+                                const ACNOW_DATA = {
+                                    levels: [
+                                        { id:'l500',        label:'500 hPa',      altitude:5500, temp:-18, hum:45, windDeg:260, windSpeed:55 },
+                                        { id:'l700',        label:'700 hPa',      altitude:3000, temp:-2,  hum:60, windDeg:245, windSpeed:38 },
+                                        { id:'l850',        label:'850 hPa',      altitude:1500, temp:8,   hum:70, windDeg:220, windSpeed:28 },
+                                        { id:'tibidabo',    label:'TIBIDABO',     altitude:512,  temp:14,  hum:55, windDeg:180, windSpeed:12, live:true },
+                                        { id:'superficie',  label:'SUPERFICIE',   altitude:0,    temp:22,  hum:48, windDeg:150, windSpeed:8,  live:true }
+                                    ]
+                                };
+                                // ═══════════════════════════════════════════════════════════
+                                // FIN PANEL DE CONTROL DE DATOS
+                                // ═══════════════════════════════════════════════════════════
+
+                                function acnowLerp(a, b, t){ return a + (b - a) * t; }
+
+                                // Color térmico de un nivel: azul frío (<=-10°C) → rojo cálido (>=30°C),
+                                // interpolación lineal (LERP) de los canales RGB en el rango intermedio.
+                                // Se usa como "parada de color" (color stop) dentro del degradado
+                                // continuo de toda la columna, no como fondo de fila suelto.
+                                function acnowTempColor(temp){
+                                    const COLD = { r:52,  g:152, b:219 }; // azul → frío
+                                    const WARM = { r:235, g:77,  b:75  }; // rojo → cálido
+                                    let t = (temp - (-10)) / (30 - (-10));
+                                    t = Math.max(0, Math.min(1, t));
+                                    const r = Math.round(acnowLerp(COLD.r, WARM.r, t));
+                                    const g = Math.round(acnowLerp(COLD.g, WARM.g, t));
+                                    const b = Math.round(acnowLerp(COLD.b, WARM.b, t));
+                                    return { r, g, b };
+                                }
+
+                                // Construye UN degradado lineal continuo para toda la columna
+                                // (de arriba/cielo a abajo/suelo), con una parada de color por
+                                // nivel según su temperatura real. Así una inversión térmica
+                                // (ej. Tibidabo más caliente que Superficie) se ve como un tramo
+                                // más "cálido" por encima de un tramo más "frío", sin cortes por fila.
+                                function acnowBuildGradient(levels){
+                                    const n = levels.length;
+                                    const stops = levels.map((lvl, i) => {
+                                        const pct = n <= 1 ? 0 : (i / (n - 1)) * 100;
+                                        const { r, g, b } = acnowTempColor(lvl.temp);
+                                        // Alfa fija y moderada para que se note el color pero
+                                        // conserve el fondo oscuro "premium" del widget.
+                                        return `rgba(${r},${g},${b},0.55) ${pct.toFixed(1)}%`;
+                                    });
+                                    return `linear-gradient(to bottom, ${stops.join(', ')})`;
+                                }
+
+                                // Motor de viento: círculo estático si hay calma; flecha SVG rotada
+                                // "grados + 180" si hay viento, para que la punta apunte hacia donde
+                                // va el flujo de aire (cizalladura real entre niveles).
+                                function acnowWindIcon(deg, speed){
+                                    if(!speed || speed <= 0){
+                                        return '<svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="1.6"/></svg>';
+                                    }
+                                    const rotation = (deg ?? 0) + 180;
+                                    return `<svg width="20" height="20" viewBox="0 0 20 20" style="transform:rotate(${rotation}deg);transform-origin:50% 50%;">
+                                        <line x1="10" y1="16" x2="10" y2="4" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>
+                                        <path d="M6 8 L10 3 L14 8" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>`;
+                                }
+
+                                function acnowEscape(s){
+                                    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                                }
+
+                                function acnowRenderRow(level){
+                                    const windHtml = acnowWindIcon(level.windDeg, level.windSpeed);
+                                    const speedLabel = (!level.windSpeed || level.windSpeed <= 0) ? 'CALMA' : `${level.windSpeed} km/h`;
+                                    const liveDot = level.live ? '<span class="acnow-live-dot" title="Dato en tiempo real"></span>' : '';
+                                    return `
+                                        <div class="acnow-level-row">
+                                            <div class="acnow-level-name">
+                                                <div class="acnow-level-title">${acnowEscape(level.label)}${liveDot}</div>
+                                                <div class="acnow-level-alt">${Math.round(level.altitude)} m</div>
+                                            </div>
+                                            <div class="acnow-level-data">
+                                                <div class="acnow-data-item">
+                                                    <div class="acnow-data-value">${Math.round(level.temp)}°</div>
+                                                    <div class="acnow-data-label">Temp</div>
+                                                </div>
+                                                <div class="acnow-data-item">
+                                                    <div class="acnow-data-value">${Math.round(level.hum)}%</div>
+                                                    <div class="acnow-data-label">Hum</div>
+                                                </div>
+                                            </div>
+                                            <div class="acnow-wind">
+                                                <div class="acnow-wind-icon">${windHtml}</div>
+                                                <div class="acnow-wind-speed">${speedLabel}</div>
+                                            </div>
+                                        </div>`;
+                                }
+
+                                function acnowRenderColumn(){
+                                    const widgetEl = document.getElementById('acnow-widget');
+                                    const rowsEl = document.getElementById('acnow-rows');
+                                    if(!widgetEl || !rowsEl) return;
+                                    // Degradado único aplicado a todo el contenedor (toda la columna).
+                                    widgetEl.style.backgroundImage = acnowBuildGradient(ACNOW_DATA.levels);
+                                    rowsEl.innerHTML = ACNOW_DATA.levels.map(acnowRenderRow).join('');
+                                }
+
+                                // API pública mínima (prefijada) para conectar tus peticiones reales:
+                                // ej. tras recibir la respuesta de tu API de Tibidabo / Cota 0:
+                                //   window.acnowUpdateLevel('tibidabo', { temp: 16.4, hum: 62, windDeg: 210, windSpeed: 14 });
+                                window.acnowUpdateLevel = function(id, newData){
+                                    const level = ACNOW_DATA.levels.find(l => l.id === id);
+                                    if(!level) return;
+                                    Object.assign(level, newData);
+                                    acnowRenderColumn();
+                                };
+
+                                acnowRenderColumn();
+                            })();
+                            </script>
+
                             <!-- Webcam Vila Olímpica: misma característica de tarjeta que el radar -->
                             <div class="colair-widget" style="display:flex;flex-direction:column;">
                                 <div class="colair-header">
