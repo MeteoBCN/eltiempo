@@ -845,25 +845,30 @@
             letter-spacing: 2px;
             text-transform: uppercase;
         }
-        .nav-menu-arrow {
-            font-size: 10px;
-            color: #a8c4d8;
-            transition: transform 0.3s ease;
-        }
-        .nav-menu-arrow.open { transform: rotate(180deg); }
         .nav-menu-hamburger {
             display: flex;
             flex-direction: column;
+            justify-content: center;
             gap: 4px;
-            margin-right: 4px;
+            width: 20px;
         }
         .nav-menu-hamburger span {
             display: block;
-            width: 16px;
+            width: 20px;
             height: 2px;
             background: #a8c4d8;
             border-radius: 2px;
             letter-spacing: 0;
+            transition: transform 0.3s ease, opacity 0.2s ease;
+        }
+        .nav-menu-hamburger.open span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+        .nav-menu-hamburger.open span:nth-child(2) {
+            opacity: 0;
+        }
+        .nav-menu-hamburger.open span:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
         }
         .nav-dropdown {
             display: none;
@@ -1153,11 +1158,11 @@
         <!-- ══════ MENÚ NAVEGACIÓN ══════ -->
         <nav class="nav-menu">
             <button class="nav-menu-toggle" onclick="toggleNavMenu()" id="nav-toggle">
-                <div class="nav-menu-hamburger">
-
+                <div class="nav-menu-hamburger" id="nav-hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
                 </div>
-                <span>menu</span>
-                <span class="nav-menu-arrow" id="nav-arrow">▼</span>
             </button>
             <div class="nav-dropdown" id="nav-dropdown">
                 <a href="mapa.html">
@@ -1170,9 +1175,9 @@
         <script>
         function toggleNavMenu() {
             var dd = document.getElementById('nav-dropdown');
-            var arrow = document.getElementById('nav-arrow');
+            var hamburger = document.getElementById('nav-hamburger');
             dd.classList.toggle('open');
-            arrow.classList.toggle('open');
+            hamburger.classList.toggle('open');
         }
         </script>
         <!-- ══════ FIN MENÚ NAVEGACIÓN ══════ -->
