@@ -1330,8 +1330,8 @@
 
                     <!-- ═══ GRÁFICA TENDENCIA · PUNTO FANTASMA (Ayer → Hoy/Mañana/Pasado) ═══ -->
                     <div id="ghost-trend-wrap" style="width:100%;margin:0;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);padding:16px 16px 14px;border-top:1px solid rgba(255,255,255,0.14);">
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
-                            <div style="font-size:10px;font-weight:700;color:#ffffff;letter-spacing:1px;text-transform:uppercase;opacity:0.75;">Tendencia térmica media</div>
+                        <div style="text-align:center;font-size:10px;font-weight:700;color:#ffffff;letter-spacing:1px;text-transform:uppercase;opacity:0.75;margin-bottom:8px;">Tendencia temperatura</div>
+                        <div style="display:flex;justify-content:center;margin-bottom:10px;">
                             <div id="ghost-trend-badge" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;"></div>
                         </div>
                         <canvas id="ghost-trend-canvas" style="width:100%;display:block;"></canvas>
@@ -3835,8 +3835,8 @@
 
             const mainPoints = [
                 { key: 'hoy',    label: 'HOY' },
-                { key: 'manana', label: 'MAÑANA' },
-                { key: 'pasado', label: 'PASADO MAÑANA' }
+                { key: 'manana', label: vals.mananaLabel || 'MAÑANA' },
+                { key: 'pasado', label: vals.pasadoLabel || 'PASADO MAÑANA' }
             ];
             mainPoints.forEach(pt => {
                 const x = xs[pt.key], y = ys[pt.key], color = colorForTemp(vals[pt.key]);
@@ -3868,19 +3868,33 @@
             // ── 4. Badge de tendencia respecto a ayer (cabecera de la tarjeta) ──
             const badge = document.getElementById('ghost-trend-badge');
             if (badge) {
-                const diff = vals.hoy - vals.ayer;
-                const igual = Math.abs(diff) < 0.5;
+                const diff = Math.round(vals.hoy - vals.ayer); // redondeo al grado entero: 0.6→1, 0.4→0 (estable)
+                const igual = diff === 0;
                 const subiendo = diff > 0;
                 const color = igual ? '#e2e8f0' : (subiendo ? '#FF8A65' : '#7DD3FC');
                 const bg = igual ? 'rgba(255,255,255,0.12)' : (subiendo ? 'rgba(255,138,101,0.18)' : 'rgba(125,211,252,0.18)');
                 const arrow = igual ? '→' : (subiendo ? '↑' : '↓');
                 badge.style.color = color;
                 badge.style.background = bg;
-                badge.textContent = `${arrow} ${igual ? 'Igual que ayer' : (Math.abs(diff).toFixed(1) + '° ' + (subiendo ? 'más que ayer' : 'menos que ayer'))}`;
+                badge.textContent = `${arrow} ${igual ? 'Igual que ayer' : (Math.abs(diff) + '° ' + (subiendo ? 'más que ayer' : 'menos que ayer'))}`;
             }
         }
 
         let _ghostTrendVals = null; // último dato calculado, para poder redibujar en resize
+
+        // Nombre real del día para "Mañana" y "Pasado mañana" (p. ej. si hoy es
+        // sábado: mañana="DOMINGO", pasado mañana="LUNES"). Se recalcula cada vez
+        // que se cargan datos nuevos, así que avanza solo día a día sin tocar código.
+        function ghostTrendDayLabels() {
+            const DIAS_ES = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
+            const hoy = new Date();
+            const manana = new Date(hoy); manana.setDate(hoy.getDate() + 1);
+            const pasado = new Date(hoy); pasado.setDate(hoy.getDate() + 2);
+            return {
+                mananaLabel: DIAS_ES[manana.getDay()],
+                pasadoLabel: DIAS_ES[pasado.getDay()]
+            };
+        }
 
         // Calcula las medias diarias (Hoy/Mañana/Pasado a partir de daily.temperature_2m_max/min
         // ya cargados, sin peticiones extra) y pide aparte, con una única llamada ligera, la
@@ -3913,7 +3927,7 @@
                     console.warn('[Punto Fantasma] No se pudo obtener la media de ayer, se usa la de hoy como referencia:', e);
                 }
 
-                _ghostTrendVals = { ayer, hoy, manana, pasado };
+                _ghostTrendVals = { ayer, hoy, manana, pasado, ...ghostTrendDayLabels() };
                 drawGhostTrendChart(_ghostTrendVals);
             } catch (e) {
                 console.warn('[Punto Fantasma] Error calculando la tendencia de 3 días:', e);
