@@ -8075,12 +8075,22 @@
                 }
             };
 
+            // Plugin que añade aire extra ENTRE la leyenda (CAPE/LI/CIN) y el
+            // área de la gráfica de barras, sin tocar el espacio entre el
+            // título HTML de arriba y la propia leyenda.
+            const legendBottomGapPlugin = {
+                id: 'legendBottomGap',
+                afterFit(chart) {
+                    if (chart.legend) chart.legend.height += 16;
+                }
+            };
+
             // ── 6. Configuración Chart.js ────────────────────────────────
             if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
             const config = {
                 type: 'bar',
                 data: { labels, datasets },
-                plugins: [capeGridLinesPlugin, daySeparatorPlugin],
+                plugins: [capeGridLinesPlugin, daySeparatorPlugin, legendBottomGapPlugin],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -8101,7 +8111,6 @@
                                 color: 'rgba(255,255,255,0.8)',
                                 boxWidth: 10,
                                 boxHeight: 10,
-                                padding: 24,
                                 generateLabels: chart => {
                                     const original = Chart.defaults.plugins.legend.labels.generateLabels(chart);
                                     const renombrar = {
