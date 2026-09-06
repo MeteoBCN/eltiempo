@@ -3838,15 +3838,20 @@
                     return;
                 }
 
-                // Con delta: centramos el conjunto "18° ↑1°" sobre el nodo,
+                // Con delta: centramos el conjunto "18° (+1º)" sobre el nodo,
                 // calculando el ancho de cada parte para colocarlas en fila.
+                // Si el nodo está muy cerca del borde (p. ej. "HOY" a la izquierda),
+                // se recorta el desplazamiento para que el texto no quede cortado
+                // fuera del canvas.
                 const gap = 4;
                 ctx.font = '700 12px Inter,sans-serif';
                 const mainW = ctx.measureText(mainText).width;
                 ctx.font = '700 10px Inter,sans-serif';
                 const deltaW = ctx.measureText(deltaText).width;
                 const totalW = mainW + gap + deltaW;
+                const edgeMargin = 4;
                 let cursorX = x - totalW / 2;
+                cursorX = Math.max(edgeMargin, Math.min(cursorX, W - totalW - edgeMargin));
 
                 ctx.textAlign = 'left';
                 ctx.font = '700 12px Inter,sans-serif';
@@ -7268,7 +7273,7 @@
                 // con el "·" alineado con el del título de arriba. Texto en el
                 // mismo gris y sin negrita que "Prob. (%) / Acumulado (mm)",
                 // y con "Mín" pegado más cerca del separador "·".
-                const swatchW = 14, textPad = 5, groupGap = 20;
+                const swatchW = 14, textPad = 5, groupGap = 10;
                 const legTextColor = 'rgba(255,255,255,0.65)';
                 ctx.font = '9px Inter,sans-serif';
                 const t1 = 'Máx', t2 = 'Mín';
@@ -7286,12 +7291,12 @@
                 ctx.textAlign = 'left';
                 ctx.font = '9px Inter,sans-serif';
                 ctx.beginPath(); ctx.moveTo(lx, legY - 3); ctx.lineTo(lx + swatchW, legY - 3);
-                ctx.setLineDash([]); ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 1.1; ctx.stroke();
+                ctx.setLineDash([]); ctx.strokeStyle = legTextColor; ctx.lineWidth = 1.1; ctx.stroke();
                 ctx.fillStyle = legTextColor;
                 ctx.fillText(t1, lx + swatchW + textPad, legY);
                 lx += swatchW + textPad + w1 + groupGap;
                 ctx.beginPath(); ctx.moveTo(lx, legY - 3); ctx.lineTo(lx + swatchW, legY - 3);
-                ctx.strokeStyle = '#7DD3FC';
+                ctx.strokeStyle = legTextColor;
                 ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
                 ctx.fillStyle = legTextColor;
                 ctx.fillText(t2, lx + swatchW + textPad, legY);
