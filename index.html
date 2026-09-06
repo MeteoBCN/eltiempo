@@ -55,6 +55,42 @@
         .f7-toggle-btn.is-open .f7-toggle-ico { opacity: 0.9; }
         .f7-toggle-btn.is-open .f7-toggle-chevron { transform: rotate(180deg); }
         .f7-toggle-btn.is-open .f7-toggle-chevron path { stroke: rgba(255,255,255,0.9); }
+
+        /* Banner destacado de acceso a "Atmósfera libre": ocupa el ancho completo,
+           usa el mismo degradado navy que el panel que abre (coherente con el resto
+           de la web) pero como tarjeta redondeada con sombra, para que destaque
+           sobre el fondo blanco sin salirse del lenguaje visual del sitio. */
+        .atm-libre-banner {
+            display: flex; align-items: center; gap: 13px;
+            width: 100%; text-align: left; font: inherit; cursor: pointer;
+            background: linear-gradient(135deg, #1c4f78 0%, #123653 100%);
+            border: none; border-radius: var(--border-radius, 16px);
+            padding: 14px 16px;
+            box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,0.1));
+            transition: box-shadow 0.2s ease, transform 0.15s ease;
+        }
+        .atm-libre-banner:hover { box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.12)); }
+        .atm-libre-banner:active { transform: scale(0.99); }
+        .atm-libre-banner-icon {
+            flex-shrink: 0; width: 38px; height: 38px; border-radius: 11px;
+            background: rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .atm-libre-banner-text { flex: 1; min-width: 0; }
+        .atm-libre-banner-title {
+            display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+            font-size: 13.5px; font-weight: 700; color: #ffffff; letter-spacing: 0.2px;
+            margin-bottom: 3px;
+        }
+        .atm-libre-banner-badge {
+            font-size: 8.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+            color: #123653; background: #7DD3FC; padding: 2px 7px; border-radius: 20px;
+        }
+        .atm-libre-banner-desc {
+            font-size: 11px; line-height: 1.4; color: rgba(255,255,255,0.7);
+        }
+        .atm-libre-banner-chevron { flex-shrink: 0; transition: transform 0.25s ease; }
+        .atm-libre-banner.is-open .atm-libre-banner-chevron { transform: rotate(180deg); }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scrollbar-gutter: stable; }
         body {
@@ -1537,9 +1573,33 @@
              GRÁFICOS SEMANA (METEOGRAMA) — SECCIÓN 2: ATMÓSFERA LIBRE
         ════════════════════════════════════════════ -->
         <div id="forecast7-charts-section-2" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
-            <!-- Cabecera eliminada: el título "ATMÓSFERA LIBRE" ahora se dibuja dentro
-                 del propio canvas de niveles 850hPa/500hPa, encima del título "7 DÍAS". -->
-            <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
+            <!-- Banner destacado: da acceso a la sección "Atmósfera libre" (niveles de presión,
+                 inestabilidad convectiva, humedad/cizalladura, radiosondeo, radar y webcam).
+                 Colapsada por defecto: solo se dibujan las gráficas (y se lanza la llamada extra
+                 de niveles a 15 días) la primera vez que el usuario la abre. -->
+            <div style="padding:0 16px;">
+                <button id="atm-libre-banner" class="atm-libre-banner" onclick="toggleAtmosferaLibre()">
+                    <div class="atm-libre-banner-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 3.5l8.5 5.5-8.5 5.5-8.5-5.5L12 3.5z" stroke="#7DD3FC" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M4.5 13l7.5 5 7.5-5" stroke="#7DD3FC" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+                            <path d="M4.5 17l7.5 5 7.5-5" stroke="#7DD3FC" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" opacity="0.3"/>
+                        </svg>
+                    </div>
+                    <div class="atm-libre-banner-text">
+                        <div class="atm-libre-banner-title">
+                            Atmósfera libre
+                            <span class="atm-libre-banner-badge">Avanzado</span>
+                        </div>
+                        <div class="atm-libre-banner-desc">Niveles de presión, inestabilidad convectiva, cizalladura, radiosondeo y radar — gráficas de detalle para profundizar en la previsión.</div>
+                    </div>
+                    <svg id="atm-libre-chevron" class="atm-libre-banner-chevron" width="11" height="11" viewBox="0 0 10 10">
+                        <path d="M1 3 L5 7 L9 3" stroke="rgba(255,255,255,0.65)" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="forecast7-charts-section-2-panel" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease;">
+            <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);margin-top:14px;">
                 <!-- Panel niveles 850hPa/500hPa (atmósfera libre), 7 días -->
                 <div id="f7-panel-wrap-levels" style="position:relative;height:560px;">
                 <div id="f7-panel-combo-levels" style="padding:14px 16px 4px;position:absolute;inset:0;display:block;">
@@ -1671,10 +1731,16 @@
                 </div>
 
                 <div style="height:68px;"></div>
+            </div>
+            </div><!-- fin #forecast7-charts-section-2-panel: a partir de aquí, METEOPANEL queda siempre visible, fuera del banner colapsable -->
 
-                <!-- ═══════════════════════════════════════════
-                     INDICADORES CRÍTICOS EN SUPERFICIE
-                ════════════════════════════════════════════ -->
+            <!-- ═══════════════════════════════════════════
+                 INDICADORES CRÍTICOS EN SUPERFICIE (METEOPANEL)
+                 Fuera del panel colapsable "Atmósfera libre": el radar, las
+                 webcams y los indicadores (punto de rocío, mar, etc.) se ven
+                 siempre, sin necesidad de abrir el banner.
+            ════════════════════════════════════════════ -->
+            <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <div id="indicadores-criticos-superficie" style="padding:18px 16px 50px;background:transparent;">
 
                     <!-- Título de sección "- METEOPANEL -" estilo METEOFLASH (igual que "- ATMÓSFERA
@@ -6520,6 +6586,29 @@
             } catch (e) {
                 console.error('[Meteograma] Error dibujando gráfico superior (temperatura/lluvia):', e);
             }
+            // Los 5 gráficos de "Atmósfera libre" (niveles, iso, inestabilidad,
+            // humedad/cizalladura) viven detrás del banner colapsable: si el
+            // panel ya está abierto se dibujan ahora; si no, se marcan como
+            // "datos listos" y toggleAtmosferaLibre() los dibujará la primera
+            // vez que el usuario abra el banner (así se evita el coste de
+            // renderizado y la llamada extra de red de los 15 días para quien
+            // nunca llega a abrirlo).
+            window._atmLibreDataReady = true;
+            if (window._atmLibreOpened) {
+                drawF7ComboChartSection2();
+            }
+            try {
+                updateIndicadoresCriticosSuperficie();
+            } catch (e) {
+                console.error('[Indicadores críticos] Error actualizando punto de rocío / temperatura del mar:', e);
+            }
+        }
+
+        // Dibuja los 5 gráficos de "Atmósfera libre" (niveles 850/500hPa a 7 y 15
+        // días, cota de isocero, inestabilidad convectiva, humedad/cizalladura).
+        // Se ejecuta UNA sola vez: la primera vez que se abre el banner, o
+        // inmediatamente si los datos ya estaban listos cuando se abrió.
+        function drawF7ComboChartSection2() {
             try {
                 drawF7ChartLevels();
             } catch (e) {
@@ -6545,14 +6634,38 @@
             } catch (e) {
                 console.error('[Meteograma] Error dibujando meteograma de humedad/cizalladura (PWAT/HR/Shear):', e);
             }
-            try {
-                updateIndicadoresCriticosSuperficie();
-            } catch (e) {
-                console.error('[Indicadores críticos] Error actualizando punto de rocío / temperatura del mar:', e);
-            }
         }
 
-        // ── Desplegable: por qué mostramos probabilidad y acumulado por separado ──
+        // ── Banner "Atmósfera libre": abre/cierra el panel y, la primera vez,
+        // dispara el dibujado de sus gráficos (carga perezosa) ──
+        window._atmLibreOpened = false;
+        window._atmLibreDataReady = false;
+        function toggleAtmosferaLibre() {
+            const panel  = document.getElementById('forecast7-charts-section-2-panel');
+            const banner = document.getElementById('atm-libre-banner');
+            if (!panel || !banner) return;
+            const opening = !banner.classList.contains('is-open');
+            if (opening) {
+                banner.classList.add('is-open');
+                panel.style.maxHeight = panel.scrollHeight ? (panel.scrollHeight + 40) + 'px' : '9999px';
+                if (!window._atmLibreOpened) {
+                    window._atmLibreOpened = true;
+                    if (window._atmLibreDataReady) {
+                        drawF7ComboChartSection2();
+                        // El alto real cambia una vez las gráficas están dibujadas;
+                        // recalculamos el max-height tras el próximo frame.
+                        requestAnimationFrame(() => requestAnimationFrame(() => {
+                            panel.style.maxHeight = panel.scrollHeight + 40 + 'px';
+                        }));
+                    }
+                    // Si los datos aún no han llegado, drawF7ComboChart() los
+                    // dibujará automáticamente en cuanto lleguen (ver flag arriba).
+                }
+            } else {
+                banner.classList.remove('is-open');
+                panel.style.maxHeight = '0px';
+            }
+        }
         function toggleF7InfoPanel() {
             const panel = document.getElementById('f7-info-panel');
             const btn   = document.getElementById('f7-info-toggle');
