@@ -7249,63 +7249,67 @@
                 ctx.fillText(lbl, xPos(i), humDayLabelY);
             });
 
-            // Título con separador "·" cuya posición se calcula explícitamente,
-            // para poder alinear debajo el "·" de la leyenda con este mismo punto.
-            ctx.font = 'bold 10.5px Inter,sans-serif';
-            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            // Título en dos líneas, cada una con su leyenda correspondiente:
+            //   Línea 1: "TEMPERATURA" + leyenda Máx/Mín
+            //   Línea 2: "PRECIPITACIÓN" + leyenda Prob. (%) / Acumulado (mm)
+            // Ambas líneas se alinean a la izquierda en el mismo punto (x0),
+            // y ese bloque de dos líneas se centra como conjunto sobre la gráfica.
             {
-                const titLeft  = 'TEMPERATURA ';
-                const titDot   = '·';
-                const titRight = ' PRECIPITACIÓN';
-                const wLeft  = ctx.measureText(titLeft).width;
-                const wDot   = ctx.measureText(titDot).width;
-                const wRight = ctx.measureText(titRight).width;
-                const titX0  = PAD.l + cw / 2 - (wLeft + wDot + wRight) / 2;
-                const titDotCenterX = titX0 + wLeft + wDot / 2;
-
-                ctx.textAlign = 'left';
-                ctx.fillText(titLeft, titX0, PAD.t - 65);
-                ctx.fillText(titDot, titX0 + wLeft, PAD.t - 65);
-                ctx.fillText(titRight, titX0 + wLeft + wDot, PAD.t - 65);
-
-                // Leyenda: swatches de línea continua (Máx) y discontinua (Mín),
-                // igual que antes, seguidos de "· Prob. (%)   Acumulado (mm)"
-                // con el "·" alineado con el del título de arriba. Texto en el
-                // mismo gris y sin negrita que "Prob. (%) / Acumulado (mm)",
-                // y con "Mín" pegado más cerca del separador "·".
-                const swatchW = 14, textPad = 5, groupGap = 10;
                 const legTextColor = 'rgba(255,255,255,0.65)';
+                const swatchW = 14, textPad = 5, groupGap = 10, titleLegGap = 12;
+                const rowTempY   = PAD.t - 65;
+                const rowPrecipY = PAD.t - 46;
+
+                // Medidas fila 1 (TEMPERATURA + Máx/Mín)
+                ctx.font = 'bold 10.5px Inter,sans-serif';
+                const wTempTitle = ctx.measureText('TEMPERATURA').width;
                 ctx.font = '9px Inter,sans-serif';
                 const t1 = 'Máx', t2 = 'Mín';
                 const w1 = ctx.measureText(t1).width, w2 = ctx.measureText(t2).width;
-                const legFirstW = swatchW + textPad + w1 + groupGap + swatchW + textPad + w2;
+                const row1Width = wTempTitle + titleLegGap + swatchW + textPad + w1 + groupGap + swatchW + textPad + w2;
 
-                const legDot   = '·';
-                const legRight = ' Prob. (%)   Acumulado (mm)';
-                const lwDot  = ctx.measureText(legDot).width;
-                const closeGap = 6; // separación reducida entre "Mín" y el "·"
+                // Medidas fila 2 (PRECIPITACIÓN + Prob./Acumulado)
+                ctx.font = 'bold 10.5px Inter,sans-serif';
+                const wPrecipTitle = ctx.measureText('PRECIPITACIÓN').width;
+                ctx.font = '9px Inter,sans-serif';
+                const legRight = 'Prob. (%)   Acumulado (mm)';
+                const wLegRight = ctx.measureText(legRight).width;
+                const row2Width = wPrecipTitle + titleLegGap + wLegRight;
 
-                const legY = PAD.t - 46;
-                let lx = titDotCenterX - legFirstW - lwDot / 2 - closeGap;
+                // Bloque conjunto centrado, ambas filas arrancan en el mismo x0
+                const blockWidth = Math.max(row1Width, row2Width);
+                const x0 = PAD.l + cw / 2 - blockWidth / 2;
 
                 ctx.textAlign = 'left';
-                ctx.font = '9px Inter,sans-serif';
-                ctx.beginPath(); ctx.moveTo(lx, legY - 3); ctx.lineTo(lx + swatchW, legY - 3);
-                ctx.setLineDash([]); ctx.strokeStyle = legTextColor; ctx.lineWidth = 1.1; ctx.stroke();
+
+                // ── Fila 1: TEMPERATURA + Máx / Mín ──
+                ctx.font = 'bold 10.5px Inter,sans-serif';
                 ctx.fillStyle = legTextColor;
-                ctx.fillText(t1, lx + swatchW + textPad, legY);
-                lx += swatchW + textPad + w1 + groupGap;
-                ctx.beginPath(); ctx.moveTo(lx, legY - 3); ctx.lineTo(lx + swatchW, legY - 3);
-                ctx.strokeStyle = legTextColor;
-                ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
-                ctx.fillStyle = legTextColor;
-                ctx.fillText(t2, lx + swatchW + textPad, legY);
-                lx += swatchW + textPad + w2 + closeGap;
+                ctx.fillText('TEMPERATURA', x0, rowTempY);
+                let lx = x0 + wTempTitle + titleLegGap;
 
                 ctx.font = '9px Inter,sans-serif';
-                ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.fillText(legDot, lx, legY);
-                ctx.fillText(legRight, lx + lwDot, legY);
+                ctx.beginPath(); ctx.moveTo(lx, rowTempY - 3); ctx.lineTo(lx + swatchW, rowTempY - 3);
+                ctx.setLineDash([]); ctx.strokeStyle = legTextColor; ctx.lineWidth = 1.1; ctx.stroke();
+                ctx.fillStyle = legTextColor;
+                ctx.fillText(t1, lx + swatchW + textPad, rowTempY);
+                lx += swatchW + textPad + w1 + groupGap;
+
+                ctx.beginPath(); ctx.moveTo(lx, rowTempY - 3); ctx.lineTo(lx + swatchW, rowTempY - 3);
+                ctx.strokeStyle = legTextColor;
+                ctx.setLineDash([5, 4]); ctx.stroke(); ctx.setLineDash([]);
+                ctx.fillStyle = legTextColor;
+                ctx.fillText(t2, lx + swatchW + textPad, rowTempY);
+
+                // ── Fila 2: PRECIPITACIÓN + Prob. (%) / Acumulado (mm) ──
+                ctx.font = 'bold 10.5px Inter,sans-serif';
+                ctx.fillStyle = legTextColor;
+                ctx.fillText('PRECIPITACIÓN', x0, rowPrecipY);
+                const lx2 = x0 + wPrecipTitle + titleLegGap;
+
+                ctx.font = '9px Inter,sans-serif';
+                ctx.fillStyle = legTextColor;
+                ctx.fillText(legRight, lx2, rowPrecipY);
             }
         }
 
