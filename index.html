@@ -1335,7 +1335,8 @@
 
                     <!-- ═══ GRÁFICA TENDENCIA · DOBLE LÍNEA MÁX/MÍN (Hoy → Mañana → Pasado) ═══ -->
                     <div id="ghost-trend-wrap" style="width:100%;margin:0;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);padding:16px 16px 14px;border-top:1px solid rgba(255,255,255,0.14);">
-                        <div style="text-align:center;font-size:10px;font-weight:700;color:#ffffff;letter-spacing:1px;text-transform:uppercase;opacity:0.75;margin-bottom:10px;">Tendencia temperatura</div>
+                        <div style="text-align:center;font-size:10px;font-weight:700;color:#ffffff;letter-spacing:1px;text-transform:uppercase;opacity:0.75;margin-bottom:2px;">Tendencia temperatura</div>
+                        <div style="text-align:center;font-size:9.5px;font-weight:500;color:#ffffff;letter-spacing:0.2px;text-transform:none;opacity:0.55;margin-bottom:10px;">(Diferencia de temperatura respecto a ayer)</div>
                         <canvas id="ghost-trend-canvas" style="width:100%;display:block;"></canvas>
                     </div>
                     <!-- ═══ FIN GRÁFICA TENDENCIA MÁX/MÍN ═══ -->
@@ -3872,10 +3873,10 @@
             function buildDelta(hoyVal, ayerVal) {
                 if (ayerVal == null || isNaN(ayerVal)) return null;
                 const diff = Math.round(hoyVal - ayerVal);
-                if (diff === 0) return { text: '→ igual', color: '#e2e8f0' };
-                const arrow = diff > 0 ? '↑' : '↓';
+                if (diff === 0) return { text: '(+0º)', color: '#e2e8f0' };
+                const sign = diff > 0 ? '+' : '-';
                 const color = diff > 0 ? TREND_COLOR_MAX : TREND_COLOR_MIN;
-                return { text: `${arrow}${Math.abs(diff)}°`, color };
+                return { text: `(${sign}${Math.abs(diff)}º)`, color };
             }
             const deltaMax = buildDelta(vals.hoyMax, vals.ayerMax);
             const deltaMin = buildDelta(vals.hoyMin, vals.ayerMin);
