@@ -8243,10 +8243,30 @@
                 }
             };
 
+            // Plugin que añade aire extra ENTRE la leyenda ("PWAT — agua
+            // precipitable") y el área de la gráfica de barras, igual que en
+            // el meteograma de Inestabilidad Convectiva: se sobreescribe
+            // fit() en la instancia de la leyenda (Chart.js v4 no expone
+            // "afterFit" para Legend, solo para ejes/escalas).
+            const LEGEND_EXTRA_GAP_HUM = 40;
+            const legendBottomGapPluginHum = {
+                id: 'legendBottomGapHum',
+                afterInit(chart) {
+                    const legend = chart.legend;
+                    if (!legend || legend._legendBottomGapPatched) return;
+                    legend._legendBottomGapPatched = true;
+                    const originalFit = legend.fit.bind(legend);
+                    legend.fit = function () {
+                        originalFit();
+                        this.height += LEGEND_EXTRA_GAP_HUM;
+                    };
+                }
+            };
+
             const config = {
                 type: 'bar',
                 data: { labels, datasets },
-                plugins: [pwatThresholdLinePlugin, daySeparatorPluginHum],
+                plugins: [pwatThresholdLinePlugin, daySeparatorPluginHum, legendBottomGapPluginHum],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
