@@ -8078,10 +8078,25 @@
             // Plugin que añade aire extra ENTRE la leyenda (CAPE/LI/CIN) y el
             // área de la gráfica de barras, sin tocar el espacio entre el
             // título HTML de arriba y la propia leyenda.
+            // IMPORTANTE: el hook global "afterFit(chart)" de un plugin se
+            // dispara DESPUÉS de que el sistema de layout ya ha calculado y
+            // posicionado todas las cajas (leyenda, ejes, área de la gráfica),
+            // así que modificar chart.legend.height ahí llega demasiado tarde
+            // y no mueve nada. Hay que sobreescribir el propio método
+            // afterFit() de la CAJA de la leyenda (chart.legend), que es al
+            // que el layout sí hace caso al reservar espacio.
+            const LEGEND_EXTRA_GAP = 40;
             const legendBottomGapPlugin = {
                 id: 'legendBottomGap',
-                afterFit(chart) {
-                    if (chart.legend) chart.legend.height += 16;
+                afterInit(chart) {
+                    const legend = chart.legend;
+                    if (!legend || legend._legendBottomGapPatched) return;
+                    legend._legendBottomGapPatched = true;
+                    const originalAfterFit = legend.afterFit ? legend.afterFit.bind(legend) : null;
+                    legend.afterFit = function () {
+                        if (originalAfterFit) originalAfterFit();
+                        this.height += LEGEND_EXTRA_GAP;
+                    };
                 }
             };
 
