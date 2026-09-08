@@ -1732,13 +1732,38 @@
 
                 <div style="height:68px;"></div>
             </div>
-            </div><!-- fin #forecast7-charts-section-2-panel: a partir de aquí, METEOPANEL queda siempre visible, fuera del banner colapsable -->
+            </div><!-- fin #forecast7-charts-section-2-panel -->
+        </div><!-- fin #forecast7-charts-section-2 (Atmósfera libre, sección independiente) -->
 
+        <!-- ═══════════════════════════════════════════
+             GRÁFICOS SEMANA (METEOGRAMA) — SECCIÓN 3: METEOPANEL
+             Sección independiente de "Atmósfera libre", con su propio banner
+             deslizante (mismo componente .atm-libre-banner). Colapsada por
+             defecto, igual patrón que el banner de arriba.
+        ════════════════════════════════════════════ -->
+        <div id="meteopanel-section" style="max-width:600px;margin:0 auto;border-bottom:1px solid #e2e8f0;">
+            <div style="padding:100px 0;">
+                <button id="meteopanel-banner" class="atm-libre-banner" onclick="toggleMeteopanel()">
+                    <div class="atm-libre-banner-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                            <path d="M4 18.5c1.6-4.3 4.3-6.5 8-6.5s6.4 2.2 8 6.5" stroke="#7DD3FC" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="8" r="3.3" stroke="#7DD3FC" stroke-width="1.6"/>
+                        </svg>
+                    </div>
+                    <div class="atm-libre-banner-text">
+                        <div class="atm-libre-banner-title">
+                            Meteopanel
+                        </div>
+                        <div class="atm-libre-banner-desc">Radar de lluvia, tiempo actual en superficie, inestabilidad convectiva y webcam en directo.</div>
+                    </div>
+                    <svg id="meteopanel-chevron" class="atm-libre-banner-chevron" width="11" height="11" viewBox="0 0 10 10">
+                        <path d="M1 3 L5 7 L9 3" stroke="rgba(255,255,255,0.65)" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="meteopanel-panel" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease;">
             <!-- ═══════════════════════════════════════════
                  INDICADORES CRÍTICOS EN SUPERFICIE (METEOPANEL)
-                 Fuera del panel colapsable "Atmósfera libre": el radar, las
-                 webcams y los indicadores (punto de rocío, mar, etc.) se ven
-                 siempre, sin necesidad de abrir el banner.
             ════════════════════════════════════════════ -->
             <div style="background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);">
                 <div id="indicadores-criticos-superficie" style="padding:18px 16px 50px;background:transparent;">
@@ -2167,7 +2192,8 @@
                     </div>
                 </div>
             </div>
-        </div>
+            </div><!-- fin #meteopanel-panel -->
+        </div><!-- fin #meteopanel-section -->
         <!-- ═══════════════════════════════════════════
              FIN GRÁFICOS SEMANA
         ════════════════════════════════════════════ -->
@@ -6666,6 +6692,26 @@
                 panel.style.maxHeight = '0px';
             }
         }
+        // ── Banner "Meteopanel": abre/cierra el panel (radar, tiempo actual,
+        // webcam), igual patrón que el banner de "Atmósfera libre" ──
+        function toggleMeteopanel() {
+            const panel  = document.getElementById('meteopanel-panel');
+            const banner = document.getElementById('meteopanel-banner');
+            if (!panel || !banner) return;
+            const opening = !banner.classList.contains('is-open');
+            if (opening) {
+                banner.classList.add('is-open');
+                panel.style.maxHeight = panel.scrollHeight ? (panel.scrollHeight + 40) + 'px' : '9999px';
+                // El mapa del radar (Leaflet) puede haberse inicializado mientras
+                // el panel estaba colapsado; refrescamos su tamaño al abrir.
+                if (window._ahoraRadarMap && window._ahoraRadarMap.invalidateSize) {
+                    requestAnimationFrame(() => requestAnimationFrame(() => window._ahoraRadarMap.invalidateSize()));
+                }
+            } else {
+                banner.classList.remove('is-open');
+                panel.style.maxHeight = '0px';
+            }
+        }
         function toggleF7InfoPanel() {
             const panel = document.getElementById('f7-info-panel');
             const btn   = document.getElementById('f7-info-toggle');
@@ -10424,6 +10470,9 @@
                 dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false,
                 boxZoom: false, keyboard: false, tap: false, interactive: false
             });
+            // Referencia global para poder refrescar el tamaño del mapa cuando se
+            // abre el banner deslizante "Meteopanel" (ver toggleMeteopanel()).
+            window._ahoraRadarMap = map2;
 
             /* ── Panes personalizados: mapa base < radar ──
                El mapa base se queda en el pane por defecto (tilePane, z=200).
