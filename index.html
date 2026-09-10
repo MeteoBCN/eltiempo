@@ -1328,8 +1328,6 @@
 
                 </div>
 
-                <div id="moon-info" style="text-align:center;margin-top:6px;font-size:13px;font-weight:600;color:#123653;letter-spacing:0.2px;"></div>
-
                 </div><!-- fin current-weather -->
 
                 <div style="width:calc(100% + (2 * var(--gutter)));margin:0 calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));padding:20px 0 0;background:#ffffff;border-top:1px solid rgba(28,79,120,0.3);">
@@ -10305,19 +10303,15 @@
         // ══════════════════════════════════════════════
         // Iconos de sol saliendo (amanecer) / poniéndose (atardecer) para el
         // círculo de "Tiempo actual" — mismo trazo blanco que el resto de iconos.
-        const SUN_ICON_RISE = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+        const SUN_ICON_RISE = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
             '<path d="M7 17a5 5 0 0 1 10 0" fill="#ffffff"/>' +
             '<line x1="2.5" y1="17" x2="21.5" y2="17" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>' +
             '<path d="M12 11V6M12 6l-2.2 2.2M12 6l2.2 2.2" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
-            '<line x1="4.5" y1="20" x2="6.5" y2="20" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round"/>' +
-            '<line x1="17.5" y1="20" x2="19.5" y2="20" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round"/>' +
             '</svg>';
-        const SUN_ICON_SET = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+        const SUN_ICON_SET = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
             '<path d="M7 17a5 5 0 0 1 10 0" fill="#ffffff"/>' +
             '<line x1="2.5" y1="17" x2="21.5" y2="17" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>' +
             '<path d="M12 6v5M12 11l-2.2-2.2M12 11l2.2-2.2" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
-            '<line x1="4.5" y1="20" x2="6.5" y2="20" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round"/>' +
-            '<line x1="17.5" y1="20" x2="19.5" y2="20" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round"/>' +
             '</svg>';
 
         function updateSunCountdown(daily) {
@@ -10341,32 +10335,6 @@
             lblEl.textContent  = isSunset ? 'Atardecer' : 'Amanecer';
         }
 
-        function getMoonPhaseInfo(date) {
-            const synodic = 29.53058867;
-            const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14, 0);
-            const diffDays = (date.getTime() - knownNewMoon) / 86400000;
-            let phase = (diffDays % synodic) / synodic;
-            if (phase < 0) phase += 1;
-            const illumination = Math.round((1 - Math.cos(2 * Math.PI * phase)) / 2 * 100);
-            let nombre;
-            if (phase < 0.0625 || phase >= 0.9375) nombre = 'Luna nueva';
-            else if (phase < 0.1875) nombre = 'Luna creciente';
-            else if (phase < 0.3125) nombre = 'Cuarto creciente';
-            else if (phase < 0.4375) nombre = 'Gibosa creciente';
-            else if (phase < 0.5625) nombre = 'Luna llena';
-            else if (phase < 0.6875) nombre = 'Gibosa menguante';
-            else if (phase < 0.8125) nombre = 'Cuarto menguante';
-            else nombre = 'Luna menguante';
-            return { nombre, illumination };
-        }
-
-        function updateMoonInfo() {
-            const el = document.getElementById('moon-info');
-            if (!el) return;
-            const { nombre, illumination } = getMoonPhaseInfo(new Date());
-            el.innerHTML = `${nombre} · ${illumination}% iluminada`;
-        }
-
         function updateCurrentDateTime() {
             const el = document.getElementById('current-datetime');
             if (!el) return;
@@ -10384,8 +10352,6 @@
         updateCurrentDateTime();
         setInterval(updateCurrentDateTime, 60000);
         setInterval(() => { if (window._dailyCache) updateSunCountdown(window._dailyCache); }, 60000);
-        updateMoonInfo();
-        setInterval(updateMoonInfo, 60000);
 
         loadWeatherData();
         setInterval(loadWeatherData, 600000); // 10 minutos (fase de diseño: los datos en datos/meteo.json se generan cada 10 min; volver a 3600000/1h cuando el workflow vuelva a cada 3h)
