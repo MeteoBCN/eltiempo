@@ -1414,7 +1414,7 @@
                  siempre abierta y con sus datos apilados en vertical dentro. -->
             <div id="mar3-top-panel" style="display:block;background:#ffffff;">
                 <!-- Tarjetas de los 3 días -->
-                <div id="mar3-top-day-content" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#e2e8f0;align-items:start;"></div>
+                <div id="mar3-top-day-content" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#e2e8f0;"></div>
                 <div id="mar3-top-loading" style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
             </div>
         </div>
@@ -11240,15 +11240,9 @@
                     <div style="background:#ffffff;padding:4px 8px 2px;">
                         ${buildFranjaMinimal('Mañana', mananaSlots, uviMax, false)}
                         ${buildFranjaMinimal('Tarde',  tardeSlots,  uviMax, true)}
-                        <div style="margin-top:2px;padding:10px 4px;border-top:1px solid #eef2f7;">
-                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                                <span style="font-size:9.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Agua</span>
-                                <span style="font-size:12px;font-weight:800;color:#123653;">${avgSST !== null ? avgSST+'°C' : '—'}</span>
-                            </div>
-                            <div style="display:flex;align-items:center;justify-content:space-between;">
-                                <span style="font-size:9.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">UVI</span>
-                                <span style="font-size:12px;font-weight:800;color:${_uvi3.color};">${uviRedondeado !== null ? uviRedondeado : '—'}${_uvi3.nivel ? ' · '+_uvi3.nivel : ''}</span>
-                            </div>
+                        <div style="margin-top:2px;padding:10px 4px 12px;border-top:1px solid #eef2f7;">
+                            <div style="font-size:9.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">UVI (máximo previsto)</div>
+                            <span style="font-size:13px;font-weight:800;color:${_uvi3.color};">${uviRedondeado !== null ? uviRedondeado : '—'}${_uvi3.nivel ? ' - '+_uvi3.nivel.toUpperCase() : ''}</span>
                         </div>
                     </div>` : `
                     <div style="background:#ffffff;padding:6px 18px 2px;">
@@ -11268,13 +11262,12 @@
                 const hoyBadge = isToday ? ' <span style="font-size:10px;font-weight:600;opacity:0.7;margin-left:6px;">HOY</span>' : '';
 
                 // ── Modo columna: cabecera fija sin flecha de acordeón, la
-                // tarjeta siempre está abierta (no es plegable). ──
+                // tarjeta siempre está abierta (no es plegable). Sin "HOY" y
+                // con la misma altura para las 3 cabeceras. ──
                 if (columnMode) {
-                    const hoyBadgeCol = isToday ? '<div style="font-size:8px;font-weight:700;opacity:0.75;margin-top:2px;letter-spacing:1px;">HOY</div>' : '';
                     return `<div style="background:#fff;" id="card-${cardId}">
-                        <div style="background:${headerBg};padding:10px 6px;text-align:center;">
+                        <div style="background:${headerBg};padding:14px 6px;text-align:center;">
                             <div style="font-size:11.5px;font-weight:900;color:#fff;letter-spacing:0.5px;text-transform:uppercase;">${diaSemana}</div>
-                            ${hoyBadgeCol}
                         </div>
                         <div id="body-${cardId}" style="display:block;">${bodyHtml}</div>
                     </div>`;
