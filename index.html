@@ -1410,10 +1410,11 @@
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 16px 12px;background:#ffffff;gap:3px;">
                 <span style="font-size:16px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;">Playas Barcelona</span>
             </div>
-            <!-- Panel con los 3 días, uno debajo de otro (galletas verticales) -->
+            <!-- Panel con los 3 días en columnas, una junto a otra, cada una
+                 siempre abierta y con sus datos apilados en vertical dentro. -->
             <div id="mar3-top-panel" style="display:block;background:#ffffff;">
                 <!-- Tarjetas de los 3 días -->
-                <div id="mar3-top-day-content" style=""></div>
+                <div id="mar3-top-day-content" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#e2e8f0;align-items:start;"></div>
                 <div id="mar3-top-loading" style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
             </div>
         </div>
@@ -11157,7 +11158,7 @@
             }
 
             // ── Tarjeta de dia completa ─────────────────────────────────────
-            function buildDayCard(diaSemana, hourlyDay, uviMax, isToday, cardId, startOpen) {
+            function buildDayCard(diaSemana, hourlyDay, uviMax, isToday, cardId, startOpen, columnMode) {
                 if (startOpen === undefined) startOpen = isToday;
                 const f1 = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8  && hh < 12; });
                 const f2 = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 12 && hh < 16; });
@@ -11203,13 +11204,27 @@
                     const avgWSf  = wss.length  ? Math.round(avg(wss)) : null;
                     const avgSSTf = ssts.length ? Math.round(avg(ssts)) : null;
                     if (!slots.length) {
-                        return `<div style="padding:14px 0;${isLast ? '' : 'border-bottom:1px solid #eef2f7;'}text-align:center;color:#94a3b8;font-size:12px;">${label} — sin datos</div>`;
+                        return `<div style="padding:${columnMode ? '10px 0' : '14px 0'};${isLast ? '' : 'border-bottom:1px solid #eef2f7;'}text-align:center;color:#94a3b8;font-size:12px;">${label} — sin datos</div>`;
                     }
                     const estadoF  = waveLabel(avgWHf ?? 0).txt;
                     const calidadF = calidadBanyo(avgWHf, avgWSf, avgSSTf, uviVal);
                     const marTxt    = marDesc(estadoF);
                     const vientoTxt = windDesc(avgWSf);
                     const aguaTxt   = avgSSTf !== null ? avgSSTf + '°' : '—';
+                    // En modo columna (3 días uno junto a otro) reducimos tamaños y
+                    // apilamos el punto de estado sobre el texto, y el detalle debajo
+                    // sin sangría, para que quepa bien en 1/3 del ancho.
+                    if (columnMode) {
+                        return `
+                            <div style="padding:12px 4px;${isLast ? '' : 'border-bottom:1px solid #eef2f7;'}">
+                                <div style="font-size:9.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">${label}</div>
+                                <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;">
+                                    <span style="width:7px;height:7px;border-radius:50%;background:${calidadF.color};flex-shrink:0;"></span>
+                                    <span style="font-size:13px;font-weight:800;color:${calidadF.color};letter-spacing:0.1px;">${calidadF.texto}</span>
+                                </div>
+                                <div style="font-size:10.5px;line-height:1.4;color:#64748b;">${aguaTxt} agua<br>${marTxt}<br>Viento ${vientoTxt}</div>
+                            </div>`;
+                    }
                     return `
                         <div style="padding:14px 2px;${isLast ? '' : 'border-bottom:1px solid #eef2f7;'}">
                             <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;">${label}</div>
@@ -11221,7 +11236,21 @@
                         </div>`;
                 }
 
-                const chartHtml = `
+                const chartHtml = columnMode ? `
+                    <div style="background:#ffffff;padding:4px 8px 2px;">
+                        ${buildFranjaMinimal('Mañana', mananaSlots, uviMax, false)}
+                        ${buildFranjaMinimal('Tarde',  tardeSlots,  uviMax, true)}
+                        <div style="margin-top:2px;padding:10px 4px;border-top:1px solid #eef2f7;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                <span style="font-size:9.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Agua</span>
+                                <span style="font-size:12px;font-weight:800;color:#123653;">${avgSST !== null ? avgSST+'°C' : '—'}</span>
+                            </div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;">
+                                <span style="font-size:9.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">UVI</span>
+                                <span style="font-size:12px;font-weight:800;color:${_uvi3.color};">${uviRedondeado !== null ? uviRedondeado : '—'}${_uvi3.nivel ? ' · '+_uvi3.nivel : ''}</span>
+                            </div>
+                        </div>
+                    </div>` : `
                     <div style="background:#ffffff;padding:6px 18px 2px;">
                         ${buildFranjaMinimal('Mañana', mananaSlots, uviMax, false)}
                         ${buildFranjaMinimal('Tarde',  tardeSlots,  uviMax, true)}
@@ -11237,6 +11266,20 @@
 
                 const bodyHtml = chartHtml;
                 const hoyBadge = isToday ? ' <span style="font-size:10px;font-weight:600;opacity:0.7;margin-left:6px;">HOY</span>' : '';
+
+                // ── Modo columna: cabecera fija sin flecha de acordeón, la
+                // tarjeta siempre está abierta (no es plegable). ──
+                if (columnMode) {
+                    const hoyBadgeCol = isToday ? '<div style="font-size:8px;font-weight:700;opacity:0.75;margin-top:2px;letter-spacing:1px;">HOY</div>' : '';
+                    return `<div style="background:#fff;" id="card-${cardId}">
+                        <div style="background:${headerBg};padding:10px 6px;text-align:center;">
+                            <div style="font-size:11.5px;font-weight:900;color:#fff;letter-spacing:0.5px;text-transform:uppercase;">${diaSemana}</div>
+                            ${hoyBadgeCol}
+                        </div>
+                        <div id="body-${cardId}" style="display:block;">${bodyHtml}</div>
+                    </div>`;
+                }
+
                 const bodyDisplay = startOpen ? 'block' : 'none';
                 const arrowRotate = startOpen ? 'rotate(180deg)' : 'rotate(0deg)';
                 return `<div style="border-bottom:2px solid #c9ddf0;background:#fff;" id="card-${cardId}">
@@ -11350,8 +11393,9 @@
                         // Tarjeta oculta (compatibilidad interna, no visible)
                         allHtml += buildDayCard(diaName, slots, uviMax, off === 0, cardId);
 
-                        // Galleta vertical visible: una tarjeta por día, siempre abierta
-                        topHtml += buildDayCard(diaName, slots, uviMax, off === 0, 'top' + off, true);
+                        // Columna visible: una tarjeta por día, siempre abierta,
+                        // las 3 en fila (modo columna) con los datos apilados dentro
+                        topHtml += buildDayCard(diaName, slots, uviMax, off === 0, 'top' + off, true, true);
                     }
                     cards.innerHTML = allHtml;
                     if (topContent) topContent.innerHTML = topHtml;
