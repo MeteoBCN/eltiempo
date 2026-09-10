@@ -1417,13 +1417,9 @@
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 16px 12px;background:#ffffff;gap:3px;">
                 <span style="font-size:16px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;">Playas Barcelona</span>
             </div>
-            <!-- Panel colapsable con los 3 días -->
+            <!-- Panel con los 3 días, uno debajo de otro (galletas verticales) -->
             <div id="mar3-top-panel" style="display:block;background:#ffffff;">
-                <!-- Fila de botones de día -->
-                <button id="mar3-top-tabs" onclick="mar3TopCycleDay()" style="display:grid;grid-template-columns:repeat(3,1fr);width:100%;background:#ffffff;border:none;border-bottom:1px solid #e2e8f0;padding:0;margin:0;cursor:pointer;font:inherit;">
-                    <!-- Se generan por JS -->
-                </button>
-                <!-- Contenido del día activo -->
+                <!-- Tarjetas de los 3 días -->
                 <div id="mar3-top-day-content" style=""></div>
                 <div id="mar3-top-loading" style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
             </div>
@@ -11162,7 +11158,8 @@
             }
 
             // ── Tarjeta de dia completa ─────────────────────────────────────
-            function buildDayCard(diaSemana, hourlyDay, uviMax, isToday, cardId) {
+            function buildDayCard(diaSemana, hourlyDay, uviMax, isToday, cardId, startOpen) {
+                if (startOpen === undefined) startOpen = isToday;
                 const f1 = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 8  && hh < 12; });
                 const f2 = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 12 && hh < 16; });
                 const f3 = hourlyDay.filter(h => { const hh = new Date(h.time).getHours(); return hh >= 16 && hh < 20; });
@@ -11237,119 +11234,21 @@
                             <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1.2px;">UVI máximo</span>
                             <span style="font-size:14px;font-weight:800;color:${_uvi3.color};">${uviRedondeado !== null ? uviRedondeado : '—'}${_uvi3.nivel ? ' · '+_uvi3.nivel : ''}</span>
                         </div>
-                        <div onclick="mar3ToggleCellInfo('${cardId}')" style="padding:7px 16px;background:#ffffff;border-top:1px solid #e2e8f0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;user-select:none;">
-                            <span style="font-size:10.5px;font-weight:700;color:#123653;text-transform:uppercase;letter-spacing:0.6px;">Ampliar informaci\u00f3n</span>
-                            <span id="cell-info-arrow-${cardId}" style="font-size:10.5px;color:#123653;display:inline-block;transition:transform 0.25s;">\u25be</span>
-                        </div>
                     </div>`;
 
-                // ── Leyenda UV desplegable (cerrada por defecto) ──
-                const uviInfo2 = uviInfo(uviMax);
-                const u2 = uviMax !== null ? Math.round(uviMax) : null;
-                const uviHtml = `
-                    <div style="border-top:2px solid #e2f0fb;">
-                        <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.uv-leg-arrow').style.transform=this.nextElementSibling.style.display==='block'?'rotate(180deg)':'rotate(0deg)';"
-                             style="padding:8px 16px;background:#ffffff;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
-                            <span style="font-size:8px;font-weight:800;color:#123653;text-transform:uppercase;letter-spacing:1px;">Leyenda - UV / Niveles y recomendaciones</span>
-                            <span class="uv-leg-arrow" style="font-size:11px;color:#123653;transition:transform 0.3s;">▼</span>
-                        </div>
-                        <div style="display:none;padding:10px 14px 14px;background:#ffffff;">
-                            <div style="display:flex;flex-direction:column;gap:6px;">
-                                <div style="display:flex;align-items:flex-start;gap:8px;background:rgba(76,175,80,0.1);border-left:3px solid #4caf50;border-radius:4px;padding:6px 10px;">
-                                    <span style="min-width:34px;text-align:center;font-size:10px;font-weight:800;color:#fff;background:#4caf50;border-radius:3px;padding:2px 4px;flex-shrink:0;">0–2</span>
-                                    <span style="font-size:10.5px;color:#123653;line-height:1.55;"><b>Bajo</b> — Sin protección especial. Disfruta del sol con tranquilidad.</span>
-                                </div>
-                                <div style="display:flex;align-items:flex-start;gap:8px;background:rgba(255,179,0,0.1);border-left:3px solid #ffb300;border-radius:4px;padding:6px 10px;">
-                                    <span style="min-width:34px;text-align:center;font-size:10px;font-weight:800;color:#fff;background:#ffb300;border-radius:3px;padding:2px 4px;flex-shrink:0;">3–5</span>
-                                    <span style="font-size:10.5px;color:#123653;line-height:1.55;"><b>Moderado</b> — FPS 30+. Sombrero recomendado. ≤30 min sin crema.</span>
-                                </div>
-                                <div style="display:flex;align-items:flex-start;gap:8px;background:rgba(255,112,67,0.1);border-left:3px solid #ff7043;border-radius:4px;padding:6px 10px;">
-                                    <span style="min-width:34px;text-align:center;font-size:10px;font-weight:800;color:#fff;background:#ff7043;border-radius:3px;padding:2px 4px;flex-shrink:0;">6–7</span>
-                                    <span style="font-size:10.5px;color:#123653;line-height:1.55;"><b>Alto</b> — FPS 50+. Evita el sol entre 12h–16h. ≤20 min sin crema.</span>
-                                </div>
-                                <div style="display:flex;align-items:flex-start;gap:8px;background:rgba(229,57,53,0.1);border-left:3px solid #e53935;border-radius:4px;padding:6px 10px;">
-                                    <span style="min-width:34px;text-align:center;font-size:10px;font-weight:800;color:#fff;background:#e53935;border-radius:3px;padding:2px 4px;flex-shrink:0;">8–10</span>
-                                    <span style="font-size:10.5px;color:#123653;line-height:1.55;"><b>Muy alto</b> — FPS 50+ obligatorio. Sombra al mediodía. ≤10 min sin protección.</span>
-                                </div>
-                                <div style="display:flex;align-items:flex-start;gap:8px;background:rgba(156,39,176,0.1);border-left:3px solid #9c27b0;border-radius:4px;padding:6px 10px;">
-                                    <span style="min-width:34px;text-align:center;font-size:10px;font-weight:800;color:#fff;background:#9c27b0;border-radius:3px;padding:2px 4px;flex-shrink:0;">11+</span>
-                                    <span style="font-size:10.5px;color:#123653;line-height:1.55;"><b>Extremo</b> — Exposición mínima. FPS 50+ y ropa protectora. Evita la playa en horas centrales.</span>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>`;
-
-                // ── Leyenda tipos de oleaje ──
-                const legendRows = [
-                    ['#10b981','Calma',       '< 0.1 m','Sin olas. Agua en reposo.'],
-                    ['#22d3ee','Rizada',      '0.1–0.5 m','Pequeñas olas sin cresta.'],
-                    ['#0ea5e9','Marejadilla', '0.5–1.25 m','Olas con cresta. Precaución niños.'],
-                    ['#f59e0b','Marejada',    '1.25–2.5 m','Olas grandes. Cuidado.'],
-                    ['#f97316','Fuerte',      '2.5–4 m','Peligro. Baño no recomendado.'],
-                    ['#ef4444','Muy fuerte',  '> 4 m','Muy peligroso. No entrar al agua.'],
-                ];
-                let legendRowsHtml = '';
-                legendRows.forEach(function(r) {
-                    legendRowsHtml += '<div style="display:flex;align-items:center;gap:6px;">'
-                        + '<div style="width:8px;height:8px;border-radius:2px;background:' + r[0] + ';flex-shrink:0;"></div>'
-                        + '<span style="font-size:9px;font-weight:800;color:#123653;min-width:64px;">' + r[1] + '</span>'
-                        + '<span style="font-size:8px;color:#64748b;min-width:52px;">' + r[2] + '</span>'
-                        + '<span style="font-size:8px;color:#94a3b8;">' + r[3] + '</span>'
-                        + '</div>';
-                });
-                const legendaHtml = `
-                    <div id="cell-info-mar-${cardId}" style="display:none;border-top:2px solid #e2f0fb;padding:10px 14px 14px;background:#ffffff;">
-                        <div style="font-size:8px;font-weight:800;color:#123653;text-transform:uppercase;letter-spacing:1px;padding:0 2px 8px;">Leyenda — Estado del mar</div>
-                        <div style="display:flex;flex-direction:column;gap:5px;">
-                            ${legendRows.map(r =>
-                                `<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:#fff;border-left:4px solid ${r[0]};">
-                                    <span style="font-size:10px;font-weight:800;color:#123653;min-width:72px;">${r[1]}</span>
-                                    <span style="font-size:9.5px;color:#123653;min-width:58px;">${r[2]}</span>
-                                    <span style="font-size:9.5px;color:#123653;flex:1;">${r[3]}</span>
-                                </div>`
-                            ).join('')}
-                        </div>
-                    </div>`;
-                const bodyHtml = `
-                    ${chartHtml}
-                    ${legendaHtml}
-                    ${uviHtml}`;
-                if (isToday) {
-                    return `<div style="border-bottom:2px solid #c9ddf0;background:#fff;" id="card-${cardId}">
-                        <div onclick="mar3ToggleCard('${cardId}')" style="background:${headerBg};padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
-                            <div style="font-size:14px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">${diaSemana} <span style="font-size:10px;font-weight:600;opacity:0.7;margin-left:6px;">HOY</span></div>
-                            <span id="arrow-${cardId}" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;transform:rotate(180deg);">&#9660;</span>
-                        </div>
-                        <div id="body-${cardId}" style="display:block;">${bodyHtml}</div>
-                    </div>`;
-                } else {
-                    return `<div style="border-bottom:2px solid #c9ddf0;background:#fff;" id="card-${cardId}">
-                        <div onclick="mar3ToggleCard('${cardId}')" style="background:${headerBg};padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
-                            <div style="font-size:14px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">${diaSemana}</div>
-                            <span id="arrow-${cardId}" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;">&#9660;</span>
-                        </div>
-                        <div id="body-${cardId}" style="display:none;">${bodyHtml}</div>
-                    </div>`;
-                }
+                const bodyHtml = chartHtml;
+                const hoyBadge = isToday ? ' <span style="font-size:10px;font-weight:600;opacity:0.7;margin-left:6px;">HOY</span>' : '';
+                const bodyDisplay = startOpen ? 'block' : 'none';
+                const arrowRotate = startOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+                return `<div style="border-bottom:2px solid #c9ddf0;background:#fff;" id="card-${cardId}">
+                    <div onclick="mar3ToggleCard('${cardId}')" style="background:${headerBg};padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
+                        <div style="font-size:14px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">${diaSemana}${hoyBadge}</div>
+                        <span id="arrow-${cardId}" style="font-size:16px;color:rgba(255,255,255,0.8);transition:transform 0.3s;display:inline-block;transform:${arrowRotate};">&#9660;</span>
+                    </div>
+                    <div id="body-${cardId}" style="display:${bodyDisplay};">${bodyHtml}</div>
+                </div>`;
             }
 
-
-            // ── Desplegar info ampliada de las 3 celdas (Baño) a la vez ─────
-            window.mar3ToggleCellInfo = function(cardId) {
-                const ids = [cardId + '-f1', cardId + '-f2', cardId + '-f3'];
-                const first = document.getElementById('cell-info-' + ids[0]);
-                if (!first) return;
-                const isOpen = first.style.display === 'flex';
-                ids.forEach(id => {
-                    const el = document.getElementById('cell-info-' + id);
-                    if (el) el.style.display = isOpen ? 'none' : 'flex';
-                });
-                const mar = document.getElementById('cell-info-mar-' + cardId);
-                if (mar) mar.style.display = isOpen ? 'none' : 'block';
-                const arrow = document.getElementById('cell-info-arrow-' + cardId);
-                if (arrow) arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
-            };
 
             // ── Acordeon ──────────────────────────────────────────
             window.mar3ToggleCard = function(cardId) {
@@ -11424,14 +11323,15 @@
                         });
                     }
 
-                    window._mar3Slots    = {};
-                    window._mar3BodyHtml = {};
+                    window._mar3Slots = {};
                     const now   = new Date();
                     const cards = document.getElementById('mar3-cards');
+                    const topContent = document.getElementById('mar3-top-day-content');
                     if (!cards) return;
                     cards.innerHTML = '';
 
                     let allHtml = '';
+                    let topHtml = '';
                     for (let off = 0; off < 3; off++) {
                         const d  = new Date(now);
                         d.setDate(d.getDate() + off);
@@ -11441,51 +11341,36 @@
                         const uviMax  = uviByDate[ds] ?? null;
                         const cardId  = 'day' + off;
 
-                        window._mar3Slots[cardId] = slots.filter(h => {
+                        const daySlots = slots.filter(h => {
                             const hh = new Date(h.time).getHours();
                             return hh >= 8 && hh <= 20;
                         });
+                        window._mar3Slots[cardId] = daySlots;
+                        window._mar3Slots['top' + off] = daySlots;
 
-                        const cardHtml = buildDayCard(diaName, slots, uviMax, off === 0, cardId);
-                        allHtml += cardHtml;
-                        // Guardar bodyHtml para la sección superior (sin el wrapper del card)
-                        const bodyStart = cardHtml.indexOf('id="body-' + cardId + '"');
-                        if (bodyStart !== -1) {
-                            const innerStart = cardHtml.indexOf('>', bodyStart) + 1;
-                            // El bodyHtml termina antes de los dos </div> finales del card
-                            const innerEnd = cardHtml.lastIndexOf('</div></div>');
-                            window._mar3BodyHtml[off] = innerEnd > innerStart ? cardHtml.slice(innerStart, innerEnd) : '';
-                        } else {
-                            window._mar3BodyHtml[off] = '';
-                        }
+                        // Tarjeta oculta (compatibilidad interna, no visible)
+                        allHtml += buildDayCard(diaName, slots, uviMax, off === 0, cardId);
+
+                        // Galleta vertical visible: una tarjeta por día, siempre abierta
+                        topHtml += buildDayCard(diaName, slots, uviMax, off === 0, 'top' + off, true);
                     }
                     cards.innerHTML = allHtml;
+                    if (topContent) topContent.innerHTML = topHtml;
 
                     const loading = document.getElementById('mar3-loading');
                     if (loading) loading.style.display = 'none';
+                    const topLoading = document.getElementById('mar3-top-loading');
+                    if (topLoading) topLoading.style.display = 'none';
 
-                    // Init: HOY abierto, resto cerrados
-                    for (let off = 0; off < 3; off++) {
-                        const body  = document.getElementById('body-day' + off);
-                        const arrow = document.getElementById('arrow-day' + off);
-                        if (off === 0) {
-                            if (body)  body.style.display = 'block';
-                            if (arrow) arrow.style.transform = 'rotate(180deg)';
-                        } else {
-                            if (body)  body.style.display = 'none';
-                            if (arrow) arrow.style.transform = 'rotate(0deg)';
-                        }
-                    }
-
-                    // Dibujar gráfico de HOY al cargar (ya está visible); el resto se dibuja al abrir su acordeón
+                    // Dibujar los gráficos de las 3 galletas (todas visibles desde el principio)
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
                             setTimeout(() => {
                                 for (let off = 0; off < 3; off++) {
-                                    const slotsN = window._mar3Slots && window._mar3Slots['day' + off];
-                                    const canvasEl = document.getElementById('wave-chart-day' + off);
+                                    const slotsN = window._mar3Slots['top' + off];
+                                    const canvasEl = document.getElementById('wave-chart-top' + off);
                                     if (slotsN && canvasEl && window._mar3DrawChart) {
-                                        window._mar3DrawChart('wave-chart-day' + off, slotsN);
+                                        window._mar3DrawChart('wave-chart-top' + off, slotsN);
                                     }
                                 }
                             }, 80);
@@ -11495,128 +11380,13 @@
                 } catch(e) {
                     const loading = document.getElementById('mar3-loading');
                     if (loading) loading.textContent = 'No se han podido cargar los datos del mar.';
+                    const topLoading = document.getElementById('mar3-top-loading');
+                    if (topLoading) topLoading.textContent = 'No se han podido cargar los datos del mar.';
                     console.warn('Mar3 error:', e);
                 }
             }
 
-            loadMar3().then(() => {
-                buildMar3TopTabs();
-            });
-
-            // ── Toggle principal (abrir/cerrar la sección) ──────────────────
-            let _mar3TopOpen = true;
-            window.mar3TopToggle = function() {
-                const panel = document.getElementById('mar3-top-panel');
-                const arrow = document.getElementById('mar3-top-arrow');
-                _mar3TopOpen = !_mar3TopOpen;
-                panel.style.display = _mar3TopOpen ? 'block' : 'none';
-                arrow.style.transform = _mar3TopOpen ? 'translateY(-50%) rotate(180deg)' : 'translateY(-50%) rotate(0deg)';
-                if (_mar3TopOpen) {
-                    if (!window._mar3TopBuilt) {
-                        buildMar3TopTabs();
-                    } else {
-                        // Redibujar gráfico del día activo al reabrir
-                        requestAnimationFrame(() => {
-                            requestAnimationFrame(() => {
-                                const activeDay = window._mar3TopActiveDay || 0;
-                                const off = activeDay;
-                                const topCanvasId = 'wave-chart-top-day' + off;
-                                const slots = window._mar3Slots && window._mar3Slots['day' + off];
-                                if (slots && window._mar3DrawChart) {
-                                    window._mar3DrawChart(topCanvasId, slots);
-                                }
-                            });
-                        });
-                    }
-                }
-            };
-
-            // ── Construir pestañas de día ──────────────────────────────────
-            window._mar3TopBuilt = false;
-            window._mar3TopActiveDay = 0;
-
-            function buildMar3TopTabs() {
-                const tabsEl   = document.getElementById('mar3-top-tabs');
-                const loadEl   = document.getElementById('mar3-top-loading');
-                if (!tabsEl) return;
-                const srcCards = document.getElementById('mar3-cards');
-                if (!srcCards || !srcCards.children.length) return;
-                if (loadEl) loadEl.style.display = 'none';
-
-                const DIAS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-                const now = new Date();
-                tabsEl.innerHTML = '';
-
-                for (let off = 0; off < 3; off++) {
-                    const d = new Date(now);
-                    d.setDate(d.getDate() + off);
-                    const dayName = off === 0 ? 'HOY' : (off === 1 ? 'MAÑANA' : DIAS_FULL[d.getDay()].toUpperCase());
-                    const dayDate = d.getDate() + '/' + (d.getMonth()+1);
-                    const btn = document.createElement('div');
-                    btn.id = 'mar3-top-btn-' + off;
-                    btn.style.cssText = 'flex:1;padding:9px 2px;font-size:10.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;border:none;background:transparent;color:#123653;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;pointer-events:none;';
-                    btn.innerHTML = dayName + '<br><span style="font-size:9.5px;font-weight:500;color:#64748b;">' + dayDate + '</span>';
-                    tabsEl.appendChild(btn);
-                }
-
-                window._mar3TopBuilt = true;
-                mar3TopShowDay(0);
-            }
-
-            // ── Ciclar día al pulsar el botón único (HOY → MAÑANA → día 3 → HOY…) ──
-            window.mar3TopCycleDay = function() {
-                const next = ((window._mar3TopActiveDay || 0) + 1) % 3;
-                mar3TopShowDay(next);
-            };
-
-            // ── Mostrar contenido de un día ────────────────────────────────
-            window.mar3TopShowDay = function(off) {
-                window._mar3TopActiveDay = off;
-
-                // Actualizar estilo de botones
-                for (let i = 0; i < 3; i++) {
-                    const b = document.getElementById('mar3-top-btn-' + i);
-                    if (!b) continue;
-                    if (i === off) {
-                        b.style.color = '#123653';
-                        b.style.borderBottom = '2px solid #123653';
-                        b.style.background = 'transparent';
-                    } else {
-                        b.style.color = '#64748b';
-                        b.style.borderBottom = '2px solid transparent';
-                        b.style.background = 'transparent';
-                    }
-                }
-
-                const contentEl = document.getElementById('mar3-top-day-content');
-                if (!contentEl) return;
-
-                // Usar el HTML del body guardado, sustituyendo el ID del canvas por uno único
-                let html = (window._mar3BodyHtml && window._mar3BodyHtml[off]) || '';
-                if (!html) {
-                    contentEl.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Sin datos</div>';
-                    return;
-                }
-
-                // Sustituir id del canvas para que no colisione con el original
-                const topCanvasId = 'wave-chart-top-day' + off;
-                html = html.replace(/id="wave-chart-day\d+"/, 'id="' + topCanvasId + '"');
-
-                contentEl.innerHTML = html;
-
-                // Dibujar el gráfico una vez el canvas está en el DOM y visible
-                // Doble rAF + timeout garantiza que el layout está calculado
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        setTimeout(() => {
-                            const slots = window._mar3Slots && window._mar3Slots['day' + off];
-                            if (slots && window._mar3DrawChart) {
-                                window._mar3DrawChart(topCanvasId, slots);
-                            }
-                        }, 50);
-                    });
-                });
-            };
+            loadMar3();
 
         })();
         /* ══════ FIN PREVISIÓN MAR 3 DÍAS ══════ */
