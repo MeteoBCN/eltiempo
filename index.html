@@ -4208,15 +4208,6 @@
 
         function formatHour(s) { return new Date(s).getHours().toString().padStart(2,'0')+':00'; }
 
-        function updateAirQualityTable(ac) {
-            function lvl(aqi) {
-                if(aqi<=20)return'Buena';if(aqi<=40)return'Moderada';if(aqi<=60)return'Mala';
-                if(aqi<=80)return'Muy mala';return'Peligrosa';
-            }
-            const el=document.getElementById('air-quality-current');
-            if(el){el.textContent=lvl(ac.european_aqi||0); el.style.color='#1E293B';}
-        }
-
         // Estilos por nivel de severidad: rojo = alarmante, amarillo = precaución, azul = informativo/neutro
         const ALERT_LEVEL_STYLES = {
             red:    { bg: '#fee2e2', border: '#ef4444', text: '#991b1b', icon: '⚠️' },
@@ -8663,7 +8654,6 @@
                 updateAlertBanner(data.hourly, data.daily);
                 updateFranjasTable(data.hourly, data.daily);
                 updateTodayTable(data.daily, data.hourly);
-                if (aqData?.current) updateAirQualityTable(aqData.current);
                 updateTormentaSection(data.hourly);
                 updateUviSection(data.daily, data.hourly);
                 // (Polen gestionado por PIA, no Open-Meteo)
@@ -8673,8 +8663,8 @@
                 updateDaysTable(data.hourly, data.daily);
                 updateDaysSummary(data.hourly, data.daily);
                 updateProximaLluvia(data.hourly);
-                updateRunningIndex(data.current, data.hourly, data.daily, aqData?.current ?? null);
-                updateSportSection(data.current, data.hourly, aqData?.current ?? null);
+                updateRunningIndex(data.current, data.hourly, data.daily, aqData?.hourly ?? null);
+                updateSportSection(data.current, data.hourly, aqData?.hourly ?? null);
                 updateParaguasSection(data.hourly);
                 drawParaguasHourlyChart(data.hourly);
                 loadGhostTrendChart(data.daily);
@@ -9311,10 +9301,10 @@
             if (t < 0) {
                 rojoCandidatos.push('Riesgo de hipotermia por frío extremo, ' + rt + '°C (sensación ' + rf + '°C).');
             }
-            if (a > 100) {
+            if (a >= 5) {
                 rojoCandidatos.push('Calidad del aire extremadamente mala: evita el esfuerzo físico intenso al aire libre.');
             }
-            if (a > 60 && a <= 100) {
+            if (a >= 3 && a <= 4) {
                 rojoCandidatos.push('Calidad del aire mala: reduce la intensidad y duración del ejercicio.');
             }
             if (t > 30) {
@@ -9352,7 +9342,7 @@
             if (w >= 21 && w <= 35) {
                 naranjaCandidatos.push('Viento moderado: puede afectar el ritmo en zonas abiertas.');
             }
-            if (a >= 41 && a <= 60) {
+            if (a === 2) {
                 naranjaCandidatos.push('Calidad del aire regular. Hidrátate con mayor frecuencia.');
             }
             if (pp > 0 && pp < 40) {
@@ -9381,7 +9371,7 @@
             var esNoche = (hora != null) && (hora >= 20 || hora < 6);
 
             var opcionesVerde = [];
-            if (a < 30) {
+            if (a <= 1) {
                 if (esNoche) {
                     opcionesVerde.push('Ambiente limpio y calidad del aire excelente esta noche.');
                 } else if (esCieloDespejado) {
@@ -9419,11 +9409,16 @@
         // poder repintar la tarjeta al vuelo sin volver a pedir datos al API.
         var runState = { current: null, hourly: null, aqi: 0, now: null, selectedOffset: 0 };
 
-        function updateSportSection(current, hourly, aq) {
+        function updateSportSection(current, hourly, aqHourly) {
             if (!current) return;
             runState.current = current;
             runState.hourly  = hourly;
-            runState.aqi     = aq?.european_aqi ?? aq?.us_aqi ?? 0;
+            // ICA nacional (Orden TEC/351/2019 — mismo cálculo que la tarjeta de
+            // Calidad del Aire) en vez del EAQI europeo. Escala 0–5:
+            // 0 Buena · 1 Razonablemente buena · 2 Regular · 3 Desfavorable ·
+            // 4 Muy desfavorable · 5 Extremadamente desfavorable.
+            var icaResult = (window.computeICA && aqHourly) ? window.computeICA(aqHourly) : null;
+            runState.aqi     = icaResult ? icaResult.levelIdx : 0;
             runState.now     = new Date();
             runState.selectedOffset = 0;
             renderSportSection();
@@ -9572,7 +9567,7 @@
             wrap.innerHTML = mainHTML + buttonsRowHTML;
         }
 
-        function updateRunningIndex(current, hourly, daily, aq) {
+        function updateRunningIndex(current, hourly, daily, aqHourly) {
             var el = document.getElementById('running-content');
             if (!el || !current) return;
 
@@ -9593,8 +9588,9 @@
                 }
             }
 
-            // AQI
-            var aqi = aq?.european_aqi ?? aq?.us_aqi ?? 0;
+            // ICA nacional (levelIdx 0–5, igual que la tarjeta de Calidad del Aire)
+            var icaResultLegacy = (window.computeICA && aqHourly) ? window.computeICA(aqHourly) : null;
+            var aqi = icaResultLegacy ? icaResultLegacy.levelIdx : 0;
 
             // ── PUNTUACIÓN (0–100, cuanto mayor mejor) ──────────────
             var score = 100;
@@ -9629,12 +9625,12 @@
             else if (uvActual >= 8)  score -= 18;
             else if (uvActual >= 6)  score -= 8;
 
-            // Calidad del aire (EAQI: 0-20 Buena, 21-40 Razonab., 41-60 Regular, 61-80 Mala, 81-100 Muy mala, 101+ Extrem.)
-            if      (aqi > 100) score -= 40;
-            else if (aqi > 80)  score -= 30;
-            else if (aqi > 60)  score -= 20;
-            else if (aqi > 40)  score -= 10;
-            else if (aqi > 20)  score -= 4;
+            // Calidad del aire (ICA nacional 0-5: 0 Buena, 1 Razonab. buena, 2 Regular, 3 Desfav., 4 Muy desfav., 5 Extrem. desfav.)
+            if      (aqi >= 5) score -= 40;
+            else if (aqi === 4) score -= 30;
+            else if (aqi === 3) score -= 20;
+            else if (aqi === 2) score -= 10;
+            else if (aqi === 1) score -= 4;
 
             // Lluvia / tormenta (WMO codes)
             var isRain    = (wmo >= 51 && wmo <= 67) || (wmo >= 80 && wmo <= 82);
@@ -9703,10 +9699,10 @@
             if (wind > 25) factores.push({ txt: 'Viento fuerte (' + Math.round(wind) + ' km/h)', pos: false });
             else if (wind < 15) factores.push({ txt: 'Viento suave', pos: true });
             if (uvActual >= 6) factores.push({ txt: 'UV alto (' + Math.round(uvActual) + ')', pos: false });
-            if      (aqi > 80)  factores.push({ txt: 'Aire muy malo (EAQI ' + Math.round(aqi) + ')', pos: false });
-            else if (aqi > 60)  factores.push({ txt: 'Aire malo (EAQI ' + Math.round(aqi) + ')', pos: false });
-            else if (aqi > 40)  factores.push({ txt: 'Aire regular (EAQI ' + Math.round(aqi) + ')', pos: false });
-            else if (aqi > 0)   factores.push({ txt: 'Aire limpio (EAQI ' + Math.round(aqi) + ')', pos: true });
+            if      (aqi >= 4)  factores.push({ txt: 'Aire muy malo (ICA)', pos: false });
+            else if (aqi === 3) factores.push({ txt: 'Aire malo (ICA)', pos: false });
+            else if (aqi === 2) factores.push({ txt: 'Aire regular (ICA)', pos: false });
+            else if (aqi >= 0)  factores.push({ txt: 'Aire limpio (ICA)', pos: true });
             if (isThunder) factores.push({ txt: 'Tormenta activa', pos: false });
             else if (isRain) factores.push({ txt: 'Lluvia', pos: false });
             if (hum <= 60 && hum >= 40) factores.push({ txt: 'Humedad confortable', pos: true });
@@ -10744,6 +10740,11 @@
                 if (!details.length) return null;
                 return { levelIdx: worstIdx, dominant, details };
             }
+            // Se expone globalmente para que otras secciones (p.ej. "¿Sales a
+            // correr?") puedan reutilizar el mismo cálculo de ICA nacional en
+            // vez de depender del EAQI europeo.
+            window.computeICA = computeICA;
+            window.ICA_LEVELS = ICA_LEVELS;
 
             function updateMiniWidget(ica) {
                 if (!ica) return;
