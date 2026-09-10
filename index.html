@@ -6620,6 +6620,41 @@
 
         // ── Banner "Atmósfera libre": abre/cierra el panel y, la primera vez,
         // dispara el dibujado de sus gráficos (carga perezosa) ──
+        // ── Helpers genéricos para paneles colapsables "grandes" (los que
+        // pueden contener a su vez desplegables anidados: guías, radiosondeo,
+        // gráficas que tardan en pintarse...). El problema de fijar el
+        // max-height a un valor en px calculado con scrollHeight es que, si
+        // el contenido crece DESPUÉS (p. ej. el usuario abre un desplegable
+        // anidado, o una imagen/gráfica tarda en cargar), ese valor fijo se
+        // queda corto y el contenido nuevo queda recortado.
+        // Solución: una vez terminada la transición de apertura, se quita el
+        // límite (max-height:none) para que el navegador acomode cualquier
+        // crecimiento posterior sin necesidad de recalcular nada por JS. Al
+        // cerrar, si venía de 'none' hay que fijar antes un valor en px
+        // (con un reflow forzado) porque no se puede animar una transición
+        // partiendo de 'none'.
+        function _openCollapsiblePanel(panel) {
+            if (!panel) return;
+            if (panel.style.maxHeight === 'none' || !panel.style.maxHeight) {
+                panel.style.maxHeight = '0px';
+                void panel.offsetHeight; // fuerza el reflow: registra el punto de partida
+            }
+            panel.style.maxHeight = panel.scrollHeight ? (panel.scrollHeight + 40) + 'px' : '9999px';
+            panel.addEventListener('transitionend', function onEnd(e) {
+                if (e.propertyName && e.propertyName !== 'max-height') return;
+                panel.style.maxHeight = 'none';
+                panel.removeEventListener('transitionend', onEnd);
+            });
+        }
+        function _closeCollapsiblePanel(panel) {
+            if (!panel) return;
+            if (panel.style.maxHeight === 'none') {
+                panel.style.maxHeight = panel.scrollHeight + 'px';
+                void panel.offsetHeight; // fuerza el reflow antes de animar a 0
+            }
+            panel.style.maxHeight = '0px';
+        }
+
         window._atmLibreOpened = false;
         window._atmLibreDataReady = false;
         function toggleAtmosferaLibre() {
@@ -6629,15 +6664,18 @@
             const opening = !banner.classList.contains('is-open');
             if (opening) {
                 banner.classList.add('is-open');
-                panel.style.maxHeight = panel.scrollHeight ? (panel.scrollHeight + 40) + 'px' : '9999px';
+                _openCollapsiblePanel(panel);
                 if (!window._atmLibreOpened) {
                     window._atmLibreOpened = true;
                     if (window._atmLibreDataReady) {
                         drawF7ComboChartSection2();
                         // El alto real cambia una vez las gráficas están dibujadas;
-                        // recalculamos el max-height tras el próximo frame.
+                        // recalculamos el max-height tras el próximo frame (si el
+                        // panel ya ha quedado sin límite no hace falta tocar nada).
                         requestAnimationFrame(() => requestAnimationFrame(() => {
-                            panel.style.maxHeight = panel.scrollHeight + 40 + 'px';
+                            if (panel.style.maxHeight !== 'none') {
+                                panel.style.maxHeight = panel.scrollHeight + 40 + 'px';
+                            }
                         }));
                     }
                     // Si los datos aún no han llegado, drawF7ComboChart() los
@@ -6645,7 +6683,7 @@
                 }
             } else {
                 banner.classList.remove('is-open');
-                panel.style.maxHeight = '0px';
+                _closeCollapsiblePanel(panel);
             }
         }
         // ── Banner "Meteopanel": abre/cierra el panel (radar, tiempo actual,
@@ -6657,7 +6695,7 @@
             const opening = !banner.classList.contains('is-open');
             if (opening) {
                 banner.classList.add('is-open');
-                panel.style.maxHeight = panel.scrollHeight ? (panel.scrollHeight + 40) + 'px' : '9999px';
+                _openCollapsiblePanel(panel);
                 // El mapa del radar (Leaflet) puede haberse inicializado mientras
                 // el panel estaba colapsado; refrescamos su tamaño al abrir.
                 if (window._ahoraRadarMap && window._ahoraRadarMap.invalidateSize) {
@@ -6665,7 +6703,7 @@
                 }
             } else {
                 banner.classList.remove('is-open');
-                panel.style.maxHeight = '0px';
+                _closeCollapsiblePanel(panel);
             }
         }
         function toggleF7InfoPanel() {
@@ -6689,7 +6727,9 @@
         function _syncAncestorPanelHeights(el) {
             let node = el ? el.parentElement : null;
             while (node) {
-                if (node.style && node.style.maxHeight && node.style.maxHeight !== '0px') {
+                // Si el ancestro ya está en max-height:none (ver _openCollapsiblePanel)
+                // no hace falta tocarlo: no tiene límite, así que nunca recorta.
+                if (node.style && node.style.maxHeight && node.style.maxHeight !== '0px' && node.style.maxHeight !== 'none') {
                     node.style.maxHeight = node.scrollHeight + 'px';
                 }
                 node = node.parentElement;
