@@ -1282,7 +1282,7 @@
                         <div style="flex-shrink:0;text-align:center;">
                             <div style="display:flex;align-items:baseline;gap:4px;justify-content:center;">
                                 <span id="aqi-mini-value" style="font-size:24px;font-weight:900;color:#123653;font-family:monospace;line-height:1;">--</span>
-                                <span style="font-size:8px;color:#123653;opacity:0.7;">EAQI</span>
+                                <span style="font-size:8px;color:#123653;opacity:0.7;">ICA</span>
                             </div>
                             <div id="aqi-mini-badge" style="display:inline-block;margin-top:6px;font-size:15px;font-weight:800;color:#123653;background:#f0f6fa;border:1px solid rgba(44,74,110,0.2);border-radius:9px;padding:4px 12px;">—</div>
                         </div>
@@ -8616,7 +8616,7 @@
                     ? 'FASE DE DISEÑO: usando proxy en directo (FORZAR_LIVE = true), sin pasar por datos/meteo.json.'
                     : 'No se pudo leer datos/meteo.json, usando proxy en directo como respaldo.');
                 const url=`${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,pressure_msl,cloud_cover&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_850hPa,temperature_500hPa,freezing_level_height,cape,lifted_index,convective_inhibition,total_column_integrated_water_vapour,relative_humidity_850hPa,relative_humidity_700hPa,wind_speed_850hPa,wind_direction_850hPa,wind_speed_500hPa,wind_direction_500hPa&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_max,relative_humidity_2m_min,pressure_msl_mean,cape_max&timezone=Europe/Madrid&forecast_days=8`;
-                const aqUrl=`${PROXY_BASE}/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&hourly=pm10&forecast_days=2&timezone=Europe/Madrid`;
+                const aqUrl=`${PROXY_BASE}/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&hourly=pm10,pm2_5,ozone,nitrogen_dioxide,sulphur_dioxide&past_days=2&forecast_days=2&timezone=Europe/Madrid`;
                 const marineUrl=`${PROXY_BASE}/marine?latitude=${LAT}&longitude=${LON}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,wind_wave_height,wind_wave_direction&hourly=wave_height,wave_period,wave_direction,wind_wave_height,wind_speed_10m,wind_direction_10m,sea_surface_temperature&timezone=Europe/Madrid&forecast_days=4`;
 
                 [data, aqData, marineData] = await Promise.all([
@@ -10679,117 +10679,94 @@
         })();
         /* ══════ FIN WIDGET ══════ */
 
-        /* ══════ SEMÁFORO CALIDAD DEL AIRE ══════ */
+        /* ══════ ÍNDICE NACIONAL DE CALIDAD DEL AIRE (ICA) ══════
+           Calculado en cliente siguiendo la Orden TEC/351/2019 (modificada por
+           la Resolución de 2/9/2020, DG de Calidad y Evaluación Ambiental):
+           - NO2 y SO2: concentración media de la última hora.
+           - O3: media móvil de las últimas 8 horas.
+           - PM10 y PM2,5: media móvil de las últimas 24 horas.
+           - El índice final es el peor (máximo) de los 5 contaminantes.
+           Umbrales oficiales (µg/m³), tabla del Anexo de la Resolución:
+           https://www.boe.es/diario_boe/txt.php?id=BOE-A-2020-10426 */
         (function() {
-            const AQI_LEVELS = [
-                { min:0,   max:20,  color:'#16a34a', glow:'#15803d', label:'Buena',                sublabel:'Calidad del aire óptima para todos.',                          light:'green',   advice:'Calidad del aire óptima. Disfruta de las actividades al aire libre sin restricciones.', bg:'#f0fdf4' },
-                { min:21,  max:40,  color:'#0284c7', glow:'#0369a1', label:'Razonablemente buena',  sublabel:'Riesgo muy bajo para la salud.',                                light:'blue',    advice:'Riesgo muy bajo. Adecuado para todo el mundo sin limitaciones.', bg:'#e0f2fe' },
-                { min:41,  max:60,  color:'#c8b800', glow:'#a89600', label:'Regular',               sublabel:'Aceptable, personas sensibles pueden verse afectadas.',          light:'yellow',  advice:'Calidad aceptable. Personas con asma o enfermedades respiratorias deben moderar la actividad intensa.', bg:'#fefce8' },
-                { min:61,  max:80,  color:'#FF5050', glow:'#e53935', label:'Mala',                  sublabel:'Posibles efectos adversos para la salud general.',               light:'red',     advice:'Calidad mala. Se recomienda reducir actividades prolongadas en exterior, especialmente a grupos sensibles.', bg:'#fff0f0' },
-                { min:81,  max:100, color:'#960032', glow:'#7a0028', label:'Muy mala',              sublabel:'Riesgo significativo; limitar el tiempo al aire libre.',          light:'darkred', advice:'Calidad muy mala. Limita el tiempo en el exterior. Grupos sensibles deben evitar salir.', bg:'#ffe5e5' },
-                { min:101, max:999, color:'#7D2181', glow:'#5e1861', label:'Extremadamente mala',   sublabel:'Emergencia sanitaria.',                                          light:'purple',  advice:'Emergencia sanitaria. Evita salir al exterior. Mantén ventanas cerradas y usa purificadores de aire.', bg:'#f3e5f5' },
+            const ICA_LEVELS = [
+                { label:'Buena',                       color:'#16a34a', bg:'#f0fdf4', advice:'Calidad del aire óptima. Disfruta de las actividades al aire libre sin restricciones.' },
+                { label:'Razonablemente buena',        color:'#0284c7', bg:'#e0f2fe', advice:'Riesgo muy bajo para la salud. Adecuado para todo el mundo sin limitaciones.' },
+                { label:'Regular',                     color:'#c8b800', bg:'#fefce8', advice:'Calidad aceptable. Personas con asma o enfermedades respiratorias deben moderar la actividad intensa.' },
+                { label:'Desfavorable',                color:'#FF5050', bg:'#fff0f0', advice:'Posibles efectos adversos. Reduce actividades prolongadas en exterior, especialmente grupos sensibles.' },
+                { label:'Muy desfavorable',             color:'#960032', bg:'#ffe5e5', advice:'Riesgo significativo. Limita el tiempo en el exterior. Grupos sensibles deben evitar salir.' },
+                { label:'Extremadamente desfavorable',  color:'#7D2181', bg:'#f3e5f5', advice:'Emergencia sanitaria. Evita salir al exterior. Mantén ventanas cerradas y usa purificadores de aire.' },
             ];
-            function getLevel(aqi) { return AQI_LEVELS.find(l => aqi >= l.min && aqi <= l.max) || AQI_LEVELS[AQI_LEVELS.length-1]; }
 
-            function setLight(id, color, glow) {
-                const el = document.getElementById(id); if (!el) return;
-                el.style.background = color;
-                el.style.boxShadow = glow ? `0 0 16px ${glow}, 0 0 32px ${glow}60, inset 0 2px 4px rgba(255,255,255,0.25)` : 'inset 0 2px 4px rgba(0,0,0,0.4)';
+            // Límites superiores oficiales por banda (µg/m³): [Buena, RazBuena, Regular, Desfav., MuyDesfav., ExtrDesfav.]
+            const ICA_POLLUTANTS = [
+                { key:'pm2_5',            label:'PM2.5', name:'Partículas finas',    unit:'µg/m³', limits:[10, 20, 25, 50, 75, 800],   avgHours:24 },
+                { key:'pm10',             label:'PM10',  name:'Partículas',          unit:'µg/m³', limits:[20, 40, 50, 100, 150, 1200], avgHours:24 },
+                { key:'nitrogen_dioxide', label:'NO₂',   name:'Dióxido de nitrógeno',unit:'µg/m³', limits:[40, 90, 120, 230, 340, 1000], avgHours:1 },
+                { key:'ozone',            label:'O₃',    name:'Ozono',               unit:'µg/m³', limits:[50, 100, 130, 240, 380, 800], avgHours:8 },
+                { key:'sulphur_dioxide',  label:'SO₂',   name:'Dióxido de azufre',   unit:'µg/m³', limits:[100, 200, 350, 500, 750, 1250], avgHours:1 },
+            ];
+
+            function nearestHourIdx(times) {
+                const now = new Date();
+                let idx = 0, bestDiff = Infinity;
+                for (let i = 0; i < times.length; i++) {
+                    const diff = Math.abs(new Date(times[i]).getTime() - now.getTime());
+                    if (diff < bestDiff) { bestDiff = diff; idx = i; }
+                }
+                return idx;
             }
 
-            function updateSemaforo(aqi) {
-                const level = getLevel(aqi);
-                const valEl = document.getElementById('aqi-value');
-                if (valEl) { valEl.textContent = aqi; }
-                const lblEl = document.getElementById('aqi-label'); if (lblEl) { lblEl.textContent = level.label; lblEl.style.color = level.color; }
-                const badgeEl = document.getElementById('aqi-badge'); if (badgeEl) { badgeEl.style.background = level.bg; badgeEl.style.borderColor = level.color+'60'; }
-                const subEl = document.getElementById('aqi-sublabel'); if (subEl) subEl.textContent = level.sublabel;
-                const advEl = document.getElementById('aqi-advice'); if (advEl) { advEl.textContent = level.advice; advEl.style.borderLeftColor = level.color; }
-                // Mini-widget de calidad del aire (bajo Tiempo actual)
-                const miniValEl = document.getElementById('aqi-mini-value'); if (miniValEl) miniValEl.textContent = aqi;
-                const miniBadgeEl = document.getElementById('aqi-mini-badge'); if (miniBadgeEl) { miniBadgeEl.textContent = level.label; miniBadgeEl.style.color = level.color; miniBadgeEl.style.background = level.bg; miniBadgeEl.style.borderColor = level.color+'60'; }
-                const miniAdvEl = document.getElementById('aqi-mini-advice'); if (miniAdvEl) { miniAdvEl.textContent = level.advice; miniAdvEl.style.borderLeftColor = level.color; }
-                // Apagar todas las luces
-                setLight('aqi-light-purple',  '#3b1045', null);
-                setLight('aqi-light-darkred', '#3a0010', null);
-                setLight('aqi-light-red',     '#5a1a1a', null);
-                setLight('aqi-light-yellow',  '#4a4400', null);
-                setLight('aqi-light-blue',    '#002a40', null);
-                setLight('aqi-light-green',   '#14532d', null);
-                // Encender la luz correspondiente al nivel
-                if (level.light==='green')   setLight('aqi-light-green',   level.color, level.glow);
-                if (level.light==='blue')    setLight('aqi-light-blue',    level.color, level.glow);
-                if (level.light==='yellow')  setLight('aqi-light-yellow',  level.color, level.glow);
-                if (level.light==='red')     setLight('aqi-light-red',     level.color, level.glow);
-                if (level.light==='darkred') setLight('aqi-light-darkred', level.color, level.glow);
-                if (level.light==='purple')  setLight('aqi-light-purple',  level.color, level.glow);
-                document.querySelectorAll('.aqi-scale-item').forEach(el => {
-                    const mn=parseInt(el.dataset.min), mx=parseInt(el.dataset.max);
-                    el.style.background   = (aqi>=mn&&aqi<=mx) ? level.bg : 'transparent';
-                    el.style.borderColor  = (aqi>=mn&&aqi<=mx) ? level.color+'80' : 'transparent';
+            function movingAvg(arr, endIdx, hours) {
+                if (!arr) return null;
+                const start = Math.max(0, endIdx - hours + 1);
+                const slice = arr.slice(start, endIdx + 1).filter(v => v !== null && v !== undefined && !isNaN(v));
+                if (!slice.length) return null;
+                return slice.reduce((a,b) => a+b, 0) / slice.length;
+            }
+
+            // Calcula el índice a partir de los datos horarios (hourly) del endpoint de calidad del aire
+            function computeICA(hourly) {
+                if (!hourly?.time?.length) return null;
+                const idx = nearestHourIdx(hourly.time);
+                let worstIdx = -1, dominant = null;
+                const details = [];
+                ICA_POLLUTANTS.forEach(p => {
+                    const arr = hourly[p.key];
+                    if (!arr) return;
+                    const val = p.avgHours > 1 ? movingAvg(arr, idx, p.avgHours) : arr[idx];
+                    if (val === null || val === undefined || isNaN(val)) return;
+                    let lvlIdx = p.limits.findIndex(l => val <= l);
+                    if (lvlIdx === -1) lvlIdx = p.limits.length - 1;
+                    details.push({ item: p, val, lvlIdx });
+                    if (lvlIdx > worstIdx) { worstIdx = lvlIdx; dominant = { item: p, val, lvlIdx }; }
                 });
+                if (!details.length) return null;
+                return { levelIdx: worstIdx, dominant, details };
             }
 
-            function renderPollutants(current) {
-                const container = document.getElementById('aqi-pollutants'); if (!container||!current) return;
-                // Umbrales europeos reales (µg/m³) con 5 niveles
-                // Umbrales oficiales EAQI (European Air Quality Index) — Open-Meteo / EEA
-                const EAQI_T = [
-                    {label:'Buena',               color:'#16a34a'},
-                    {label:'Razonab. buena',       color:'#0284c7'},
-                    {label:'Regular',              color:'#c8b800'},
-                    {label:'Mala',                 color:'#FF5050'},
-                    {label:'Muy mala',             color:'#960032'},
-                    {label:'Extrem. mala',         color:'#7D2181'},
-                ];
-                // Límites por contaminante: [Buena, RazBuena, Regular, Mala, MuyMala, ExtrMala]
-                const items = [
-                    { key:'pm2_5',            label:'PM2.5', name:'Partículas finas',   unit:'µg/m³', limits:[10, 20, 25, 50, 75, 9999] },
-                    { key:'pm10',             label:'PM10',  name:'Partículas',          unit:'µg/m³', limits:[20, 40, 50, 100, 150, 9999] },
-                    { key:'nitrogen_dioxide', label:'NO₂',   name:'Dióxido de nitrógeno',unit:'µg/m³', limits:[40, 90, 120, 230, 340, 9999] },
-                    { key:'ozone',            label:'O₃',    name:'Ozono',               unit:'µg/m³', limits:[50, 100, 130, 240, 380, 9999] },
-                    { key:'carbon_monoxide',  label:'CO',    name:'Monóxido de carbono', unit:'mg/m³', limits:[2, 4, 8, 12, 15, 9999], divisor:1000, decimals:1 },
-                    { key:'sulphur_dioxide',  label:'SO₂',   name:'Dióxido de azufre',   unit:'µg/m³', limits:[100, 200, 350, 500, 750, 9999] },
-                ];
-                const rows = items.map(item => {
-                    let raw = current[item.key];
-                    if (raw==null) return '';
-                    if (item.divisor) raw = raw / item.divisor;
-                    const val = item.decimals ? raw.toFixed(item.decimals) : Math.round(raw);
-                    const cmp = parseFloat(val);
-                    const lvlIdx = item.limits.findIndex(l => cmp <= l);
-                    const tier = EAQI_T[lvlIdx === -1 ? EAQI_T.length-1 : lvlIdx];
-                    return { item, val, tier };
-                }).filter(Boolean);
-
-                container.innerHTML = rows.map((r, i) => `
-                    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 2px;${i < rows.length-1 ? 'border-bottom:1px solid #eef2f6;' : ''}">
-                        <div style="display:flex;align-items:baseline;gap:8px;min-width:0;">
-                            <span style="font-size:12px;font-weight:800;color:#123653;font-family:monospace;min-width:38px;">${r.item.label}</span>
-                            <span style="font-size:11px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.item.name}</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-                            <span style="font-size:13px;font-weight:800;color:#123653;font-family:monospace;">${r.val}<span style="font-size:9px;color:#94a3b8;font-weight:500;margin-left:2px;">${r.item.unit}</span></span>
-                            <span style="width:8px;height:8px;border-radius:50%;background:${r.tier.color};flex-shrink:0;"></span>
-                        </div>
-                    </div>`).join('');
+            function updateMiniWidget(ica) {
+                if (!ica) return;
+                const level = ICA_LEVELS[ica.levelIdx] || ICA_LEVELS[ICA_LEVELS.length-1];
+                const miniValEl = document.getElementById('aqi-mini-value');
+                if (miniValEl) miniValEl.textContent = ica.dominant ? ica.dominant.item.label : '—';
+                const miniBadgeEl = document.getElementById('aqi-mini-badge');
+                if (miniBadgeEl) { miniBadgeEl.textContent = level.label; miniBadgeEl.style.color = level.color; miniBadgeEl.style.background = level.bg; miniBadgeEl.style.borderColor = level.color+'60'; }
+                const miniAdvEl = document.getElementById('aqi-mini-advice');
+                if (miniAdvEl) { miniAdvEl.textContent = level.advice; miniAdvEl.style.borderLeftColor = level.color; }
             }
 
             async function loadAQI() {
                 try {
                     const aqData = await window._aqDataPromise;
-                    if (aqData?.current) {
-                        // Usar european_aqi oficial de Open-Meteo (escala EAQI 0-100+)
-                        const eaqi = aqData.current.european_aqi ?? aqData.current.us_aqi ?? 0;
-                        updateSemaforo(eaqi);
-                        renderPollutants(aqData.current);
-                    }
-                } catch(e) { console.warn('AQI load error:', e); }
+                    const ica = computeICA(aqData?.hourly);
+                    if (ica) updateMiniWidget(ica);
+                } catch(e) { console.warn('ICA load error:', e); }
             }
 
             loadAQI();
         })();
-        /* ══════ FIN SEMÁFORO ══════ */
+        /* ══════ FIN ÍNDICE NACIONAL DE CALIDAD DEL AIRE (ICA) ══════ */
 
 
 
