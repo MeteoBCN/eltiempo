@@ -1288,15 +1288,6 @@
                         </div>
                         <div id="aqi-mini-advice" style="width:100%;text-align:center;font-size:12px;color:#123653;line-height:1.4;"></div>
                     </div>
-                    <div style="text-align:center;margin-top:10px;">
-                        <button id="aqi-expand-btn" onclick="toggleAqiExpanded()" style="font-size:9px;font-weight:700;color:#123653;background:#ffffff;border:1px solid rgba(44,74,110,0.25);border-radius:6px;padding:5px 10px;cursor:pointer;letter-spacing:0.5px;text-transform:uppercase;transition:all 0.2s;">Ampliar detalles ↓</button>
-                    </div>
-                </div>
-
-                <div id="aqi-expanded-panel" style="display:none;margin-top:16px;background:#ffffff;">
-                    <!-- Contaminantes en filas -->
-                    <div id="aqi-pollutants" style="width:100%;background:#ffffff;"></div>
-
                 </div>
 
                     <div id="paraguas-chart-wrap" style="width:calc(100% + (2 * var(--gutter)));margin:28px calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));background:#f7f8fa;padding:14px 0;border-top:1px solid rgba(28,79,120,0.3);border-bottom:1px solid rgba(28,79,120,0.3);">
@@ -5458,21 +5449,6 @@
             const isOpen = panel.style.display !== 'none';
             panel.style.display = isOpen ? 'none' : 'block';
             btn.textContent = isOpen ? '+ INFORMACIÓN' : '− INFORMACIÓN';
-        }
-
-        function toggleAqiExpanded() {
-            const panel = document.getElementById('aqi-expanded-panel');
-            const btn   = document.getElementById('aqi-expand-btn');
-            if (!panel) return;
-            const isOpen = panel.style.display !== 'none';
-            if (isOpen) {
-                panel.style.display = 'none';
-                if (btn) btn.textContent = 'Ampliar detalles ↓';
-            } else {
-                panel.style.display = 'block';
-                if (btn) btn.textContent = 'Ocultar detalles ↑';
-                requestAnimationFrame(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
-            }
         }
 
         function toggleSection(id) {
