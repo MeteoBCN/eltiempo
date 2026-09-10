@@ -149,7 +149,6 @@
         .wc-wind-dir .letters { display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; margin-top: 1px; }
         .wc-pressure-arrow { color: #ffffff; font-size: 24px; font-weight: 700; line-height: 1; }
         .wc-uvi-tag { color: #ffffff; font-size: 14px; font-weight: 800; letter-spacing: 0.5px; }
-        .wc-sun-hour { color: #ffffff; font-size: 13px; font-weight: 800; letter-spacing: 0.2px; }
         .wc-label { font-size: 10px; font-weight: 500; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; }
         .weather-alerts-banner { margin: 24px 0; padding: 0; animation: fadeIn 0.6s ease-out 0.4s both; }
         .alert-banner-item { padding: 16px 18px; border-left: 4px solid; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 10px; background: transparent; border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0; box-shadow: none; }
@@ -1267,8 +1266,8 @@
                         <div class="wc-label" id="uvi-level">UVI</div>
                     </div>
                     <div class="weather-circle-item">
-                        <div class="weather-circle"><span class="wc-sun-hour" id="sun-hour">--:--</span></div>
-                        <div class="detail-value" id="sun-remaining" style="font-size:14px;margin-top:0;">--</div>
+                        <div class="weather-circle"><span id="sun-icon" style="display:flex;align-items:center;justify-content:center;"></span></div>
+                        <div class="detail-value" id="sun-hour" style="font-size:14px;margin-top:0;">--:--</div>
                         <div class="wc-label" id="sun-label" style="text-align:center;">Amanecer</div>
                     </div>
                 </div>
@@ -10304,11 +10303,28 @@
         // ══════════════════════════════════════════════
         //  FECHA Y HORA ACTUAL (redondeada a intervalos de 10 min)
         // ══════════════════════════════════════════════
+        // Iconos de sol saliendo (amanecer) / poniéndose (atardecer) para el
+        // círculo de "Tiempo actual" — mismo trazo blanco que el resto de iconos.
+        const SUN_ICON_RISE = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+            '<path d="M7 17a5 5 0 0 1 10 0" fill="#ffffff"/>' +
+            '<line x1="2.5" y1="17" x2="21.5" y2="17" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>' +
+            '<path d="M12 11V6M12 6l-2.2 2.2M12 6l2.2 2.2" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
+            '<line x1="4.5" y1="20" x2="6.5" y2="20" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round"/>' +
+            '<line x1="17.5" y1="20" x2="19.5" y2="20" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round"/>' +
+            '</svg>';
+        const SUN_ICON_SET = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+            '<path d="M7 17a5 5 0 0 1 10 0" fill="#ffffff"/>' +
+            '<line x1="2.5" y1="17" x2="21.5" y2="17" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>' +
+            '<path d="M12 6v5M12 11l-2.2-2.2M12 11l2.2-2.2" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
+            '<line x1="4.5" y1="20" x2="6.5" y2="20" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round"/>' +
+            '<line x1="17.5" y1="20" x2="19.5" y2="20" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round"/>' +
+            '</svg>';
+
         function updateSunCountdown(daily) {
+            const iconEl = document.getElementById('sun-icon');
             const hourEl = document.getElementById('sun-hour');
-            const remEl  = document.getElementById('sun-remaining');
             const lblEl  = document.getElementById('sun-label');
-            if (!hourEl || !remEl || !lblEl) return;
+            if (!iconEl || !hourEl || !lblEl) return;
             if (!daily?.time || !daily?.sunrise || !daily?.sunset) return;
             const now = new Date();
             const events = [];
@@ -10319,13 +10335,10 @@
             events.sort((a, b) => a.t - b.t);
             const next = events.find(e => e.t > now);
             if (!next) return;
-            const diffMin = Math.max(0, Math.round((next.t - now) / 60000));
-            const h = Math.floor(diffMin / 60);
-            const m = diffMin % 60;
-            const faltaTxt = h > 0 ? `${h}h ${m}min` : `${m}min`;
+            const isSunset = next.type === 'sunset';
+            iconEl.innerHTML   = isSunset ? SUN_ICON_SET : SUN_ICON_RISE;
             hourEl.textContent = next.t.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-            remEl.textContent  = faltaTxt;
-            lblEl.textContent  = next.type === 'sunset' ? 'Atardecer' : 'Amanecer';
+            lblEl.textContent  = isSunset ? 'Atardecer' : 'Amanecer';
         }
 
         function getMoonPhaseInfo(date) {
