@@ -6683,6 +6683,19 @@
         }
 
         // ── Desplegable genérico "Saber +" (humedad / presión / viento del meteograma semanal) ──
+        // Recalcula la altura de cualquier contenedor "padre" que también use
+        // max-height (p.ej. el panel de "Atmósfera libre") para que no recorte
+        // el contenido cuando un desplegable anidado crece por dentro.
+        function _syncAncestorPanelHeights(el) {
+            let node = el ? el.parentElement : null;
+            while (node) {
+                if (node.style && node.style.maxHeight && node.style.maxHeight !== '0px') {
+                    node.style.maxHeight = node.scrollHeight + 'px';
+                }
+                node = node.parentElement;
+            }
+        }
+
         function toggleF7SimplePanel(panelId, iconId, btnId) {
             const panel = document.getElementById(panelId);
             const btn   = document.getElementById(btnId || iconId);
@@ -6691,9 +6704,11 @@
             if (isOpen) {
                 panel.style.maxHeight = '0px';
                 if (btn) btn.classList.remove('is-open');
+                _syncAncestorPanelHeights(panel);
             } else {
                 panel.style.maxHeight = panel.scrollHeight + 'px';
                 if (btn) btn.classList.add('is-open');
+                _syncAncestorPanelHeights(panel);
             }
         }
 
@@ -6706,14 +6721,19 @@
             if (isOpen) {
                 panel.style.maxHeight = '0px';
                 if (btn) btn.classList.remove('is-open');
+                _syncAncestorPanelHeights(panel);
             } else {
                 panel.style.maxHeight = panel.scrollHeight + 'px';
                 if (btn) btn.classList.add('is-open');
+                _syncAncestorPanelHeights(panel);
                 // Si la imagen tarda en cargar, reajustar la altura del desplegable
                 const img = panel.querySelector('img');
                 if (img && !img.complete) {
                     img.addEventListener('load', () => {
-                        if (panel.style.maxHeight !== '0px') panel.style.maxHeight = panel.scrollHeight + 'px';
+                        if (panel.style.maxHeight !== '0px') {
+                            panel.style.maxHeight = panel.scrollHeight + 'px';
+                            _syncAncestorPanelHeights(panel);
+                        }
                     }, { once: true });
                 }
             }
@@ -6728,9 +6748,11 @@
             if (isOpen) {
                 panel.style.maxHeight = '0px';
                 if (btn) btn.classList.remove('is-open');
+                _syncAncestorPanelHeights(panel);
             } else {
                 panel.style.maxHeight = panel.scrollHeight + 'px';
                 if (btn) btn.classList.add('is-open');
+                _syncAncestorPanelHeights(panel);
             }
         }
 
@@ -6742,9 +6764,11 @@
             if (isOpen) {
                 panel.style.maxHeight = '0px';
                 if (btn) btn.classList.remove('is-open');
+                _syncAncestorPanelHeights(panel);
             } else {
                 panel.style.maxHeight = panel.scrollHeight + 'px';
                 if (btn) btn.classList.add('is-open');
+                _syncAncestorPanelHeights(panel);
             }
         }
 
