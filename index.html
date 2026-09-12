@@ -1390,7 +1390,7 @@
                         padding:5px 9px 6px;
                         text-align:center;
                         white-space:nowrap;
-                        max-width:112px;
+                        max-width:126px;
                         box-shadow:0 4px 14px rgba(0,0,0,0.22);
                     }
                     .alt-marker-label{ font-size:8px;font-weight:700;color:#ffffff;opacity:0.75;letter-spacing:1px;text-transform:uppercase; }
@@ -1404,7 +1404,7 @@
                     }
                     /* Mobile first: burbujas algo más compactas en pantallas pequeñas */
                     @media (max-width:600px){
-                        .alt-marker-bubble{ padding:4px 7px 5px; max-width:88px; }
+                        .alt-marker-bubble{ padding:4px 7px 5px; max-width:98px; }
                         .alt-marker-temp{ font-size:15px; }
                         .alt-marker-label{ font-size:6.5px; letter-spacing:0.5px; }
                         .alt-marker-hr{ font-size:7.5px; }
@@ -1413,7 +1413,7 @@
 
                 <div class="alt-wrap" id="altura-efecto-wrap">
                     <div class="alt-title">Efecto Altura: Ciudad vs. Montaña</div>
-                    <div class="alt-subtitle">Perfil Collserola (Tibidabo) → Costa</div>
+                    <div class="alt-subtitle">Tibidabo → Ronda de Dalt → Eixample → Costa</div>
 
                     <div class="alt-silhouette-wrap">
                         <!-- ═══ Silueta del perfil de terreno: Tibidabo (≈512 m, izquierda) → Costa (0 m, derecha) ═══
@@ -1453,7 +1453,7 @@
                                   fill="url(#altHillGrad)" stroke="#ffffff" stroke-opacity="0.65" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
                         </svg>
 
-                        <!-- Burbuja TIBIDABO, anclada sobre el punto (130,110) de la línea = ~20%, ~27.5% -->
+                        <!-- Burbuja TIBIDABO (Observatori Fabra, ≈410 m), anclada sobre (130,110) = 20%, 27.5% -->
                         <div class="alt-marker" style="left:20%;top:27.5%;">
                             <div class="alt-marker-bubble">
                                 <div class="alt-marker-label">⛰️ Tibidabo</div>
@@ -1463,7 +1463,27 @@
                             <div class="alt-marker-dot"></div>
                         </div>
 
-                        <!-- Burbuja COSTA, anclada sobre el punto (530,330) de la línea = ~83%, ~82.5% -->
+                        <!-- Burbuja RONDA DE DALT (estación CosmoCaixa, 171 m), sobre (185,224) = 28.9%, 56% -->
+                        <div class="alt-marker" style="left:28.9%;top:56%;">
+                            <div class="alt-marker-bubble">
+                                <div class="alt-marker-label">🌳 Ronda de Dalt</div>
+                                <div class="alt-marker-temp" id="temp-rda">--°</div>
+                                <div class="alt-marker-hr">💧 <span id="hr-rda">--%</span></div>
+                            </div>
+                            <div class="alt-marker-dot"></div>
+                        </div>
+
+                        <!-- Burbuja EIXAMPLE (llano de la ciudad), sobre (369,314) = 57.7%, 78.5% -->
+                        <div class="alt-marker" style="left:57.7%;top:78.5%;">
+                            <div class="alt-marker-bubble">
+                                <div class="alt-marker-label">🏙️ Eixample</div>
+                                <div class="alt-marker-temp" id="temp-eixample">--°</div>
+                                <div class="alt-marker-hr">💧 <span id="hr-eixample">--%</span></div>
+                            </div>
+                            <div class="alt-marker-dot"></div>
+                        </div>
+
+                        <!-- Burbuja COSTA (estación Port Olímpic, 0 m), sobre (530,330) = 83%, 82.5% -->
                         <div class="alt-marker" style="left:83%;top:82.5%;">
                             <div class="alt-marker-bubble">
                                 <div class="alt-marker-label">🌊 Costa</div>
@@ -1478,86 +1498,87 @@
                 (function () {
                     /**
                      * cargarEfectoAltura()
-                     * - Costa: siempre desde Open-Meteo (pronóstico puntual, no hay
-                     *   estación propia en la playa).
-                     * - Montaña (Tibidabo): dato REAL en vivo del Observatori Fabra
-                     *   (Weathercloud, estación d0931380607), obtenido vía un Worker
-                     *   proxy propio (CORS). Si el proxy falla o tarda, se hace
-                     *   fallback automático al pronóstico de Open-Meteo para ese punto,
-                     *   igual que antes.
+                     * 4 puntos, todos con dato REAL en vivo vía Weathercloud (proxy propio,
+                     * CORS) y fallback automático e independiente a Open-Meteo por si algún
+                     * proxy o estación falla puntualmente:
+                     *
+                     *   - Tibidabo     → Observatori Fabra   (código 0931380607, ≈410 m)
+                     *   - Ronda de Dalt→ CosmoCaixa          (código 0751853563, 171 m)
+                     *   - Eixample     → Estació Eixample    (código 8530132327)
+                     *   - Costa        → Port Olímpic        (código 9415750150, 0 m)
                      *
                      *   ⚠️ Sustituye WEATHERCLOUD_WORKER por la URL real de tu Worker
                      *   una vez desplegado en Cloudflare (ver proxy-weathercloud-worker.js).
                      */
                     const WEATHERCLOUD_WORKER = 'https://proxy-weathercloud.lojasergi.workers.dev';
-                    const FABRA_CODE = '0931380607'; // Observatori Fabra (código SIN el prefijo "d")
 
-                    async function obtenerDatoFabra() {
-                        const url = `${WEATHERCLOUD_WORKER}?code=${FABRA_CODE}`;
+                    // Definición de los 4 puntos: id de los <span> en el DOM, código de
+                    // Weathercloud y coordenadas aproximadas (solo para el fallback Open-Meteo).
+                    const PUNTOS = [
+                        { key: 'tibi',     code: '0931380607', lat: 41.42, lon: 2.11,  elTemp: 'temp-tibi',     elHr: 'hr-tibi' },
+                        { key: 'rda',      code: '0751853563', lat: 41.413, lon: 2.131, elTemp: 'temp-rda',      elHr: 'hr-rda' },
+                        { key: 'eixample', code: '8530132327', lat: 41.3888, lon: 2.159, elTemp: 'temp-eixample', elHr: 'hr-eixample' },
+                        { key: 'mar',      code: '9415750150', lat: 41.386, lon: 2.201, elTemp: 'temp-mar',      elHr: 'hr-mar' }
+                    ];
+
+                    async function obtenerDatoWeathercloud(code) {
+                        const url = `${WEATHERCLOUD_WORKER}?code=${code}`;
                         const resp = await fetch(url, { signal: AbortSignal.timeout(8000) });
-                        if (!resp.ok) throw new Error('Respuesta no OK del proxy Weathercloud');
+                        if (!resp.ok) throw new Error('Respuesta no OK del proxy Weathercloud (' + code + ')');
                         const data = await resp.json();
-                        // El endpoint de Weathercloud puede devolver { values: {...} } o el objeto plano,
-                        // según versión; contemplamos ambos casos.
+                        // El endpoint puede devolver { values: {...} } o el objeto plano según versión.
                         const v = data.values || data;
                         const temp = v.temp ?? v.temperature;
                         const hum = v.hum ?? v.humidity;
-                        if (temp === undefined || temp === null) throw new Error('Sin dato de temperatura del Fabra');
+                        if (temp === undefined || temp === null) throw new Error('Sin dato de temperatura (' + code + ')');
                         return {
                             temp: Math.round(temp),
                             hum: (hum === undefined || hum === null) ? null : Math.round(hum)
                         };
                     }
 
-                    async function cargarEfectoAltura() {
-                        const elTempMar = document.getElementById('temp-mar');
-                        const elHrMar = document.getElementById('hr-mar');
-                        const elTempTibi = document.getElementById('temp-tibi');
-                        const elHrTibi = document.getElementById('hr-tibi');
-
-                        // Costa (Open-Meteo) y Tibidabo (Open-Meteo, usado como fallback)
-                        // se piden siempre en paralelo con el dato real del Fabra.
-                        const lats = '41.38,41.42';
-                        const lons = '2.19,2.11';
-                        const urlOpenMeteo = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}` +
+                    async function obtenerFallbackOpenMeteo() {
+                        const lats = PUNTOS.map(p => p.lat).join(',');
+                        const lons = PUNTOS.map(p => p.lon).join(',');
+                        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}` +
                             `&current=temperature_2m,relative_humidity_2m&timezone=Europe/Madrid`;
+                        const resp = await fetch(url);
+                        if (!resp.ok) throw new Error('Respuesta no OK de Open-Meteo');
+                        const data = await resp.json(); // Array con un objeto "current" por punto, en el mismo orden que PUNTOS
+                        return data.map(d => ({
+                            temp: Math.round(d.current.temperature_2m),
+                            hum: Math.round(d.current.relative_humidity_2m)
+                        }));
+                    }
 
-                        const [costaResult, fabraResult] = await Promise.allSettled([
-                            fetch(urlOpenMeteo).then(r => {
-                                if (!r.ok) throw new Error('Respuesta no OK de Open-Meteo');
-                                return r.json();
-                            }),
-                            obtenerDatoFabra()
+                    function pintar(punto, valores) {
+                        const elTemp = document.getElementById(punto.elTemp);
+                        const elHr = document.getElementById(punto.elHr);
+                        if (!elTemp || !elHr || !valores) return;
+                        elTemp.textContent = valores.temp + '°';
+                        elHr.textContent = (valores.hum !== null && valores.hum !== undefined) ? valores.hum + '%' : '—';
+                    }
+
+                    async function cargarEfectoAltura() {
+                        // Se piden las 4 estaciones reales EN PARALELO, más el fallback
+                        // conjunto de Open-Meteo (por si alguna estación real falla).
+                        const [realResults, fallbackResult] = await Promise.all([
+                            Promise.allSettled(PUNTOS.map(p => obtenerDatoWeathercloud(p.code))),
+                            obtenerFallbackOpenMeteo().catch(err => {
+                                console.warn('Fallback Open-Meteo no disponible:', err.message);
+                                return null;
+                            })
                         ]);
 
-                        // --- Costa ---
-                        try {
-                            if (costaResult.status === 'fulfilled') {
-                                const datosCosta = costaResult.value[0].current;
-                                elTempMar.textContent = Math.round(datosCosta.temperature_2m) + '°';
-                                elHrMar.textContent = Math.round(datosCosta.relative_humidity_2m) + '%';
+                        PUNTOS.forEach((punto, i) => {
+                            const real = realResults[i];
+                            if (real.status === 'fulfilled') {
+                                pintar(punto, real.value);
+                            } else {
+                                console.warn(`No se pudo obtener el dato real de "${punto.key}" (${punto.code}), uso fallback Open-Meteo:`, real.reason?.message);
+                                if (fallbackResult) pintar(punto, fallbackResult[i]);
                             }
-                        } catch (err) {
-                            console.error('Error pintando dato de Costa:', err);
-                        }
-
-                        // --- Montaña / Tibidabo ---
-                        if (fabraResult.status === 'fulfilled') {
-                            // Dato real del Observatori Fabra
-                            elTempTibi.textContent = fabraResult.value.temp + '°';
-                            elHrTibi.textContent = (fabraResult.value.hum !== null ? fabraResult.value.hum + '%' : '—');
-                        } else {
-                            console.warn('No se pudo obtener el dato real del Fabra, uso fallback Open-Meteo:', fabraResult.reason?.message);
-                            try {
-                                if (costaResult.status === 'fulfilled') {
-                                    const datosTibidabo = costaResult.value[1].current;
-                                    elTempTibi.textContent = Math.round(datosTibidabo.temperature_2m) + '°';
-                                    elHrTibi.textContent = Math.round(datosTibidabo.relative_humidity_2m) + '%';
-                                }
-                            } catch (err) {
-                                console.error('Error cargando Efecto Altura (fallback Tibidabo):', err);
-                            }
-                        }
+                        });
                     }
 
                     // Lanza la carga cuando el DOM está listo
