@@ -1358,10 +1358,11 @@
                     .alt-silhouette-wrap{
                         position:relative;
                         width:100%;
-                        aspect-ratio:640/240;
+                        aspect-ratio:640/400;
                         margin:0 0 6px;
                         padding:0 var(--gutter);
                         box-sizing:border-box;
+                        overflow:visible;
                     }
                     .alt-silhouette-svg{
                         position:absolute;
@@ -1386,9 +1387,10 @@
                         backdrop-filter:blur(10px);
                         -webkit-backdrop-filter:blur(10px);
                         border-radius:12px;
-                        padding:5px 10px 6px;
+                        padding:5px 9px 6px;
                         text-align:center;
                         white-space:nowrap;
+                        max-width:112px;
                         box-shadow:0 4px 14px rgba(0,0,0,0.22);
                     }
                     .alt-marker-label{ font-size:8px;font-weight:700;color:#ffffff;opacity:0.75;letter-spacing:1px;text-transform:uppercase; }
@@ -1400,34 +1402,26 @@
                         box-shadow:0 0 0 3px rgba(255,255,255,0.22);
                         margin-top:1px;
                     }
-                    .alt-analisis{
-                        margin:14px var(--gutter) 0;
-                        padding:12px 14px;
-                        background:rgba(255,255,255,0.10);
-                        border:1px solid rgba(255,255,255,0.16);
-                        border-radius:12px;
-                        font-size:12px;
-                        line-height:1.5;
-                        color:#ffffff;
-                        text-align:center;
-                    }
-                    .alt-analisis strong{ font-weight:800; }
                     /* Mobile first: burbujas algo más compactas en pantallas pequeñas */
                     @media (max-width:600px){
-                        .alt-marker-bubble{ padding:4px 8px 5px; }
-                        .alt-marker-temp{ font-size:16px; }
-                        .alt-marker-label{ font-size:7px; }
-                        .alt-marker-hr{ font-size:8px; }
+                        .alt-marker-bubble{ padding:4px 7px 5px; max-width:88px; }
+                        .alt-marker-temp{ font-size:15px; }
+                        .alt-marker-label{ font-size:6.5px; letter-spacing:0.5px; }
+                        .alt-marker-hr{ font-size:7.5px; }
                     }
                 </style>
 
                 <div class="alt-wrap" id="altura-efecto-wrap">
                     <div class="alt-title">Efecto Altura: Ciudad vs. Montaña</div>
-                    <div class="alt-subtitle">Perfil Costa → Collserola (Tibidabo)</div>
+                    <div class="alt-subtitle">Perfil Collserola (Tibidabo) → Costa</div>
 
                     <div class="alt-silhouette-wrap">
-                        <!-- ═══ Silueta del perfil de terreno, de la Costa (0 m) al Tibidabo (≈512 m) ═══ -->
-                        <svg class="alt-silhouette-svg" viewBox="0 0 640 240" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+                        <!-- ═══ Silueta del perfil de terreno: Tibidabo (≈512 m, izquierda) → Costa (0 m, derecha) ═══
+                             viewBox más alto (640x400) para dejar hueco de sobra encima del pico y que
+                             la burbuja del Tibidabo nunca se recorte; los puntos del trazado se han
+                             alejado de los bordes (x:100–530 de 640) para que ninguna burbuja quede
+                             cortada por el borde de la pantalla en móvil. -->
+                        <svg class="alt-silhouette-svg" viewBox="0 0 640 400" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
                             <defs>
                                 <linearGradient id="altHillGrad" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
@@ -1436,32 +1430,31 @@
                             </defs>
 
                             <!-- "Cordel horizontal" de referencia a la altura del Tibidabo -->
-                            <line x1="20" y1="32" x2="600" y2="32" stroke="#ffffff" stroke-opacity="0.32" stroke-width="1" stroke-dasharray="4 4"/>
+                            <line x1="100" y1="110" x2="530" y2="110" stroke="#ffffff" stroke-opacity="0.28" stroke-width="1.5" stroke-dasharray="5 5"/>
                             <!-- Línea vertical que marca el desnivel entre la costa y la cima -->
-                            <line x1="20" y1="215" x2="20" y2="32" stroke="#ffffff" stroke-opacity="0.32" stroke-width="1" stroke-dasharray="4 4"/>
-                            <text x="26" y="122" fill="#ffffff" fill-opacity="0.55" font-size="9" font-family="sans-serif">≈512 m</text>
+                            <line x1="530" y1="330" x2="530" y2="110" stroke="#ffffff" stroke-opacity="0.28" stroke-width="1.5" stroke-dasharray="5 5"/>
+                            <text x="470" y="225" fill="#ffffff" fill-opacity="0.55" font-size="14" font-family="sans-serif" text-anchor="end">≈512 m</text>
 
                             <!-- Referencias del eje de altitud -->
-                            <text x="2" y="38" fill="#ffffff" fill-opacity="0.4" font-size="8" font-family="sans-serif">500m</text>
-                            <text x="2" y="219" fill="#ffffff" fill-opacity="0.4" font-size="8" font-family="sans-serif">0m</text>
+                            <text x="4" y="114" fill="#ffffff" fill-opacity="0.42" font-size="13" font-family="sans-serif">500m</text>
+                            <text x="4" y="344" fill="#ffffff" fill-opacity="0.42" font-size="13" font-family="sans-serif">0m</text>
 
-                            <!-- Silueta ascendente Costa → Tibidabo -->
-                            <path d="M20,215 C70,210 140,205 210,185 C260,168 300,145 350,115 C400,85 450,60 500,45 C530,38 545,35 560,32 L600,32 L600,220 L20,220 Z"
-                                  fill="url(#altHillGrad)" stroke="#ffffff" stroke-opacity="0.55" stroke-width="1.5"/>
+                            <!-- Corte real de Barcelona: Costa y llano de la ciudad prácticamente
+                                 planos durante la mayor parte del recorrido, con una subida mucho
+                                 más brusca solo en el tramo final, al acercarse al Tibidabo. -->
+                            <path d="M130,110
+                                     C145,112 155,130 165,160
+                                     C178,200 190,250 210,285
+                                     C225,305 245,310 280,312
+                                     C340,314 400,314 450,316
+                                     C480,317 505,322 520,327
+                                     L530,330
+                                     L530,395 L130,395 Z"
+                                  fill="url(#altHillGrad)" stroke="#ffffff" stroke-opacity="0.65" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
                         </svg>
 
-                        <!-- Burbuja COSTA, anclada sobre el punto (20,215) del path = ~3%, ~90% -->
-                        <div class="alt-marker" style="left:3%;top:90%;">
-                            <div class="alt-marker-bubble">
-                                <div class="alt-marker-label">🌊 Costa</div>
-                                <div class="alt-marker-temp" id="temp-mar">--°</div>
-                                <div class="alt-marker-hr">💧 <span id="hr-mar">--%</span></div>
-                            </div>
-                            <div class="alt-marker-dot"></div>
-                        </div>
-
-                        <!-- Burbuja TIBIDABO, anclada sobre el punto (560,32) del path = ~87%, ~13% -->
-                        <div class="alt-marker" style="left:87%;top:13%;">
+                        <!-- Burbuja TIBIDABO, anclada sobre el punto (130,110) de la línea = ~20%, ~27.5% -->
+                        <div class="alt-marker" style="left:20%;top:27.5%;">
                             <div class="alt-marker-bubble">
                                 <div class="alt-marker-label">⛰️ Tibidabo</div>
                                 <div class="alt-marker-temp" id="temp-tibi">--°</div>
@@ -1469,10 +1462,17 @@
                             </div>
                             <div class="alt-marker-dot"></div>
                         </div>
-                    </div>
 
-                    <!-- Conclusión automática generada por JS según el gradiente térmico -->
-                    <div class="alt-analisis" id="analisis-altitud">Cargando datos de altitud…</div>
+                        <!-- Burbuja COSTA, anclada sobre el punto (530,330) de la línea = ~83%, ~82.5% -->
+                        <div class="alt-marker" style="left:83%;top:82.5%;">
+                            <div class="alt-marker-bubble">
+                                <div class="alt-marker-label">🌊 Costa</div>
+                                <div class="alt-marker-temp" id="temp-mar">--°</div>
+                                <div class="alt-marker-hr">💧 <span id="hr-mar">--%</span></div>
+                            </div>
+                            <div class="alt-marker-dot"></div>
+                        </div>
+                    </div>
                 </div>
                 <script>
                 (function () {
@@ -1487,7 +1487,6 @@
                         const elHrMar = document.getElementById('hr-mar');
                         const elTempTibi = document.getElementById('temp-tibi');
                         const elHrTibi = document.getElementById('hr-tibi');
-                        const elAnalisis = document.getElementById('analisis-altitud');
 
                         try {
                             // Coordenadas encadenadas: [0] Costa/Playas, [1] Tibidabo/Montaña
@@ -1514,35 +1513,8 @@
                             elTempTibi.textContent = tempTibi + '°';
                             elHrTibi.textContent = hrTibi + '%';
 
-                            // Cálculo del gradiente térmico: Costa - Tibidabo
-                            const diferencia = tempCosta - tempTibi;
-                            elAnalisis.innerHTML = generarConclusion(diferencia, tempCosta, tempTibi);
-
                         } catch (err) {
                             console.error('Error cargando Efecto Altura:', err);
-                            elAnalisis.textContent = 'No se han podido cargar los datos de altitud.';
-                        }
-                    }
-
-                    /**
-                     * generarConclusion(diferencia)
-                     * Aplica la lógica condicional que interpreta el gradiente térmico
-                     * Costa vs. Tibidabo y devuelve el mensaje explicativo correspondiente.
-                     */
-                    function generarConclusion(diferencia) {
-                        if (diferencia < 0) {
-                            // Tibidabo más cálido que la costa → el aire frío se ha estancado abajo
-                            const abs = Math.abs(diferencia);
-                            return '🥶 <strong>Inversión térmica detectada.</strong> El Tibidabo está ' + abs +
-                                '° más cálido que la costa: el aire frío se ha quedado estancado en la ciudad mientras en la montaña hace más calor de lo habitual.';
-                        } else if (diferencia > 6) {
-                            // Gradiente muy acentuado → mucho más fresco en la montaña
-                            return '🌡️ <strong>Gradiente muy acentuado (' + diferencia +
-                                '°).</strong> En el Tibidabo se está mucho más fresco: ideal para escapar del calor urbano de la costa.';
-                        } else {
-                            // Gradiente normal para un día estándar en Barcelona
-                            return '✅ <strong>Gradiente térmico normal (' + diferencia +
-                                '°)</strong> para un día estándar en Barcelona: la montaña está algo más fresca que la costa, como es habitual.';
                         }
                     }
 
