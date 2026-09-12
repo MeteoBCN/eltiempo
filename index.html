@@ -1478,43 +1478,85 @@
                 (function () {
                     /**
                      * cargarEfectoAltura()
-                     * Pide en UNA sola petición HTTP el tiempo actual de dos puntos
-                     * (Costa y Tibidabo) encadenando las coordenadas separadas por comas.
-                     * Open-Meteo devuelve entonces un ARRAY con un objeto "current" por ubicación.
+                     * - Costa: siempre desde Open-Meteo (pronóstico puntual, no hay
+                     *   estación propia en la playa).
+                     * - Montaña (Tibidabo): dato REAL en vivo del Observatori Fabra
+                     *   (Weathercloud, estación d0931380607), obtenido vía un Worker
+                     *   proxy propio (CORS). Si el proxy falla o tarda, se hace
+                     *   fallback automático al pronóstico de Open-Meteo para ese punto,
+                     *   igual que antes.
+                     *
+                     *   ⚠️ Sustituye WEATHERCLOUD_WORKER por la URL real de tu Worker
+                     *   una vez desplegado en Cloudflare (ver proxy-weathercloud-worker.js).
                      */
+                    const WEATHERCLOUD_WORKER = 'https://proxy-weathercloud.lojasergi.workers.dev';
+                    const FABRA_CODE = '0931380607'; // Observatori Fabra (código SIN el prefijo "d")
+
+                    async function obtenerDatoFabra() {
+                        const url = `${WEATHERCLOUD_WORKER}?code=${FABRA_CODE}`;
+                        const resp = await fetch(url, { signal: AbortSignal.timeout(8000) });
+                        if (!resp.ok) throw new Error('Respuesta no OK del proxy Weathercloud');
+                        const data = await resp.json();
+                        // El endpoint de Weathercloud puede devolver { values: {...} } o el objeto plano,
+                        // según versión; contemplamos ambos casos.
+                        const v = data.values || data;
+                        const temp = v.temp ?? v.temperature;
+                        const hum = v.hum ?? v.humidity;
+                        if (temp === undefined || temp === null) throw new Error('Sin dato de temperatura del Fabra');
+                        return {
+                            temp: Math.round(temp),
+                            hum: (hum === undefined || hum === null) ? null : Math.round(hum)
+                        };
+                    }
+
                     async function cargarEfectoAltura() {
                         const elTempMar = document.getElementById('temp-mar');
                         const elHrMar = document.getElementById('hr-mar');
                         const elTempTibi = document.getElementById('temp-tibi');
                         const elHrTibi = document.getElementById('hr-tibi');
 
+                        // Costa (Open-Meteo) y Tibidabo (Open-Meteo, usado como fallback)
+                        // se piden siempre en paralelo con el dato real del Fabra.
+                        const lats = '41.38,41.42';
+                        const lons = '2.19,2.11';
+                        const urlOpenMeteo = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}` +
+                            `&current=temperature_2m,relative_humidity_2m&timezone=Europe/Madrid`;
+
+                        const [costaResult, fabraResult] = await Promise.allSettled([
+                            fetch(urlOpenMeteo).then(r => {
+                                if (!r.ok) throw new Error('Respuesta no OK de Open-Meteo');
+                                return r.json();
+                            }),
+                            obtenerDatoFabra()
+                        ]);
+
+                        // --- Costa ---
                         try {
-                            // Coordenadas encadenadas: [0] Costa/Playas, [1] Tibidabo/Montaña
-                            const lats = '41.38,41.42';
-                            const lons = '2.19,2.11';
-                            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}` +
-                                `&current=temperature_2m,relative_humidity_2m&timezone=Europe/Madrid`;
-
-                            const resp = await fetch(url);
-                            if (!resp.ok) throw new Error('Respuesta no OK de Open-Meteo');
-                            const data = await resp.json(); // Array de 2 objetos (uno por ubicación)
-
-                            const datosCosta = data[0].current;
-                            const datosTibidabo = data[1].current;
-
-                            const tempCosta = Math.round(datosCosta.temperature_2m);
-                            const tempTibi = Math.round(datosTibidabo.temperature_2m);
-                            const hrCosta = Math.round(datosCosta.relative_humidity_2m);
-                            const hrTibi = Math.round(datosTibidabo.relative_humidity_2m);
-
-                            // Mapeo de datos al DOM
-                            elTempMar.textContent = tempCosta + '°';
-                            elHrMar.textContent = hrCosta + '%';
-                            elTempTibi.textContent = tempTibi + '°';
-                            elHrTibi.textContent = hrTibi + '%';
-
+                            if (costaResult.status === 'fulfilled') {
+                                const datosCosta = costaResult.value[0].current;
+                                elTempMar.textContent = Math.round(datosCosta.temperature_2m) + '°';
+                                elHrMar.textContent = Math.round(datosCosta.relative_humidity_2m) + '%';
+                            }
                         } catch (err) {
-                            console.error('Error cargando Efecto Altura:', err);
+                            console.error('Error pintando dato de Costa:', err);
+                        }
+
+                        // --- Montaña / Tibidabo ---
+                        if (fabraResult.status === 'fulfilled') {
+                            // Dato real del Observatori Fabra
+                            elTempTibi.textContent = fabraResult.value.temp + '°';
+                            elHrTibi.textContent = (fabraResult.value.hum !== null ? fabraResult.value.hum + '%' : '—');
+                        } else {
+                            console.warn('No se pudo obtener el dato real del Fabra, uso fallback Open-Meteo:', fabraResult.reason?.message);
+                            try {
+                                if (costaResult.status === 'fulfilled') {
+                                    const datosTibidabo = costaResult.value[1].current;
+                                    elTempTibi.textContent = Math.round(datosTibidabo.temperature_2m) + '°';
+                                    elHrTibi.textContent = Math.round(datosTibidabo.relative_humidity_2m) + '%';
+                                }
+                            } catch (err) {
+                                console.error('Error cargando Efecto Altura (fallback Tibidabo):', err);
+                            }
                         }
                     }
 
@@ -1524,6 +1566,9 @@
                     } else {
                         cargarEfectoAltura();
                     }
+
+                    // Refresca cada 10 minutos, igual que el resto de datos en vivo del sitio
+                    setInterval(cargarEfectoAltura, 10 * 60 * 1000);
                 })();
                 </script>
                 <!-- ═══ FIN MÓDULO EFECTO ALTURA ═══ -->
