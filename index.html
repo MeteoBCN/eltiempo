@@ -1332,282 +1332,155 @@
 
                 <!-- ═══════════════════════════════════════════════════════
                      MÓDULO: EFECTO ALTURA · CIUDAD VS. MONTAÑA
-                     Perfil topográfico real (SVG 800×480) con 4 estaciones:
-                     Obs. Fabra (410m) → Ronda de Dalt (170m) → Eixample (20m) → Port Olímpic (2m).
-                     Actualización en tiempo real vía actualizarDatos(estacion, temp).
+                     Tabla comparativa ultra-compacta (sin iconos) con las 4
+                     estaciones ordenadas de mayor a menor altitud:
+                     Obs. Fabra (410m) → Rda. de Dalt (180m) → Eixample (40m) → Costa (5m).
                 ════════════════════════════════════════════════════════ -->
                 <style>
-                    /* ── Estilos del módulo Efecto Altura (namespaced con prefijo .eha-) ── */
-                    .eha-wrap{
+                    /* ── Estilos del módulo Efecto Altura (namespaced con prefijo .eht-) ── */
+                    .eht-wrap{
                         width:calc(100% + (2 * var(--gutter)));
                         margin:0 calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));
-                        padding:26px 0 20px;
+                        padding:24px 0 20px;
                         background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);
                         border-top:1px solid rgba(255,255,255,0.14);
                     }
-                    .eha-title{
+                    .eht-title{
                         font-family:'Fraunces',serif;font-style:italic;font-weight:500;
                         font-size:19px;color:#ffffff;text-align:center;margin-bottom:2px;letter-spacing:0.2px;
                     }
-                    .eha-subtitle{
+                    .eht-subtitle{
                         font-size:9.5px;font-weight:500;color:#ffffff;opacity:0.6;letter-spacing:1px;
-                        text-transform:uppercase;text-align:center;margin-bottom:14px;
+                        text-transform:uppercase;text-align:center;margin-bottom:18px;
                     }
-                    /* El wrapper mantiene la proporción exacta del viewBox (800x480) para que
-                       las tarjetas y nodos, posicionados en coordenadas absolutas del SVG,
-                       escalen siempre de forma proporcional a cualquier ancho de pantalla. */
-                    .eha-chart-wrap{
-                        width:100%;
-                        aspect-ratio:800/480;
-                        padding:0 var(--gutter);
-                        box-sizing:border-box;
+
+                    /* Tabla vía CSS Grid: cada fila es un grid con las mismas 5 columnas,
+                       así los valores numéricos quedan siempre alineados verticalmente
+                       con un margen lateral mínimo (aprovecha todo el ancho en móvil). */
+                    .eht-table{ padding:0 14px; }
+                    .eht-row{
+                        display:grid;
+                        grid-template-columns: 1.55fr 0.8fr 0.85fr 1fr 1fr;
+                        align-items:baseline;
+                        column-gap:4px;
+                        padding:12px 0;
+                        border-top:1px solid rgba(255,255,255,0.10);
                     }
-                    .eha-chart-svg{ width:100%; height:100%; display:block; }
+                    .eht-row--head{ border-top:none; padding:0 0 9px; }
 
-                    /* Nodo de estación: círculo blanco con halo, con una ligera
-                       interacción táctil/hover para reforzar que es "vivo". */
-                    .eha-node{ cursor:pointer; transition:transform .2s ease; transform-box:fill-box; transform-origin:center; }
-                    .eha-node:hover, .eha-node:focus{ transform:scale(1.18); }
-                    .eha-node-halo{ fill:#ffffff; opacity:0.18; }
-                    .eha-node-dot{ fill:#ffffff; stroke:#123653; stroke-width:2; }
+                    .eht-cell{
+                        font-family:'Inter',sans-serif;
+                        font-variant-numeric:tabular-nums;
+                        text-align:right;
+                        white-space:nowrap;
+                    }
+                    .eht-cell--loc{ text-align:left; }
 
-                    /* Tarjeta "frosted glass" (cristal esmerilado) por estación */
-                    .eha-card{ fill:rgba(255,255,255,0.14); stroke:rgba(255,255,255,0.32); stroke-width:1; }
-                    .eha-card-blur{ backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
-                    .eha-stem{ stroke:#ffffff; stroke-opacity:0.45; stroke-width:1.5; stroke-dasharray:2 3; }
+                    /* Fila de cabecera: etiquetas pequeñas, discretas */
+                    .eht-row--head .eht-cell{
+                        font-size:9px;font-weight:700;color:#ffffff;opacity:0.45;
+                        letter-spacing:0.6px;text-transform:uppercase;
+                    }
 
-                    .eha-label{ font-family:'Inter',sans-serif; font-size:10.5px; font-weight:700; fill:#ffffff; opacity:0.85; letter-spacing:0.2px; }
-                    .eha-temp{ font-family:'Inter',sans-serif; font-size:22px; font-weight:800; fill:#ffffff; }
-                    .eha-axis-label{ font-family:'Inter',sans-serif; font-size:11px; font-weight:500; fill:#ffffff; opacity:0.4; }
+                    /* Nombre de la estación: jerarquía principal a la izquierda */
+                    .eht-row:not(.eht-row--head) .eht-cell--loc{
+                        font-size:13.5px;font-weight:600;color:#ffffff;opacity:0.95;letter-spacing:0.1px;
+                    }
 
-                    @media (max-width:600px){
-                        .eha-label{ font-size:9px; }
-                        .eha-temp{ font-size:18px; }
-                        .eha-axis-label{ font-size:9.5px; }
+                    /* Temperatura: la cifra protagonista, con más peso y tamaño */
+                    .eht-cell--temp{ font-size:20px;font-weight:800;color:#ffffff; }
+
+                    /* Altura, Humedad y Lluvia: tipografía secundaria, ordenada y limpia */
+                    .eht-row:not(.eht-row--head) .eht-cell:not(.eht-cell--loc):not(.eht-cell--temp){
+                        font-size:12.5px;font-weight:500;color:#ffffff;opacity:0.62;
+                    }
+
+                    .eht-footnote{
+                        font-family:'Inter',sans-serif;font-style:italic;font-size:9.5px;font-weight:400;
+                        color:#ffffff;opacity:0.42;text-align:center;letter-spacing:0.1px;
+                        margin:14px 20px 0;
+                    }
+
+                    @media (max-width:360px){
+                        .eht-table{ padding:0 10px; }
+                        .eht-row{ grid-template-columns: 1.4fr 0.75fr 0.8fr 0.95fr 0.95fr; padding:10px 0; }
+                        .eht-row:not(.eht-row--head) .eht-cell--loc{ font-size:12.5px; }
+                        .eht-cell--temp{ font-size:18px; }
+                        .eht-row:not(.eht-row--head) .eht-cell:not(.eht-cell--loc):not(.eht-cell--temp){ font-size:11.5px; }
                     }
                 </style>
 
-                <div class="eha-wrap" id="altura-efecto-wrap">
-                    <div class="eha-title">Efecto Altura: Ciudad vs. Montaña</div>
-                    <div class="eha-subtitle">Obs. Fabra → Ronda de Dalt → Eixample → Costa</div>
+                <div class="eht-wrap" id="altura-efecto-wrap">
+                    <div class="eht-title">Efecto Altura: Ciudad vs. Montaña</div>
+                    <div class="eht-subtitle">Obs. Fabra → Rda. de Dalt → Eixample → Costa</div>
 
-                    <div class="eha-chart-wrap">
-                        <!-- ═══ Gráfica del perfil de altitud, 4 estaciones en tiempo real ═══ -->
-                        <svg class="eha-chart-svg" viewBox="0 0 800 480" preserveAspectRatio="xMidYMid meet"
-                             xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Perfil de altitud Barcelona: Observatorio Fabra, Ronda de Dalt, Eixample y Costa">
-                            <defs>
-                                <linearGradient id="ehaHillGrad" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%"  stop-color="#ffffff" stop-opacity="0.32"/>
-                                    <stop offset="55%" stop-color="#ffffff" stop-opacity="0.10"/>
-                                    <stop offset="100%" stop-color="#ffffff" stop-opacity="0.02"/>
-                                </linearGradient>
-                            </defs>
+                    <div class="eht-table" role="table" aria-label="Comparativa de altura, temperatura, humedad y lluvia por estación">
+                        <div class="eht-row eht-row--head" role="row">
+                            <div class="eht-cell eht-cell--loc" role="columnheader">Ubicación</div>
+                            <div class="eht-cell" role="columnheader">Altura</div>
+                            <div class="eht-cell eht-cell--temp" role="columnheader">Temp.</div>
+                            <div class="eht-cell" role="columnheader">Humedad</div>
+                            <div class="eht-cell" role="columnheader">Lluvia</div>
+                        </div>
 
-                            <!-- 1. FONDO: líneas horizontales de guía, una por cada cota real -->
-                            <g id="eha-guides">
-                                <line x1="60" y1="80"  x2="760" y2="80"  class="eha-guide" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1" stroke-dasharray="4 5"/>
-                                <text x="14" y="84"  class="eha-axis-label">410m</text>
+                        <div class="eht-row" role="row">
+                            <div class="eht-cell eht-cell--loc" role="cell">Obs. Fabra</div>
+                            <div class="eht-cell" role="cell" id="altura-fabra">410m</div>
+                            <div class="eht-cell eht-cell--temp" role="cell" id="temp-fabra">25°</div>
+                            <div class="eht-cell" role="cell" id="hum-fabra">44%</div>
+                            <div class="eht-cell" role="cell" id="lluvia-fabra">0.0 mm</div>
+                        </div>
 
-                                <line x1="60" y1="240" x2="760" y2="240" class="eha-guide" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1" stroke-dasharray="4 5"/>
-                                <text x="14" y="244" class="eha-axis-label">170m</text>
+                        <div class="eht-row" role="row">
+                            <div class="eht-cell eht-cell--loc" role="cell">Rda. de Dalt</div>
+                            <div class="eht-cell" role="cell" id="altura-ronda">180m</div>
+                            <div class="eht-cell eht-cell--temp" role="cell" id="temp-ronda">27°</div>
+                            <div class="eht-cell" role="cell" id="hum-ronda">48%</div>
+                            <div class="eht-cell" role="cell" id="lluvia-ronda">0.0 mm</div>
+                        </div>
 
-                                <line x1="60" y1="340" x2="760" y2="340" class="eha-guide" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1" stroke-dasharray="4 5"/>
-                                <text x="18" y="344" class="eha-axis-label">20m</text>
+                        <div class="eht-row" role="row">
+                            <div class="eht-cell eht-cell--loc" role="cell">Eixample</div>
+                            <div class="eht-cell" role="cell" id="altura-eixample">40m</div>
+                            <div class="eht-cell eht-cell--temp" role="cell" id="temp-eixample">27°</div>
+                            <div class="eht-cell" role="cell" id="hum-eixample">66%</div>
+                            <div class="eht-cell" role="cell" id="lluvia-eixample">0.2 mm</div>
+                        </div>
 
-                                <line x1="60" y1="400" x2="760" y2="400" class="eha-guide" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1" stroke-dasharray="4 5"/>
-                                <text x="22" y="404" class="eha-axis-label">2m</text>
-                            </g>
-
-                            <!-- 2. Perfil montañoso: Bézier suave entre las 4 estaciones, relleno con
-                                 gradiente blanco de opacidad decreciente hacia abajo -->
-                            <path d="M80,80
-                                     C133,80 187,240 240,240
-                                     C313,240 387,340 460,340
-                                     C533,340 607,400 680,400
-                                     L680,460 L80,460 Z"
-                                  fill="url(#ehaHillGrad)"/>
-                            <path d="M80,80
-                                     C133,80 187,240 240,240
-                                     C313,240 387,340 460,340
-                                     C533,340 607,400 680,400"
-                                  fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-
-                            <!-- 3. Nodos + 4. Tarjetas "frosted glass" por estación -->
-
-                            <!-- ── ESTACIÓN 1: Observatorio Fabra (410 m) → (80,80) ── -->
-                            <g>
-                                <line x1="80" y1="68" x2="80" y2="80" class="eha-stem"/>
-                                <g class="eha-card-blur">
-                                    <rect x="16" y="20" width="128" height="48" rx="13" class="eha-card"/>
-                                </g>
-                                <text x="80" y="40" text-anchor="middle" class="eha-label">Obs. Fabra</text>
-                                <text x="80" y="62" text-anchor="middle" class="eha-temp" id="temp-fabra">--°</text>
-                                <circle cx="80" cy="80" r="12" class="eha-node-halo"/>
-                                <circle cx="80" cy="80" r="6.5" class="eha-node eha-node-dot" tabindex="0" aria-label="Observatorio Fabra"/>
-                            </g>
-
-                            <!-- ── ESTACIÓN 2: Ronda de Dalt (170 m) → (240,240) ── -->
-                            <g>
-                                <line x1="240" y1="228" x2="240" y2="240" class="eha-stem"/>
-                                <g class="eha-card-blur">
-                                    <rect x="176" y="180" width="128" height="48" rx="13" class="eha-card"/>
-                                </g>
-                                <text x="240" y="200" text-anchor="middle" class="eha-label">Rda. Dalt</text>
-                                <text x="240" y="222" text-anchor="middle" class="eha-temp" id="temp-ronda">--°</text>
-                                <circle cx="240" cy="240" r="12" class="eha-node-halo"/>
-                                <circle cx="240" cy="240" r="6.5" class="eha-node eha-node-dot" tabindex="0" aria-label="Ronda de Dalt"/>
-                            </g>
-
-                            <!-- ── ESTACIÓN 3: Eixample (20 m) → (460,340) ── -->
-                            <g>
-                                <line x1="460" y1="328" x2="460" y2="340" class="eha-stem"/>
-                                <g class="eha-card-blur">
-                                    <rect x="396" y="280" width="128" height="48" rx="13" class="eha-card"/>
-                                </g>
-                                <text x="460" y="300" text-anchor="middle" class="eha-label">Eixample</text>
-                                <text x="460" y="322" text-anchor="middle" class="eha-temp" id="temp-eixample">--°</text>
-                                <circle cx="460" cy="340" r="12" class="eha-node-halo"/>
-                                <circle cx="460" cy="340" r="6.5" class="eha-node eha-node-dot" tabindex="0" aria-label="Eixample"/>
-                            </g>
-
-                            <!-- ── ESTACIÓN 4: Costa / Port Olímpic (2 m) → (680,400) ── -->
-                            <g>
-                                <line x1="680" y1="388" x2="680" y2="400" class="eha-stem"/>
-                                <g class="eha-card-blur">
-                                    <rect x="616" y="340" width="128" height="48" rx="13" class="eha-card"/>
-                                </g>
-                                <text x="680" y="360" text-anchor="middle" class="eha-label">Costa</text>
-                                <text x="680" y="382" text-anchor="middle" class="eha-temp" id="temp-costa">--°</text>
-                                <circle cx="680" cy="400" r="12" class="eha-node-halo"/>
-                                <circle cx="680" cy="400" r="6.5" class="eha-node eha-node-dot" tabindex="0" aria-label="Costa"/>
-                            </g>
-                        </svg>
+                        <div class="eht-row" role="row">
+                            <div class="eht-cell eht-cell--loc" role="cell">Costa</div>
+                            <div class="eht-cell" role="cell" id="altura-costa">5m</div>
+                            <div class="eht-cell eht-cell--temp" role="cell" id="temp-costa">27°</div>
+                            <div class="eht-cell" role="cell" id="hum-costa">62%</div>
+                            <div class="eht-cell" role="cell" id="lluvia-costa">0.5 mm</div>
+                        </div>
                     </div>
+
+                    <div class="eht-footnote">Datos de descenso continuo a lo largo de ~6.8 km de perfil topográfico.</div>
                 </div>
 
                 <script>
                 (function () {
                     /**
-                     * ═══ MÓDULO EFECTO ALTURA · API de actualización en tiempo real ═══
+                     * ═══ MÓDULO EFECTO ALTURA · API opcional de actualización en tiempo real ═══
+                     * Los valores están escritos como texto estático por defecto. Si más
+                     * adelante quieres conectarlos a tu API / WebSocket / AJAX, usa:
                      *
-                     * actualizarDatos(estacion, temp)
-                     *   - estacion: 'fabra' | 'ronda' | 'eixample' | 'costa'
-                     *   - temp:     número (°C). Se pinta como "25°"
+                     *   actualizarFilaAltura('fabra', { temp: 18, hum: 72, lluvia: 0.4 });
                      *
-                     * Ejemplo de uso desde tu propia API / WebSocket / AJAX:
-                     *   actualizarDatos('fabra', 18);
-                     *   actualizarDatos('costa', 25);
-                     *
-                     * Expuesta en window.actualizarDatos para poder llamarla desde
-                     * cualquier otro script de la página (sockets, polling, etc.).
+                     * estacion: 'fabra' | 'ronda' | 'eixample' | 'costa'
+                     * Cualquier campo omitido (undefined) se deja tal cual está.
                      */
-                    function actualizarDatos(estacion, temp) {
+                    function actualizarFilaAltura(estacion, { temp, hum, lluvia } = {}) {
                         const elTemp = document.getElementById('temp-' + estacion);
-                        if (!elTemp) {
-                            console.warn('[EfectoAltura] Estación desconocida:', estacion);
-                            return;
-                        }
-                        if (temp !== undefined && temp !== null && !Number.isNaN(temp)) {
-                            elTemp.textContent = Math.round(temp) + '°';
-                        }
+                        const elHum = document.getElementById('hum-' + estacion);
+                        const elLluvia = document.getElementById('lluvia-' + estacion);
+                        if (!elTemp) { console.warn('[EfectoAltura] Estación desconocida:', estacion); return; }
+                        if (temp !== undefined && temp !== null && !Number.isNaN(temp)) elTemp.textContent = Math.round(temp) + '°';
+                        if (elHum && hum !== undefined && hum !== null && !Number.isNaN(hum)) elHum.textContent = Math.round(hum) + '%';
+                        if (elLluvia && lluvia !== undefined && lluvia !== null && !Number.isNaN(lluvia)) elLluvia.textContent = lluvia.toFixed(1) + ' mm';
                     }
-                    window.actualizarDatos = actualizarDatos;
-
-                    /**
-                     * ═══ Carga automática de datos reales (tiempo real) ═══
-                     * 4 estaciones con dato REAL en vivo vía Weathercloud (proxy propio, CORS)
-                     * y fallback automático e independiente a Open-Meteo si algún proxy o
-                     * estación falla puntualmente:
-                     *
-                     *   - fabra    → Observatori Fabra (código 0931380607, ≈410 m)
-                     *   - ronda    → CosmoCaixa / Ronda de Dalt (código 0751853563, ≈170 m)
-                     *   - eixample → Estació Eixample (código 8530132327, ≈20 m)
-                     *   - costa    → Port Olímpic (código 9415750150, ≈2 m)
-                     *
-                     *   ⚠️ Sustituye WEATHERCLOUD_WORKER por la URL real de tu Worker
-                     *   una vez desplegado en Cloudflare (ver proxy-weathercloud-worker.js).
-                     */
-                    const WEATHERCLOUD_WORKER = 'https://proxy-weathercloud.lojasergi.workers.dev';
-
-                    const PUNTOS = [
-                        { key: 'fabra',    code: '0931380607', lat: 41.42,   lon: 2.11  },
-                        { key: 'ronda',    code: '0751853563', lat: 41.413,  lon: 2.131 },
-                        { key: 'eixample', code: '8530132327', lat: 41.3888, lon: 2.159 },
-                        { key: 'costa',    code: '9415750150', lat: 41.386,  lon: 2.201 }
-                    ];
-
-                    async function obtenerDatoWeathercloud(code) {
-                        const url = `${WEATHERCLOUD_WORKER}?code=${code}`;
-                        const resp = await fetch(url, { signal: AbortSignal.timeout(8000) });
-                        if (!resp.ok) throw new Error('Respuesta no OK del proxy Weathercloud (' + code + ')');
-                        const data = await resp.json();
-                        // El endpoint puede devolver { values: {...} } o el objeto plano según versión.
-                        const v = data.values || data;
-                        const temp = v.temp ?? v.temperature;
-                        if (temp === undefined || temp === null) throw new Error('Sin dato de temperatura (' + code + ')');
-                        return { temp: Math.round(temp) };
-                    }
-
-                    async function obtenerFallbackOpenMeteo() {
-                        const lats = PUNTOS.map(p => p.lat).join(',');
-                        const lons = PUNTOS.map(p => p.lon).join(',');
-                        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}` +
-                            `&current=temperature_2m&timezone=Europe/Madrid`;
-                        const resp = await fetch(url);
-                        if (!resp.ok) throw new Error('Respuesta no OK de Open-Meteo');
-                        const data = await resp.json(); // Array con un objeto "current" por punto, en el mismo orden que PUNTOS
-                        return data.map(d => ({
-                            temp: Math.round(d.current.temperature_2m)
-                        }));
-                    }
-
-                    async function cargarEfectoAltura() {
-                        // Se piden las 4 estaciones reales EN PARALELO, más el fallback
-                        // conjunto de Open-Meteo (por si alguna estación real falla).
-                        const [realResults, fallbackResult] = await Promise.all([
-                            Promise.allSettled(PUNTOS.map(p => obtenerDatoWeathercloud(p.code))),
-                            obtenerFallbackOpenMeteo().catch(err => {
-                                console.warn('Fallback Open-Meteo no disponible:', err.message);
-                                return null;
-                            })
-                        ]);
-
-                        PUNTOS.forEach((punto, i) => {
-                            const real = realResults[i];
-                            if (real.status === 'fulfilled') {
-                                actualizarDatos(punto.key, real.value.temp);
-                            } else {
-                                console.warn(`No se pudo obtener el dato real de "${punto.key}" (${punto.code}), uso fallback Open-Meteo:`, real.reason?.message);
-                                if (fallbackResult) actualizarDatos(punto.key, fallbackResult[i].temp);
-                            }
-                        });
-                    }
-
-                    // Lanza la carga cuando el DOM está listo
-                    if (document.readyState === 'loading') {
-                        document.addEventListener('DOMContentLoaded', cargarEfectoAltura);
-                    } else {
-                        cargarEfectoAltura();
-                    }
-
-                    // Refresca cada 10 minutos, igual que el resto de datos en vivo del sitio
-                    setInterval(cargarEfectoAltura, 10 * 60 * 1000);
-
-                    // ═══ EJEMPLO de inyección manual / vía WebSocket / AJAX ═══
-                    // Descomenta y adapta a tu fuente de datos real:
-                    //
-                    // const ws = new WebSocket('wss://tu-servidor.com/tiempo-real');
-                    // ws.onmessage = (event) => {
-                    //     const { estacion, temp } = JSON.parse(event.data);
-                    //     actualizarDatos(estacion, temp);
-                    // };
-                    //
-                    // O vía polling AJAX cada X segundos:
-                    // setInterval(async () => {
-                    //     const resp = await fetch('https://tu-api.com/estaciones');
-                    //     const datos = await resp.json(); // [{estacion:'fabra', temp:18}, ...]
-                    //     datos.forEach(d => actualizarDatos(d.estacion, d.temp));
-                    // }, 60000);
+                    window.actualizarFilaAltura = actualizarFilaAltura;
                 })();
                 </script>
                 <!-- ═══ FIN MÓDULO EFECTO ALTURA ═══ -->
