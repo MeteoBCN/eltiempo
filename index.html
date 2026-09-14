@@ -1364,7 +1364,7 @@
                     .topoh-track{
                         position:relative;
                         width:100%;
-                        height:230px;
+                        height:205px;
                         padding:0 14px;
                         box-sizing:border-box;
                     }
@@ -1373,7 +1373,7 @@
                     .topoh-relief{
                         position:absolute;
                         left:14px; right:14px;
-                        top:44px; height:126px;
+                        top:40px; height:110px;
                     }
                     .topoh-svg{ width:100%; height:100%; display:block; overflow:visible; }
 
@@ -1387,28 +1387,42 @@
                         box-shadow:0 0 0 1px rgba(18,54,83,0.18), 0 1px 3px rgba(18,54,83,0.25);
                     }
 
-                    .topoh-label{
+                    /* Temperatura: siempre encima del punto, destacada */
+                    .topoh-temp-label{
                         position:absolute;
-                        width:max-content; max-width:64px;
-                        display:flex; flex-direction:column; align-items:center; gap:1px;
-                        text-align:center;
+                        bottom:12px; left:50%; transform:translateX(-50%);
+                        white-space:nowrap;
                     }
-                    .topoh-label.is-center{ left:0; transform:translateX(-50%); }
-                    .topoh-label.is-start{ left:0; align-items:flex-start; text-align:left; }
-                    .topoh-label.is-end{ right:0; align-items:flex-end; text-align:right; }
-                    .topoh-label.is-above{ bottom:12px; }
-                    .topoh-label.is-below{ top:12px; }
+                    .topoh-temp-label.is-start{ left:0; transform:none; text-align:left; }
+                    .topoh-temp-label.is-end{ left:auto; right:0; transform:none; text-align:right; }
 
-                    .topoh-info{
-                        font-family:'Inter',sans-serif;
-                        font-variant-numeric:tabular-nums;
-                        font-size:10.5px;font-weight:500;color:#94A3B8;
-                        letter-spacing:0.2px;white-space:nowrap;
-                    }
                     .topoh-temp{
                         font-family:'Inter',sans-serif;
                         font-variant-numeric:tabular-nums;
                         font-size:19px;font-weight:800;color:#123653;line-height:1;
+                    }
+
+                    /* Línea discontinua desde el punto hasta la base + altura al final de esa línea */
+                    .topoh-connector{
+                        position:absolute;
+                        top:0; left:0;
+                        width:0;
+                        border-left:1.5px dashed rgba(18,54,83,0.3);
+                        transform:translateX(-50%);
+                    }
+                    .topoh-alt-label{
+                        position:absolute;
+                        left:50%; transform:translateX(-50%);
+                        white-space:nowrap;
+                    }
+                    .topoh-alt-label.is-start{ left:0; transform:none; text-align:left; }
+                    .topoh-alt-label.is-end{ left:auto; right:0; transform:none; text-align:right; }
+
+                    .topoh-alt{
+                        font-family:'Inter',sans-serif;
+                        font-variant-numeric:tabular-nums;
+                        font-size:10.5px;font-weight:500;color:#94A3B8;
+                        letter-spacing:0.2px;
                     }
 
                     .topoh-footnote{
@@ -1450,63 +1464,81 @@
                             </div>
 
                             <!-- 1. Tibidabo · 512m · cima, extremo izquierdo -->
-                            <div class="topoh-node" style="left:3%; top:57px;">
+                            <div class="topoh-node" style="left:3%; top:51px;">
                                 <span class="topoh-dot" style="background:#4B7A4A;"></span>
-                                <div class="topoh-label is-start is-above">
-                                    <span class="topoh-info" id="altura-tibidabo">512m</span>
+                                <div class="topoh-temp-label is-start">
                                     <span class="topoh-temp" id="temp-tibidabo">24°</span>
+                                </div>
+                                <div class="topoh-connector" style="height:119px;"></div>
+                                <div class="topoh-alt-label is-start" style="top:125px;">
+                                    <span class="topoh-alt" id="altura-tibidabo">512m</span>
                                 </div>
                             </div>
 
                             <!-- 2. Obs. Fabra · 410m -->
-                            <div class="topoh-node" style="left:18%; top:76px;">
+                            <div class="topoh-node" style="left:18%; top:68px;">
                                 <span class="topoh-dot" style="background:#3E6E5E;"></span>
-                                <div class="topoh-label is-center is-below">
-                                    <span class="topoh-info" id="altura-fabra">410m</span>
+                                <div class="topoh-temp-label is-center">
                                     <span class="topoh-temp" id="temp-fabra">25°</span>
+                                </div>
+                                <div class="topoh-connector" style="height:102px;"></div>
+                                <div class="topoh-alt-label is-center" style="top:108px;">
+                                    <span class="topoh-alt" id="altura-fabra">410m</span>
                                 </div>
                             </div>
 
                             <!-- 3. Rda. de Dalt · 180m -->
-                            <div class="topoh-node" style="left:38%; top:113px;">
+                            <div class="topoh-node" style="left:38%; top:101px;">
                                 <span class="topoh-dot" style="background:#336A73;"></span>
-                                <div class="topoh-label is-center is-above">
-                                    <span class="topoh-info" id="altura-ronda">180m</span>
+                                <div class="topoh-temp-label is-center">
                                     <span class="topoh-temp" id="temp-ronda">27°</span>
+                                </div>
+                                <div class="topoh-connector" style="height:69px;"></div>
+                                <div class="topoh-alt-label is-center" style="top:75px;">
+                                    <span class="topoh-alt" id="altura-ronda">180m</span>
                                 </div>
                             </div>
 
                             <!-- 4. Sarrià · 90m -->
-                            <div class="topoh-node" style="left:56%; top:135px;">
+                            <div class="topoh-node" style="left:56%; top:119px;">
                                 <span class="topoh-dot" style="background:#2C5F7A;"></span>
-                                <div class="topoh-label is-center is-below">
-                                    <span class="topoh-info" id="altura-sarria">90m</span>
+                                <div class="topoh-temp-label is-center">
                                     <span class="topoh-temp" id="temp-sarria">26°</span>
+                                </div>
+                                <div class="topoh-connector" style="height:51px;"></div>
+                                <div class="topoh-alt-label is-center" style="top:57px;">
+                                    <span class="topoh-alt" id="altura-sarria">90m</span>
                                 </div>
                             </div>
 
                             <!-- 5. Eixample · 40m -->
-                            <div class="topoh-node" style="left:76%; top:150px;">
+                            <div class="topoh-node" style="left:76%; top:132px;">
                                 <span class="topoh-dot" style="background:#316E9E;"></span>
-                                <div class="topoh-label is-center is-above">
-                                    <span class="topoh-info" id="altura-eixample">40m</span>
+                                <div class="topoh-temp-label is-center">
                                     <span class="topoh-temp" id="temp-eixample">27°</span>
+                                </div>
+                                <div class="topoh-connector" style="height:38px;"></div>
+                                <div class="topoh-alt-label is-center" style="top:44px;">
+                                    <span class="topoh-alt" id="altura-eixample">40m</span>
                                 </div>
                             </div>
 
                             <!-- 6. Port Olímpic · 5m · nivel del mar, extremo derecho -->
-                            <div class="topoh-node" style="left:96%; top:157px;">
+                            <div class="topoh-node" style="left:96%; top:139px;">
                                 <span class="topoh-dot" style="background:#3B82F6;"></span>
-                                <div class="topoh-label is-end is-below">
-                                    <span class="topoh-info" id="altura-costa">5m</span>
+                                <div class="topoh-temp-label is-end">
                                     <span class="topoh-temp" id="temp-costa">27°</span>
+                                </div>
+                                <div class="topoh-connector" style="height:31px;"></div>
+                                <div class="topoh-alt-label is-end" style="top:37px;">
+                                    <span class="topoh-alt" id="altura-costa">5m</span>
                                 </div>
                             </div>
 
                         </div>
                     </div>
 
-                    <div class="topoh-footnote">Datos de descenso continuo desde el Tibidabo hasta la costa de Barcelona.</div>
+                    <div class="topoh-footnote">Datos de descenso continuo desde el Tibidabo hasta la costa.</div>
                 </div>
 
                 <script>
