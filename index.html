@@ -1332,9 +1332,13 @@
 
                 <!-- ═══════════════════════════════════════════════════════
                      MÓDULO: EFECTO ALTURA · CIUDAD VS. MONTAÑA
-                     Tabla comparativa ultra-compacta (sin iconos) con las 4
-                     estaciones ordenadas de mayor a menor altitud:
-                     Obs. Fabra (410m) → Rda. de Dalt (180m) → Eixample (40m) → Costa (5m).
+                     Tabla comparativa ultra-compacta (sin iconos) con las 6
+                     estaciones ordenadas de mayor a menor altitud, conectadas
+                     en tiempo real vía Weathercloud (+ fallback Open-Meteo):
+                     Tibidabo (512m) → Obs. Fabra (410m) → Rda. de Dalt (180m)
+                     → Sarrià (90m) → Eixample (40m) → Costa (5m).
+                       - Tibidabo → https://app.weathercloud.net/d7799270868
+                       - Sarrià   → https://app.weathercloud.net/d7511856207
                 ════════════════════════════════════════════════════════ -->
                 <style>
                     /* ── Estilos del módulo Efecto Altura (namespaced con prefijo .eht-) ── */
@@ -1412,7 +1416,7 @@
 
                 <div class="eht-wrap" id="altura-efecto-wrap">
                     <div class="eht-title">Efecto Altura: Ciudad vs. Montaña</div>
-                    <div class="eht-subtitle">Obs. Fabra → Rda. de Dalt → Eixample → Costa</div>
+                    <div class="eht-subtitle">Tibidabo → Obs. Fabra → Rda. de Dalt → Sarrià → Eixample → Costa</div>
 
                     <div class="eht-table" role="table" aria-label="Comparativa de altura, temperatura, humedad y lluvia por estación">
                         <div class="eht-row eht-row--head" role="row">
@@ -1421,6 +1425,14 @@
                             <div class="eht-cell eht-cell--temp" role="columnheader">Temp.</div>
                             <div class="eht-cell" role="columnheader">Humedad</div>
                             <div class="eht-cell" role="columnheader">Lluvia</div>
+                        </div>
+
+                        <div class="eht-row" role="row">
+                            <div class="eht-cell eht-cell--loc" role="cell">Tibidabo</div>
+                            <div class="eht-cell" role="cell" id="altura-tibidabo">512m</div>
+                            <div class="eht-cell eht-cell--temp" role="cell" id="temp-tibidabo">--°</div>
+                            <div class="eht-cell" role="cell" id="hum-tibidabo">--%</div>
+                            <div class="eht-cell" role="cell" id="lluvia-tibidabo">-- mm</div>
                         </div>
 
                         <div class="eht-row" role="row">
@@ -1440,6 +1452,14 @@
                         </div>
 
                         <div class="eht-row" role="row">
+                            <div class="eht-cell eht-cell--loc" role="cell">Sarrià</div>
+                            <div class="eht-cell" role="cell" id="altura-sarria">90m</div>
+                            <div class="eht-cell eht-cell--temp" role="cell" id="temp-sarria">--°</div>
+                            <div class="eht-cell" role="cell" id="hum-sarria">--%</div>
+                            <div class="eht-cell" role="cell" id="lluvia-sarria">-- mm</div>
+                        </div>
+
+                        <div class="eht-row" role="row">
                             <div class="eht-cell eht-cell--loc" role="cell">Eixample</div>
                             <div class="eht-cell" role="cell" id="altura-eixample">40m</div>
                             <div class="eht-cell eht-cell--temp" role="cell" id="temp-eixample">27°</div>
@@ -1456,7 +1476,7 @@
                         </div>
                     </div>
 
-                    <div class="eht-footnote">Datos de descenso continuo a lo largo de ~6.8 km de perfil topográfico.</div>
+                    <div class="eht-footnote">Datos de descenso continuo desde el Tibidabo hasta la costa de Barcelona.</div>
                 </div>
 
                 <script>
@@ -1481,6 +1501,100 @@
                         if (elLluvia && lluvia !== undefined && lluvia !== null && !Number.isNaN(lluvia)) elLluvia.textContent = lluvia.toFixed(1) + ' mm';
                     }
                     window.actualizarFilaAltura = actualizarFilaAltura;
+
+                    /**
+                     * ═══ Carga automática de datos reales (tiempo real) ═══
+                     * 6 estaciones con dato REAL en vivo vía Weathercloud (proxy propio, CORS)
+                     * y fallback automático e independiente a Open-Meteo si algún proxy o
+                     * estación falla puntualmente:
+                     *
+                     *   - tibidabo → MeteoTibidabo         (código 7799270868, 512 m)
+                     *   - fabra    → Observatori Fabra      (código 0931380607, 410 m)
+                     *   - ronda    → CosmoCaixa/Rda. de Dalt(código 0751853563, 180 m)
+                     *   - sarria   → Salesians Sarrià CV    (código 7511856207, 90 m)
+                     *   - eixample → Estació Eixample        (código 8530132327, 40 m)
+                     *   - costa    → Port Olímpic            (código 9415750150, 5 m)
+                     *
+                     *   ⚠️ Sustituye WEATHERCLOUD_WORKER por la URL real de tu Worker
+                     *   una vez desplegado en Cloudflare (ver proxy-weathercloud-worker.js).
+                     */
+                    const WEATHERCLOUD_WORKER = 'https://proxy-weathercloud.lojasergi.workers.dev';
+
+                    const PUNTOS = [
+                        { key: 'tibidabo', code: '7799270868', lat: 41.4214, lon: 2.1189 },
+                        { key: 'fabra',    code: '0931380607', lat: 41.4200, lon: 2.1100 },
+                        { key: 'ronda',    code: '0751853563', lat: 41.4130, lon: 2.1310 },
+                        { key: 'sarria',   code: '7511856207', lat: 41.3944, lon: 2.1278 },
+                        { key: 'eixample', code: '8530132327', lat: 41.3888, lon: 2.1590 },
+                        { key: 'costa',    code: '9415750150', lat: 41.3860, lon: 2.2010 }
+                    ];
+
+                    async function obtenerDatoWeathercloud(code) {
+                        const url = `${WEATHERCLOUD_WORKER}?code=${code}`;
+                        const resp = await fetch(url, { signal: AbortSignal.timeout(8000) });
+                        if (!resp.ok) throw new Error('Respuesta no OK del proxy Weathercloud (' + code + ')');
+                        const data = await resp.json();
+                        // El endpoint puede devolver { values: {...} } o el objeto plano según versión.
+                        const v = data.values || data;
+                        const temp = v.temp ?? v.temperature;
+                        const hum = v.hum ?? v.humidity;
+                        // Campo de lluvia acumulada del día: nombre variable según la
+                        // versión del proxy/estación, se prueban los alias más comunes.
+                        const lluvia = v.rain ?? v.rainDay ?? v.rainday ?? v.rainrate ?? v.rain_day;
+                        if (temp === undefined || temp === null) throw new Error('Sin dato de temperatura (' + code + ')');
+                        return {
+                            temp: Math.round(temp),
+                            hum: (hum === undefined || hum === null) ? null : Math.round(hum),
+                            lluvia: (lluvia === undefined || lluvia === null) ? null : Number(lluvia)
+                        };
+                    }
+
+                    async function obtenerFallbackOpenMeteo() {
+                        const lats = PUNTOS.map(p => p.lat).join(',');
+                        const lons = PUNTOS.map(p => p.lon).join(',');
+                        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}` +
+                            `&current=temperature_2m,relative_humidity_2m,precipitation&timezone=Europe/Madrid`;
+                        const resp = await fetch(url);
+                        if (!resp.ok) throw new Error('Respuesta no OK de Open-Meteo');
+                        const data = await resp.json(); // Array con un objeto "current" por punto, en el mismo orden que PUNTOS
+                        return data.map(d => ({
+                            temp: Math.round(d.current.temperature_2m),
+                            hum: Math.round(d.current.relative_humidity_2m),
+                            lluvia: d.current.precipitation
+                        }));
+                    }
+
+                    async function cargarEfectoAltura() {
+                        // Se piden las 6 estaciones reales EN PARALELO, más el fallback
+                        // conjunto de Open-Meteo (por si alguna estación real falla).
+                        const [realResults, fallbackResult] = await Promise.all([
+                            Promise.allSettled(PUNTOS.map(p => obtenerDatoWeathercloud(p.code))),
+                            obtenerFallbackOpenMeteo().catch(err => {
+                                console.warn('Fallback Open-Meteo no disponible:', err.message);
+                                return null;
+                            })
+                        ]);
+
+                        PUNTOS.forEach((punto, i) => {
+                            const real = realResults[i];
+                            if (real.status === 'fulfilled') {
+                                actualizarFilaAltura(punto.key, real.value);
+                            } else {
+                                console.warn(`No se pudo obtener el dato real de "${punto.key}" (${punto.code}), uso fallback Open-Meteo:`, real.reason?.message);
+                                if (fallbackResult) actualizarFilaAltura(punto.key, fallbackResult[i]);
+                            }
+                        });
+                    }
+
+                    // Lanza la carga cuando el DOM está listo
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', cargarEfectoAltura);
+                    } else {
+                        cargarEfectoAltura();
+                    }
+
+                    // Refresca cada 10 minutos, igual que el resto de datos en vivo del sitio
+                    setInterval(cargarEfectoAltura, 10 * 60 * 1000);
                 })();
                 </script>
                 <!-- ═══ FIN MÓDULO EFECTO ALTURA ═══ -->
