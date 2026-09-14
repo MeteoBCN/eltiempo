@@ -1358,45 +1358,43 @@
                         text-transform:uppercase;text-align:center;margin-bottom:18px;
                     }
 
-                    /* Tabla vía CSS Grid: cada fila es un grid con las mismas 5 columnas,
-                       así los valores numéricos quedan siempre alineados verticalmente
-                       con un margen lateral mínimo (aprovecha todo el ancho en móvil). */
-                    .eht-table{ padding:0 14px; }
-                    .eht-row{
+                    /* Grid de widgets individuales: 3 columnas x 2 filas.
+                       Cada tarjeta muestra Estación → Altura (pequeño) → Temperatura. */
+                    .eht-grid{
                         display:grid;
-                        grid-template-columns: 1.55fr 0.8fr 0.85fr 1fr 1fr;
-                        align-items:baseline;
-                        column-gap:4px;
-                        padding:12px 0;
-                        border-top:1px solid rgba(255,255,255,0.10);
+                        grid-template-columns: repeat(3, 1fr);
+                        grid-template-rows: repeat(2, 1fr);
+                        gap:10px;
+                        padding:0 14px;
                     }
-                    .eht-row--head{ border-top:none; padding:0 0 9px; }
+                    .eht-widget{
+                        display:flex;
+                        flex-direction:column;
+                        align-items:center;
+                        justify-content:center;
+                        gap:4px;
+                        background:rgba(255,255,255,0.06);
+                        border:1px solid rgba(255,255,255,0.12);
+                        border-radius:14px;
+                        padding:14px 6px 12px;
+                        text-align:center;
+                    }
 
-                    .eht-cell{
+                    .eht-widget-name{
+                        font-family:'Inter',sans-serif;
+                        font-size:12.5px;font-weight:600;color:#ffffff;opacity:0.95;
+                        letter-spacing:0.1px;white-space:nowrap;
+                    }
+                    .eht-widget-alt{
                         font-family:'Inter',sans-serif;
                         font-variant-numeric:tabular-nums;
-                        text-align:right;
-                        white-space:nowrap;
+                        font-size:10px;font-weight:500;color:#ffffff;opacity:0.5;
+                        letter-spacing:0.3px;
                     }
-                    .eht-cell--loc{ text-align:left; }
-
-                    /* Fila de cabecera: etiquetas pequeñas, discretas */
-                    .eht-row--head .eht-cell{
-                        font-size:9px;font-weight:700;color:#ffffff;opacity:0.45;
-                        letter-spacing:0.6px;text-transform:uppercase;
-                    }
-
-                    /* Nombre de la estación: jerarquía principal a la izquierda */
-                    .eht-row:not(.eht-row--head) .eht-cell--loc{
-                        font-size:13.5px;font-weight:600;color:#ffffff;opacity:0.95;letter-spacing:0.1px;
-                    }
-
-                    /* Temperatura: la cifra protagonista, con más peso y tamaño */
-                    .eht-cell--temp{ font-size:20px;font-weight:800;color:#ffffff; }
-
-                    /* Altura, Humedad y Lluvia: tipografía secundaria, ordenada y limpia */
-                    .eht-row:not(.eht-row--head) .eht-cell:not(.eht-cell--loc):not(.eht-cell--temp){
-                        font-size:12.5px;font-weight:500;color:#ffffff;opacity:0.62;
+                    .eht-widget-temp{
+                        font-family:'Inter',sans-serif;
+                        font-variant-numeric:tabular-nums;
+                        font-size:22px;font-weight:800;color:#ffffff;margin-top:2px;
                     }
 
                     .eht-footnote{
@@ -1406,11 +1404,11 @@
                     }
 
                     @media (max-width:360px){
-                        .eht-table{ padding:0 10px; }
-                        .eht-row{ grid-template-columns: 1.4fr 0.75fr 0.8fr 0.95fr 0.95fr; padding:10px 0; }
-                        .eht-row:not(.eht-row--head) .eht-cell--loc{ font-size:12.5px; }
-                        .eht-cell--temp{ font-size:18px; }
-                        .eht-row:not(.eht-row--head) .eht-cell:not(.eht-cell--loc):not(.eht-cell--temp){ font-size:11.5px; }
+                        .eht-grid{ padding:0 10px; gap:8px; }
+                        .eht-widget{ padding:12px 4px 10px; }
+                        .eht-widget-name{ font-size:11.5px; }
+                        .eht-widget-alt{ font-size:9.5px; }
+                        .eht-widget-temp{ font-size:19px; }
                     }
                 </style>
 
@@ -1418,61 +1416,41 @@
                     <div class="eht-title">Efecto Altura: Ciudad vs. Montaña</div>
                     <div class="eht-subtitle">Tibidabo → Obs. Fabra → Rda. de Dalt → Sarrià → Eixample → Costa</div>
 
-                    <div class="eht-table" role="table" aria-label="Comparativa de altura, temperatura, humedad y lluvia por estación">
-                        <div class="eht-row eht-row--head" role="row">
-                            <div class="eht-cell eht-cell--loc" role="columnheader">Ubicación</div>
-                            <div class="eht-cell" role="columnheader">Altura</div>
-                            <div class="eht-cell eht-cell--temp" role="columnheader">Temp.</div>
-                            <div class="eht-cell" role="columnheader">Humedad</div>
-                            <div class="eht-cell" role="columnheader">Lluvia</div>
+                    <div class="eht-grid" role="table" aria-label="Comparativa de altura y temperatura por estación">
+                        <div class="eht-widget" role="row">
+                            <div class="eht-widget-name" role="cell">Tibidabo</div>
+                            <div class="eht-widget-alt" role="cell" id="altura-tibidabo">512m</div>
+                            <div class="eht-widget-temp" role="cell" id="temp-tibidabo">--°</div>
                         </div>
 
-                        <div class="eht-row" role="row">
-                            <div class="eht-cell eht-cell--loc" role="cell">Tibidabo</div>
-                            <div class="eht-cell" role="cell" id="altura-tibidabo">512m</div>
-                            <div class="eht-cell eht-cell--temp" role="cell" id="temp-tibidabo">--°</div>
-                            <div class="eht-cell" role="cell" id="hum-tibidabo">--%</div>
-                            <div class="eht-cell" role="cell" id="lluvia-tibidabo">-- mm</div>
+                        <div class="eht-widget" role="row">
+                            <div class="eht-widget-name" role="cell">Obs. Fabra</div>
+                            <div class="eht-widget-alt" role="cell" id="altura-fabra">410m</div>
+                            <div class="eht-widget-temp" role="cell" id="temp-fabra">25°</div>
                         </div>
 
-                        <div class="eht-row" role="row">
-                            <div class="eht-cell eht-cell--loc" role="cell">Obs. Fabra</div>
-                            <div class="eht-cell" role="cell" id="altura-fabra">410m</div>
-                            <div class="eht-cell eht-cell--temp" role="cell" id="temp-fabra">25°</div>
-                            <div class="eht-cell" role="cell" id="hum-fabra">44%</div>
-                            <div class="eht-cell" role="cell" id="lluvia-fabra">0.0 mm</div>
+                        <div class="eht-widget" role="row">
+                            <div class="eht-widget-name" role="cell">Rda. de Dalt</div>
+                            <div class="eht-widget-alt" role="cell" id="altura-ronda">180m</div>
+                            <div class="eht-widget-temp" role="cell" id="temp-ronda">27°</div>
                         </div>
 
-                        <div class="eht-row" role="row">
-                            <div class="eht-cell eht-cell--loc" role="cell">Rda. de Dalt</div>
-                            <div class="eht-cell" role="cell" id="altura-ronda">180m</div>
-                            <div class="eht-cell eht-cell--temp" role="cell" id="temp-ronda">27°</div>
-                            <div class="eht-cell" role="cell" id="hum-ronda">48%</div>
-                            <div class="eht-cell" role="cell" id="lluvia-ronda">0.0 mm</div>
+                        <div class="eht-widget" role="row">
+                            <div class="eht-widget-name" role="cell">Sarrià</div>
+                            <div class="eht-widget-alt" role="cell" id="altura-sarria">90m</div>
+                            <div class="eht-widget-temp" role="cell" id="temp-sarria">--°</div>
                         </div>
 
-                        <div class="eht-row" role="row">
-                            <div class="eht-cell eht-cell--loc" role="cell">Sarrià</div>
-                            <div class="eht-cell" role="cell" id="altura-sarria">90m</div>
-                            <div class="eht-cell eht-cell--temp" role="cell" id="temp-sarria">--°</div>
-                            <div class="eht-cell" role="cell" id="hum-sarria">--%</div>
-                            <div class="eht-cell" role="cell" id="lluvia-sarria">-- mm</div>
+                        <div class="eht-widget" role="row">
+                            <div class="eht-widget-name" role="cell">Eixample</div>
+                            <div class="eht-widget-alt" role="cell" id="altura-eixample">40m</div>
+                            <div class="eht-widget-temp" role="cell" id="temp-eixample">27°</div>
                         </div>
 
-                        <div class="eht-row" role="row">
-                            <div class="eht-cell eht-cell--loc" role="cell">Eixample</div>
-                            <div class="eht-cell" role="cell" id="altura-eixample">40m</div>
-                            <div class="eht-cell eht-cell--temp" role="cell" id="temp-eixample">27°</div>
-                            <div class="eht-cell" role="cell" id="hum-eixample">66%</div>
-                            <div class="eht-cell" role="cell" id="lluvia-eixample">0.2 mm</div>
-                        </div>
-
-                        <div class="eht-row" role="row">
-                            <div class="eht-cell eht-cell--loc" role="cell">Costa</div>
-                            <div class="eht-cell" role="cell" id="altura-costa">5m</div>
-                            <div class="eht-cell eht-cell--temp" role="cell" id="temp-costa">27°</div>
-                            <div class="eht-cell" role="cell" id="hum-costa">62%</div>
-                            <div class="eht-cell" role="cell" id="lluvia-costa">0.5 mm</div>
+                        <div class="eht-widget" role="row">
+                            <div class="eht-widget-name" role="cell">Costa</div>
+                            <div class="eht-widget-alt" role="cell" id="altura-costa">5m</div>
+                            <div class="eht-widget-temp" role="cell" id="temp-costa">27°</div>
                         </div>
                     </div>
 
@@ -1486,19 +1464,16 @@
                      * Los valores están escritos como texto estático por defecto. Si más
                      * adelante quieres conectarlos a tu API / WebSocket / AJAX, usa:
                      *
-                     *   actualizarFilaAltura('fabra', { temp: 18, hum: 72, lluvia: 0.4 });
+                     *   actualizarFilaAltura('fabra', { temp: 18 });
                      *
                      * estacion: 'fabra' | 'ronda' | 'eixample' | 'costa'
                      * Cualquier campo omitido (undefined) se deja tal cual está.
+                     * (El widget solo muestra temperatura; humedad y lluvia se ignoran.)
                      */
-                    function actualizarFilaAltura(estacion, { temp, hum, lluvia } = {}) {
+                    function actualizarFilaAltura(estacion, { temp } = {}) {
                         const elTemp = document.getElementById('temp-' + estacion);
-                        const elHum = document.getElementById('hum-' + estacion);
-                        const elLluvia = document.getElementById('lluvia-' + estacion);
                         if (!elTemp) { console.warn('[EfectoAltura] Estación desconocida:', estacion); return; }
                         if (temp !== undefined && temp !== null && !Number.isNaN(temp)) elTemp.textContent = Math.round(temp) + '°';
-                        if (elHum && hum !== undefined && hum !== null && !Number.isNaN(hum)) elHum.textContent = Math.round(hum) + '%';
-                        if (elLluvia && lluvia !== undefined && lluvia !== null && !Number.isNaN(lluvia)) elLluvia.textContent = lluvia.toFixed(1) + ' mm';
                     }
                     window.actualizarFilaAltura = actualizarFilaAltura;
 
