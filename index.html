@@ -1341,115 +1341,183 @@
                        - Sarrià   → https://app.weathercloud.net/d7511856207
                 ════════════════════════════════════════════════════════ -->
                 <style>
-                    /* ── Estilos del módulo Efecto Altura (namespaced con prefijo .eht-) ── */
-                    .eht-wrap{
+                    /* ── Estilos del módulo Efecto Altura: Perfil Topográfico Horizontal (prefijo .topoh-) ── */
+                    .topoh-wrap{
                         width:calc(100% + (2 * var(--gutter)));
                         margin:0 calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));
                         padding:24px 0 20px;
                         background:transparent;
                         border-top:1px solid rgba(28,79,120,0.14);
                     }
-                    .eht-title{
+                    .topoh-title{
                         font-family:'Fraunces',serif;font-style:italic;font-weight:500;
-                        font-size:19px;color:#123653;text-align:center;margin-bottom:18px;letter-spacing:0.2px;
+                        font-size:19px;color:#123653;text-align:center;margin-bottom:14px;letter-spacing:0.2px;
                     }
 
-                    /* Grid de widgets individuales: 3 columnas x 2 filas.
-                       Cada tarjeta muestra Estación → Altura (pequeño) → Temperatura. */
-                    .eht-grid{
-                        display:grid;
-                        grid-template-columns: repeat(3, 1fr);
-                        grid-template-rows: repeat(2, 1fr);
-                        gap:10px;
-                        padding:0 14px;
+                    /* Contenedor con scroll horizontal suave: en pantallas estrechas el
+                       "track" interno (min-width) no cabe entero y aparece scroll táctil;
+                       en pantallas anchas se estira al 100% sin necesidad de scroll. */
+                    .topoh-scroll{
+                        overflow-x:auto;
+                        overflow-y:visible;
+                        -webkit-overflow-scrolling:touch;
+                        scrollbar-width:thin;
+                        padding:0 0 6px;
                     }
-                    .eht-widget{
-                        display:flex;
-                        flex-direction:column;
-                        align-items:center;
-                        justify-content:center;
-                        gap:4px;
-                        background:rgba(18,54,83,0.05);
-                        border:1px solid rgba(18,54,83,0.12);
-                        border-radius:14px;
-                        padding:14px 6px 12px;
+                    .topoh-scroll::-webkit-scrollbar{ height:4px; }
+                    .topoh-scroll::-webkit-scrollbar-thumb{ background:rgba(18,54,83,0.18); border-radius:4px; }
+                    .topoh-scroll::-webkit-scrollbar-track{ background:transparent; }
+
+                    .topoh-track{
+                        position:relative;
+                        width:100%;
+                        min-width:640px;
+                        height:250px;
+                        padding:0 18px;
+                        box-sizing:border-box;
+                    }
+
+                    /* Zona donde vive la curva de relieve (SVG), en % dentro del track */
+                    .topoh-relief{
+                        position:absolute;
+                        left:18px; right:18px;
+                        top:46px; height:140px;
+                    }
+                    .topoh-svg{ width:100%; height:100%; display:block; overflow:visible; }
+
+                    /* Ancla de cada estación: punto de tamaño 0, todo se coloca relativo a él */
+                    .topoh-node{ position:absolute; top:0; }
+                    .topoh-dot{
+                        position:absolute; top:0; left:0;
+                        width:10px; height:10px; border-radius:50%;
+                        transform:translate(-50%,-50%);
+                        border:2px solid #ffffff;
+                        box-shadow:0 0 0 1px rgba(18,54,83,0.18), 0 1px 3px rgba(18,54,83,0.25);
+                    }
+
+                    .topoh-label{
+                        position:absolute;
+                        width:max-content; max-width:104px;
+                        display:flex; flex-direction:column; align-items:center; gap:1px;
                         text-align:center;
                     }
+                    .topoh-label.is-center{ left:0; transform:translateX(-50%); }
+                    .topoh-label.is-start{ left:0; align-items:flex-start; text-align:left; }
+                    .topoh-label.is-end{ right:0; align-items:flex-end; text-align:right; }
+                    .topoh-label.is-above{ bottom:12px; }
+                    .topoh-label.is-below{ top:12px; }
 
-                    .eht-widget-name{
+                    .topoh-info{
                         font-family:'Inter',sans-serif;
-                        font-size:12.5px;font-weight:600;color:#123653;opacity:0.95;
+                        font-size:11px;font-weight:500;color:#64748B;
                         letter-spacing:0.1px;white-space:nowrap;
                     }
-                    .eht-widget-alt{
+                    .topoh-sep{ color:#94A3B8;opacity:0.8;margin:0 1px; }
+                    .topoh-temp{
                         font-family:'Inter',sans-serif;
                         font-variant-numeric:tabular-nums;
-                        font-size:10px;font-weight:500;color:#123653;opacity:0.55;
-                        letter-spacing:0.3px;
-                    }
-                    .eht-widget-temp{
-                        font-family:'Inter',sans-serif;
-                        font-variant-numeric:tabular-nums;
-                        font-size:22px;font-weight:800;color:#123653;margin-top:2px;
+                        font-size:19px;font-weight:800;color:#123653;line-height:1;
                     }
 
-                    .eht-footnote{
+                    .topoh-footnote{
                         font-family:'Inter',sans-serif;font-style:italic;font-size:9.5px;font-weight:400;
                         color:#123653;opacity:0.5;text-align:center;letter-spacing:0.1px;
-                        margin:14px 20px 0;
+                        margin:12px 20px 0;
                     }
 
-                    @media (max-width:360px){
-                        .eht-grid{ padding:0 10px; gap:8px; }
-                        .eht-widget{ padding:12px 4px 10px; }
-                        .eht-widget-name{ font-size:11.5px; }
-                        .eht-widget-alt{ font-size:9.5px; }
-                        .eht-widget-temp{ font-size:19px; }
+                    @media (min-width:641px){
+                        .topoh-track{ min-width:0; }
                     }
                 </style>
 
-                <div class="eht-wrap" id="altura-efecto-wrap">
-                    <div class="eht-title">Temperatura Actual</div>
+                <div class="topoh-wrap" id="altura-efecto-wrap">
+                    <div class="topoh-title">Temperatura Actual</div>
 
-                    <div class="eht-grid" role="table" aria-label="Comparativa de altura y temperatura por estación">
-                        <div class="eht-widget" role="row">
-                            <div class="eht-widget-name" role="cell">Tibidabo</div>
-                            <div class="eht-widget-alt" role="cell" id="altura-tibidabo">512m</div>
-                            <div class="eht-widget-temp" role="cell" id="temp-tibidabo">--°</div>
-                        </div>
+                    <div class="topoh-scroll">
+                        <div class="topoh-track" role="table" aria-label="Perfil topográfico con altura y temperatura por estación">
 
-                        <div class="eht-widget" role="row">
-                            <div class="eht-widget-name" role="cell">Obs. Fabra</div>
-                            <div class="eht-widget-alt" role="cell" id="altura-fabra">410m</div>
-                            <div class="eht-widget-temp" role="cell" id="temp-fabra">25°</div>
-                        </div>
+                            <div class="topoh-relief">
+                                <svg class="topoh-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                                    <defs>
+                                        <linearGradient id="topohLine" x1="0" y1="0" x2="1" y2="1">
+                                            <stop offset="0%"  stop-color="#4B7A4A"/>
+                                            <stop offset="55%" stop-color="#2C5F7A"/>
+                                            <stop offset="100%" stop-color="#3B82F6"/>
+                                        </linearGradient>
+                                        <linearGradient id="topohFill" x1="0" y1="0" x2="1" y2="1">
+                                            <stop offset="0%"  stop-color="#4B7A4A"/>
+                                            <stop offset="55%" stop-color="#2C5F7A"/>
+                                            <stop offset="100%" stop-color="#3B82F6"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <!-- Silueta de relieve (relleno sutil) -->
+                                    <path d="M 3 10 C 9 15, 13 20, 18 25 S 28 42, 38 55 S 47 65, 56 72 S 66 80, 76 84 S 86 87, 96 90 L 96 100 L 3 100 Z"
+                                          fill="url(#topohFill)" opacity="0.10" stroke="none"/>
+                                    <!-- Línea de relieve: pendiente pronunciada al inicio, luego se aplana -->
+                                    <path d="M 3 10 C 9 15, 13 20, 18 25 S 28 42, 38 55 S 47 65, 56 72 S 66 80, 76 84 S 86 87, 96 90"
+                                          fill="none" stroke="url(#topohLine)" stroke-width="1.4" stroke-linecap="round"
+                                          vector-effect="non-scaling-stroke" opacity="0.7"/>
+                                </svg>
+                            </div>
 
-                        <div class="eht-widget" role="row">
-                            <div class="eht-widget-name" role="cell">Rda. de Dalt</div>
-                            <div class="eht-widget-alt" role="cell" id="altura-ronda">180m</div>
-                            <div class="eht-widget-temp" role="cell" id="temp-ronda">27°</div>
-                        </div>
+                            <!-- 1. Tibidabo · 512m · cima, extremo izquierdo -->
+                            <div class="topoh-node" style="left:3%; top:64px;">
+                                <span class="topoh-dot" style="background:#4B7A4A;"></span>
+                                <div class="topoh-label is-start is-above">
+                                    <span class="topoh-info">Tibidabo <span class="topoh-sep">•</span> <span id="altura-tibidabo">512m</span></span>
+                                    <span class="topoh-temp" id="temp-tibidabo">24°</span>
+                                </div>
+                            </div>
 
-                        <div class="eht-widget" role="row">
-                            <div class="eht-widget-name" role="cell">Sarrià</div>
-                            <div class="eht-widget-alt" role="cell" id="altura-sarria">90m</div>
-                            <div class="eht-widget-temp" role="cell" id="temp-sarria">--°</div>
-                        </div>
+                            <!-- 2. Obs. Fabra · 410m -->
+                            <div class="topoh-node" style="left:18%; top:81px;">
+                                <span class="topoh-dot" style="background:#3E6E5E;"></span>
+                                <div class="topoh-label is-center is-below">
+                                    <span class="topoh-info">Obs. Fabra <span class="topoh-sep">•</span> <span id="altura-fabra">410m</span></span>
+                                    <span class="topoh-temp" id="temp-fabra">25°</span>
+                                </div>
+                            </div>
 
-                        <div class="eht-widget" role="row">
-                            <div class="eht-widget-name" role="cell">Eixample</div>
-                            <div class="eht-widget-alt" role="cell" id="altura-eixample">40m</div>
-                            <div class="eht-widget-temp" role="cell" id="temp-eixample">27°</div>
-                        </div>
+                            <!-- 3. Rda. de Dalt · 180m -->
+                            <div class="topoh-node" style="left:38%; top:123px;">
+                                <span class="topoh-dot" style="background:#336A73;"></span>
+                                <div class="topoh-label is-center is-above">
+                                    <span class="topoh-info">Rda. de Dalt <span class="topoh-sep">•</span> <span id="altura-ronda">180m</span></span>
+                                    <span class="topoh-temp" id="temp-ronda">27°</span>
+                                </div>
+                            </div>
 
-                        <div class="eht-widget" role="row">
-                            <div class="eht-widget-name" role="cell">Port Olímpic</div>
-                            <div class="eht-widget-alt" role="cell" id="altura-costa">5m</div>
-                            <div class="eht-widget-temp" role="cell" id="temp-costa">27°</div>
+                            <!-- 4. Sarrià · 90m -->
+                            <div class="topoh-node" style="left:56%; top:147px;">
+                                <span class="topoh-dot" style="background:#2C5F7A;"></span>
+                                <div class="topoh-label is-center is-below">
+                                    <span class="topoh-info">Sarrià <span class="topoh-sep">•</span> <span id="altura-sarria">90m</span></span>
+                                    <span class="topoh-temp" id="temp-sarria">26°</span>
+                                </div>
+                            </div>
+
+                            <!-- 5. Eixample · 40m -->
+                            <div class="topoh-node" style="left:76%; top:163px;">
+                                <span class="topoh-dot" style="background:#316E9E;"></span>
+                                <div class="topoh-label is-center is-above">
+                                    <span class="topoh-info">Eixample <span class="topoh-sep">•</span> <span id="altura-eixample">40m</span></span>
+                                    <span class="topoh-temp" id="temp-eixample">27°</span>
+                                </div>
+                            </div>
+
+                            <!-- 6. Port Olímpic · 5m · nivel del mar, extremo derecho -->
+                            <div class="topoh-node" style="left:96%; top:172px;">
+                                <span class="topoh-dot" style="background:#3B82F6;"></span>
+                                <div class="topoh-label is-end is-below">
+                                    <span class="topoh-info">Port Olímpic <span class="topoh-sep">•</span> <span id="altura-costa">5m</span></span>
+                                    <span class="topoh-temp" id="temp-costa">27°</span>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
-                    <div class="eht-footnote">Datos de descenso continuo desde el Tibidabo hasta la costa de Barcelona.</div>
+                    <div class="topoh-footnote">Datos de descenso continuo desde el Tibidabo hasta la costa de Barcelona.</div>
                 </div>
 
                 <script>
