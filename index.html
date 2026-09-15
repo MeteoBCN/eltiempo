@@ -1427,6 +1427,66 @@
                         stroke-width:1.8px;
                         stroke-linejoin:round;
                     }
+
+                    /* ── Galletas de temperatura (tarjetas por estación) ──
+                       Sustituyen a las etiquetas de texto sueltas: tarjeta
+                       redondeada con el dato en grande arriba y el nombre de
+                       la estación en mayúsculas abajo. El color de fondo se
+                       recalcula en JS según la posición térmica relativa del
+                       momento (ver renderPerfilTopografico). */
+                    .topo-galleta{
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:5px 6px 6px;
+                        border-radius:10px;
+                        text-align:center;
+                        box-shadow:0 3px 8px rgba(18,54,83,0.16);
+                        font-family:'Inter', sans-serif;
+                        color:#1a1a1a;
+                        background:#E2F0D9;
+                        transition:background-color 0.5s ease, box-shadow 0.2s ease;
+                        display:flex;
+                        flex-direction:column;
+                        align-items:center;
+                        line-height:1.15;
+                    }
+                    .topo-galleta-temp{
+                        font-size:16px;
+                        font-weight:800;
+                        display:block;
+                        color:#1a1a1a;
+                        font-variant-numeric:tabular-nums;
+                    }
+                    .topo-galleta-nombre{
+                        font-size:8px;
+                        font-weight:700;
+                        text-transform:uppercase;
+                        letter-spacing:0.3px;
+                        display:block;
+                        margin-top:2px;
+                        color:#1a1a1a;
+                        opacity:0.75;
+                        white-space:nowrap;
+                    }
+                    .topo-galleta-alt{
+                        font-size:7.5px;
+                        font-weight:500;
+                        display:block;
+                        margin-top:1px;
+                        color:#1a1a1a;
+                        opacity:0.45;
+                        white-space:nowrap;
+                    }
+
+                    /* ── Cielo dinámico día/noche + estrellas ──
+                       El degradado del cielo cambia según la hora real de
+                       Barcelona (ver actualizarCieloBarcelona en el script).
+                       Las estrellas solo aparecen en modo noche. */
+                    .topo-cielo{ transition: fill 1s ease; }
+                    .topo-modo-dia{ fill:url(#topoSkyGradient); }
+                    .topo-modo-noche{ fill:url(#topoSkyGradientNoche); }
+                    .topo-estrellas{ display:none; }
+                    .topo-modo-noche + .topo-estrellas{ display:block; }
                 </style>
 
                 <div class="topoh-wrap" id="altura-efecto-wrap">
@@ -1449,6 +1509,10 @@
                                     <stop offset="0" stop-color="#eaf4fb"/>
                                     <stop offset="1" stop-color="#ffffff"/>
                                 </linearGradient>
+                                <linearGradient id="topoSkyGradientNoche" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0" stop-color="#0b1c33"/>
+                                    <stop offset="1" stop-color="#1c3a5e"/>
+                                </linearGradient>
                                 <linearGradient id="topoTerrainGradient" x1="70" y1="130" x2="830" y2="400" gradientUnits="userSpaceOnUse">
                                     <stop offset="0"    stop-color="#8a6a4f"/>
                                     <stop offset="0.12" stop-color="#74854e"/>
@@ -1465,8 +1529,29 @@
                                 </linearGradient>
                             </defs>
 
-                            <!-- Cielo -->
-                            <rect x="0" y="0" width="860" height="400" fill="url(#topoSkyGradient)"/>
+                            <!-- Cielo dinámico (día/noche según hora real de Barcelona) -->
+                            <rect id="topo-cielo-dinamico" class="topo-cielo topo-modo-dia" x="0" y="0" width="860" height="400"/>
+
+                            <!-- Estrellas · solo visibles en modo noche -->
+                            <g class="topo-estrellas" fill="#ffffff">
+                                <circle cx="60" cy="24" r="1.2" opacity="0.9"/>
+                                <circle cx="130" cy="14" r="1" opacity="0.7"/>
+                                <circle cx="200" cy="30" r="1.3" opacity="0.85"/>
+                                <circle cx="270" cy="18" r="0.9" opacity="0.6"/>
+                                <circle cx="340" cy="26" r="1.1" opacity="0.8"/>
+                                <circle cx="410" cy="12" r="1" opacity="0.7"/>
+                                <circle cx="480" cy="22" r="1.2" opacity="0.9"/>
+                                <circle cx="550" cy="16" r="0.9" opacity="0.65"/>
+                                <circle cx="620" cy="28" r="1.1" opacity="0.8"/>
+                                <circle cx="690" cy="10" r="1" opacity="0.7"/>
+                                <circle cx="750" cy="20" r="1.3" opacity="0.85"/>
+                                <circle cx="810" cy="15" r="1" opacity="0.75"/>
+                                <circle cx="100" cy="45" r="0.8" opacity="0.5"/>
+                                <circle cx="240" cy="50" r="0.9" opacity="0.55"/>
+                                <circle cx="450" cy="42" r="0.8" opacity="0.5"/>
+                                <circle cx="600" cy="48" r="0.9" opacity="0.55"/>
+                                <circle cx="770" cy="44" r="0.8" opacity="0.5"/>
+                            </g>
 
                             <!-- Silueta del terreno, rellena en degradado tierra→bosque (hasta Rda. de Dalt) → gris urbano -->
                             <path d="M 70,130 C 120.2,147.2 171.8,164.8 222,182 C 272.2,220.6 324.8,260.4 374,299 C 424.2,313.85 475.8,329.15 526,344 C 576.2,352.58 627.8,361.42 678,370 C 728.2,375.61 779.8,381.39 830,387 L 830,405 L 70,405 Z"
@@ -1591,53 +1676,80 @@
                             </g>
 
 
-                            <!-- Líneas verticales discontinuas: de cada dato al punto exacto del terreno -->
+                            <!-- Líneas verticales discontinuas: de la base de cada galleta al punto
+                                 exacto del terreno. Sistema zig-zag: alternan longitud (larga/corta)
+                                 para escalonar verticalmente las tarjetas y evitar que se pisen en
+                                 pantallas estrechas, especialmente entre Sarrià, Eixample y Port Olímpic -->
                             <g stroke="#123653" stroke-opacity="0.3" stroke-width="1" stroke-dasharray="3 3">
                                 <line x1="70"  y1="66"  x2="70"  y2="130"/>
                                 <line x1="222" y1="118" x2="222" y2="182"/>
                                 <line x1="374" y1="235" x2="374" y2="299"/>
-                                <line x1="526" y1="280" x2="526" y2="344"/>
-                                <line x1="678" y1="306" x2="678" y2="370"/>
-                                <line x1="830" y1="323" x2="830" y2="387"/>
+                                <line x1="526" y1="260" x2="526" y2="344"/>
+                                <line x1="678" y1="326" x2="678" y2="370"/>
+                                <line x1="830" y1="303" x2="830" y2="387"/>
                             </g>
 
                             <!-- Marcadores + etiquetas por estación -->
 
                             <!-- 1. Tibidabo · 512 m -->
                             <circle id="topo-marker-tibidabo" cx="70" cy="130" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="70" y="24" text-anchor="middle">Tibidabo</text>
-                            <text class="topo-temp" id="temp-tibidabo" x="70" y="46" text-anchor="middle" fill="#FFB870">28°</text>
-                            <text class="topo-alt" x="70" y="62" text-anchor="middle">512 m</text>
+                            <foreignObject x="30" y="16" width="80" height="52" style="overflow:visible;">
+                                <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta" id="galleta-tibidabo">
+                                    <span class="topo-galleta-temp" id="temp-tibidabo">28°</span>
+                                    <span class="topo-galleta-nombre">Tibidabo</span>
+                                    <span class="topo-galleta-alt">512 m</span>
+                                </div>
+                            </foreignObject>
 
                             <!-- 2. Obs. Fabra · 410 m -->
                             <circle id="topo-marker-fabra" cx="222" cy="182" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="222" y="76" text-anchor="middle">Obs. Fabra</text>
-                            <text class="topo-temp" id="temp-fabra" x="222" y="98" text-anchor="middle" fill="#FFB870">31°</text>
-                            <text class="topo-alt" x="222" y="114" text-anchor="middle">410 m</text>
+                            <foreignObject x="175" y="68" width="94" height="52" style="overflow:visible;">
+                                <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta" id="galleta-fabra">
+                                    <span class="topo-galleta-temp" id="temp-fabra">31°</span>
+                                    <span class="topo-galleta-nombre">Obs. Fabra</span>
+                                    <span class="topo-galleta-alt">410 m</span>
+                                </div>
+                            </foreignObject>
 
                             <!-- 3. Rda. de Dalt · 180 m -->
                             <circle id="topo-marker-ronda" cx="374" cy="299" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="374" y="193" text-anchor="middle">Rda. de Dalt</text>
-                            <text class="topo-temp" id="temp-ronda" x="374" y="215" text-anchor="middle" fill="#FFB870">30°</text>
-                            <text class="topo-alt" x="374" y="231" text-anchor="middle">180 m</text>
+                            <foreignObject x="322" y="185" width="104" height="52" style="overflow:visible;">
+                                <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta" id="galleta-ronda">
+                                    <span class="topo-galleta-temp" id="temp-ronda">30°</span>
+                                    <span class="topo-galleta-nombre">Rda. de Dalt</span>
+                                    <span class="topo-galleta-alt">180 m</span>
+                                </div>
+                            </foreignObject>
 
-                            <!-- 4. Sarrià · 90 m -->
+                            <!-- 4. Sarrià · 90 m (línea larga: galleta más alejada del relieve) -->
                             <circle id="topo-marker-sarria" cx="526" cy="344" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="526" y="238" text-anchor="middle">Sarrià</text>
-                            <text class="topo-temp" id="temp-sarria" x="526" y="260" text-anchor="middle" fill="#FFB870">30°</text>
-                            <text class="topo-alt" x="526" y="276" text-anchor="middle">90 m</text>
+                            <foreignObject x="486" y="210" width="80" height="52" style="overflow:visible;">
+                                <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta" id="galleta-sarria">
+                                    <span class="topo-galleta-temp" id="temp-sarria">30°</span>
+                                    <span class="topo-galleta-nombre">Sarrià</span>
+                                    <span class="topo-galleta-alt">90 m</span>
+                                </div>
+                            </foreignObject>
 
-                            <!-- 5. Eixample · 40 m -->
+                            <!-- 5. Eixample · 40 m (línea corta: galleta más cerca del relieve) -->
                             <circle id="topo-marker-eixample" cx="678" cy="370" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="678" y="264" text-anchor="middle">Eixample</text>
-                            <text class="topo-temp" id="temp-eixample" x="678" y="286" text-anchor="middle" fill="#FFB870">29°</text>
-                            <text class="topo-alt" x="678" y="302" text-anchor="middle">40 m</text>
+                            <foreignObject x="636" y="276" width="84" height="52" style="overflow:visible;">
+                                <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta" id="galleta-eixample">
+                                    <span class="topo-galleta-temp" id="temp-eixample">29°</span>
+                                    <span class="topo-galleta-nombre">Eixample</span>
+                                    <span class="topo-galleta-alt">40 m</span>
+                                </div>
+                            </foreignObject>
 
-                            <!-- 6. Port Olímpic · 5 m -->
+                            <!-- 6. Port Olímpic · 5 m (línea larga, desplazada a la izquierda para no salirse del viewBox) -->
                             <circle id="topo-marker-costa" cx="830" cy="387" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="826" y="281" text-anchor="end">Port Olímpic</text>
-                            <text class="topo-temp" id="temp-costa" x="826" y="303" text-anchor="end" fill="#FFB870">28°</text>
-                            <text class="topo-alt" x="826" y="319" text-anchor="end">5 m</text>
+                            <foreignObject x="734" y="253" width="104" height="52" style="overflow:visible;">
+                                <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta" id="galleta-costa">
+                                    <span class="topo-galleta-temp" id="temp-costa">28°</span>
+                                    <span class="topo-galleta-nombre">Port Olímpic</span>
+                                    <span class="topo-galleta-alt">5 m</span>
+                                </div>
+                            </foreignObject>
                         </svg>
                     </div>
 
@@ -1666,26 +1778,20 @@
                     // valores estáticos ya escritos en el SVG para no esperar a la API.
                     const TOPO_TEMPS = { tibidabo: 28, fabra: 31, ronda: 30, sarria: 30, eixample: 29, costa: 28 };
 
-                    /* Escala de color RELATIVA y AUTOMÁTICA: en vez de un baremo absoluto de
-                       temperatura, normaliza entre el mínimo y el máximo de las 6 estaciones
-                       de AHORA MISMO. Así, tanto si es un día "flojo" (28–31°, verano) como
-                       uno de invierno (10–14°), el valor más bajo del momento siempre sale
-                       naranja claro y el más alto siempre sale rojo fuego intenso, con un
-                       degradado suave en medio — el contraste se mantiene siempre máximo. */
-                    function topoColorRelativo(t, min, max) {
-                        const stops = [
-                            [255, 184, 112], // ratio 0   → naranja claro (el más bajo de hoy)
-                            [255, 111, 60],  // ratio 0.5 → naranja intenso
-                            [211, 25, 32]    // ratio 1   → rojo fuego (el más alto de hoy)
-                        ];
-                        if (typeof t !== 'number' || Number.isNaN(t)) return [148, 163, 184]; // gris si falta dato
-                        const span = (max - min) || 1;
-                        let ratio = (t - min) / span;
-                        ratio = Math.max(0, Math.min(1, ratio));
-                        const [a, b, c] = ratio <= 0.5
-                            ? [stops[0], stops[1], ratio / 0.5]
-                            : [stops[1], stops[2], (ratio - 0.5) / 0.5];
-                        return a.map((v, i) => Math.round(v + (b[i] - v) * c));
+                    /* Escala de color de FONDO relativa y automática para las galletas: en
+                       vez de un baremo absoluto de temperatura, normaliza entre el mínimo y
+                       el máximo de las 6 estaciones de AHORA MISMO. Así, tanto si es un día
+                       "flojo" (28–31°, verano) como uno de invierno (10–14°), la estación más
+                       fresca del momento siempre sale en tono frío y la más calurosa en tono
+                       cálido, con la escala intermedia entre medias — el contraste se
+                       mantiene siempre máximo sin importar el rango absoluto del día. */
+                    function topoColorFondoRelativo(t, min, max) {
+                        if (typeof t !== 'number' || Number.isNaN(t)) return '#E2E8F0'; // gris si falta dato
+                        if (max === min) return '#E2F0D9'; // todas iguales → verde neutro
+                        if (t === max) return '#F8CBAD'; // coral suave → la(s) máxima(s) de hoy
+                        if (t === min) return '#D9E1F2'; // azul claro → la(s) mínima(s) de hoy
+                        const factor = (t - min) / (max - min);
+                        return factor > 0.5 ? '#FFF2CC' : '#E2F0D9'; // amarillo zona media-alta / verde zona media-baja
                     }
 
                     function renderPerfilTopografico() {
@@ -1695,21 +1801,38 @@
 
                         TOPO_ORDEN.forEach(key => {
                             const temp = TOPO_TEMPS[key];
-                            const [r, g, b] = topoColorRelativo(temp, min, max);
-                            const rgb = `rgb(${r},${g},${b})`;
-
-                            const elTemp   = document.getElementById('temp-' + key);
-                            const elGlow   = document.getElementById('topo-glow-' + key);
-                            const elMarker = document.getElementById('topo-marker-' + key);
+                            const elTemp    = document.getElementById('temp-' + key);
+                            const elGalleta = document.getElementById('galleta-' + key);
 
                             if (elTemp && typeof temp === 'number' && !Number.isNaN(temp)) {
                                 elTemp.textContent = Math.round(temp) + '°';
-                                elTemp.setAttribute('fill', rgb);
                             }
-                            if (elGlow)   elGlow.setAttribute('fill', rgb);
-                            if (elMarker) elMarker.setAttribute('stroke', rgb);
+                            if (elGalleta) {
+                                elGalleta.style.backgroundColor = topoColorFondoRelativo(temp, min, max);
+                            }
                         });
                     }
+
+                    /* Control del cielo en base a la hora REAL de Barcelona (no la del
+                       dispositivo del usuario): noche de 20:00 a 06:59, día el resto. */
+                    function actualizarCieloBarcelona() {
+                        const horaBarcelonaStr = new Date().toLocaleString('es-ES', {
+                            timeZone: 'Europe/Madrid',
+                            hour: '2-digit',
+                            hour12: false
+                        });
+                        const hora = parseInt(horaBarcelonaStr, 10);
+                        const cieloSVG = document.getElementById('topo-cielo-dinamico');
+                        if (!cieloSVG) return;
+
+                        if (hora >= 20 || hora < 7) {
+                            cieloSVG.setAttribute('class', 'topo-cielo topo-modo-noche');
+                        } else {
+                            cieloSVG.setAttribute('class', 'topo-cielo topo-modo-dia');
+                        }
+                    }
+                    actualizarCieloBarcelona();
+                    setInterval(actualizarCieloBarcelona, 10 * 60 * 1000);
 
                     function actualizarFilaAltura(estacion, { temp } = {}) {
                         if (!TOPO_ORDEN.includes(estacion)) { console.warn('[PerfilTopografico] Estación desconocida:', estacion); return; }
