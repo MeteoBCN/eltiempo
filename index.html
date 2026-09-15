@@ -1450,6 +1450,25 @@
                         align-items:center;
                         line-height:1.15;
                     }
+
+                    /* ── Icono meteorológico único, en el cielo del perfil ──
+                       Se clona el mismo SVG ya renderizado en #current-icon
+                       (sección principal). Tamaño contenido para no competir
+                       visualmente con las galletas. */
+                    .topo-icono-cielo{
+                        width:34px;
+                        height:34px;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        filter:drop-shadow(0 2px 4px rgba(18,54,83,0.2));
+                    }
+                    .topo-icono-cielo svg,
+                    .topo-icono-cielo img{
+                        width:100%;
+                        height:100%;
+                        display:block;
+                    }
                     .topo-galleta-temp{
                         font-size:16px;
                         font-weight:800;
@@ -1552,6 +1571,11 @@
                                 <circle cx="600" cy="48" r="0.9" opacity="0.55"/>
                                 <circle cx="770" cy="44" r="0.8" opacity="0.5"/>
                             </g>
+
+                            <!-- Icono meteorológico único · clonado de #current-icon -->
+                            <foreignObject x="596" y="6" width="44" height="44" style="overflow:visible;">
+                                <div xmlns="http://www.w3.org/1999/xhtml" class="topo-icono-cielo" id="topo-icono-cielo" aria-hidden="true"></div>
+                            </foreignObject>
 
                             <!-- Silueta del terreno, rellena en degradado tierra→bosque (hasta Rda. de Dalt) → gris urbano -->
                             <path d="M 70,130 C 120.2,147.2 171.8,164.8 222,182 C 272.2,220.6 324.8,260.4 374,299 C 424.2,313.85 475.8,329.15 526,344 C 576.2,352.58 627.8,361.42 678,370 C 728.2,375.61 779.8,381.39 830,387 L 830,405 L 70,405 Z"
@@ -1692,7 +1716,6 @@
                             <!-- Marcadores + etiquetas por estación -->
 
                             <!-- 1. Tibidabo · 512 m -->
-                            <circle id="topo-marker-tibidabo" cx="70" cy="130" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
                             <foreignObject x="30" y="16" width="80" height="52" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta" id="galleta-tibidabo">
                                     <span class="topo-galleta-temp" id="temp-tibidabo">28°</span>
@@ -1702,7 +1725,6 @@
                             </foreignObject>
 
                             <!-- 2. Obs. Fabra · 410 m -->
-                            <circle id="topo-marker-fabra" cx="222" cy="182" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
                             <foreignObject x="175" y="68" width="94" height="52" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta" id="galleta-fabra">
                                     <span class="topo-galleta-temp" id="temp-fabra">31°</span>
@@ -1712,7 +1734,6 @@
                             </foreignObject>
 
                             <!-- 3. Rda. de Dalt · 180 m -->
-                            <circle id="topo-marker-ronda" cx="374" cy="299" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
                             <foreignObject x="322" y="185" width="104" height="52" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta" id="galleta-ronda">
                                     <span class="topo-galleta-temp" id="temp-ronda">30°</span>
@@ -1722,7 +1743,6 @@
                             </foreignObject>
 
                             <!-- 4. Sarrià · 90 m (línea larga: galleta más alejada del relieve) -->
-                            <circle id="topo-marker-sarria" cx="526" cy="344" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
                             <foreignObject x="486" y="210" width="80" height="52" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta" id="galleta-sarria">
                                     <span class="topo-galleta-temp" id="temp-sarria">30°</span>
@@ -1732,7 +1752,6 @@
                             </foreignObject>
 
                             <!-- 5. Eixample · 40 m (línea corta: galleta más cerca del relieve) -->
-                            <circle id="topo-marker-eixample" cx="678" cy="370" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
                             <foreignObject x="636" y="276" width="84" height="52" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta" id="galleta-eixample">
                                     <span class="topo-galleta-temp" id="temp-eixample">29°</span>
@@ -1742,7 +1761,6 @@
                             </foreignObject>
 
                             <!-- 6. Port Olímpic · 5 m (línea larga, desplazada a la izquierda para no salirse del viewBox) -->
-                            <circle id="topo-marker-costa" cx="830" cy="387" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
                             <foreignObject x="734" y="253" width="104" height="52" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta" id="galleta-costa">
                                     <span class="topo-galleta-temp" id="temp-costa">28°</span>
@@ -1833,6 +1851,27 @@
                     }
                     actualizarCieloBarcelona();
                     setInterval(actualizarCieloBarcelona, 10 * 60 * 1000);
+
+                    /* ── Icono meteorológico único, en el cielo del perfil ──
+                       No se genera ningún icono nuevo: se clona el SVG que ya
+                       está renderizado en #current-icon (sección principal de
+                       la web), de forma que el icono del perfil es siempre
+                       exactamente el mismo que el de la condición actual
+                       mostrada arriba. Un MutationObserver mantiene la copia
+                       sincronizada cada vez que #current-icon se actualiza
+                       (refresco de datos, cambio día/noche...). */
+                    function sincronizarIconoCielo() {
+                        const iconoActual = document.getElementById('current-icon');
+                        const destino = document.getElementById('topo-icono-cielo');
+                        if (!iconoActual || !destino || !iconoActual.innerHTML.trim()) return;
+                        destino.innerHTML = iconoActual.innerHTML;
+                    }
+                    sincronizarIconoCielo();
+                    const topoIconoOrigen = document.getElementById('current-icon');
+                    if (topoIconoOrigen && window.MutationObserver) {
+                        new MutationObserver(sincronizarIconoCielo)
+                            .observe(topoIconoOrigen, { childList: true, subtree: true });
+                    }
 
                     function actualizarFilaAltura(estacion, { temp } = {}) {
                         if (!TOPO_ORDEN.includes(estacion)) { console.warn('[PerfilTopografico] Estación desconocida:', estacion); return; }
