@@ -1401,12 +1401,20 @@
                         letter-spacing:0.5px;
                         text-transform:uppercase;
                         fill:#123653;
+                        paint-order:stroke;
+                        stroke:#ffffff;
+                        stroke-width:1.8px;
+                        stroke-linejoin:round;
                     }
                     .topo-temp{
                         font-family:'Inter', sans-serif;
                         font-size:22px;
                         font-weight:800;
                         font-variant-numeric:tabular-nums;
+                        paint-order:stroke;
+                        stroke:#ffffff;
+                        stroke-width:2px;
+                        stroke-linejoin:round;
                     }
                     .topo-alt{
                         font-family:'Inter', sans-serif;
@@ -1414,6 +1422,10 @@
                         font-weight:500;
                         fill:#94A3B8;
                         letter-spacing:0.2px;
+                        paint-order:stroke;
+                        stroke:#ffffff;
+                        stroke-width:1.8px;
+                        stroke-linejoin:round;
                     }
                 </style>
 
@@ -1430,73 +1442,159 @@
                              más. El color de cada punto/etiqueta se recalcula en JS con una
                              escala RELATIVA min→max de las 6 temperaturas del momento (ver
                              script). Sin relleno de degradado bajo la línea: solo la silueta. -->
-                        <svg viewBox="0 0 820 365" preserveAspectRatio="xMidYMid meet" role="img"
-                             aria-label="Perfil topográfico de Barcelona con la temperatura actual en 6 estaciones, de Tibidabo a Port Olímpic">
+                        <svg viewBox="0 0 900 460" preserveAspectRatio="xMidYMid meet" role="img"
+                             aria-label="Perfil de elevación ilustrado de Barcelona, del Tibidabo al Port Olímpic, con la temperatura actual en 6 estaciones">
                             <defs>
-                                <linearGradient id="topoSeaGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0" stop-color="#BFE3F0" stop-opacity="0.55"/>
-                                    <stop offset="1" stop-color="#BFE3F0" stop-opacity="0.15"/>
+                                <linearGradient id="topoSkyGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0" stop-color="#eaf4fb"/>
+                                    <stop offset="1" stop-color="#ffffff"/>
+                                </linearGradient>
+                                <linearGradient id="topoTerrainGradient" x1="70" y1="130" x2="830" y2="400" gradientUnits="userSpaceOnUse">
+                                    <stop offset="0"    stop-color="#8a6a4f"/>
+                                    <stop offset="0.12" stop-color="#74854e"/>
+                                    <stop offset="0.32" stop-color="#587f49"/>
+                                    <stop offset="0.55" stop-color="#8ea059"/>
+                                    <stop offset="0.75" stop-color="#c9b487"/>
+                                    <stop offset="0.90" stop-color="#e3cd9c"/>
+                                    <stop offset="1"    stop-color="#efddac"/>
+                                </linearGradient>
+                                <linearGradient id="topoSeaGradient2" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0" stop-color="#83c7e0"/>
+                                    <stop offset="1" stop-color="#3d8cad"/>
+                                </linearGradient>
+                                <linearGradient id="topoBlockGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0" stop-color="#6b4a34"/>
+                                    <stop offset="1" stop-color="#43301f"/>
                                 </linearGradient>
                                 <filter id="topoGlow" x="-150%" y="-150%" width="400%" height="400%">
                                     <feGaussianBlur stdDeviation="7"/>
                                 </filter>
+                                <filter id="topoGlowBig" x="-200%" y="-200%" width="500%" height="500%">
+                                    <feGaussianBlur stdDeviation="18"/>
+                                </filter>
                             </defs>
 
-                            <!-- Franja de mar, decorativa, bajo la línea base -->
-                            <rect x="0" y="330" width="820" height="30" fill="url(#topoSeaGradient)"/>
+                            <!-- Cielo -->
+                            <rect x="0" y="0" width="900" height="400" fill="url(#topoSkyGradient)"/>
 
-                            <!-- Línea de terreno (silueta), sin relleno debajo -->
-                            <path d="M 30,70 C 55.33,78.67, 131.33,93.83, 182,122 C 232.67,150.17, 283.33,212, 334,239 C 384.67,266, 435.33,272.17, 486,284 C 536.67,295.83, 587.33,302.83, 638,310 C 688.67,317.17, 764.67,324.17, 790,327"
-                                  fill="none" stroke="#123653" stroke-width="2.25" stroke-linecap="round" opacity="0.75"/>
+                            <!-- Resplandores atmosféricos de calor (color dinámico por estación vía JS) -->
+                            <ellipse id="topo-glow-tibidabo" cx="70"  cy="92"  rx="72" ry="46" fill="#FFB870" opacity="0.4"  filter="url(#topoGlowBig)"/>
+                            <ellipse id="topo-glow-fabra"    cx="222" cy="142" rx="84" ry="52" fill="#FFB870" opacity="0.55" filter="url(#topoGlowBig)"/>
+                            <ellipse id="topo-glow-ronda"    cx="374" cy="230" rx="76" ry="48" fill="#FFB870" opacity="0.38" filter="url(#topoGlowBig)"/>
+                            <ellipse id="topo-glow-sarria"   cx="526" cy="270" rx="72" ry="46" fill="#FFB870" opacity="0.38" filter="url(#topoGlowBig)"/>
+                            <ellipse id="topo-glow-eixample" cx="678" cy="296" rx="72" ry="46" fill="#FFB870" opacity="0.38" filter="url(#topoGlowBig)"/>
+                            <ellipse id="topo-glow-costa"    cx="830" cy="312" rx="72" ry="46" fill="#FFB870" opacity="0.38" filter="url(#topoGlowBig)"/>
 
-                            <!-- Resplandor (glow) + marcador + etiqueta por estación -->
+                            <!-- Líneas guía de altitud -->
+                            <g stroke="#123653" stroke-opacity="0.16" stroke-width="1" stroke-dasharray="2 4">
+                                <line x1="58" y1="136" x2="900" y2="136"/>
+                                <line x1="58" y1="238" x2="900" y2="238"/>
+                                <line x1="58" y1="339" x2="900" y2="339"/>
+                                <line x1="58" y1="390" x2="900" y2="390"/>
+                            </g>
+                            <g font-family="Inter, sans-serif" font-size="9" fill="#94A3B8" font-weight="600">
+                                <text x="10" y="139">500 m</text>
+                                <text x="10" y="241">300 m</text>
+                                <text x="10" y="342">100 m</text>
+                                <text x="10" y="393">0 m</text>
+                            </g>
+
+                            <!-- Bloque de tierra (base 2.5D del corte) -->
+                            <rect x="0" y="400" width="900" height="60" fill="url(#topoBlockGradient)"/>
+                            <line x1="0" y1="400" x2="900" y2="400" stroke="#3a2717" stroke-width="1.5" opacity="0.55"/>
+
+                            <!-- Silueta del terreno, rellena en degradado tierra→bosque→urbano→arena -->
+                            <path d="M 70,130 C 120.2,147.2 171.8,164.8 222,182 C 272.2,220.6 324.8,260.4 374,299 C 424.2,313.85 475.8,329.15 526,344 C 576.2,352.58 627.8,361.42 678,370 C 728.2,375.61 779.8,381.39 830,387 L 900,393 L 900,400 L 70,400 Z"
+                                  fill="url(#topoTerrainGradient)"/>
+                            <path d="M 70,130 C 120.2,147.2 171.8,164.8 222,182 C 272.2,220.6 324.8,260.4 374,299 C 424.2,313.85 475.8,329.15 526,344 C 576.2,352.58 627.8,361.42 678,370 C 728.2,375.61 779.8,381.39 830,387"
+                                  fill="none" stroke="#3d2c1c" stroke-width="1.5" opacity="0.3"/>
+
+                            <!-- Mar · Port Olímpic -->
+                            <path d="M 782,389 C 805,385 855,388 900,393 L 900,400 L 782,400 Z" fill="url(#topoSeaGradient2)"/>
+                            <path d="M 792,392 Q 812,388 832,392 Q 852,396 872,392" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.55"/>
+                            <path d="M 800,396 Q 820,393 840,396 Q 860,399 880,396" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.4"/>
+
+                            <!-- Vegetación de bosque mediterráneo (Tibidabo → Rda. de Dalt) -->
+                            <g fill="#3f6b34">
+                                <g transform="translate(96,141) scale(1.05)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-19 -8,-3 8,-3" fill="#3f6b34"/><polygon points="0,-14 -6,-2 6,-2" fill="#4f7a3f" opacity="0.85"/></g>
+                                <g transform="translate(128,150) scale(0.9)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-19 -8,-3 8,-3" fill="#38602e"/></g>
+                                <g transform="translate(160,161) scale(1)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-19 -8,-3 8,-3" fill="#4a7238"/><polygon points="0,-14 -6,-2 6,-2" fill="#5c8a48" opacity="0.85"/></g>
+                                <g transform="translate(196,174) scale(0.85)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-18 -7,-3 7,-3" fill="#3f6b34"/></g>
+                                <g transform="translate(233,193) scale(0.9)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-18 -7,-3 7,-3" fill="#4a7238"/></g>
+                                <g transform="translate(268,215) scale(0.8)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-17 -7,-3 7,-3" fill="#527c40"/></g>
+                                <g transform="translate(300,241) scale(0.78)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-16 -6,-3 6,-3" fill="#5c8a48"/></g>
+                                <g transform="translate(335,270) scale(0.7)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-15 -6,-3 6,-3" fill="#688f52"/></g>
+                            </g>
+
+                            <!-- Trama urbana (Sarrià, Eixample) -->
+                            <g>
+                                <g transform="translate(405,304)"><rect x="-6" y="-15" width="12" height="15" fill="#9c8468"/><rect x="-4" y="-12" width="3" height="3" fill="#f0e4c8" opacity="0.8"/><rect x="1" y="-12" width="3" height="3" fill="#f0e4c8" opacity="0.8"/></g>
+                                <g transform="translate(432,314)"><rect x="-5" y="-11" width="10" height="11" fill="#a68a6c"/><rect x="-3.5" y="-8.5" width="2.5" height="2.5" fill="#f0e4c8" opacity="0.8"/></g>
+                                <g transform="translate(462,322)"><rect x="-6" y="-16" width="12" height="16" fill="#8f7458"/><rect x="-4" y="-13" width="3" height="3" fill="#f0e4c8" opacity="0.8"/><rect x="1" y="-13" width="3" height="3" fill="#f0e4c8" opacity="0.8"/><rect x="-4" y="-8" width="3" height="3" fill="#f0e4c8" opacity="0.6"/></g>
+                                <g transform="translate(555,348)"><rect x="-6" y="-14" width="12" height="14" fill="#9c8468"/><rect x="-4" y="-11" width="3" height="3" fill="#f0e4c8" opacity="0.8"/><rect x="1" y="-11" width="3" height="3" fill="#f0e4c8" opacity="0.8"/></g>
+                                <g transform="translate(590,353)"><rect x="-5" y="-10" width="10" height="10" fill="#a68a6c"/></g>
+                                <g transform="translate(622,359)"><rect x="-6" y="-13" width="12" height="13" fill="#8f7458"/><rect x="-4" y="-10" width="3" height="3" fill="#f0e4c8" opacity="0.8"/></g>
+                            </g>
+
+                            <!-- Arena · Port Olímpic -->
+                            <g fill="#e8d9a8" opacity="0.65">
+                                <circle cx="770" cy="384" r="1.4"/><circle cx="790" cy="388" r="1.4"/><circle cx="810" cy="382" r="1.4"/>
+                                <circle cx="740" cy="380" r="1.4"/><circle cx="705" cy="376" r="1.4"/><circle cx="675" cy="373" r="1.4"/>
+                                <circle cx="755" cy="390" r="1.4"/><circle cx="720" cy="384" r="1.4"/>
+                            </g>
+
+                            <!-- Líneas verticales discontinuas: de cada dato al punto exacto del terreno -->
+                            <g stroke="#123653" stroke-opacity="0.3" stroke-width="1" stroke-dasharray="3 3">
+                                <line x1="70"  y1="66"  x2="70"  y2="130"/>
+                                <line x1="222" y1="118" x2="222" y2="182"/>
+                                <line x1="374" y1="235" x2="374" y2="299"/>
+                                <line x1="526" y1="280" x2="526" y2="344"/>
+                                <line x1="678" y1="306" x2="678" y2="370"/>
+                                <line x1="830" y1="323" x2="830" y2="387"/>
+                            </g>
+
+                            <!-- Marcadores + etiquetas por estación -->
 
                             <!-- 1. Tibidabo · 512 m -->
-                            <circle id="topo-glow-tibidabo" cx="30" cy="70" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
-                            <circle id="topo-marker-tibidabo" cx="30" cy="70" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="30" y="24" text-anchor="middle">Tibidabo</text>
-                            <text class="topo-temp" id="temp-tibidabo" x="30" y="46" text-anchor="middle" fill="#FFB870">28°</text>
-                            <text class="topo-alt" x="30" y="60" text-anchor="middle">512 m</text>
+                            <circle id="topo-marker-tibidabo" cx="70" cy="130" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
+                            <text class="topo-name" x="70" y="24" text-anchor="middle">Tibidabo</text>
+                            <text class="topo-temp" id="temp-tibidabo" x="70" y="46" text-anchor="middle" fill="#FFB870">28°</text>
+                            <text class="topo-alt" x="70" y="62" text-anchor="middle">512 m</text>
 
                             <!-- 2. Obs. Fabra · 410 m -->
-                            <circle id="topo-glow-fabra" cx="182" cy="122" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
-                            <circle id="topo-marker-fabra" cx="182" cy="122" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="182" y="76" text-anchor="middle">Obs. Fabra</text>
-                            <text class="topo-temp" id="temp-fabra" x="182" y="98" text-anchor="middle" fill="#FFB870">31°</text>
-                            <text class="topo-alt" x="182" y="112" text-anchor="middle">410 m</text>
+                            <circle id="topo-marker-fabra" cx="222" cy="182" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
+                            <text class="topo-name" x="222" y="76" text-anchor="middle">Obs. Fabra</text>
+                            <text class="topo-temp" id="temp-fabra" x="222" y="98" text-anchor="middle" fill="#FFB870">31°</text>
+                            <text class="topo-alt" x="222" y="114" text-anchor="middle">410 m</text>
 
                             <!-- 3. Rda. de Dalt · 180 m -->
-                            <circle id="topo-glow-ronda" cx="334" cy="239" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
-                            <circle id="topo-marker-ronda" cx="334" cy="239" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="334" y="193" text-anchor="middle">Rda. de Dalt</text>
-                            <text class="topo-temp" id="temp-ronda" x="334" y="215" text-anchor="middle" fill="#FFB870">30°</text>
-                            <text class="topo-alt" x="334" y="229" text-anchor="middle">180 m</text>
+                            <circle id="topo-marker-ronda" cx="374" cy="299" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
+                            <text class="topo-name" x="374" y="193" text-anchor="middle">Rda. de Dalt</text>
+                            <text class="topo-temp" id="temp-ronda" x="374" y="215" text-anchor="middle" fill="#FFB870">30°</text>
+                            <text class="topo-alt" x="374" y="231" text-anchor="middle">180 m</text>
 
                             <!-- 4. Sarrià · 90 m -->
-                            <circle id="topo-glow-sarria" cx="486" cy="284" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
-                            <circle id="topo-marker-sarria" cx="486" cy="284" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="486" y="238" text-anchor="middle">Sarrià</text>
-                            <text class="topo-temp" id="temp-sarria" x="486" y="260" text-anchor="middle" fill="#FFB870">30°</text>
-                            <text class="topo-alt" x="486" y="274" text-anchor="middle">90 m</text>
+                            <circle id="topo-marker-sarria" cx="526" cy="344" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
+                            <text class="topo-name" x="526" y="238" text-anchor="middle">Sarrià</text>
+                            <text class="topo-temp" id="temp-sarria" x="526" y="260" text-anchor="middle" fill="#FFB870">30°</text>
+                            <text class="topo-alt" x="526" y="276" text-anchor="middle">90 m</text>
 
                             <!-- 5. Eixample · 40 m -->
-                            <circle id="topo-glow-eixample" cx="638" cy="310" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
-                            <circle id="topo-marker-eixample" cx="638" cy="310" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="638" y="264" text-anchor="middle">Eixample</text>
-                            <text class="topo-temp" id="temp-eixample" x="638" y="286" text-anchor="middle" fill="#FFB870">29°</text>
-                            <text class="topo-alt" x="638" y="300" text-anchor="middle">40 m</text>
+                            <circle id="topo-marker-eixample" cx="678" cy="370" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
+                            <text class="topo-name" x="678" y="264" text-anchor="middle">Eixample</text>
+                            <text class="topo-temp" id="temp-eixample" x="678" y="286" text-anchor="middle" fill="#FFB870">29°</text>
+                            <text class="topo-alt" x="678" y="302" text-anchor="middle">40 m</text>
 
                             <!-- 6. Port Olímpic · 5 m -->
-                            <circle id="topo-glow-costa" cx="790" cy="327" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
-                            <circle id="topo-marker-costa" cx="790" cy="327" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="790" y="281" text-anchor="middle">Port Olímpic</text>
-                            <text class="topo-temp" id="temp-costa" x="790" y="303" text-anchor="middle" fill="#FFB870">28°</text>
-                            <text class="topo-alt" x="790" y="317" text-anchor="middle">5 m</text>
+                            <circle id="topo-marker-costa" cx="830" cy="387" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
+                            <text class="topo-name" x="830" y="281" text-anchor="middle">Port Olímpic</text>
+                            <text class="topo-temp" id="temp-costa" x="830" y="303" text-anchor="middle" fill="#FFB870">28°</text>
+                            <text class="topo-alt" x="830" y="319" text-anchor="middle">5 m</text>
                         </svg>
                     </div>
 
                     <div class="topo-subtitle">
-                        Radiografía del termómetro desde la playa hasta la montaña
+                        Corte de relieve del Tibidabo al Port Olímpic, con la temperatura de cada estación
                     </div>
 
                 </div>
