@@ -1424,22 +1424,15 @@
                     </div>
 
                     <div class="topo-chart-wrap">
-                        <!-- viewBox 820×345. Eje X = orden por altitud (cima→mar), no distancia
-                             real. Eje Y = altitud real, proporcional (0–512 m). El color de cada
-                             punto/etiqueta y del degradado del área se recalcula en JS con una
-                             escala RELATIVA min→max de las 6 temperaturas del momento (ver script),
-                             para que el contraste sea máximo aunque los grados estén muy juntos. -->
-                        <svg viewBox="0 0 820 345" preserveAspectRatio="xMidYMid meet" role="img"
+                        <!-- viewBox 820×365. Eje X = orden por altitud (cima→mar), no distancia
+                             real. Eje Y = altitud real, proporcional (0–512 m), con rango
+                             vertical AMPLIADO (70→327 px) para que el desnivel se note mucho
+                             más. El color de cada punto/etiqueta se recalcula en JS con una
+                             escala RELATIVA min→max de las 6 temperaturas del momento (ver
+                             script). Sin relleno de degradado bajo la línea: solo la silueta. -->
+                        <svg viewBox="0 0 820 365" preserveAspectRatio="xMidYMid meet" role="img"
                              aria-label="Perfil topográfico de Barcelona con la temperatura actual en 6 estaciones, de Tibidabo a Port Olímpic">
                             <defs>
-                                <linearGradient id="topoTerrainGradient" x1="0" y1="0" x2="1" y2="0">
-                                    <stop id="topo-stop-tibidabo" offset="0"   stop-color="#FFB870"/>
-                                    <stop id="topo-stop-fabra"    offset="0.2" stop-color="#FFB870"/>
-                                    <stop id="topo-stop-ronda"    offset="0.4" stop-color="#FFB870"/>
-                                    <stop id="topo-stop-sarria"   offset="0.6" stop-color="#FFB870"/>
-                                    <stop id="topo-stop-eixample" offset="0.8" stop-color="#FFB870"/>
-                                    <stop id="topo-stop-costa"    offset="1"   stop-color="#FFB870"/>
-                                </linearGradient>
                                 <linearGradient id="topoSeaGradient" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="0" stop-color="#BFE3F0" stop-opacity="0.55"/>
                                     <stop offset="1" stop-color="#BFE3F0" stop-opacity="0.15"/>
@@ -1450,60 +1443,55 @@
                             </defs>
 
                             <!-- Franja de mar, decorativa, bajo la línea base -->
-                            <rect x="0" y="304" width="820" height="30" fill="url(#topoSeaGradient)"/>
+                            <rect x="0" y="330" width="820" height="30" fill="url(#topoSeaGradient)"/>
 
-                            <!-- Área bajo la montaña, rellena con el degradado horizontal por temperatura -->
-                            <path id="topo-area"
-                                  d="M 30,304 L 30,120 C 55.33,126, 131.33,136.5, 182,156 C 232.67,175.5, 283.33,218.33, 334,237 C 384.67,255.67, 435.33,259.83, 486,268 C 536.67,276.17, 587.33,281, 638,286 C 688.67,291, 764.67,296, 790,298 L 790,304 Z"
-                                  fill="url(#topoTerrainGradient)" opacity="0.30"/>
-
-                            <!-- Línea de terreno -->
-                            <path d="M 30,120 C 55.33,126, 131.33,136.5, 182,156 C 232.67,175.5, 283.33,218.33, 334,237 C 384.67,255.67, 435.33,259.83, 486,268 C 536.67,276.17, 587.33,281, 638,286 C 688.67,291, 764.67,296, 790,298"
+                            <!-- Línea de terreno (silueta), sin relleno debajo -->
+                            <path d="M 30,70 C 55.33,78.67, 131.33,93.83, 182,122 C 232.67,150.17, 283.33,212, 334,239 C 384.67,266, 435.33,272.17, 486,284 C 536.67,295.83, 587.33,302.83, 638,310 C 688.67,317.17, 764.67,324.17, 790,327"
                                   fill="none" stroke="#123653" stroke-width="2.25" stroke-linecap="round" opacity="0.75"/>
 
                             <!-- Resplandor (glow) + marcador + etiqueta por estación -->
 
                             <!-- 1. Tibidabo · 512 m -->
-                            <circle id="topo-glow-tibidabo" cx="30" cy="120" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
-                            <circle id="topo-marker-tibidabo" cx="30" cy="120" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="30" y="74" text-anchor="middle">Tibidabo</text>
-                            <text class="topo-temp" id="temp-tibidabo" x="30" y="96" text-anchor="middle" fill="#FFB870">28°</text>
-                            <text class="topo-alt" x="30" y="110" text-anchor="middle">512 m</text>
+                            <circle id="topo-glow-tibidabo" cx="30" cy="70" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
+                            <circle id="topo-marker-tibidabo" cx="30" cy="70" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
+                            <text class="topo-name" x="30" y="24" text-anchor="middle">Tibidabo</text>
+                            <text class="topo-temp" id="temp-tibidabo" x="30" y="46" text-anchor="middle" fill="#FFB870">28°</text>
+                            <text class="topo-alt" x="30" y="60" text-anchor="middle">512 m</text>
 
                             <!-- 2. Obs. Fabra · 410 m -->
-                            <circle id="topo-glow-fabra" cx="182" cy="156" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
-                            <circle id="topo-marker-fabra" cx="182" cy="156" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="182" y="110" text-anchor="middle">Obs. Fabra</text>
-                            <text class="topo-temp" id="temp-fabra" x="182" y="132" text-anchor="middle" fill="#FFB870">31°</text>
-                            <text class="topo-alt" x="182" y="146" text-anchor="middle">410 m</text>
+                            <circle id="topo-glow-fabra" cx="182" cy="122" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
+                            <circle id="topo-marker-fabra" cx="182" cy="122" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
+                            <text class="topo-name" x="182" y="76" text-anchor="middle">Obs. Fabra</text>
+                            <text class="topo-temp" id="temp-fabra" x="182" y="98" text-anchor="middle" fill="#FFB870">31°</text>
+                            <text class="topo-alt" x="182" y="112" text-anchor="middle">410 m</text>
 
                             <!-- 3. Rda. de Dalt · 180 m -->
-                            <circle id="topo-glow-ronda" cx="334" cy="237" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
-                            <circle id="topo-marker-ronda" cx="334" cy="237" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="334" y="191" text-anchor="middle">Rda. de Dalt</text>
-                            <text class="topo-temp" id="temp-ronda" x="334" y="213" text-anchor="middle" fill="#FFB870">30°</text>
-                            <text class="topo-alt" x="334" y="227" text-anchor="middle">180 m</text>
+                            <circle id="topo-glow-ronda" cx="334" cy="239" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
+                            <circle id="topo-marker-ronda" cx="334" cy="239" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
+                            <text class="topo-name" x="334" y="193" text-anchor="middle">Rda. de Dalt</text>
+                            <text class="topo-temp" id="temp-ronda" x="334" y="215" text-anchor="middle" fill="#FFB870">30°</text>
+                            <text class="topo-alt" x="334" y="229" text-anchor="middle">180 m</text>
 
                             <!-- 4. Sarrià · 90 m -->
-                            <circle id="topo-glow-sarria" cx="486" cy="268" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
-                            <circle id="topo-marker-sarria" cx="486" cy="268" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="486" y="222" text-anchor="middle">Sarrià</text>
-                            <text class="topo-temp" id="temp-sarria" x="486" y="244" text-anchor="middle" fill="#FFB870">30°</text>
-                            <text class="topo-alt" x="486" y="258" text-anchor="middle">90 m</text>
+                            <circle id="topo-glow-sarria" cx="486" cy="284" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
+                            <circle id="topo-marker-sarria" cx="486" cy="284" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
+                            <text class="topo-name" x="486" y="238" text-anchor="middle">Sarrià</text>
+                            <text class="topo-temp" id="temp-sarria" x="486" y="260" text-anchor="middle" fill="#FFB870">30°</text>
+                            <text class="topo-alt" x="486" y="274" text-anchor="middle">90 m</text>
 
                             <!-- 5. Eixample · 40 m -->
-                            <circle id="topo-glow-eixample" cx="638" cy="286" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
-                            <circle id="topo-marker-eixample" cx="638" cy="286" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="638" y="240" text-anchor="middle">Eixample</text>
-                            <text class="topo-temp" id="temp-eixample" x="638" y="262" text-anchor="middle" fill="#FFB870">29°</text>
-                            <text class="topo-alt" x="638" y="276" text-anchor="middle">40 m</text>
+                            <circle id="topo-glow-eixample" cx="638" cy="310" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
+                            <circle id="topo-marker-eixample" cx="638" cy="310" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
+                            <text class="topo-name" x="638" y="264" text-anchor="middle">Eixample</text>
+                            <text class="topo-temp" id="temp-eixample" x="638" y="286" text-anchor="middle" fill="#FFB870">29°</text>
+                            <text class="topo-alt" x="638" y="300" text-anchor="middle">40 m</text>
 
                             <!-- 6. Port Olímpic · 5 m -->
-                            <circle id="topo-glow-costa" cx="790" cy="298" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
-                            <circle id="topo-marker-costa" cx="790" cy="298" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="790" y="252" text-anchor="middle">Port Olímpic</text>
-                            <text class="topo-temp" id="temp-costa" x="790" y="274" text-anchor="middle" fill="#FFB870">28°</text>
-                            <text class="topo-alt" x="790" y="288" text-anchor="middle">5 m</text>
+                            <circle id="topo-glow-costa" cx="790" cy="327" r="20" fill="#FFB870" opacity="0.4" filter="url(#topoGlow)"/>
+                            <circle id="topo-marker-costa" cx="790" cy="327" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
+                            <text class="topo-name" x="790" y="281" text-anchor="middle">Port Olímpic</text>
+                            <text class="topo-temp" id="temp-costa" x="790" y="303" text-anchor="middle" fill="#FFB870">28°</text>
+                            <text class="topo-alt" x="790" y="317" text-anchor="middle">5 m</text>
                         </svg>
                     </div>
 
@@ -1565,7 +1553,6 @@
                             const rgb = `rgb(${r},${g},${b})`;
 
                             const elTemp   = document.getElementById('temp-' + key);
-                            const elStop   = document.getElementById('topo-stop-' + key);
                             const elGlow   = document.getElementById('topo-glow-' + key);
                             const elMarker = document.getElementById('topo-marker-' + key);
 
@@ -1573,7 +1560,6 @@
                                 elTemp.textContent = Math.round(temp) + '°';
                                 elTemp.setAttribute('fill', rgb);
                             }
-                            if (elStop)   elStop.setAttribute('stop-color', rgb);
                             if (elGlow)   elGlow.setAttribute('fill', rgb);
                             if (elMarker) elMarker.setAttribute('stroke', rgb);
                         });
