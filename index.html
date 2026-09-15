@@ -1442,6 +1442,7 @@
                         border-radius:50%;
                         margin-right:7px;
                         vertical-align:1px;
+                        background:#94A3B8; /* gris neutro hasta que el JS lo colorea por temperatura */
                         box-shadow:0 0 0 1px rgba(255,255,255,0.9), 0 0 0 2px rgba(18,54,83,0.12);
                     }
                     .altcol-label .h{
@@ -1505,42 +1506,42 @@
                                 <!-- 1. Tibidabo · 512 m · cima -->
                                 <div class="altcol-row is-top" style="bottom:100%;">
                                     <div class="connector"></div>
-                                    <div class="altcol-label"><span class="dot" style="background:#4B7A4A;"></span>TIBIDABO<span class="h" id="altura-tibidabo">512m</span></div>
+                                    <div class="altcol-label"><span class="dot" id="dot-tibidabo"></span>TIBIDABO<span class="h" id="altura-tibidabo">512m</span></div>
                                     <div class="altcol-data"><span class="altcol-temp" id="temp-tibidabo">24°</span></div>
                                 </div>
 
                                 <!-- 2. Observatori Fabra · 410 m -->
                                 <div class="altcol-row" style="bottom:80%;">
                                     <div class="connector"></div>
-                                    <div class="altcol-label"><span class="dot" style="background:#3E6E5E;"></span>OBS. FABRA<span class="h" id="altura-fabra">410m</span></div>
+                                    <div class="altcol-label"><span class="dot" id="dot-fabra"></span>OBS. FABRA<span class="h" id="altura-fabra">410m</span></div>
                                     <div class="altcol-data"><span class="altcol-temp" id="temp-fabra">25°</span></div>
                                 </div>
 
                                 <!-- 3. Rda. de Dalt · 180 m -->
                                 <div class="altcol-row" style="bottom:60%;">
                                     <div class="connector"></div>
-                                    <div class="altcol-label"><span class="dot" style="background:#336A73;"></span>RDA. DE DALT<span class="h" id="altura-ronda">180m</span></div>
+                                    <div class="altcol-label"><span class="dot" id="dot-ronda"></span>RDA. DE DALT<span class="h" id="altura-ronda">180m</span></div>
                                     <div class="altcol-data"><span class="altcol-temp" id="temp-ronda">27°</span></div>
                                 </div>
 
                                 <!-- 4. Sarrià · 90 m -->
                                 <div class="altcol-row" style="bottom:40%;">
                                     <div class="connector"></div>
-                                    <div class="altcol-label"><span class="dot" style="background:#2C5F7A;"></span>SARRIÀ<span class="h" id="altura-sarria">90m</span></div>
+                                    <div class="altcol-label"><span class="dot" id="dot-sarria"></span>SARRIÀ<span class="h" id="altura-sarria">90m</span></div>
                                     <div class="altcol-data"><span class="altcol-temp" id="temp-sarria">26°</span></div>
                                 </div>
 
                                 <!-- 5. Eixample · 40 m -->
                                 <div class="altcol-row" style="bottom:20%;">
                                     <div class="connector"></div>
-                                    <div class="altcol-label"><span class="dot" style="background:#316E9E;"></span>EIXAMPLE<span class="h" id="altura-eixample">40m</span></div>
+                                    <div class="altcol-label"><span class="dot" id="dot-eixample"></span>EIXAMPLE<span class="h" id="altura-eixample">40m</span></div>
                                     <div class="altcol-data"><span class="altcol-temp" id="temp-eixample">27°</span></div>
                                 </div>
 
                                 <!-- 6. Port Olímpic · 5 m · nivel del mar -->
                                 <div class="altcol-row is-sea" style="bottom:0%;">
                                     <div class="connector"></div>
-                                    <div class="altcol-label"><span class="dot" style="background:#3B82F6;"></span>PORT OLÍMPIC<span class="h" id="altura-costa">5m</span></div>
+                                    <div class="altcol-label"><span class="dot" id="dot-costa"></span>PORT OLÍMPIC<span class="h" id="altura-costa">5m</span></div>
                                     <div class="altcol-data"><span class="altcol-temp" id="temp-costa">27°</span></div>
                                 </div>
 
@@ -1567,12 +1568,53 @@
                      * Cualquier campo omitido (undefined) se deja tal cual está.
                      * (El widget solo muestra temperatura; humedad y lluvia se ignoran.)
                      */
+                    /* Misma escala de color por temperatura que usa la línea de la
+                       gráfica "Próximas horas" (ver drawParaguasHourlyChart / tempToColor),
+                       para que el punto de cada estación hable el mismo idioma de color. */
+                    function tempToColorAltura(t) {
+                        const stops = [
+                            { t: 9,  c: [30, 58, 138] },   // azul oscuro (≤9°)
+                            { t: 14, c: [59, 130, 246] },  // azul más claro (10-14°)
+                            { t: 19, c: [21, 128, 61] },   // verde oscuro (15-19°)
+                            { t: 23, c: [34, 197, 94] },   // verde (20-23°)
+                            { t: 27, c: [249, 115, 22] },  // naranja (24-27°)
+                            { t: 28, c: [220, 38, 38] }    // rojo (≥28°)
+                        ];
+                        if (t <= stops[0].t) return stops[0].c;
+                        if (t >= stops[stops.length - 1].t) return stops[stops.length - 1].c;
+                        for (let i = 0; i < stops.length - 1; i++) {
+                            if (t >= stops[i].t && t <= stops[i + 1].t) {
+                                const ratio = (t - stops[i].t) / (stops[i + 1].t - stops[i].t);
+                                return stops[i].c.map((v, idx) => Math.round(v + (stops[i + 1].c[idx] - v) * ratio));
+                            }
+                        }
+                        return [28, 79, 120];
+                    }
+
+                    function colorearPuntoAltura(estacion, temp) {
+                        const elDot = document.getElementById('dot-' + estacion);
+                        if (!elDot || temp === undefined || temp === null || Number.isNaN(temp)) return;
+                        elDot.style.background = `rgb(${tempToColorAltura(temp).join(',')})`;
+                    }
+                    window.colorearPuntoAltura = colorearPuntoAltura;
+
                     function actualizarFilaAltura(estacion, { temp } = {}) {
                         const elTemp = document.getElementById('temp-' + estacion);
                         if (!elTemp) { console.warn('[EfectoAltura] Estación desconocida:', estacion); return; }
-                        if (temp !== undefined && temp !== null && !Number.isNaN(temp)) elTemp.textContent = Math.round(temp) + '°';
+                        if (temp !== undefined && temp !== null && !Number.isNaN(temp)) {
+                            elTemp.textContent = Math.round(temp) + '°';
+                            colorearPuntoAltura(estacion, temp);
+                        }
                     }
                     window.actualizarFilaAltura = actualizarFilaAltura;
+
+                    // Pintado inicial: colorea los 6 puntos según la temperatura estática
+                    // ya escrita en el HTML, para no esperar a la respuesta de la API.
+                    document.querySelectorAll('#altura-efecto-wrap .altcol-temp').forEach(el => {
+                        const estacion = el.id.replace('temp-', '');
+                        const val = parseFloat(el.textContent);
+                        if (!Number.isNaN(val)) colorearPuntoAltura(estacion, val);
+                    });
 
                     /**
                      * ═══ Carga automática de datos reales (tiempo real) ═══
