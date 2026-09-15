@@ -1442,7 +1442,7 @@
                              más. El color de cada punto/etiqueta se recalcula en JS con una
                              escala RELATIVA min→max de las 6 temperaturas del momento (ver
                              script). Sin relleno de degradado bajo la línea: solo la silueta. -->
-                        <svg viewBox="0 0 900 460" preserveAspectRatio="xMidYMid meet" role="img"
+                        <svg viewBox="0 0 860 460" preserveAspectRatio="xMidYMid meet" role="img"
                              aria-label="Perfil de elevación ilustrado de Barcelona, del Tibidabo al Port Olímpic, con la temperatura actual en 6 estaciones">
                             <defs>
                                 <linearGradient id="topoSkyGradient" x1="0" y1="0" x2="0" y2="1">
@@ -1453,95 +1453,99 @@
                                     <stop offset="0"    stop-color="#8a6a4f"/>
                                     <stop offset="0.12" stop-color="#74854e"/>
                                     <stop offset="0.32" stop-color="#587f49"/>
-                                    <stop offset="0.55" stop-color="#8ea059"/>
-                                    <stop offset="0.75" stop-color="#c9b487"/>
-                                    <stop offset="0.90" stop-color="#e3cd9c"/>
-                                    <stop offset="1"    stop-color="#efddac"/>
+                                    <stop offset="0.40" stop-color="#788371"/>
+                                    <stop offset="0.55" stop-color="#9aa0a6"/>
+                                    <stop offset="0.75" stop-color="#b6bbbf"/>
+                                    <stop offset="0.90" stop-color="#c7cbce"/>
+                                    <stop offset="1"    stop-color="#d5d8da"/>
                                 </linearGradient>
                                 <linearGradient id="topoSeaGradient2" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="0" stop-color="#83c7e0"/>
                                     <stop offset="1" stop-color="#3d8cad"/>
                                 </linearGradient>
-                                <linearGradient id="topoBlockGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0" stop-color="#6b4a34"/>
-                                    <stop offset="1" stop-color="#43301f"/>
-                                </linearGradient>
-                                <filter id="topoGlow" x="-150%" y="-150%" width="400%" height="400%">
-                                    <feGaussianBlur stdDeviation="7"/>
-                                </filter>
-                                <filter id="topoGlowBig" x="-200%" y="-200%" width="500%" height="500%">
-                                    <feGaussianBlur stdDeviation="18"/>
-                                </filter>
                             </defs>
 
                             <!-- Cielo -->
-                            <rect x="0" y="0" width="900" height="400" fill="url(#topoSkyGradient)"/>
+                            <rect x="0" y="0" width="860" height="400" fill="url(#topoSkyGradient)"/>
 
-                            <!-- Resplandores atmosféricos de calor (color dinámico por estación vía JS) -->
-                            <ellipse id="topo-glow-tibidabo" cx="70"  cy="92"  rx="72" ry="46" fill="#FFB870" opacity="0.4"  filter="url(#topoGlowBig)"/>
-                            <ellipse id="topo-glow-fabra"    cx="222" cy="142" rx="84" ry="52" fill="#FFB870" opacity="0.55" filter="url(#topoGlowBig)"/>
-                            <ellipse id="topo-glow-ronda"    cx="374" cy="230" rx="76" ry="48" fill="#FFB870" opacity="0.38" filter="url(#topoGlowBig)"/>
-                            <ellipse id="topo-glow-sarria"   cx="526" cy="270" rx="72" ry="46" fill="#FFB870" opacity="0.38" filter="url(#topoGlowBig)"/>
-                            <ellipse id="topo-glow-eixample" cx="678" cy="296" rx="72" ry="46" fill="#FFB870" opacity="0.38" filter="url(#topoGlowBig)"/>
-                            <ellipse id="topo-glow-costa"    cx="830" cy="312" rx="72" ry="46" fill="#FFB870" opacity="0.38" filter="url(#topoGlowBig)"/>
-
-                            <!-- Líneas guía de altitud -->
-                            <g stroke="#123653" stroke-opacity="0.16" stroke-width="1" stroke-dasharray="2 4">
-                                <line x1="58" y1="136" x2="900" y2="136"/>
-                                <line x1="58" y1="238" x2="900" y2="238"/>
-                                <line x1="58" y1="339" x2="900" y2="339"/>
-                                <line x1="58" y1="390" x2="900" y2="390"/>
-                            </g>
-                            <g font-family="Inter, sans-serif" font-size="9" fill="#94A3B8" font-weight="600">
-                                <text x="10" y="139">500 m</text>
-                                <text x="10" y="241">300 m</text>
-                                <text x="10" y="342">100 m</text>
-                                <text x="10" y="393">0 m</text>
-                            </g>
-
-                            <!-- Bloque de tierra (base 2.5D del corte) -->
-                            <rect x="0" y="400" width="900" height="60" fill="url(#topoBlockGradient)"/>
-                            <line x1="0" y1="400" x2="900" y2="400" stroke="#3a2717" stroke-width="1.5" opacity="0.55"/>
-
-                            <!-- Silueta del terreno, rellena en degradado tierra→bosque→urbano→arena -->
-                            <path d="M 70,130 C 120.2,147.2 171.8,164.8 222,182 C 272.2,220.6 324.8,260.4 374,299 C 424.2,313.85 475.8,329.15 526,344 C 576.2,352.58 627.8,361.42 678,370 C 728.2,375.61 779.8,381.39 830,387 L 900,393 L 900,400 L 70,400 Z"
+                            <!-- Silueta del terreno, rellena en degradado tierra→bosque (hasta Rda. de Dalt) → gris urbano -->
+                            <path d="M 70,130 C 120.2,147.2 171.8,164.8 222,182 C 272.2,220.6 324.8,260.4 374,299 C 424.2,313.85 475.8,329.15 526,344 C 576.2,352.58 627.8,361.42 678,370 C 728.2,375.61 779.8,381.39 830,387 L 830,460 L 70,460 Z"
                                   fill="url(#topoTerrainGradient)"/>
                             <path d="M 70,130 C 120.2,147.2 171.8,164.8 222,182 C 272.2,220.6 324.8,260.4 374,299 C 424.2,313.85 475.8,329.15 526,344 C 576.2,352.58 627.8,361.42 678,370 C 728.2,375.61 779.8,381.39 830,387"
                                   fill="none" stroke="#3d2c1c" stroke-width="1.5" opacity="0.3"/>
 
-                            <!-- Mar · Port Olímpic -->
-                            <path d="M 782,389 C 805,385 855,388 900,393 L 900,400 L 782,400 Z" fill="url(#topoSeaGradient2)"/>
-                            <path d="M 792,392 Q 812,388 832,392 Q 852,396 872,392" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.55"/>
-                            <path d="M 800,396 Q 820,393 840,396 Q 860,399 880,396" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.4"/>
+                            <!-- Mar · Port Olímpic (arranca justo en el punto de la estación) -->
+                            <path d="M 830,387 C 840,384.5 850,386.5 860,390 L 860,460 L 830,460 Z" fill="url(#topoSeaGradient2)"/>
+                            <path d="M 833,393 Q 843,390 853,393" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.55"/>
+                            <path d="M 833,400 Q 845,397 857,400" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.4"/>
 
-                            <!-- Vegetación de bosque mediterráneo (Tibidabo → Rda. de Dalt) -->
-                            <g fill="#3f6b34">
-                                <g transform="translate(96,141) scale(1.05)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-19 -8,-3 8,-3" fill="#3f6b34"/><polygon points="0,-14 -6,-2 6,-2" fill="#4f7a3f" opacity="0.85"/></g>
-                                <g transform="translate(128,150) scale(0.9)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-19 -8,-3 8,-3" fill="#38602e"/></g>
-                                <g transform="translate(160,161) scale(1)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-19 -8,-3 8,-3" fill="#4a7238"/><polygon points="0,-14 -6,-2 6,-2" fill="#5c8a48" opacity="0.85"/></g>
-                                <g transform="translate(196,174) scale(0.85)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-18 -7,-3 7,-3" fill="#3f6b34"/></g>
-                                <g transform="translate(233,193) scale(0.9)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-18 -7,-3 7,-3" fill="#4a7238"/></g>
-                                <g transform="translate(268,215) scale(0.8)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-17 -7,-3 7,-3" fill="#527c40"/></g>
-                                <g transform="translate(300,241) scale(0.78)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-16 -6,-3 6,-3" fill="#5c8a48"/></g>
-                                <g transform="translate(335,270) scale(0.7)"><rect x="-1.5" y="-3" width="3" height="4" fill="#5b3a22"/><polygon points="0,-15 -6,-3 6,-3" fill="#688f52"/></g>
+                            <!-- Pinos · bosque mediterráneo denso (Tibidabo → Rda. de Dalt) -->
+                            <g>
+                                <g transform="translate(88.0,136.1) scale(1.05)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#2f5b28"/><polygon points="0,-20 -6,-10 6,-10" fill="#2f5b28"/><polygon points="0,-26 -4,-17 4,-17" fill="#2f5b28"/></g>
+                                <g transform="translate(102.0,140.9) scale(1.02)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#3a6b30"/><polygon points="0,-20 -6,-10 6,-10" fill="#3a6b30"/><polygon points="0,-26 -4,-17 4,-17" fill="#3a6b30"/></g>
+                                <g transform="translate(116.0,145.7) scale(0.99)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#457a3a"/><polygon points="0,-20 -6,-10 6,-10" fill="#457a3a"/><polygon points="0,-26 -4,-17 4,-17" fill="#457a3a"/></g>
+                                <g transform="translate(130.0,150.5) scale(0.97)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#527c40"/><polygon points="0,-20 -6,-10 6,-10" fill="#527c40"/><polygon points="0,-26 -4,-17 4,-17" fill="#527c40"/></g>
+                                <g transform="translate(144.0,155.3) scale(0.94)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#3f6b34"/><polygon points="0,-20 -6,-10 6,-10" fill="#3f6b34"/><polygon points="0,-26 -4,-17 4,-17" fill="#3f6b34"/></g>
+                                <g transform="translate(158.0,160.1) scale(0.91)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#2f5b28"/><polygon points="0,-20 -6,-10 6,-10" fill="#2f5b28"/><polygon points="0,-26 -4,-17 4,-17" fill="#2f5b28"/></g>
+                                <g transform="translate(172.0,164.9) scale(0.88)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#3a6b30"/><polygon points="0,-20 -6,-10 6,-10" fill="#3a6b30"/><polygon points="0,-26 -4,-17 4,-17" fill="#3a6b30"/></g>
+                                <g transform="translate(186.0,169.7) scale(0.86)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#457a3a"/><polygon points="0,-20 -6,-10 6,-10" fill="#457a3a"/><polygon points="0,-26 -4,-17 4,-17" fill="#457a3a"/></g>
+                                <g transform="translate(200.0,174.5) scale(0.83)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#527c40"/><polygon points="0,-20 -6,-10 6,-10" fill="#527c40"/><polygon points="0,-26 -4,-17 4,-17" fill="#527c40"/></g>
+                                <g transform="translate(214.0,179.3) scale(0.80)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#3f6b34"/><polygon points="0,-20 -6,-10 6,-10" fill="#3f6b34"/><polygon points="0,-26 -4,-17 4,-17" fill="#3f6b34"/></g>
+                                <g transform="translate(228.0,186.6) scale(0.77)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#2f5b28"/><polygon points="0,-20 -6,-10 6,-10" fill="#2f5b28"/><polygon points="0,-26 -4,-17 4,-17" fill="#2f5b28"/></g>
+                                <g transform="translate(242.0,197.3) scale(0.75)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#3a6b30"/><polygon points="0,-20 -6,-10 6,-10" fill="#3a6b30"/><polygon points="0,-26 -4,-17 4,-17" fill="#3a6b30"/></g>
+                                <g transform="translate(256.0,208.1) scale(0.72)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#457a3a"/><polygon points="0,-20 -6,-10 6,-10" fill="#457a3a"/><polygon points="0,-26 -4,-17 4,-17" fill="#457a3a"/></g>
+                                <g transform="translate(270.0,218.9) scale(0.69)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#527c40"/><polygon points="0,-20 -6,-10 6,-10" fill="#527c40"/><polygon points="0,-26 -4,-17 4,-17" fill="#527c40"/></g>
+                                <g transform="translate(284.0,229.7) scale(0.66)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#3f6b34"/><polygon points="0,-20 -6,-10 6,-10" fill="#3f6b34"/><polygon points="0,-26 -4,-17 4,-17" fill="#3f6b34"/></g>
+                                <g transform="translate(298.0,240.5) scale(0.63)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#2f5b28"/><polygon points="0,-20 -6,-10 6,-10" fill="#2f5b28"/><polygon points="0,-26 -4,-17 4,-17" fill="#2f5b28"/></g>
+                                <g transform="translate(312.0,251.3) scale(0.61)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#3a6b30"/><polygon points="0,-20 -6,-10 6,-10" fill="#3a6b30"/><polygon points="0,-26 -4,-17 4,-17" fill="#3a6b30"/></g>
+                                <g transform="translate(326.0,262.1) scale(0.58)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#457a3a"/><polygon points="0,-20 -6,-10 6,-10" fill="#457a3a"/><polygon points="0,-26 -4,-17 4,-17" fill="#457a3a"/></g>
+                                <g transform="translate(340.0,272.9) scale(0.55)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#527c40"/><polygon points="0,-20 -6,-10 6,-10" fill="#527c40"/><polygon points="0,-26 -4,-17 4,-17" fill="#527c40"/></g>
+                                <g transform="translate(354.0,283.7) scale(0.55)"><rect x="-1.3" y="-2" width="2.6" height="3" fill="#4a2f1c"/><polygon points="0,-13 -8,-2 8,-2" fill="#3f6b34"/><polygon points="0,-20 -6,-10 6,-10" fill="#3f6b34"/><polygon points="0,-26 -4,-17 4,-17" fill="#3f6b34"/></g>
                             </g>
 
-                            <!-- Trama urbana (Sarrià, Eixample) -->
+                            <!-- Skyline urbano gris, edificios pegados de altura sutilmente variable (Rda. de Dalt → Port Olímpic) -->
                             <g>
-                                <g transform="translate(405,304)"><rect x="-6" y="-15" width="12" height="15" fill="#9c8468"/><rect x="-4" y="-12" width="3" height="3" fill="#f0e4c8" opacity="0.8"/><rect x="1" y="-12" width="3" height="3" fill="#f0e4c8" opacity="0.8"/></g>
-                                <g transform="translate(432,314)"><rect x="-5" y="-11" width="10" height="11" fill="#a68a6c"/><rect x="-3.5" y="-8.5" width="2.5" height="2.5" fill="#f0e4c8" opacity="0.8"/></g>
-                                <g transform="translate(462,322)"><rect x="-6" y="-16" width="12" height="16" fill="#8f7458"/><rect x="-4" y="-13" width="3" height="3" fill="#f0e4c8" opacity="0.8"/><rect x="1" y="-13" width="3" height="3" fill="#f0e4c8" opacity="0.8"/><rect x="-4" y="-8" width="3" height="3" fill="#f0e4c8" opacity="0.6"/></g>
-                                <g transform="translate(555,348)"><rect x="-6" y="-14" width="12" height="14" fill="#9c8468"/><rect x="-4" y="-11" width="3" height="3" fill="#f0e4c8" opacity="0.8"/><rect x="1" y="-11" width="3" height="3" fill="#f0e4c8" opacity="0.8"/></g>
-                                <g transform="translate(590,353)"><rect x="-5" y="-10" width="10" height="10" fill="#a68a6c"/></g>
-                                <g transform="translate(622,359)"><rect x="-6" y="-13" width="12" height="13" fill="#8f7458"/><rect x="-4" y="-10" width="3" height="3" fill="#f0e4c8" opacity="0.8"/></g>
+                                <g transform="translate(378.8,300.4)"><rect x="-6.8" y="-15.0" width="13.5" height="15.0" fill="#9aa0a6"/><rect x="-4.2" y="-12.0" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-12.0" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(392.2,304.4)"><rect x="-6.8" y="-15.6" width="13.5" height="15.6" fill="#b0b5b9"/><rect x="-4.2" y="-12.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-12.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(405.8,308.4)"><rect x="-6.8" y="-17.8" width="13.5" height="17.8" fill="#868c92"/><rect x="-4.2" y="-14.8" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-14.8" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(419.2,312.4)"><rect x="-6.8" y="-20.6" width="13.5" height="20.6" fill="#c5c9cc"/><rect x="-4.2" y="-17.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-17.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(432.8,316.4)"><rect x="-6.8" y="-15.1" width="13.5" height="15.1" fill="#9aa0a6"/><rect x="-4.2" y="-12.1" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-12.1" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(446.2,320.4)"><rect x="-6.8" y="-12.6" width="13.5" height="12.6" fill="#b0b5b9"/></g>
+                                <g transform="translate(459.8,324.4)"><rect x="-6.8" y="-19.1" width="13.5" height="19.1" fill="#868c92"/><rect x="-4.2" y="-16.1" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-16.1" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(473.2,328.4)"><rect x="-6.8" y="-17.9" width="13.5" height="17.9" fill="#c5c9cc"/><rect x="-4.2" y="-14.9" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-14.9" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(486.8,332.4)"><rect x="-6.8" y="-17.3" width="13.5" height="17.3" fill="#9aa0a6"/><rect x="-4.2" y="-14.3" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-14.3" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(500.2,336.4)"><rect x="-6.8" y="-17.5" width="13.5" height="17.5" fill="#b0b5b9"/><rect x="-4.2" y="-14.5" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-14.5" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(513.8,340.4)"><rect x="-6.8" y="-13.3" width="13.5" height="13.3" fill="#868c92"/></g>
+                                <g transform="translate(527.2,344.2)"><rect x="-6.8" y="-16.6" width="13.5" height="16.6" fill="#c5c9cc"/><rect x="-4.2" y="-13.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-13.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(540.8,346.5)"><rect x="-6.8" y="-21.0" width="13.5" height="21.0" fill="#9aa0a6"/><rect x="-4.2" y="-18.0" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-18.0" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(554.2,348.8)"><rect x="-6.8" y="-17.0" width="13.5" height="17.0" fill="#b0b5b9"/><rect x="-4.2" y="-14.0" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-14.0" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(567.8,351.1)"><rect x="-6.8" y="-13.9" width="13.5" height="13.9" fill="#868c92"/></g>
+                                <g transform="translate(581.2,353.4)"><rect x="-6.8" y="-16.9" width="13.5" height="16.9" fill="#c5c9cc"/><rect x="-4.2" y="-13.9" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-13.9" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(594.8,355.8)"><rect x="-6.8" y="-17.0" width="13.5" height="17.0" fill="#9aa0a6"/><rect x="-4.2" y="-14.0" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-14.0" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(608.2,358.1)"><rect x="-6.8" y="-18.0" width="13.5" height="18.0" fill="#b0b5b9"/><rect x="-4.2" y="-15.0" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-15.0" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(621.8,360.4)"><rect x="-6.8" y="-19.6" width="13.5" height="19.6" fill="#868c92"/><rect x="-4.2" y="-16.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-16.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(635.2,362.7)"><rect x="-6.8" y="-13.3" width="13.5" height="13.3" fill="#c5c9cc"/></g>
+                                <g transform="translate(648.8,365.0)"><rect x="-6.8" y="-14.5" width="13.5" height="14.5" fill="#9aa0a6"/><rect x="-4.2" y="-11.5" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-11.5" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(662.2,367.3)"><rect x="-6.8" y="-20.3" width="13.5" height="20.3" fill="#b0b5b9"/><rect x="-4.2" y="-17.3" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-17.3" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(675.8,369.6)"><rect x="-6.8" y="-17.9" width="13.5" height="17.9" fill="#868c92"/><rect x="-4.2" y="-14.9" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-14.9" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(689.2,371.2)"><rect x="-6.8" y="-16.1" width="13.5" height="16.1" fill="#c5c9cc"/><rect x="-4.2" y="-13.1" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-13.1" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(702.8,372.8)"><rect x="-6.8" y="-15.6" width="13.5" height="15.6" fill="#9aa0a6"/><rect x="-4.2" y="-12.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-12.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(716.2,374.3)"><rect x="-6.8" y="-15.1" width="13.5" height="15.1" fill="#b0b5b9"/><rect x="-4.2" y="-12.1" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-12.1" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(729.8,375.8)"><rect x="-6.8" y="-17.6" width="13.5" height="17.6" fill="#868c92"/><rect x="-4.2" y="-14.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-14.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(743.2,377.3)"><rect x="-6.8" y="-20.8" width="13.5" height="20.8" fill="#c5c9cc"/><rect x="-4.2" y="-17.8" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-17.8" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(756.8,378.8)"><rect x="-6.8" y="-15.6" width="13.5" height="15.6" fill="#9aa0a6"/><rect x="-4.2" y="-12.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-12.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(770.2,380.3)"><rect x="-6.8" y="-12.0" width="13.5" height="12.0" fill="#b0b5b9"/></g>
+                                <g transform="translate(783.8,381.8)"><rect x="-6.8" y="-18.6" width="13.5" height="18.6" fill="#868c92"/><rect x="-4.2" y="-15.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-15.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(797.2,383.4)"><rect x="-6.8" y="-17.8" width="13.5" height="17.8" fill="#c5c9cc"/><rect x="-4.2" y="-14.8" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-14.8" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
+                                <g transform="translate(810.8,384.9)"><rect x="-6.8" y="-17.6" width="13.5" height="17.6" fill="#9aa0a6"/><rect x="-4.2" y="-14.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/><rect x="2.2" y="-14.6" width="2.4" height="2.4" fill="#eef0f1" opacity="0.8"/></g>
                             </g>
 
                             <!-- Arena · Port Olímpic -->
-                            <g fill="#e8d9a8" opacity="0.65">
-                                <circle cx="770" cy="384" r="1.4"/><circle cx="790" cy="388" r="1.4"/><circle cx="810" cy="382" r="1.4"/>
-                                <circle cx="740" cy="380" r="1.4"/><circle cx="705" cy="376" r="1.4"/><circle cx="675" cy="373" r="1.4"/>
-                                <circle cx="755" cy="390" r="1.4"/><circle cx="720" cy="384" r="1.4"/>
+                            <g fill="#e8d9a8" opacity="0.5">
+                                <circle cx="800" cy="384" r="1.3"/><circle cx="815" cy="387" r="1.3"/>
+                                <circle cx="770" cy="380" r="1.3"/><circle cx="740" cy="376" r="1.3"/>
                             </g>
+
 
                             <!-- Líneas verticales discontinuas: de cada dato al punto exacto del terreno -->
                             <g stroke="#123653" stroke-opacity="0.3" stroke-width="1" stroke-dasharray="3 3">
@@ -1587,9 +1591,9 @@
 
                             <!-- 6. Port Olímpic · 5 m -->
                             <circle id="topo-marker-costa" cx="830" cy="387" r="5" fill="#fff" stroke="#FFB870" stroke-width="2.5"/>
-                            <text class="topo-name" x="830" y="281" text-anchor="middle">Port Olímpic</text>
-                            <text class="topo-temp" id="temp-costa" x="830" y="303" text-anchor="middle" fill="#FFB870">28°</text>
-                            <text class="topo-alt" x="830" y="319" text-anchor="middle">5 m</text>
+                            <text class="topo-name" x="826" y="281" text-anchor="end">Port Olímpic</text>
+                            <text class="topo-temp" id="temp-costa" x="826" y="303" text-anchor="end" fill="#FFB870">28°</text>
+                            <text class="topo-alt" x="826" y="319" text-anchor="end">5 m</text>
                         </svg>
                     </div>
 
