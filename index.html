@@ -1341,33 +1341,26 @@
                        - Sarrià   → https://app.weathercloud.net/d7511856207
                 ════════════════════════════════════════════════════════ -->
                 <style>
-                    /* ── Efecto Altura · Columna de Estaciones (prefijo .altcol-) ──────────
-                       Misma estructura que el widget "Columna de Aire" del Meteopanel
-                       (una fila por nivel: nombre + altura a la izquierda, dato a la
-                       derecha), pero SIN tarjeta: fondo transparente sobre el blanco de
-                       la página y tinta azul oscura, como el resto de esta sección.
-                       Las estaciones van repartidas de forma regular, no a escala real. */
+                    /* ── Perfil Topográfico · Temperatura Actual (prefijo .topo-) ──────────
+                       Gráfico de perfil de elevación: línea de terreno continua de Tibidabo
+                       (cima, izq.) a Port Olímpic (mar, dcha.), con escala cromática RELATIVA
+                       y exagerada (recalculada según el min/max del día) para maximizar el
+                       contraste aunque las temperaturas estén muy juntas. Minimalista, fondo
+                       claro, sin líneas de cuadrícula. */
                     .topoh-wrap{
                         width:calc(100% + (2 * var(--gutter)));
                         margin:0 calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));
-                        padding:24px var(--gutter) 22px;
-                        background:transparent;
+                        padding:24px var(--gutter) 18px;
+                        background:#ffffff;
                         border-top:1px solid rgba(28,79,120,0.14);
                         box-sizing:border-box;
                     }
 
-                    .altcol-widget{
-                        width:100%;
-                        background:transparent;
-                        border:0;
-                        box-shadow:none;
-                    }
-
-                    .altcol-header{
-                        padding:0 0 14px;
+                    .topo-header{
+                        padding:0 0 6px;
                         text-align:center;
                     }
-                    .altcol-header h3{
+                    .topo-header h3{
                         margin:0;
                         font-size:12px;
                         font-weight:800;
@@ -1376,7 +1369,7 @@
                         text-transform:uppercase;
                         font-family:'Inter', sans-serif;
                     }
-                    .altcol-header .altcol-sub{
+                    .topo-header .topo-sub{
                         margin-top:3px;
                         font-size:10.5px;
                         color:#123653;
@@ -1385,96 +1378,45 @@
                         letter-spacing:0.3px;
                     }
 
-                    /* Cuerpo transparente: sin degradado ni textura, solo el aire de la página */
-                    .altcol-body{
-                        position:relative;
-                        height:250px;
-                        padding:22px 14px 26px;
-                        box-sizing:content-box;
-                        background:transparent;
-                    }
-                    .altcol-graph{
-                        position:relative;
+                    .topo-chart-wrap{
                         width:100%;
-                        height:100%;
+                        margin-top:6px;
                     }
-
-                    /* Una fila por estación (reparto regular, ver bottom:% en el HTML) */
-                    .altcol-row{
-                        position:absolute;
-                        left:0; right:0;
-                        height:0;
-                        transform:translateY(50%);
-                        z-index:2;
-                    }
-                    .altcol-row .connector{
-                        position:absolute;
-                        left:0; right:0;
-                        top:0;
-                        height:1px;
-                        background:rgba(28,79,120,0.12);
-                    }
-                    /* La cima (Tibidabo) y el nivel del mar marcan los extremos del perfil */
-                    .altcol-row.is-top .connector{
-                        background:none;
-                        border-top:1.5px dashed rgba(28,79,120,0.30);
-                    }
-                    .altcol-row.is-sea .connector{
-                        background:rgba(28,79,120,0.22);
-                    }
-
-                    .altcol-label{
-                        position:absolute;
-                        left:0;
-                        width:58%;
-                        top:0;
-                        transform:translateY(-50%);
-                        text-align:left;
-                        font-size:12.5px;
-                        font-weight:600;
-                        color:#123653;
-                        line-height:1.25;
-                        white-space:nowrap;
-                    }
-                    .altcol-label .dot{
-                        display:inline-block;
-                        width:7px; height:7px;
-                        border-radius:50%;
-                        margin-right:7px;
-                        vertical-align:1px;
-                        background:#94A3B8; /* gris neutro hasta que el JS lo colorea por temperatura */
-                        box-shadow:0 0 0 1px rgba(255,255,255,0.9), 0 0 0 2px rgba(18,54,83,0.12);
-                    }
-                    .altcol-label .h{
+                    .topo-chart-wrap svg{
                         display:block;
-                        font-size:10.5px;
-                        font-weight:500;
-                        color:#94A3B8;
-                        letter-spacing:0.2px;
-                        margin-top:1px;
-                        margin-left:14px;
+                        width:100%;
+                        height:auto;
+                        overflow:visible;
                     }
 
-                    .altcol-data{
-                        position:absolute;
-                        right:0;
-                        width:38%;
-                        top:0;
-                        transform:translateY(-50%);
-                        text-align:right;
-                        white-space:nowrap;
-                    }
-                    .altcol-temp{
+                    .topo-name{
                         font-family:'Inter', sans-serif;
-                        font-variant-numeric:tabular-nums;
-                        font-size:17px;
+                        font-size:10.5px;
                         font-weight:800;
-                        color:#123653;
-                        line-height:1;
+                        letter-spacing:0.5px;
+                        text-transform:uppercase;
+                        fill:#123653;
+                    }
+                    .topo-temp{
+                        font-family:'Inter', sans-serif;
+                        font-size:22px;
+                        font-weight:800;
+                        font-variant-numeric:tabular-nums;
+                    }
+                    .topo-alt{
+                        font-family:'Inter', sans-serif;
+                        font-size:9.5px;
+                        font-weight:500;
+                        fill:#94A3B8;
+                        letter-spacing:0.2px;
+                    }
+                    .topo-tick{
+                        stroke:rgba(18,54,83,0.18);
+                        stroke-width:1;
                     }
 
-                    .altcol-footer{
-                        padding:2px 14px 0;
+                    .topo-footer{
+                        padding:8px 4px 0;
                         font-family:'Inter', sans-serif;
                         font-style:italic;
                         font-size:9.5px;
@@ -1488,135 +1430,186 @@
                 </style>
 
                 <div class="topoh-wrap" id="altura-efecto-wrap">
-                    <div class="altcol-widget">
 
-                        <div class="altcol-header">
-                            <h3>Temperatura Actual</h3>
-                            <div class="altcol-sub">Perfil por altitud · 6 estaciones</div>
-                        </div>
-
-                        <div class="altcol-body">
-                            <div class="altcol-graph" role="table" aria-label="Temperatura actual por altitud en las seis estaciones">
-
-                                <!-- Reparto regular: las 6 estaciones van equiespaciadas
-                                     (100% · 80% · 60% · 40% · 20% · 0%), de la cima al mar.
-                                     No es una escala de altitud real; la altitud se lee en el
-                                     texto gris bajo cada nombre. -->
-
-                                <!-- 1. Tibidabo · 512 m · cima -->
-                                <div class="altcol-row is-top" style="bottom:100%;">
-                                    <div class="connector"></div>
-                                    <div class="altcol-label"><span class="dot" id="dot-tibidabo"></span>TIBIDABO<span class="h" id="altura-tibidabo">512m</span></div>
-                                    <div class="altcol-data"><span class="altcol-temp" id="temp-tibidabo">24°</span></div>
-                                </div>
-
-                                <!-- 2. Observatori Fabra · 410 m -->
-                                <div class="altcol-row" style="bottom:80%;">
-                                    <div class="connector"></div>
-                                    <div class="altcol-label"><span class="dot" id="dot-fabra"></span>OBS. FABRA<span class="h" id="altura-fabra">410m</span></div>
-                                    <div class="altcol-data"><span class="altcol-temp" id="temp-fabra">25°</span></div>
-                                </div>
-
-                                <!-- 3. Rda. de Dalt · 180 m -->
-                                <div class="altcol-row" style="bottom:60%;">
-                                    <div class="connector"></div>
-                                    <div class="altcol-label"><span class="dot" id="dot-ronda"></span>RDA. DE DALT<span class="h" id="altura-ronda">180m</span></div>
-                                    <div class="altcol-data"><span class="altcol-temp" id="temp-ronda">27°</span></div>
-                                </div>
-
-                                <!-- 4. Sarrià · 90 m -->
-                                <div class="altcol-row" style="bottom:40%;">
-                                    <div class="connector"></div>
-                                    <div class="altcol-label"><span class="dot" id="dot-sarria"></span>SARRIÀ<span class="h" id="altura-sarria">90m</span></div>
-                                    <div class="altcol-data"><span class="altcol-temp" id="temp-sarria">26°</span></div>
-                                </div>
-
-                                <!-- 5. Eixample · 40 m -->
-                                <div class="altcol-row" style="bottom:20%;">
-                                    <div class="connector"></div>
-                                    <div class="altcol-label"><span class="dot" id="dot-eixample"></span>EIXAMPLE<span class="h" id="altura-eixample">40m</span></div>
-                                    <div class="altcol-data"><span class="altcol-temp" id="temp-eixample">27°</span></div>
-                                </div>
-
-                                <!-- 6. Port Olímpic · 5 m · nivel del mar -->
-                                <div class="altcol-row is-sea" style="bottom:0%;">
-                                    <div class="connector"></div>
-                                    <div class="altcol-label"><span class="dot" id="dot-costa"></span>PORT OLÍMPIC<span class="h" id="altura-costa">5m</span></div>
-                                    <div class="altcol-data"><span class="altcol-temp" id="temp-costa">27°</span></div>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        <div class="altcol-footer">
-                            Descenso continuo desde el Tibidabo (512 m) hasta la costa. El orden es por altitud; la separación entre estaciones es regular, no proporcional.
-                        </div>
-
+                    <div class="topo-header">
+                        <h3>Temperatura Actual</h3>
+                        <div class="topo-sub">Perfil topográfico · Barcelona, 6 estaciones</div>
                     </div>
+
+                    <div class="topo-chart-wrap">
+                        <!-- viewBox 820×345. Eje X = orden por altitud (cima→mar), no distancia
+                             real. Eje Y = altitud real, proporcional (0–512 m). El color de cada
+                             punto/etiqueta y del degradado del área se recalcula en JS con una
+                             escala RELATIVA min→max de las 6 temperaturas del momento (ver script),
+                             para que el contraste sea máximo aunque los grados estén muy juntos. -->
+                        <svg viewBox="0 0 820 345" preserveAspectRatio="xMidYMid meet" role="img"
+                             aria-label="Perfil topográfico de Barcelona con la temperatura actual en 6 estaciones, de Tibidabo a Port Olímpic">
+                            <defs>
+                                <linearGradient id="topoTerrainGradient" x1="0" y1="0" x2="1" y2="0">
+                                    <stop id="topo-stop-tibidabo" offset="0"   stop-color="#FFC75C"/>
+                                    <stop id="topo-stop-fabra"    offset="0.2" stop-color="#FFC75C"/>
+                                    <stop id="topo-stop-ronda"    offset="0.4" stop-color="#FFC75C"/>
+                                    <stop id="topo-stop-sarria"   offset="0.6" stop-color="#FFC75C"/>
+                                    <stop id="topo-stop-eixample" offset="0.8" stop-color="#FFC75C"/>
+                                    <stop id="topo-stop-costa"    offset="1"   stop-color="#FFC75C"/>
+                                </linearGradient>
+                                <linearGradient id="topoSeaGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0" stop-color="#BFE3F0" stop-opacity="0.55"/>
+                                    <stop offset="1" stop-color="#BFE3F0" stop-opacity="0.15"/>
+                                </linearGradient>
+                                <filter id="topoGlow" x="-150%" y="-150%" width="400%" height="400%">
+                                    <feGaussianBlur stdDeviation="7"/>
+                                </filter>
+                            </defs>
+
+                            <!-- Franja de mar, decorativa, bajo la línea base -->
+                            <rect x="0" y="304" width="820" height="30" fill="url(#topoSeaGradient)"/>
+
+                            <!-- Área bajo la montaña, rellena con el degradado horizontal por temperatura -->
+                            <path id="topo-area"
+                                  d="M 30,304 L 30,120 C 55.33,126, 131.33,136.5, 182,156 C 232.67,175.5, 283.33,218.33, 334,237 C 384.67,255.67, 435.33,259.83, 486,268 C 536.67,276.17, 587.33,281, 638,286 C 688.67,291, 764.67,296, 790,298 L 790,304 Z"
+                                  fill="url(#topoTerrainGradient)" opacity="0.30"/>
+
+                            <!-- Línea de terreno -->
+                            <path d="M 30,120 C 55.33,126, 131.33,136.5, 182,156 C 232.67,175.5, 283.33,218.33, 334,237 C 384.67,255.67, 435.33,259.83, 486,268 C 536.67,276.17, 587.33,281, 638,286 C 688.67,291, 764.67,296, 790,298"
+                                  fill="none" stroke="#123653" stroke-width="2.25" stroke-linecap="round" opacity="0.75"/>
+
+                            <!-- Resplandor (glow) + marcador + etiqueta por estación -->
+
+                            <!-- 1. Tibidabo · 512 m -->
+                            <circle id="topo-glow-tibidabo" cx="30" cy="120" r="20" fill="#FFC75C" opacity="0.4" filter="url(#topoGlow)"/>
+                            <line class="topo-tick" x1="30" y1="106" x2="30" y2="120"/>
+                            <circle id="topo-marker-tibidabo" cx="30" cy="120" r="5" fill="#fff" stroke="#FFC75C" stroke-width="2.5"/>
+                            <text class="topo-name" x="30" y="74" text-anchor="middle">Tibidabo</text>
+                            <text class="topo-temp" id="temp-tibidabo" x="30" y="96" text-anchor="middle" fill="#FFC75C">28°</text>
+                            <text class="topo-alt" x="30" y="110" text-anchor="middle">512 m</text>
+
+                            <!-- 2. Obs. Fabra · 410 m -->
+                            <circle id="topo-glow-fabra" cx="182" cy="156" r="20" fill="#FFC75C" opacity="0.4" filter="url(#topoGlow)"/>
+                            <line class="topo-tick" x1="182" y1="142" x2="182" y2="156"/>
+                            <circle id="topo-marker-fabra" cx="182" cy="156" r="5" fill="#fff" stroke="#FFC75C" stroke-width="2.5"/>
+                            <text class="topo-name" x="182" y="110" text-anchor="middle">Obs. Fabra</text>
+                            <text class="topo-temp" id="temp-fabra" x="182" y="132" text-anchor="middle" fill="#FFC75C">31°</text>
+                            <text class="topo-alt" x="182" y="146" text-anchor="middle">410 m</text>
+
+                            <!-- 3. Rda. de Dalt · 180 m -->
+                            <circle id="topo-glow-ronda" cx="334" cy="237" r="20" fill="#FFC75C" opacity="0.4" filter="url(#topoGlow)"/>
+                            <line class="topo-tick" x1="334" y1="223" x2="334" y2="237"/>
+                            <circle id="topo-marker-ronda" cx="334" cy="237" r="5" fill="#fff" stroke="#FFC75C" stroke-width="2.5"/>
+                            <text class="topo-name" x="334" y="191" text-anchor="middle">Rda. de Dalt</text>
+                            <text class="topo-temp" id="temp-ronda" x="334" y="213" text-anchor="middle" fill="#FFC75C">30°</text>
+                            <text class="topo-alt" x="334" y="227" text-anchor="middle">180 m</text>
+
+                            <!-- 4. Sarrià · 90 m -->
+                            <circle id="topo-glow-sarria" cx="486" cy="268" r="20" fill="#FFC75C" opacity="0.4" filter="url(#topoGlow)"/>
+                            <line class="topo-tick" x1="486" y1="254" x2="486" y2="268"/>
+                            <circle id="topo-marker-sarria" cx="486" cy="268" r="5" fill="#fff" stroke="#FFC75C" stroke-width="2.5"/>
+                            <text class="topo-name" x="486" y="222" text-anchor="middle">Sarrià</text>
+                            <text class="topo-temp" id="temp-sarria" x="486" y="244" text-anchor="middle" fill="#FFC75C">30°</text>
+                            <text class="topo-alt" x="486" y="258" text-anchor="middle">90 m</text>
+
+                            <!-- 5. Eixample · 40 m -->
+                            <circle id="topo-glow-eixample" cx="638" cy="286" r="20" fill="#FFC75C" opacity="0.4" filter="url(#topoGlow)"/>
+                            <line class="topo-tick" x1="638" y1="272" x2="638" y2="286"/>
+                            <circle id="topo-marker-eixample" cx="638" cy="286" r="5" fill="#fff" stroke="#FFC75C" stroke-width="2.5"/>
+                            <text class="topo-name" x="638" y="240" text-anchor="middle">Eixample</text>
+                            <text class="topo-temp" id="temp-eixample" x="638" y="262" text-anchor="middle" fill="#FFC75C">29°</text>
+                            <text class="topo-alt" x="638" y="276" text-anchor="middle">40 m</text>
+
+                            <!-- 6. Port Olímpic · 5 m -->
+                            <circle id="topo-glow-costa" cx="790" cy="298" r="20" fill="#FFC75C" opacity="0.4" filter="url(#topoGlow)"/>
+                            <line class="topo-tick" x1="790" y1="284" x2="790" y2="298"/>
+                            <circle id="topo-marker-costa" cx="790" cy="298" r="5" fill="#fff" stroke="#FFC75C" stroke-width="2.5"/>
+                            <text class="topo-name" x="790" y="252" text-anchor="middle">Port Olímpic</text>
+                            <text class="topo-temp" id="temp-costa" x="790" y="274" text-anchor="middle" fill="#FFC75C">28°</text>
+                            <text class="topo-alt" x="790" y="288" text-anchor="middle">5 m</text>
+                        </svg>
+                    </div>
+
+                    <div class="topo-footer">
+                        Perfil de altitud real (0–512 m). El color es una escala relativa: se recalcula sobre el mínimo y el máximo de hoy para que el contraste sea máximo, aunque las temperaturas estén muy juntas.
+                    </div>
+
                 </div>
 
                 <script>
                 (function () {
                     /**
-                     * ═══ MÓDULO EFECTO ALTURA · API opcional de actualización en tiempo real ═══
+                     * ═══ MÓDULO PERFIL TOPOGRÁFICO · API opcional de actualización en tiempo real ═══
                      * Los valores están escritos como texto estático por defecto. Si más
                      * adelante quieres conectarlos a tu API / WebSocket / AJAX, usa:
                      *
                      *   actualizarFilaAltura('fabra', { temp: 18 });
                      *
-                     * estacion: 'fabra' | 'ronda' | 'eixample' | 'costa'
+                     * estacion: 'tibidabo' | 'fabra' | 'ronda' | 'sarria' | 'eixample' | 'costa'
                      * Cualquier campo omitido (undefined) se deja tal cual está.
                      * (El widget solo muestra temperatura; humedad y lluvia se ignoran.)
                      */
-                    /* Misma escala de color por temperatura que usa la línea de la
-                       gráfica "Próximas horas" (ver drawParaguasHourlyChart / tempToColor),
-                       para que el punto de cada estación hable el mismo idioma de color. */
-                    function tempToColorAltura(t) {
+                    const TOPO_ORDEN = ['tibidabo', 'fabra', 'ronda', 'sarria', 'eixample', 'costa'];
+
+                    // Estado en memoria de las 6 temperaturas conocidas; arranca con los
+                    // valores estáticos ya escritos en el SVG para no esperar a la API.
+                    const TOPO_TEMPS = { tibidabo: 28, fabra: 31, ronda: 30, sarria: 30, eixample: 29, costa: 28 };
+
+                    /* Escala de color RELATIVA y exagerada: en vez de un baremo absoluto de
+                       temperatura, normaliza entre el mínimo y el máximo de las 6 estaciones
+                       de AHORA MISMO. Así, aunque el día sea "flojo" (28–31°) o "fuerte"
+                       (15–35°), el punto más frío siempre sale amarillo cálido y el más
+                       cálido siempre sale rojo fuego, maximizando el contraste visual. */
+                    function topoColorRelativo(t, min, max) {
                         const stops = [
-                            { t: 9,  c: [30, 58, 138] },   // azul oscuro (≤9°)
-                            { t: 14, c: [59, 130, 246] },  // azul más claro (10-14°)
-                            { t: 19, c: [21, 128, 61] },   // verde oscuro (15-19°)
-                            { t: 23, c: [34, 197, 94] },   // verde (20-23°)
-                            { t: 27, c: [249, 115, 22] },  // naranja (24-27°)
-                            { t: 28, c: [220, 38, 38] }    // rojo (≥28°)
+                            [255, 199, 92],  // ratio 0   → amarillo cálido (el más frío del día)
+                            [255, 130, 40],  // ratio 0.5 → naranja
+                            [214, 32, 27]    // ratio 1   → rojo fuego (el más cálido del día)
                         ];
-                        if (t <= stops[0].t) return stops[0].c;
-                        if (t >= stops[stops.length - 1].t) return stops[stops.length - 1].c;
-                        for (let i = 0; i < stops.length - 1; i++) {
-                            if (t >= stops[i].t && t <= stops[i + 1].t) {
-                                const ratio = (t - stops[i].t) / (stops[i + 1].t - stops[i].t);
-                                return stops[i].c.map((v, idx) => Math.round(v + (stops[i + 1].c[idx] - v) * ratio));
-                            }
-                        }
-                        return [28, 79, 120];
+                        if (typeof t !== 'number' || Number.isNaN(t)) return [148, 163, 184]; // gris si falta dato
+                        const span = (max - min) || 1;
+                        let ratio = (t - min) / span;
+                        ratio = Math.max(0, Math.min(1, ratio));
+                        const [a, b, c] = ratio <= 0.5
+                            ? [stops[0], stops[1], ratio / 0.5]
+                            : [stops[1], stops[2], (ratio - 0.5) / 0.5];
+                        return a.map((v, i) => Math.round(v + (b[i] - v) * c));
                     }
 
-                    function colorearPuntoAltura(estacion, temp) {
-                        const elDot = document.getElementById('dot-' + estacion);
-                        if (!elDot || temp === undefined || temp === null || Number.isNaN(temp)) return;
-                        elDot.style.background = `rgb(${tempToColorAltura(temp).join(',')})`;
+                    function renderPerfilTopografico() {
+                        const vals = TOPO_ORDEN.map(k => TOPO_TEMPS[k]).filter(v => typeof v === 'number' && !Number.isNaN(v));
+                        if (!vals.length) return;
+                        const min = Math.min(...vals), max = Math.max(...vals);
+
+                        TOPO_ORDEN.forEach(key => {
+                            const temp = TOPO_TEMPS[key];
+                            const [r, g, b] = topoColorRelativo(temp, min, max);
+                            const rgb = `rgb(${r},${g},${b})`;
+
+                            const elTemp   = document.getElementById('temp-' + key);
+                            const elStop   = document.getElementById('topo-stop-' + key);
+                            const elGlow   = document.getElementById('topo-glow-' + key);
+                            const elMarker = document.getElementById('topo-marker-' + key);
+
+                            if (elTemp && typeof temp === 'number' && !Number.isNaN(temp)) {
+                                elTemp.textContent = Math.round(temp) + '°';
+                                elTemp.setAttribute('fill', rgb);
+                            }
+                            if (elStop)   elStop.setAttribute('stop-color', rgb);
+                            if (elGlow)   elGlow.setAttribute('fill', rgb);
+                            if (elMarker) elMarker.setAttribute('stroke', rgb);
+                        });
                     }
-                    window.colorearPuntoAltura = colorearPuntoAltura;
 
                     function actualizarFilaAltura(estacion, { temp } = {}) {
-                        const elTemp = document.getElementById('temp-' + estacion);
-                        if (!elTemp) { console.warn('[EfectoAltura] Estación desconocida:', estacion); return; }
+                        if (!TOPO_ORDEN.includes(estacion)) { console.warn('[PerfilTopografico] Estación desconocida:', estacion); return; }
                         if (temp !== undefined && temp !== null && !Number.isNaN(temp)) {
-                            elTemp.textContent = Math.round(temp) + '°';
-                            colorearPuntoAltura(estacion, temp);
+                            TOPO_TEMPS[estacion] = temp;
+                            renderPerfilTopografico();
                         }
                     }
                     window.actualizarFilaAltura = actualizarFilaAltura;
 
-                    // Pintado inicial: colorea los 6 puntos según la temperatura estática
-                    // ya escrita en el HTML, para no esperar a la respuesta de la API.
-                    document.querySelectorAll('#altura-efecto-wrap .altcol-temp').forEach(el => {
-                        const estacion = el.id.replace('temp-', '');
-                        const val = parseFloat(el.textContent);
-                        if (!Number.isNaN(val)) colorearPuntoAltura(estacion, val);
-                    });
+                    // Pintado inicial con los valores estáticos de arranque
+                    renderPerfilTopografico();
 
-                    /**
+                                        /**
                      * ═══ Carga automática de datos reales (tiempo real) ═══
                      * 6 estaciones con dato REAL en vivo vía Weathercloud (proxy propio, CORS)
                      * y fallback automático e independiente a Open-Meteo si algún proxy o
