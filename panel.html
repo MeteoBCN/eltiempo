@@ -175,6 +175,55 @@
             color: #64748B;
             line-height: 1.6;
         }
+
+        /* ══════════ RADAR REGIONAL BARCELONA ══════════ */
+        .radar-section {
+            margin-top: 8px;
+        }
+        .radar-section-title {
+            font-family: 'Fraunces', 'Inter', serif;
+            font-size: 17px;
+            font-weight: 600;
+            color: #123653;
+            margin-bottom: 4px;
+        }
+        .radar-section-sub {
+            font-size: 13px;
+            color: #64748B;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+        .radar-frame {
+            position: relative;
+            width: 100%;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            background: #0f1b26; /* fondo oscuro mientras carga la imagen */
+            line-height: 0; /* elimina el espacio fantasma bajo la <img> */
+        }
+        .radar-frame img {
+            display: block;
+            width: 100%;
+            height: auto;
+
+            /* ── Bloqueo de interacción nativa del navegador ── */
+            -webkit-user-drag: none;      /* Safari / Chrome: sin arrastre de imagen */
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            user-drag: none;
+            -webkit-user-select: none;    /* sin selección de la imagen */
+            -moz-user-select: none;
+            user-select: none;
+            touch-action: manipulation;   /* sin doble-tap-zoom en móvil */
+            pointer-events: none;         /* bloquea clic derecho, arrastre y zoom táctil */
+        }
+        .radar-updated {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--color-text-tertiary);
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -225,7 +274,27 @@
                 <div class="page-subheading">Panel de control — contenido en construcción.</div>
             </div>
             <div class="content-below">
-                <!-- Contenido de "Panel" -->
+                <!-- ══════ RADAR REGIONAL BARCELONA (Gelida, AEMET) ══════ -->
+                <div class="radar-section">
+                    <div class="radar-section-title">Radar Regional</div>
+                    <div class="radar-section-sub">
+                        Reflectividad en tiempo (casi) real — radar de Gelida, AEMET.
+                    </div>
+
+                    <div class="radar-frame">
+                        <img
+                            src="radar_barcelona.png"
+                            alt="Radar meteorológico regional de Barcelona (Gelida) - AEMET"
+                            draggable="false"
+                            oncontextmenu="return false;"
+                        >
+                    </div>
+
+                    <div class="radar-updated">
+                        Fuente: AEMET OpenData · actualización automática cada 10 min
+                    </div>
+                </div>
+                <!-- ══════ FIN RADAR REGIONAL BARCELONA ══════ -->
             </div>
         </div>
 
