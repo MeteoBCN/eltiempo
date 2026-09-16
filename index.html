@@ -767,6 +767,17 @@
             .header-section { padding: 0; min-height: 80px; }
             .content-section { padding: 16px; --gutter: 16px; }
             body { overflow-x: hidden; max-width: 100vw; }
+            /* El módulo "¿Dónde hace más calor hoy?" vive dentro de .hero-zone,
+               que tiene su propio padding lateral fijo de 24px (no ligado a
+               --gutter). En móvil eso dejaba un hueco a cada lado aunque
+               .topoh-wrap ya cancelaba el --gutter de .content-section. Aquí
+               se cancela también ese padding fijo de .hero-zone para que el
+               perfil llegue de borde a borde de la pantalla. */
+            #altura-efecto-wrap {
+                width: calc(100% + (2 * var(--gutter)) + 48px);
+                margin-left: calc((-1 * var(--gutter)) - 24px);
+                margin-right: calc((-1 * var(--gutter)) - 24px);
+            }
             .temperature { font-size: 64px; }
             .icon-large { font-size: 1.8em; }
             .radar-frame { height: 300px; }
@@ -1443,8 +1454,8 @@
                         align-items:center;
                     }
                     .topo-galleta{
-                        width:44px;
-                        height:44px;
+                        width:54px;
+                        height:54px;
                         flex-shrink:0;
                         box-sizing:border-box;
                         border-radius:50%;
@@ -1485,7 +1496,7 @@
                         display:block;
                     }
                     .topo-galleta-temp{
-                        font-size:19px;
+                        font-size:23px;
                         font-weight:900;
                         display:block;
                         color:#0F172A;
@@ -1761,18 +1772,18 @@
                                  para escalonar verticalmente las tarjetas y evitar que se pisen en
                                  pantallas estrechas, especialmente entre Sarrià, Eixample y Port Olímpic -->
                             <g stroke="#123653" stroke-opacity="0.3" stroke-width="1" stroke-dasharray="3 3">
-                                <line x1="70"  y1="66"  x2="70"  y2="130"/>
-                                <line x1="222" y1="118" x2="222" y2="182"/>
-                                <line x1="374" y1="235" x2="374" y2="299"/>
-                                <line x1="526" y1="273" x2="526" y2="344"/>
-                                <line x1="678" y1="303" x2="678" y2="370"/>
-                                <line x1="830" y1="323" x2="830" y2="387"/>
+                                <line x1="70"  y1="76"  x2="70"  y2="130"/>
+                                <line x1="222" y1="128" x2="222" y2="182"/>
+                                <line x1="374" y1="245" x2="374" y2="299"/>
+                                <line x1="526" y1="283" x2="526" y2="344"/>
+                                <line x1="656" y1="308" x2="678" y2="370"/>
+                                <line x1="830" y1="333" x2="830" y2="387"/>
                             </g>
 
                             <!-- Marcadores + etiquetas por estación -->
 
                             <!-- 1. Tibidabo · 512 m -->
-                            <foreignObject x="30" y="16" width="80" height="68" style="overflow:visible;">
+                            <foreignObject x="30" y="16" width="80" height="80" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta-wrap">
                                     <div class="topo-galleta" id="galleta-tibidabo">
                                         <span class="topo-galleta-temp" id="temp-tibidabo">28</span>
@@ -1785,7 +1796,7 @@
                             </foreignObject>
 
                             <!-- 2. Obs. Fabra · 410 m -->
-                            <foreignObject x="175" y="68" width="94" height="68" style="overflow:visible;">
+                            <foreignObject x="175" y="68" width="94" height="80" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta-wrap">
                                     <div class="topo-galleta" id="galleta-fabra">
                                         <span class="topo-galleta-temp" id="temp-fabra">31</span>
@@ -1798,7 +1809,7 @@
                             </foreignObject>
 
                             <!-- 3. Rda. de Dalt · 180 m -->
-                            <foreignObject x="322" y="185" width="104" height="68" style="overflow:visible;">
+                            <foreignObject x="322" y="185" width="104" height="80" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta-wrap">
                                     <div class="topo-galleta" id="galleta-ronda">
                                         <span class="topo-galleta-temp" id="temp-ronda">30</span>
@@ -1811,7 +1822,7 @@
                             </foreignObject>
 
                             <!-- 4. Sarrià · 90 m (línea larga: galleta más alejada del relieve) -->
-                            <foreignObject x="486" y="223" width="80" height="68" style="overflow:visible;">
+                            <foreignObject x="486" y="223" width="80" height="80" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta-wrap">
                                     <div class="topo-galleta" id="galleta-sarria">
                                         <span class="topo-galleta-temp" id="temp-sarria">30</span>
@@ -1824,7 +1835,7 @@
                             </foreignObject>
 
                             <!-- 5. Eixample · 40 m (línea corta: galleta más cerca del relieve) -->
-                            <foreignObject x="636" y="253" width="84" height="68" style="overflow:visible;">
+                            <foreignObject x="614" y="248" width="84" height="80" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta-wrap">
                                     <div class="topo-galleta" id="galleta-eixample">
                                         <span class="topo-galleta-temp" id="temp-eixample">29</span>
@@ -1837,7 +1848,7 @@
                             </foreignObject>
 
                             <!-- 6. Port Olímpic · 5 m (línea larga, desplazada a la izquierda para no salirse del viewBox) -->
-                            <foreignObject x="734" y="273" width="104" height="68" style="overflow:visible;">
+                            <foreignObject x="734" y="273" width="104" height="80" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta-wrap">
                                     <div class="topo-galleta" id="galleta-costa">
                                         <span class="topo-galleta-temp" id="temp-costa">28</span>
