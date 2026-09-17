@@ -778,24 +778,9 @@
                 margin-left: calc((-1 * var(--gutter)) - 24px);
                 margin-right: calc((-1 * var(--gutter)) - 24px);
             }
-            /* Mismo criterio para el mapa "Las estaciones, en el mapa": en
-               móvil se cancelan el --gutter de .content-section y el padding
-               fijo de 24px de .hero-zone para que llegue de borde a borde,
-               y se quitan las esquinas redondeadas (ya no tiene sentido un
-               "recuadro" flotante cuando ocupa todo el ancho). */
-            .topo-mapa-wrap {
-                width: calc(100% + (2 * var(--gutter)) + 48px);
-                margin-left: calc((-1 * var(--gutter)) - 24px);
-                margin-right: calc((-1 * var(--gutter)) - 24px);
-            }
-            .topo-mapa-lienzo { border-radius: 0; box-shadow: none; }
-            /* El título y la leyenda sí conservan el margen lateral: solo el
-               mapa en sí llega de borde a borde. */
-            .topo-mapa-title,
-            .topo-mapa-leyenda {
-                padding-left: calc(var(--gutter) + 24px);
-                padding-right: calc(var(--gutter) + 24px);
-            }
+            /* El mapa "Las estaciones, en el mapa" ya llega de borde a borde
+               y sin esquinas redondeadas siempre (ver reglas junto a
+               .topo-mapa-wrap), así que aquí no hace falta nada adicional. */
             .temperature { font-size: 64px; }
             .icon-large { font-size: 1.8em; }
             .radar-frame { height: 300px; }
@@ -2148,9 +2133,26 @@
                      sea idéntico en cualquier dispositivo: solo cambia el
                      tamaño del contenedor, nunca el encuadre ni el estilo. -->
                 <style>
-                    .topo-mapa-wrap{ margin:18px 0 4px; }
+                    /* El mapa siempre llega de borde a borde de la pantalla (cancela
+                       el --gutter de .content-section y el padding fijo de 24px de
+                       .hero-zone), sin esquinas redondeadas: ya no tiene sentido un
+                       "recuadro" flotante cuando ocupa todo el ancho. Antes esto solo
+                       pasaba por debajo de 480px; ahora es siempre así. */
+                    .topo-mapa-wrap{
+                        margin:18px 0 4px;
+                        width: calc(100% + (2 * var(--gutter)) + 48px);
+                        margin-left: calc((-1 * var(--gutter)) - 24px);
+                        margin-right: calc((-1 * var(--gutter)) - 24px);
+                    }
                     .topo-mapa-title{ font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;text-align:center;margin-bottom:10px; }
-                    .topo-mapa-lienzo{ width:100%; aspect-ratio:4/3; border-radius:var(--border-radius-sm,12px); overflow:hidden; box-shadow:var(--shadow-sm); background:#eaf4fb; position:relative; }
+                    .topo-mapa-lienzo{ width:100%; aspect-ratio:4/3; border-radius:0; overflow:hidden; box-shadow:none; background:#eaf4fb; position:relative; }
+                    /* El título y la leyenda sí conservan el margen lateral: solo el
+                       mapa en sí llega de borde a borde. */
+                    .topo-mapa-title,
+                    .topo-mapa-leyenda{
+                        padding-left: calc(var(--gutter) + 24px);
+                        padding-right: calc(var(--gutter) + 24px);
+                    }
                     /* Contenedor interior girado 45° (sentido horario). Para un
                        lienzo 4:3, un simple 150%/150% no basta para tapar las
                        esquinas del marco tras el giro (quedaban triángulos en
@@ -2167,10 +2169,11 @@
                     .topo-mapa-leyenda{ display:flex; justify-content:center; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:10px; color:#64748b; letter-spacing:0.2px; }
                     .topo-mapa-leyenda span{ display:flex; align-items:center; gap:5px; }
                     .topo-mapa-leyenda i{ width:10px;height:10px;border-radius:50%;display:inline-block; }
-                    .topo-mapa-marker{ display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;border:2px solid #ffffff;box-shadow:0 2px 6px rgba(18,54,83,0.28); }
-                    .topo-mapa-marker-temp{ font-size:12px;font-weight:700;color:#123653;line-height:1;font-family:'Inter',sans-serif; }
-                    .topo-mapa-marker-extra{ width:24px;height:24px; }
-                    .topo-mapa-marker-extra .topo-mapa-marker-temp{ font-size:9.5px; }
+                    /* Todas las estaciones (las 6 reales y los 5 puntos extra) usan
+                       el mismo tamaño de círculo -el pequeño-, para que no se
+                       apelotonen ni se solapen entre ellas en el mapa. */
+                    .topo-mapa-marker{ display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;border:2px solid #ffffff;box-shadow:0 2px 6px rgba(18,54,83,0.28); }
+                    .topo-mapa-marker-temp{ font-size:9.5px;font-weight:700;color:#123653;line-height:1;font-family:'Inter',sans-serif; }
                     .topo-mapa-marker-nombre{ position:absolute; top:100%; left:50%; transform:translateX(-50%); font-size:8.5px; font-weight:600; color:#123653; white-space:nowrap; margin-top:2px; background:rgba(255,255,255,0.88); padding:1px 4px; border-radius:4px; }
                     /* Contrarrota el contenido del marcador para que, aunque el mapa
                        esté girado 45°, el icono y la etiqueta se vean siempre en pie. */
@@ -2200,6 +2203,21 @@
                     }
 
                     esperarLeaflet(function () {
+                        // El marco ahora ocupa todo el ancho de la pantalla (ancho
+                        // completo, ver CSS de .topo-mapa-wrap), y ese ancho final
+                        // puede tardar un frame en aplicarse tras el primer render.
+                        // Medir clientWidth/clientHeight demasiado pronto daba un
+                        // encuadre calculado con un tamaño de marco incorrecto, lo
+                        // que hacía que el mapa se viera descentrado/recortado hacia
+                        // un lado. Se retrasa el cálculo del encuadre a doble
+                        // requestAnimationFrame para asegurar que el layout ya está
+                        // asentado.
+                        requestAnimationFrame(() => requestAnimationFrame(function () {
+                        continuarMapa();
+                        }));
+                    });
+
+                    function continuarMapa() {
                         const map = L.map('topo-mapa-bcn', {
                             zoomControl: false, dragging: false, scrollWheelZoom: false,
                             doubleClickZoom: false, boxZoom: false, keyboard: false,
@@ -2307,12 +2325,13 @@
                         }
 
                         function iconoEstacion(temp, nombre, esExtra) {
-                            const clase = esExtra ? 'topo-mapa-marker topo-mapa-marker-extra' : 'topo-mapa-marker';
+                            // esExtra ya no cambia el tamaño (todas las estaciones son
+                            // iguales), se conserva el parámetro solo por compatibilidad.
                             const html = '<div class="topo-mapa-marker-giro" style="position:relative;">' +
-                                '<div class="' + clase + '" style="background:' + colorRelativo(temp) + '"><span class="topo-mapa-marker-temp">' + Math.round(temp) + '°</span></div>' +
+                                '<div class="topo-mapa-marker" style="background:' + colorRelativo(temp) + '"><span class="topo-mapa-marker-temp">' + Math.round(temp) + '°</span></div>' +
                                 '<div class="topo-mapa-marker-nombre">' + nombre + '</div>' +
                                 '</div>';
-                            return L.divIcon({ html, className: '', iconSize: esExtra ? [24, 24] : [38, 38], iconAnchor: esExtra ? [12, 12] : [19, 19] });
+                            return L.divIcon({ html, className: '', iconSize: [24, 24], iconAnchor: [12, 12] });
                         }
 
                         const marcadores = {};
@@ -2371,7 +2390,7 @@
                         setInterval(cargarTemperaturasExtra, 10 * 60 * 1000);
 
                         setTimeout(() => map.invalidateSize(), 300);
-                    });
+                    }
                 })();
                 </script>
                 <!-- ═══ FIN MAPA ═══ -->
