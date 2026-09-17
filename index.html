@@ -2218,10 +2218,13 @@
                     });
 
                     function continuarMapa() {
+                        // zoomSnap:0 permite zooms con decimales (no solo enteros),
+                        // necesario para el ajuste progresivo de más abajo.
                         const map = L.map('topo-mapa-bcn', {
                             zoomControl: false, dragging: false, scrollWheelZoom: false,
                             doubleClickZoom: false, boxZoom: false, keyboard: false,
-                            touchZoom: false, tap: false, attributionControl: false
+                            touchZoom: false, tap: false, attributionControl: false,
+                            zoomSnap: 0
                         });
                         // Encuadre FIJO (no depende del contenedor ni del dispositivo):
                         // desde Tibidabo/Fabra hasta Sant Andreu y Port Olímpic.
@@ -2239,18 +2242,25 @@
                         const auxDiv = document.createElement('div');
                         auxDiv.style.cssText = 'position:absolute; left:-9999px; top:-9999px; width:' + marco.clientWidth + 'px; height:' + marco.clientHeight + 'px;';
                         document.body.appendChild(auxDiv);
-                        const mapaAux = L.map(auxDiv, { attributionControl: false, zoomControl: false });
+                        const mapaAux = L.map(auxDiv, { attributionControl: false, zoomControl: false, zoomSnap: 0 });
                         mapaAux.fitBounds([[41.365, 2.093], [41.450, 2.222]], { maxZoom: 16 });
                         const centroMapa = mapaAux.getCenter();
-                        // Un poco de zoom EXTRA sobre el encuadre "perfecto" de fitBounds:
-                        // con el encuadre exacto las estaciones quedaban muy juntas en
-                        // el centro del marco (mucho monte y mucho mar alrededor). Se
-                        // sube el zoom para que las estaciones se repartan más por la
-                        // pantalla. Las teselas solo existen hasta zoom 16 (maxNativeZoom
-                        // en las capas de abajo), así que Leaflet las escala (over-zoom)
-                        // para cubrir este zoom extra sin dejar el mapa en blanco.
-                        const ZOOM_EXTRA = 1;
-                        const zoomMapa = mapaAux.getZoom() + ZOOM_EXTRA;
+                        // Zoom EXTRA sobre el encuadre "perfecto" de fitBounds: con el
+                        // encuadre exacto las estaciones quedaban muy juntas en el
+                        // centro del marco (mucho monte y mucho mar alrededor). El +1
+                        // base es el que ya se probó y se ve bien en móvil. Pero en
+                        // pantallas más anchas (PC, donde el marco mide más píxeles
+                        // CSS aunque la web siga limitada a 600px) ese mismo +1 no
+                        // basta: cuanto más ancho el marco, más zoom adicional hace
+                        // falta para que las estaciones ocupen proporcionalmente el
+                        // mismo espacio que en móvil. REF_ANCHO_MOVIL es el ancho de
+                        // referencia (aprox. un móvil típico) para el que +1 ya
+                        // quedaba bien; a partir de ahí se añade un extra progresivo
+                        // (log2, porque cada nivel de zoom dobla la resolución).
+                        const ZOOM_EXTRA_BASE = 1;
+                        const REF_ANCHO_MOVIL = 400;
+                        const extraPorAncho = Math.max(0, Math.log2(marco.clientWidth / REF_ANCHO_MOVIL));
+                        const zoomMapa = mapaAux.getZoom() + ZOOM_EXTRA_BASE + extraPorAncho;
                         mapaAux.remove();
                         auxDiv.remove();
 
