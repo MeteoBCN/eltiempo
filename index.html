@@ -1932,6 +1932,11 @@
                     // Estado en memoria de las 6 temperaturas conocidas; arranca con los
                     // valores estáticos ya escritos en el SVG para no esperar a la API.
                     const TOPO_TEMPS = { tibidabo: 28, fabra: 31, ronda: 30, sarria: 30, eixample: 29, costa: 28 };
+                    // Se expone la MISMA referencia en window para que otros módulos
+                    // (p. ej. el mapa "Las estaciones, en el mapa") lean siempre el dato
+                    // real más reciente en lugar de mantener su propia copia, que podía
+                    // quedarse desincronizada de esta gráfica.
+                    window.TOPO_TEMPS = TOPO_TEMPS;
 
                     /* Escala de color de FONDO relativa y automática para las galletas: en
                        vez de un baremo absoluto de temperatura, normaliza entre el mínimo y
@@ -2207,17 +2212,30 @@
                         });
                         // Encuadre FIJO (no depende del contenedor ni del dispositivo):
                         // desde Tibidabo/Fabra hasta Sant Andreu y Port Olímpic.
-                        // El contenedor real de Leaflet es más grande que el marco
-                        // visible (está ampliado para cubrir las esquinas tras el
-                        // giro de 45°), así que se le pasa un "padding" en píxeles
-                        // igual a ese margen extra: así el encuadre que se VE en el
-                        // marco recortado es siempre el mismo, sin zoom de más.
+                        // El mapa real vive en un contenedor AMPLIADO (para tapar las
+                        // esquinas tras el giro de 45°), así que calcular el zoom con
+                        // fitBounds directamente sobre él da un encuadre poco fiable
+                        // (depende de medir ese contenedor grande en el primer render).
+                        // En su lugar: se crea un mapa auxiliar invisible con el tamaño
+                        // EXACTO del marco visible, se le pide a fitBounds el centro y
+                        // el zoom "correctos" ahí, y ese mismo centro/zoom se aplica
+                        // después al mapa real. Como el zoom es un valor fijo, el
+                        // contenedor ampliado simplemente enseña más terreno alrededor
+                        // sin cambiar la escala.
+                        const marco = document.querySelector('.topo-mapa-lienzo');
+                        const auxDiv = document.createElement('div');
+                        auxDiv.style.cssText = 'position:absolute; left:-9999px; top:-9999px; width:' + marco.clientWidth + 'px; height:' + marco.clientHeight + 'px;';
+                        document.body.appendChild(auxDiv);
+                        const mapaAux = L.map(auxDiv, { attributionControl: false, zoomControl: false });
+                        mapaAux.fitBounds([[41.365, 2.093], [41.450, 2.222]], { maxZoom: 16 });
+                        const centroMapa = mapaAux.getCenter();
+                        const zoomMapa = mapaAux.getZoom();
+                        mapaAux.remove();
+                        auxDiv.remove();
+
                         map.invalidateSize();
-                        const marco = document.querySelector('#topo-mapa-bcn').closest('.topo-mapa-lienzo');
-                        const contenedorLeaflet = document.getElementById('topo-mapa-bcn');
-                        const padX = Math.max(0, (contenedorLeaflet.clientWidth  - marco.clientWidth)  / 2);
-                        const padY = Math.max(0, (contenedorLeaflet.clientHeight - marco.clientHeight) / 2);
-                        map.fitBounds([[41.365, 2.093], [41.450, 2.222]], { maxZoom: 16, padding: [padX, padY] });
+                        map.setView(centroMapa, zoomMapa);
+
 
                         // Teselas Esri "Light/Dark Gray Canvas": minimalistas, gratuitas
                         // y SIN necesidad de API key (a diferencia de CARTO, que ahora la exige).
@@ -2271,6 +2289,18 @@
                         let TEMPS_ACTUALES = Object.assign({}, TEMPS_INICIALES);
                         EXTRA.forEach(p => { TEMPS_ACTUALES[p.key] = null; });
 
+                        // Vuelca en TEMPS_ACTUALES el dato REAL más reciente de las 6
+                        // estaciones desde window.TOPO_TEMPS (la misma variable que
+                        // alimenta la gráfica "Corte de relieve" de arriba). Al ser la
+                        // fuente única de verdad, el mapa nunca puede quedarse mostrando
+                        // valores antiguos aunque el aviso de actualización se pierda.
+                        function sincronizarTempsReales() {
+                            Object.keys(PUNTOS_MAPA).forEach(key => {
+                                const real = window.TOPO_TEMPS && window.TOPO_TEMPS[key];
+                                if (typeof real === 'number' && !Number.isNaN(real)) TEMPS_ACTUALES[key] = real;
+                            });
+                        }
+
                         function colorRelativo(t) {
                             const vals = Object.values(TEMPS_ACTUALES).filter(v => typeof v === 'number' && !Number.isNaN(v));
                             if (!vals.length || typeof t !== 'number') return '#E2E8F0';
@@ -2300,6 +2330,7 @@
                         });
 
                         function refrescarIconos() {
+                            sincronizarTempsReales();
                             Object.keys(PUNTOS_MAPA).forEach(key => {
                                 const temp = TEMPS_ACTUALES[key];
                                 if (typeof temp === 'number') marcadores[key].setIcon(iconoEstacion(temp, PUNTOS_MAPA[key].nombre, false));
@@ -2313,14 +2344,17 @@
                             });
                         }
                         refrescarIconos();
+                        // Red de seguridad: por si el aviso de actualización de la gráfica
+                        // de arriba llega antes de que este módulo esté listo (o se pierde
+                        // por cualquier motivo), se relee window.TOPO_TEMPS cada 20s.
+                        setInterval(refrescarIconos, 20 * 1000);
 
-                        // Se engancha a las actualizaciones en vivo del perfil topográfico
-                        // (misma función global que ya usa esa sección), sin tocar su lógica.
+                        // Vía rápida: en cuanto la gráfica de arriba recibe un dato nuevo,
+                        // refresca el mapa al instante (sin esperar a los 20s de arriba).
                         const _origActualizarFilaAltura = window.actualizarFilaAltura;
                         window.actualizarFilaAltura = function (estacion, opts) {
                             if (typeof _origActualizarFilaAltura === 'function') _origActualizarFilaAltura(estacion, opts);
                             if (opts && typeof opts.temp === 'number' && PUNTOS_MAPA[estacion]) {
-                                TEMPS_ACTUALES[estacion] = opts.temp;
                                 refrescarIconos();
                             }
                         };
