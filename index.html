@@ -2124,6 +2124,175 @@
                 </script>
                 <!-- ═══ FIN MÓDULO EFECTO ALTURA ═══ -->
 
+                <!-- ═══ MAPA · Estaciones en su ubicación real ═══
+                     Mapa Leaflet fijo (sin zoom/arrastre) con teselas CARTO
+                     Positron (día) / Dark Matter (noche), para que el aspecto
+                     sea idéntico en cualquier dispositivo: solo cambia el
+                     tamaño del contenedor, nunca el encuadre ni el estilo. -->
+                <style>
+                    .topo-mapa-wrap{ margin:18px 0 4px; }
+                    .topo-mapa-title{ font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;text-align:center;margin-bottom:10px; }
+                    .topo-mapa-lienzo{ width:100%; aspect-ratio:4/3; border-radius:var(--border-radius-sm,12px); overflow:hidden; box-shadow:var(--shadow-sm); background:#eaf4fb; }
+                    .topo-mapa-lienzo .leaflet-control-attribution{ font-size:8px; }
+                    .topo-mapa-leyenda{ display:flex; justify-content:center; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:10px; color:#64748b; letter-spacing:0.2px; }
+                    .topo-mapa-leyenda span{ display:flex; align-items:center; gap:5px; }
+                    .topo-mapa-leyenda i{ width:10px;height:10px;border-radius:50%;display:inline-block; }
+                    .topo-mapa-marker{ display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;border:2px solid #ffffff;box-shadow:0 2px 6px rgba(18,54,83,0.28); }
+                    .topo-mapa-marker-temp{ font-size:12px;font-weight:700;color:#123653;line-height:1;font-family:'Inter',sans-serif; }
+                    .topo-mapa-marker-extra{ width:24px;height:24px; }
+                    .topo-mapa-marker-extra .topo-mapa-marker-temp{ font-size:9.5px; }
+                    .topo-mapa-marker-nombre{ position:absolute; top:100%; left:50%; transform:translateX(-50%); font-size:8.5px; font-weight:600; color:#123653; white-space:nowrap; margin-top:2px; background:rgba(255,255,255,0.88); padding:1px 4px; border-radius:4px; }
+                </style>
+                <div class="topo-mapa-wrap">
+                    <div class="topo-mapa-title">Las estaciones, en el mapa</div>
+                    <div id="topo-mapa-bcn" class="topo-mapa-lienzo"></div>
+                    <div class="topo-mapa-leyenda">
+                        <span><i style="background:#D9E1F2"></i>Más fresco</span>
+                        <span><i style="background:#E2F0D9"></i></span>
+                        <span><i style="background:#FFF2CC"></i></span>
+                        <span><i style="background:#F8CBAD"></i>Más calor</span>
+                    </div>
+                </div>
+                <script>
+                (function () {
+                    function esperarLeaflet(cb) {
+                        if (window.L && document.getElementById('topo-mapa-bcn')) return cb();
+                        setTimeout(() => esperarLeaflet(cb), 200);
+                    }
+
+                    esperarLeaflet(function () {
+                        const map = L.map('topo-mapa-bcn', {
+                            zoomControl: false, dragging: false, scrollWheelZoom: false,
+                            doubleClickZoom: false, boxZoom: false, keyboard: false,
+                            touchZoom: false, tap: false, attributionControl: true
+                        });
+                        // Encuadre FIJO (no depende del contenedor ni del dispositivo):
+                        // desde Tibidabo/Fabra hasta Sant Andreu y Port Olímpic.
+                        map.fitBounds([[41.365, 2.093], [41.450, 2.222]]);
+
+                        const capaClara = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                            attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19
+                        });
+                        const capaOscura = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                            attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19
+                        });
+
+                        function esNocheBarcelona() {
+                            const h = parseInt(new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', hour12: false }), 10);
+                            return (h >= 20 || h < 7);
+                        }
+                        function actualizarCapaMapa() {
+                            if (esNocheBarcelona()) {
+                                if (map.hasLayer(capaClara)) map.removeLayer(capaClara);
+                                if (!map.hasLayer(capaOscura)) capaOscura.addTo(map);
+                            } else {
+                                if (map.hasLayer(capaOscura)) map.removeLayer(capaOscura);
+                                if (!map.hasLayer(capaClara)) capaClara.addTo(map);
+                            }
+                        }
+                        actualizarCapaMapa();
+                        setInterval(actualizarCapaMapa, 10 * 60 * 1000);
+
+                        // Las 6 estaciones del perfil topográfico (mismas coordenadas reales)
+                        const PUNTOS_MAPA = {
+                            tibidabo: { lat: 41.4214, lon: 2.1189, nombre: 'Tibidabo' },
+                            fabra:    { lat: 41.4200, lon: 2.1100, nombre: 'Obs. Fabra' },
+                            ronda:    { lat: 41.4130, lon: 2.1310, nombre: 'Rda. de Dalt' },
+                            sarria:   { lat: 41.3944, lon: 2.1278, nombre: 'Sarrià' },
+                            eixample: { lat: 41.3888, lon: 2.1590, nombre: 'Eixample' },
+                            costa:    { lat: 41.3860, lon: 2.2010, nombre: 'Port Olímpic' }
+                        };
+                        const TEMPS_INICIALES = { tibidabo: 28, fabra: 31, ronda: 30, sarria: 30, eixample: 29, costa: 28 };
+
+                        // Puntos adicionales de ciudad (sin estación física propia,
+                        // temperatura vía Open-Meteo) para dar más cobertura al mapa.
+                        const EXTRA = [
+                            { key: 'gracia',      lat: 41.4036, lon: 2.1527, nombre: 'Gràcia' },
+                            { key: 'horta',       lat: 41.4283, lon: 2.1587, nombre: 'Horta' },
+                            { key: 'santandreu',  lat: 41.4335, lon: 2.1888, nombre: 'Sant Andreu' },
+                            { key: 'lescorts',    lat: 41.3809, lon: 2.1228, nombre: 'Les Corts' },
+                            { key: 'poblenou',    lat: 41.4036, lon: 2.2044, nombre: 'Poblenou' }
+                        ];
+
+                        let TEMPS_ACTUALES = Object.assign({}, TEMPS_INICIALES);
+                        EXTRA.forEach(p => { TEMPS_ACTUALES[p.key] = null; });
+
+                        function colorRelativo(t) {
+                            const vals = Object.values(TEMPS_ACTUALES).filter(v => typeof v === 'number' && !Number.isNaN(v));
+                            if (!vals.length || typeof t !== 'number') return '#E2E8F0';
+                            const min = Math.min(...vals), max = Math.max(...vals);
+                            if (max === min) return '#E2F0D9';
+                            if (t === max) return '#F8CBAD';
+                            if (t === min) return '#D9E1F2';
+                            return ((t - min) / (max - min)) > 0.5 ? '#FFF2CC' : '#E2F0D9';
+                        }
+
+                        function iconoEstacion(temp, nombre, esExtra) {
+                            const clase = esExtra ? 'topo-mapa-marker topo-mapa-marker-extra' : 'topo-mapa-marker';
+                            const html = '<div style="position:relative;">' +
+                                '<div class="' + clase + '" style="background:' + colorRelativo(temp) + '"><span class="topo-mapa-marker-temp">' + Math.round(temp) + '°</span></div>' +
+                                '<div class="topo-mapa-marker-nombre">' + nombre + '</div>' +
+                                '</div>';
+                            return L.divIcon({ html, className: '', iconSize: esExtra ? [24, 24] : [38, 38], iconAnchor: esExtra ? [12, 12] : [19, 19] });
+                        }
+
+                        const marcadores = {};
+                        Object.keys(PUNTOS_MAPA).forEach(key => {
+                            const p = PUNTOS_MAPA[key];
+                            marcadores[key] = L.marker([p.lat, p.lon], { icon: iconoEstacion(TEMPS_INICIALES[key], p.nombre, false), interactive: false }).addTo(map);
+                        });
+                        EXTRA.forEach(p => {
+                            marcadores[p.key] = L.marker([p.lat, p.lon], { icon: iconoEstacion(0, p.nombre, true), interactive: false });
+                        });
+
+                        function refrescarIconos() {
+                            Object.keys(PUNTOS_MAPA).forEach(key => {
+                                const temp = TEMPS_ACTUALES[key];
+                                if (typeof temp === 'number') marcadores[key].setIcon(iconoEstacion(temp, PUNTOS_MAPA[key].nombre, false));
+                            });
+                            EXTRA.forEach(p => {
+                                const temp = TEMPS_ACTUALES[p.key];
+                                if (typeof temp === 'number') {
+                                    marcadores[p.key].setIcon(iconoEstacion(temp, p.nombre, true));
+                                    if (!map.hasLayer(marcadores[p.key])) marcadores[p.key].addTo(map);
+                                }
+                            });
+                        }
+                        refrescarIconos();
+
+                        // Se engancha a las actualizaciones en vivo del perfil topográfico
+                        // (misma función global que ya usa esa sección), sin tocar su lógica.
+                        const _origActualizarFilaAltura = window.actualizarFilaAltura;
+                        window.actualizarFilaAltura = function (estacion, opts) {
+                            if (typeof _origActualizarFilaAltura === 'function') _origActualizarFilaAltura(estacion, opts);
+                            if (opts && typeof opts.temp === 'number' && PUNTOS_MAPA[estacion]) {
+                                TEMPS_ACTUALES[estacion] = opts.temp;
+                                refrescarIconos();
+                            }
+                        };
+
+                        // Temperatura real de los puntos extra vía Open-Meteo
+                        async function cargarTemperaturasExtra() {
+                            try {
+                                const lats = EXTRA.map(p => p.lat).join(',');
+                                const lons = EXTRA.map(p => p.lon).join(',');
+                                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m&timezone=Europe/Madrid`;
+                                const resp = await fetch(url);
+                                if (!resp.ok) return;
+                                const data = await resp.json();
+                                data.forEach((d, i) => { TEMPS_ACTUALES[EXTRA[i].key] = Math.round(d.current.temperature_2m); });
+                                refrescarIconos();
+                            } catch (e) { console.warn('[Mapa BCN] No se pudo cargar la temperatura de los puntos extra:', e.message); }
+                        }
+                        cargarTemperaturasExtra();
+                        setInterval(cargarTemperaturasExtra, 10 * 60 * 1000);
+
+                        setTimeout(() => map.invalidateSize(), 300);
+                    });
+                })();
+                </script>
+                <!-- ═══ FIN MAPA ═══ -->
+
                 <div style="width:calc(100% + (2 * var(--gutter)));margin:0 calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));padding:20px 0 0;background:#ffffff;border-top:1px solid rgba(28,79,120,0.3);">
                     <div style="font-size:20px;font-weight:300;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Previsión<span style="font-weight:900;">3días</span></div>
                     <div style="font-size:10px;font-weight:600;color:#123653;opacity:0.6;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:0;">Hora a hora</div>
