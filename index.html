@@ -1335,11 +1335,11 @@
                      * Cualquier campo omitido (undefined) se deja tal cual está.
                      * (El widget solo muestra temperatura; humedad y lluvia se ignoran.)
                      */
-                    const TOPO_ORDEN = ['tibidabo', 'fabra', 'ronda', 'sarria', 'eixample', 'costa'];
+                    const TOPO_ORDEN = ['tibidabo', 'fabra', 'ronda', 'sarria', 'eixample', 'costa', 'santandreu', 'horta'];
 
-                    // Estado en memoria de las 6 temperaturas conocidas; arranca con los
-                    // valores estáticos ya escritos en el SVG para no esperar a la API.
-                    const TOPO_TEMPS = { tibidabo: 28, fabra: 31, ronda: 30, sarria: 30, eixample: 29, costa: 28 };
+                    // Estado en memoria de las temperaturas conocidas; arranca con
+                    // valores de partida razonables para no esperar a la API.
+                    const TOPO_TEMPS = { tibidabo: 28, fabra: 31, ronda: 30, sarria: 30, eixample: 29, costa: 28, santandreu: 21, horta: 21 };
                     // Se expone la MISMA referencia en window para que otros módulos
                     // (p. ej. el mapa "Las estaciones, en el mapa") lean siempre el dato
                     // real más reciente en lugar de mantener su propia copia, que podía
@@ -1460,16 +1460,18 @@
 
                                         /**
                      * ═══ Carga automática de datos reales (tiempo real) ═══
-                     * 6 estaciones con dato REAL en vivo vía Weathercloud (proxy propio, CORS)
+                     * Estaciones con dato REAL en vivo vía Weathercloud (proxy propio, CORS)
                      * y fallback automático e independiente a Open-Meteo si algún proxy o
                      * estación falla puntualmente:
                      *
-                     *   - tibidabo → MeteoTibidabo         (código 7799270868, 512 m)
-                     *   - fabra    → Observatori Fabra      (código 0931380607, 410 m)
-                     *   - ronda    → CosmoCaixa/Rda. de Dalt(código 0751853563, 180 m)
-                     *   - sarria   → Salesians Sarrià CV    (código 7511856207, 90 m)
-                     *   - eixample → Estació Eixample        (código 8530132327, 40 m)
-                     *   - costa    → Port Olímpic            (código 9415750150, 5 m)
+                     *   - tibidabo   → MeteoTibidabo         (código 7799270868, 512 m)
+                     *   - fabra      → Observatori Fabra      (código 0931380607, 410 m)
+                     *   - ronda      → CosmoCaixa (código 0751853563, 180 m)
+                     *   - sarria     → Salesians Sarrià CV    (código 7511856207, 90 m)
+                     *   - eixample   → Estació Eixample        (código 8530132327, 40 m)
+                     *   - costa      → Port Olímpic            (código 9415750150, 5 m)
+                     *   - santandreu → https://app.weathercloud.net/map#4693750472 (código 4693750472)
+                     *   - horta      → https://app.weathercloud.net/map#9736148442 (código 9736148442)
                      *
                      *   ⚠️ Sustituye WEATHERCLOUD_WORKER por la URL real de tu Worker
                      *   una vez desplegado en Cloudflare (ver proxy-weathercloud-worker.js).
@@ -1477,12 +1479,14 @@
                     const WEATHERCLOUD_WORKER = 'https://proxy-weathercloud.lojasergi.workers.dev';
 
                     const PUNTOS = [
-                        { key: 'tibidabo', code: '7799270868', lat: 41.4214, lon: 2.1189 },
-                        { key: 'fabra',    code: '0931380607', lat: 41.4200, lon: 2.1100 },
-                        { key: 'ronda',    code: '0751853563', lat: 41.4130, lon: 2.1310 },
-                        { key: 'sarria',   code: '7511856207', lat: 41.3944, lon: 2.1278 },
-                        { key: 'eixample', code: '8530132327', lat: 41.3888, lon: 2.1590 },
-                        { key: 'costa',    code: '9415750150', lat: 41.3860, lon: 2.2010 }
+                        { key: 'tibidabo',   code: '7799270868', lat: 41.4214, lon: 2.1189 },
+                        { key: 'fabra',      code: '0931380607', lat: 41.4200, lon: 2.1100 },
+                        { key: 'ronda',      code: '0751853563', lat: 41.4130, lon: 2.1310 },
+                        { key: 'sarria',     code: '7511856207', lat: 41.3944, lon: 2.1278 },
+                        { key: 'eixample',   code: '8530132327', lat: 41.3888, lon: 2.1590 },
+                        { key: 'costa',      code: '9415750150', lat: 41.3860, lon: 2.2010 },
+                        { key: 'santandreu', code: '4693750472', lat: 41.4335, lon: 2.1888 },
+                        { key: 'horta',      code: '9736148442', lat: 41.4283, lon: 2.1587 }
                     ];
 
                     async function obtenerDatoWeathercloud(code) {
@@ -1722,7 +1726,7 @@
                         const PUNTOS_MAPA = {
                             tibidabo: { lat: 41.4214, lon: 2.1189, nombre: 'Tibidabo' },
                             fabra:    { lat: 41.4200, lon: 2.1100, nombre: 'Obs. Fabra' },
-                            ronda:    { lat: 41.4130, lon: 2.1310, nombre: 'Rda. de Dalt' },
+                            ronda:    { lat: 41.4130, lon: 2.1310, nombre: 'Cosmo Caixa' },
                             sarria:   { lat: 41.3944, lon: 2.1278, nombre: 'Sarrià' },
                             eixample: { lat: 41.3888, lon: 2.1590, nombre: 'Eixample' },
                             costa:    { lat: 41.3860, lon: 2.2010, nombre: 'Port Olímpic' }
@@ -1742,15 +1746,22 @@
                         let TEMPS_ACTUALES = Object.assign({}, TEMPS_INICIALES);
                         EXTRA.forEach(p => { TEMPS_ACTUALES[p.key] = null; });
 
-                        // Vuelca en TEMPS_ACTUALES el dato REAL más reciente de las 6
-                        // estaciones desde window.TOPO_TEMPS (la misma variable que
-                        // alimenta la gráfica "Corte de relieve" de arriba). Al ser la
+                        // Vuelca en TEMPS_ACTUALES el dato REAL más reciente disponible en
+                        // window.TOPO_TEMPS (misma variable que alimenta la carga de datos
+                        // en vivo de arriba). Se revisan tanto las estaciones "principales"
+                        // (PUNTOS_MAPA) como los puntos "extra": si alguno de estos últimos
+                        // tiene ya estación real conectada (p. ej. Sant Andreu), su dato de
+                        // Weathercloud tiene prioridad sobre el de Open-Meteo. Al ser la
                         // fuente única de verdad, el mapa nunca puede quedarse mostrando
                         // valores antiguos aunque el aviso de actualización se pierda.
                         function sincronizarTempsReales() {
                             Object.keys(PUNTOS_MAPA).forEach(key => {
                                 const real = window.TOPO_TEMPS && window.TOPO_TEMPS[key];
                                 if (typeof real === 'number' && !Number.isNaN(real)) TEMPS_ACTUALES[key] = real;
+                            });
+                            EXTRA.forEach(p => {
+                                const real = window.TOPO_TEMPS && window.TOPO_TEMPS[p.key];
+                                if (typeof real === 'number' && !Number.isNaN(real)) TEMPS_ACTUALES[p.key] = real;
                             });
                         }
 
@@ -1803,12 +1814,16 @@
                         // por cualquier motivo), se relee window.TOPO_TEMPS cada 20s.
                         setInterval(refrescarIconos, 20 * 1000);
 
-                        // Vía rápida: en cuanto la gráfica de arriba recibe un dato nuevo,
-                        // refresca el mapa al instante (sin esperar a los 20s de arriba).
+                        // Vía rápida: en cuanto llega un dato nuevo, refresca el mapa al
+                        // instante (sin esperar a los 20s de arriba). Antes solo miraba
+                        // las 6 estaciones "principales" (PUNTOS_MAPA); ahora también
+                        // los puntos extra que ya tengan estación real conectada (p. ej.
+                        // Sant Andreu), para que su dato de Weathercloud se vea sin demora.
                         const _origActualizarFilaAltura = window.actualizarFilaAltura;
                         window.actualizarFilaAltura = function (estacion, opts) {
                             if (typeof _origActualizarFilaAltura === 'function') _origActualizarFilaAltura(estacion, opts);
-                            if (opts && typeof opts.temp === 'number' && PUNTOS_MAPA[estacion]) {
+                            const esPuntoDelMapa = PUNTOS_MAPA[estacion] || EXTRA.some(p => p.key === estacion);
+                            if (opts && typeof opts.temp === 'number' && esPuntoDelMapa) {
                                 refrescarIconos();
                             }
                         };
