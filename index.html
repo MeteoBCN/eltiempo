@@ -778,6 +778,24 @@
                 margin-left: calc((-1 * var(--gutter)) - 24px);
                 margin-right: calc((-1 * var(--gutter)) - 24px);
             }
+            /* Mismo criterio para el mapa "Las estaciones, en el mapa": en
+               móvil se cancelan el --gutter de .content-section y el padding
+               fijo de 24px de .hero-zone para que llegue de borde a borde,
+               y se quitan las esquinas redondeadas (ya no tiene sentido un
+               "recuadro" flotante cuando ocupa todo el ancho). */
+            .topo-mapa-wrap {
+                width: calc(100% + (2 * var(--gutter)) + 48px);
+                margin-left: calc((-1 * var(--gutter)) - 24px);
+                margin-right: calc((-1 * var(--gutter)) - 24px);
+            }
+            .topo-mapa-lienzo { border-radius: 0; box-shadow: none; }
+            /* El título y la leyenda sí conservan el margen lateral: solo el
+               mapa en sí llega de borde a borde. */
+            .topo-mapa-title,
+            .topo-mapa-leyenda {
+                padding-left: calc(var(--gutter) + 24px);
+                padding-right: calc(var(--gutter) + 24px);
+            }
             .temperature { font-size: 64px; }
             .icon-large { font-size: 1.8em; }
             .radar-frame { height: 300px; }
@@ -2132,8 +2150,17 @@
                 <style>
                     .topo-mapa-wrap{ margin:18px 0 4px; }
                     .topo-mapa-title{ font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;text-align:center;margin-bottom:10px; }
-                    .topo-mapa-lienzo{ width:100%; aspect-ratio:4/3; border-radius:var(--border-radius-sm,12px); overflow:hidden; box-shadow:var(--shadow-sm); background:#eaf4fb; }
-                    .topo-mapa-lienzo .leaflet-control-attribution{ font-size:8px; }
+                    .topo-mapa-lienzo{ width:100%; aspect-ratio:4/3; border-radius:var(--border-radius-sm,12px); overflow:hidden; box-shadow:var(--shadow-sm); background:#eaf4fb; position:relative; }
+                    /* Contenedor interior girado 45° (sentido horario). Se agranda al
+                       150% y se centra para que, tras la rotación, siga cubriendo
+                       todo el marco visible sin dejar esquinas en blanco. */
+                    .topo-mapa-rotar{ position:absolute; top:50%; left:50%; width:150%; height:150%; transform:translate(-50%,-50%) rotate(45deg); transform-origin:center center; }
+                    .topo-mapa-rotar .leaflet-control-attribution{ display:none; }
+                    .topo-mapa-atrib{ position:absolute; right:6px; bottom:4px; font-size:7.5px; color:rgba(18,54,83,0.55); background:rgba(255,255,255,0.75); padding:1px 5px; border-radius:6px; z-index:500; pointer-events:none; }
+                    /* Brújula fija (no gira) para no perder la orientación del mapa girado. */
+                    .topo-mapa-brujula{ position:absolute; top:8px; right:8px; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.88); box-shadow:0 2px 6px rgba(18,54,83,0.25); z-index:500; display:flex; align-items:center; justify-content:center; }
+                    .topo-mapa-brujula-flecha{ transform:rotate(45deg); display:flex; flex-direction:column; align-items:center; line-height:1; }
+                    .topo-mapa-brujula-flecha span{ font-size:8px; font-weight:800; color:#123653; }
                     .topo-mapa-leyenda{ display:flex; justify-content:center; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:10px; color:#64748b; letter-spacing:0.2px; }
                     .topo-mapa-leyenda span{ display:flex; align-items:center; gap:5px; }
                     .topo-mapa-leyenda i{ width:10px;height:10px;border-radius:50%;display:inline-block; }
@@ -2142,10 +2169,19 @@
                     .topo-mapa-marker-extra{ width:24px;height:24px; }
                     .topo-mapa-marker-extra .topo-mapa-marker-temp{ font-size:9.5px; }
                     .topo-mapa-marker-nombre{ position:absolute; top:100%; left:50%; transform:translateX(-50%); font-size:8.5px; font-weight:600; color:#123653; white-space:nowrap; margin-top:2px; background:rgba(255,255,255,0.88); padding:1px 4px; border-radius:4px; }
+                    /* Contrarrota el contenido del marcador para que, aunque el mapa
+                       esté girado 45°, el icono y la etiqueta se vean siempre en pie. */
+                    .topo-mapa-marker-giro{ transform:rotate(-45deg); }
                 </style>
                 <div class="topo-mapa-wrap">
                     <div class="topo-mapa-title">Las estaciones, en el mapa</div>
-                    <div id="topo-mapa-bcn" class="topo-mapa-lienzo"></div>
+                    <div class="topo-mapa-lienzo">
+                        <div class="topo-mapa-rotar">
+                            <div id="topo-mapa-bcn" style="width:100%;height:100%;"></div>
+                        </div>
+                        <div class="topo-mapa-brujula"><div class="topo-mapa-brujula-flecha"><span>▲</span><span>N</span></div></div>
+                        <div class="topo-mapa-atrib">Esri, HERE, Garmin, © OpenStreetMap</div>
+                    </div>
                     <div class="topo-mapa-leyenda">
                         <span><i style="background:#D9E1F2"></i>Más fresco</span>
                         <span><i style="background:#E2F0D9"></i></span>
@@ -2164,11 +2200,15 @@
                         const map = L.map('topo-mapa-bcn', {
                             zoomControl: false, dragging: false, scrollWheelZoom: false,
                             doubleClickZoom: false, boxZoom: false, keyboard: false,
-                            touchZoom: false, tap: false, attributionControl: true
+                            touchZoom: false, tap: false, attributionControl: false
                         });
                         // Encuadre FIJO (no depende del contenedor ni del dispositivo):
                         // desde Tibidabo/Fabra hasta Sant Andreu y Port Olímpic.
                         map.fitBounds([[41.365, 2.093], [41.450, 2.222]], { maxZoom: 16 });
+                        // Más zoom sobre Barcelona: al girar el mapa 45° el lienzo interior
+                        // se agranda un 150% para no dejar esquinas en blanco, así que
+                        // subimos el zoom para que la ciudad se vea más cerca y llena.
+                        map.setZoom(map.getZoom() + 1.3);
 
                         // Teselas Esri "Light/Dark Gray Canvas": minimalistas, gratuitas
                         // y SIN necesidad de API key (a diferencia de CARTO, que ahora la exige).
@@ -2234,7 +2274,7 @@
 
                         function iconoEstacion(temp, nombre, esExtra) {
                             const clase = esExtra ? 'topo-mapa-marker topo-mapa-marker-extra' : 'topo-mapa-marker';
-                            const html = '<div style="position:relative;">' +
+                            const html = '<div class="topo-mapa-marker-giro" style="position:relative;">' +
                                 '<div class="' + clase + '" style="background:' + colorRelativo(temp) + '"><span class="topo-mapa-marker-temp">' + Math.round(temp) + '°</span></div>' +
                                 '<div class="topo-mapa-marker-nombre">' + nombre + '</div>' +
                                 '</div>';
