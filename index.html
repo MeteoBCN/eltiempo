@@ -2242,7 +2242,15 @@
                         const mapaAux = L.map(auxDiv, { attributionControl: false, zoomControl: false });
                         mapaAux.fitBounds([[41.365, 2.093], [41.450, 2.222]], { maxZoom: 16 });
                         const centroMapa = mapaAux.getCenter();
-                        const zoomMapa = mapaAux.getZoom();
+                        // Un poco de zoom EXTRA sobre el encuadre "perfecto" de fitBounds:
+                        // con el encuadre exacto las estaciones quedaban muy juntas en
+                        // el centro del marco (mucho monte y mucho mar alrededor). Se
+                        // sube el zoom para que las estaciones se repartan más por la
+                        // pantalla. Las teselas solo existen hasta zoom 16 (maxNativeZoom
+                        // en las capas de abajo), así que Leaflet las escala (over-zoom)
+                        // para cubrir este zoom extra sin dejar el mapa en blanco.
+                        const ZOOM_EXTRA = 1;
+                        const zoomMapa = mapaAux.getZoom() + ZOOM_EXTRA;
                         mapaAux.remove();
                         auxDiv.remove();
 
@@ -2252,14 +2260,18 @@
 
                         // Teselas Esri "Light/Dark Gray Canvas": minimalistas, gratuitas
                         // y SIN necesidad de API key (a diferencia de CARTO, que ahora la exige).
+                        // maxNativeZoom:16 = último nivel con teselas reales; maxZoom:19 =
+                        // hasta dónde puede pedir zoom el mapa (Leaflet escala las teselas
+                        // de zoom 16 para los niveles 17-19, ligeramente menos nítidas pero
+                        // sin quedarse en blanco).
                         const ATRIB_ESRI = 'Esri, HERE, Garmin, &copy; OpenStreetMap contributors';
                         const capaClara = L.layerGroup([
-                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { attribution: ATRIB_ESRI, maxZoom: 16 }),
-                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 })
+                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { attribution: ATRIB_ESRI, maxNativeZoom: 16, maxZoom: 19 }),
+                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxNativeZoom: 16, maxZoom: 19 })
                         ]);
                         const capaOscura = L.layerGroup([
-                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { attribution: ATRIB_ESRI, maxZoom: 16 }),
-                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 })
+                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { attribution: ATRIB_ESRI, maxNativeZoom: 16, maxZoom: 19 }),
+                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxNativeZoom: 16, maxZoom: 19 })
                         ]);
 
                         function esNocheBarcelona() {
