@@ -1528,6 +1528,69 @@
                     #altura-efecto-wrap.modo-dia .topo-galleta-alt{
                         color:#0F172A;
                     }
+
+                    /* ── "La Galleta" · panel central fijo (tooltip glassmorphism) ──
+                       Vive en la zona limpia del cielo, centrado en la parte
+                       superior de la gráfica. Estado inicial: texto genérico.
+                       Al tocar/hacer hover sobre una burbuja, revela nombre +
+                       altitud de esa estación (inyectados desde data-*). El
+                       fondo cristal se adapta a día/noche vía las mismas clases
+                       .modo-dia / .modo-noche que controlan el resto del cielo. */
+                    .galleta-superior-wrap{
+                        width:100%;
+                        height:100%;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                    }
+                    .galleta-superior{
+                        max-width:100%;
+                        padding:9px 20px;
+                        border-radius:999px;
+                        font-family:'Inter', sans-serif;
+                        font-size:12.5px;
+                        font-weight:700;
+                        letter-spacing:0.2px;
+                        text-align:center;
+                        white-space:nowrap;
+                        overflow:hidden;
+                        text-overflow:ellipsis;
+                        backdrop-filter:blur(10px);
+                        -webkit-backdrop-filter:blur(10px);
+                        border:1px solid rgba(255,255,255,0.4);
+                        box-shadow:0 4px 14px rgba(18,54,83,0.12);
+                        transition:background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease;
+                    }
+                    .galleta-superior-nombre{
+                        font-weight:800;
+                    }
+                    .galleta-superior-alt{
+                        font-weight:500;
+                        opacity:0.75;
+                    }
+                    .galleta-superior-sep{
+                        margin:0 6px;
+                        opacity:0.4;
+                    }
+                    /* Día: cristal blanco translúcido, letras oscuras */
+                    #altura-efecto-wrap.modo-dia .galleta-superior{
+                        background:rgba(255,255,255,0.6);
+                        color:#123653;
+                        border-color:rgba(255,255,255,0.7);
+                    }
+                    /* Noche: cristal marino/negro translúcido, letras claras */
+                    #altura-efecto-wrap.modo-noche .galleta-superior{
+                        background:rgba(10,20,40,0.55);
+                        color:#F1F5F9;
+                        border-color:rgba(255,255,255,0.18);
+                    }
+
+                    /* Estado activo de una burbuja: leve anillo para indicar cuál
+                       es la fuente de los datos mostrados en la galleta central. */
+                    .topo-galleta{ cursor:pointer; }
+                    .topo-galleta.topo-galleta-activa{
+                        box-shadow:0 0 0 3px rgba(18,54,83,0.35), 0 3px 8px rgba(18,54,83,0.22);
+                    }
                 </style>
 
                 <div class="topoh-wrap" id="altura-efecto-wrap">
@@ -1759,15 +1822,23 @@
                                  pantallas estrechas, especialmente entre Sarrià, Eixample y Port Olímpic -->
                             <!-- Marcadores + etiquetas por estación -->
 
+                            <!-- Panel central "galleta" · tooltip fijo en la zona limpia del cielo.
+                                 Muestra el texto inicial hasta que el usuario toca/hace hover
+                                 sobre una burbuja; entonces revela nombre + altitud de esa
+                                 estación (ver JS: mostrarInfoEstacionGalleta). -->
+                            <foreignObject x="230" y="10" width="400" height="56" style="overflow:visible;">
+                                <div xmlns="http://www.w3.org/1999/xhtml" class="galleta-superior-wrap">
+                                    <div class="galleta-superior" id="galleta-superior">
+                                        <span id="galleta-superior-texto">Toca una zona de la montaña</span>
+                                    </div>
+                                </div>
+                            </foreignObject>
+
                             <!-- 1. Tibidabo · 512 m -->
                             <foreignObject x="30" y="16" width="80" height="80" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta-wrap">
-                                    <div class="topo-galleta" id="galleta-tibidabo">
+                                    <div class="topo-galleta" id="galleta-tibidabo" data-nombre="Tibidabo" data-altitud="512 m" tabindex="0" role="button" aria-label="Tibidabo, 512 metros">
                                         <span class="topo-galleta-temp" id="temp-tibidabo">28</span>
-                                    </div>
-                                    <div class="topo-galleta-label">
-                                        <span class="topo-galleta-nombre">Tibidabo</span>
-                                        <span class="topo-galleta-alt">512 m</span>
                                     </div>
                                 </div>
                             </foreignObject>
@@ -1775,12 +1846,8 @@
                             <!-- 2. Obs. Fabra · 410 m -->
                             <foreignObject x="175" y="68" width="94" height="80" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta-wrap">
-                                    <div class="topo-galleta" id="galleta-fabra">
+                                    <div class="topo-galleta" id="galleta-fabra" data-nombre="Obs. Fabra" data-altitud="410 m" tabindex="0" role="button" aria-label="Observatorio Fabra, 410 metros">
                                         <span class="topo-galleta-temp" id="temp-fabra">31</span>
-                                    </div>
-                                    <div class="topo-galleta-label">
-                                        <span class="topo-galleta-nombre">Obs. Fabra</span>
-                                        <span class="topo-galleta-alt">410 m</span>
                                     </div>
                                 </div>
                             </foreignObject>
@@ -1788,51 +1855,35 @@
                             <!-- 3. Rda. de Dalt · 180 m -->
                             <foreignObject x="322" y="185" width="104" height="80" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta-wrap">
-                                    <div class="topo-galleta" id="galleta-ronda">
+                                    <div class="topo-galleta" id="galleta-ronda" data-nombre="Rda. de Dalt" data-altitud="180 m" tabindex="0" role="button" aria-label="Ronda de Dalt, 180 metros">
                                         <span class="topo-galleta-temp" id="temp-ronda">30</span>
                                     </div>
-                                    <div class="topo-galleta-label">
-                                        <span class="topo-galleta-nombre">Rda. de Dalt</span>
-                                        <span class="topo-galleta-alt">180 m</span>
-                                    </div>
                                 </div>
                             </foreignObject>
 
-                            <!-- 4. Sarrià · 90 m (línea larga: galleta más alejada del relieve) -->
+                            <!-- 4. Sarrià · 90 m -->
                             <foreignObject x="486" y="223" width="80" height="80" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta-wrap">
-                                    <div class="topo-galleta" id="galleta-sarria">
+                                    <div class="topo-galleta" id="galleta-sarria" data-nombre="Sarrià" data-altitud="90 m" tabindex="0" role="button" aria-label="Sarrià, 90 metros">
                                         <span class="topo-galleta-temp" id="temp-sarria">30</span>
                                     </div>
-                                    <div class="topo-galleta-label">
-                                        <span class="topo-galleta-nombre">Sarrià</span>
-                                        <span class="topo-galleta-alt">90 m</span>
-                                    </div>
                                 </div>
                             </foreignObject>
 
-                            <!-- 5. Eixample · 40 m (línea corta: galleta más cerca del relieve) -->
+                            <!-- 5. Eixample · 40 m -->
                             <foreignObject x="614" y="248" width="84" height="80" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta-wrap">
-                                    <div class="topo-galleta" id="galleta-eixample">
+                                    <div class="topo-galleta" id="galleta-eixample" data-nombre="Eixample" data-altitud="40 m" tabindex="0" role="button" aria-label="Eixample, 40 metros">
                                         <span class="topo-galleta-temp" id="temp-eixample">29</span>
-                                    </div>
-                                    <div class="topo-galleta-label">
-                                        <span class="topo-galleta-nombre">Eixample</span>
-                                        <span class="topo-galleta-alt">40 m</span>
                                     </div>
                                 </div>
                             </foreignObject>
 
-                            <!-- 6. Port Olímpic · 5 m (línea larga, desplazada a la izquierda para no salirse del viewBox) -->
+                            <!-- 6. Port Olímpic · 5 m -->
                             <foreignObject x="734" y="273" width="104" height="80" style="overflow:visible;">
                                 <div xmlns="http://www.w3.org/1999/xhtml" class="topo-galleta-wrap">
-                                    <div class="topo-galleta" id="galleta-costa">
+                                    <div class="topo-galleta" id="galleta-costa" data-nombre="Port Olímpic" data-altitud="5 m" tabindex="0" role="button" aria-label="Port Olímpic, 5 metros">
                                         <span class="topo-galleta-temp" id="temp-costa">28</span>
-                                    </div>
-                                    <div class="topo-galleta-label">
-                                        <span class="topo-galleta-nombre">Port Olímpic</span>
-                                        <span class="topo-galleta-alt">5 m</span>
                                     </div>
                                 </div>
                             </foreignObject>
@@ -1879,6 +1930,44 @@
                         const factor = (t - min) / (max - min);
                         return factor > 0.5 ? '#FFF2CC' : '#E2F0D9'; // amarillo zona media-alta / verde zona media-baja
                     }
+
+                    /* ── "La Galleta" · lógica de interacción del panel central ──
+                       Un único punto de verdad para lo que muestra el panel:
+                       arranca con el texto genérico y, al pasar el ratón o
+                       tocar/clicar una burbuja, muestra nombre + altitud leídos
+                       de sus atributos data-nombre / data-altitud. */
+                    const TOPO_TEXTO_INICIAL = 'Toca una zona de la montaña';
+
+                    function iniciarGalletaSuperior() {
+                        const panelTexto = document.getElementById('galleta-superior-texto');
+                        if (!panelTexto) return;
+
+                        function mostrarInfo(el) {
+                            const nombre = el.dataset.nombre;
+                            const altitud = el.dataset.altitud;
+                            if (!nombre) return;
+                            panelTexto.innerHTML =
+                                '<span class="galleta-superior-nombre">' + nombre + '</span>' +
+                                '<span class="galleta-superior-sep">·</span>' +
+                                '<span class="galleta-superior-alt">' + (altitud || '') + '</span>';
+
+                            document.querySelectorAll('.topo-galleta.topo-galleta-activa')
+                                .forEach(otra => { if (otra !== el) otra.classList.remove('topo-galleta-activa'); });
+                            el.classList.add('topo-galleta-activa');
+                        }
+
+                        document.querySelectorAll('.topo-galleta').forEach(el => {
+                            el.addEventListener('mouseenter', () => mostrarInfo(el));
+                            el.addEventListener('click', () => mostrarInfo(el));
+                            el.addEventListener('keydown', (ev) => {
+                                if (ev.key === 'Enter' || ev.key === ' ') {
+                                    ev.preventDefault();
+                                    mostrarInfo(el);
+                                }
+                            });
+                        });
+                    }
+                    iniciarGalletaSuperior();
 
                     function renderPerfilTopografico() {
                         const vals = TOPO_ORDEN.map(k => TOPO_TEMPS[k]).filter(v => typeof v === 'number' && !Number.isNaN(v));
