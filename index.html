@@ -2168,14 +2168,19 @@
                         });
                         // Encuadre FIJO (no depende del contenedor ni del dispositivo):
                         // desde Tibidabo/Fabra hasta Sant Andreu y Port Olímpic.
-                        map.fitBounds([[41.365, 2.093], [41.450, 2.222]]);
+                        map.fitBounds([[41.365, 2.093], [41.450, 2.222]], { maxZoom: 16 });
 
-                        const capaClara = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                            attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19
-                        });
-                        const capaOscura = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                            attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19
-                        });
+                        // Teselas Esri "Light/Dark Gray Canvas": minimalistas, gratuitas
+                        // y SIN necesidad de API key (a diferencia de CARTO, que ahora la exige).
+                        const ATRIB_ESRI = 'Esri, HERE, Garmin, &copy; OpenStreetMap contributors';
+                        const capaClara = L.layerGroup([
+                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { attribution: ATRIB_ESRI, maxZoom: 16 }),
+                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 })
+                        ]);
+                        const capaOscura = L.layerGroup([
+                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { attribution: ATRIB_ESRI, maxZoom: 16 }),
+                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 })
+                        ]);
 
                         function esNocheBarcelona() {
                             const h = parseInt(new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', hour12: false }), 10);
