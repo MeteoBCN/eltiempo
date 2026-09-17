@@ -1,0 +1,47 @@
+name: Generar Fondo Mapa
+
+# Solo disparo manual: el mapa base (calles/costa) no cambia con el
+# tiempo, así que no tiene sentido programarlo con un cron. Se lanza
+# una vez, o cuando quieras cambiar el encuadre/estilo del fondo
+# editando generar_fondo_mapa.py.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generar-fondo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Instalar dependencias
+        run: pip install requests
+
+      - name: Generar mapa base
+        env:
+          GEOAPIFY_API_KEY: ${{ secrets.GEOAPIFY_API_KEY }}
+        run: python generar_fondo_mapa.py
+
+      - name: Commit y push del mapa base
+        run: |
+          git config user.name "Radar Bot"
+          git config user.email "radar-bot@users.noreply.github.com"
+
+          git add radar_fondo_mapa.png
+
+          if git diff --cached --quiet; then
+            echo "Sin cambios en el mapa base; no se hace commit."
+            exit 0
+          fi
+
+          git commit -m "Generar mapa base para el radar de Barcelona [skip ci]"
+          git push
