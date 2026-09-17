@@ -1,0 +1,54 @@
+name: Actualizar Radar Barcelona
+
+on:
+  schedule:
+    # Cada 10 minutos. AEMET publica el radar en un ciclo similar, así
+    # que este intervalo mantiene la imagen prácticamente al día sin
+    # saturar la API.
+    - cron: "*/10 * * * *"
+  # Permite lanzar el workflow manualmente desde la pestaña Actions.
+  workflow_dispatch:
+
+# Necesario para que el job pueda hacer 'git push' de vuelta al repo.
+permissions:
+  contents: write
+
+jobs:
+  actualizar-radar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Instalar dependencias
+        run: pip install requests pillow
+
+      - name: Ejecutar script de actualización del radar
+        env:
+          AEMET_API_KEY: ${{ secrets.AEMET_API_KEY }}
+        run: python actualizar_radar.py
+
+      - name: Commit y push de la imagen actualizada
+        run: |
+          git config user.name "Radar Bot"
+          git config user.email "radar-bot@users.noreply.github.com"
+
+          # -A para que también se registren las bajas de los fotogramas
+          # podados por el script, no solo las altas.
+          git add -A radar_frames radar_barcelona.png radar_barcelona_animado.gif
+
+          # Evita que el job falle cuando AEMET devuelve exactamente la
+          # misma imagen que ya teníamos (no hay cambios que commitear).
+          if git diff --cached --quiet; then
+            echo "Sin cambios en el radar; no se hace commit."
+            exit 0
+          fi
+
+          git commit -m "Actualización automática del radar de Barcelona [skip ci]"
+          git push
