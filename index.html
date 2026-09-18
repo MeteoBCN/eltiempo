@@ -1278,9 +1278,16 @@
                     </div>
                 </div>
 
+                <div id="proximas-5h-widget" style="margin-top:16px;padding:14px 10px;background:#ffffff;border-radius:12px;">
+                    <div style="font-size:12px;font-weight:700;color:#123653;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;text-align:center;">Próximas horas</div>
+                    <div id="proximas-5h-row" style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px;">
+                        <div style="flex:1;text-align:center;padding:10px 6px;color:#94a3b8;font-size:11px;">Cargando…</div>
+                    </div>
+                </div>
+
                     <div id="paraguas-chart-wrap" style="width:calc(100% + (2 * var(--gutter)));margin:28px calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));background:#f7f8fa;padding:14px 0;border-top:1px solid rgba(28,79,120,0.3);border-bottom:1px solid rgba(28,79,120,0.3);">
 
-                        <div id="sport-section-wrap" style="margin-top:28px;padding-top:20px;">
+                        <div id="sport-section-wrap" style="">
                             <div style="font-family:'Fraunces',serif;font-style:italic;font-size:19px;font-weight:500;color:#123653;text-align:center;margin-bottom:2px;letter-spacing:0.2px;">¿Sales a correr por Barcelona?</div>
                             <div id="sport-section-subtitle" style="font-size:10px;font-weight:600;color:#123653;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:10px;margin-bottom:6px;">Elige la hora perfecta para tu plan</div>
                             <div id="sport-section-cards" style="display:flex;flex-direction:column;gap:0;padding:14px 10px 10px;background:#f7f8fa;border-radius:14px;">
@@ -3525,6 +3532,35 @@
                 <path d="M12 2.5C12 2.5 5 11.2 5 15.6C5 19.6 8.13 22.5 12 22.5C15.87 22.5 19 19.6 19 15.6C19 11.2 12 2.5 12 2.5Z" stroke="${color}" stroke-width="1.6" fill="none"/>
                 <line x1="4" y1="21" x2="20" y2="3" stroke="${color}" stroke-width="1.7" stroke-linecap="round"/>
             </svg>`;
+        }
+
+        // ── Franja "Próximas horas": solo hora, icono de cielo y temperatura ──
+        function updateProximas5h(hourly) {
+            const row = document.getElementById('proximas-5h-row');
+            if (!row || !hourly?.time) return;
+            const now = new Date();
+            let startIdx = hourly.time.findIndex(t => new Date(t) >= now);
+            if (startIdx === -1) startIdx = 0;
+            if (startIdx > 0 && (new Date(hourly.time[startIdx]) - now) > 30 * 60 * 1000) startIdx = Math.max(0, startIdx - 1);
+
+            let html = '';
+            for (let k = 0; k < 5; k++) {
+                const idx = startIdx + k;
+                if (idx >= hourly.time.length) break;
+                const dt = new Date(hourly.time[idx]);
+                const label = k === 0 ? 'Ahora' : String(dt.getHours()).padStart(2, '0') + 'h';
+                const isNight = (typeof isNightTime === 'function') ? isNightTime(dt) : false;
+                const wmo = hourly.weather_code?.[idx] ?? 0;
+                const icon = (typeof getSvgIcon === 'function') ? getSvgIcon(wmo, 30, isNight) : '';
+                const temp = hourly.temperature_2m?.[idx] !== undefined ? Math.round(hourly.temperature_2m[idx]) + '°' : '--';
+                html += `
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                        <div style="font-size:11px;font-weight:600;color:#123653;white-space:nowrap;">${label}</div>
+                        <div style="line-height:1;">${icon}</div>
+                        <div style="font-size:14px;font-weight:700;color:#123653;">${temp}</div>
+                    </div>`;
+            }
+            row.innerHTML = html;
         }
 
         function updateParaguasSection(hourly) {
@@ -9182,6 +9218,7 @@
                 updateRunningIndex(data.current, data.hourly, data.daily, aqData?.hourly ?? null);
                 updateSportSection(data.current, data.hourly, aqData?.hourly ?? null);
                 updateParaguasSection(data.hourly);
+                updateProximas5h(data.hourly);
                 drawParaguasHourlyChart(data.hourly);
                 loadGhostTrendChart(data.daily);
                 _hourlyCache = data.hourly;
