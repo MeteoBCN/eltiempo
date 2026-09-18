@@ -788,7 +788,8 @@
            En escritorio (>480px) no se tocan, quedan como estaban. */
         @media (max-width: 480px) {
             #paraguas-chart-wrap,
-            #paraguas-chart-wrap-days {
+            #paraguas-chart-wrap-days,
+            #proximas-5h-widget {
                 width: calc(100vw - 16px) !important;
                 margin-left: calc(50% - 50vw + 8px) !important;
                 margin-right: calc(50% - 50vw + 8px) !important;
@@ -3539,16 +3540,18 @@
             const row = document.getElementById('proximas-5h-row');
             if (!row || !hourly?.time) return;
             const now = new Date();
-            let startIdx = hourly.time.findIndex(t => new Date(t) >= now);
+            // Empezamos en la próxima hora completa (no en la hora actual, que
+            // ya se muestra en el bloque de Tiempo actual). Si ahora son las
+            // 23:40, el primer bloque será las 00h, no las 23h "actuales".
+            let startIdx = hourly.time.findIndex(t => new Date(t) > now);
             if (startIdx === -1) startIdx = 0;
-            if (startIdx > 0 && (new Date(hourly.time[startIdx]) - now) > 30 * 60 * 1000) startIdx = Math.max(0, startIdx - 1);
 
             let html = '';
             for (let k = 0; k < 5; k++) {
                 const idx = startIdx + k;
                 if (idx >= hourly.time.length) break;
                 const dt = new Date(hourly.time[idx]);
-                const label = k === 0 ? 'Ahora' : String(dt.getHours()).padStart(2, '0') + 'h';
+                const label = String(dt.getHours()).padStart(2, '0') + 'h';
                 const isNight = (typeof isNightTime === 'function') ? isNightTime(dt) : false;
                 const wmo = hourly.weather_code?.[idx] ?? 0;
                 const icon = (typeof getSvgIcon === 'function') ? getSvgIcon(wmo, 30, isNight) : '';
