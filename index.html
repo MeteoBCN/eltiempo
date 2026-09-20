@@ -1283,7 +1283,7 @@
                     <div id="proximas-5h-row" style="display:flex;align-items:stretch;justify-content:space-between;gap:6px;">
                         <div style="flex:1;text-align:center;padding:10px 6px;color:rgba(255,255,255,0.6);font-size:11px;">Cargando…</div>
                     </div>
-                    <div id="proximas-5h-chart" style="margin-top:4px;"></div>
+                    <div id="proximas-5h-chart" style="margin-top:12px;"></div>
                 </div>
                 <img src="titular.jpg" alt="" style="display:block;width:calc(100% + (2 * var(--gutter)) + 96px);margin:0 calc((-1 * var(--gutter)) - 48px) 0 calc((-1 * var(--gutter)) - 48px);height:auto;">
 
@@ -3557,7 +3557,7 @@
                 const label = String(dt.getHours()).padStart(2, '0') + 'h';
                 const isNight = (typeof isNightTime === 'function') ? isNightTime(dt) : false;
                 const wmo = hourly.weather_code?.[idx] ?? 0;
-                const icon = (typeof getSvgIcon === 'function') ? getSvgIcon(wmo, 30, isNight) : '';
+                const icon = (typeof getSvgIcon === 'function') ? getSvgIcon(wmo, 36, isNight) : '';
                 const temp = hourly.temperature_2m?.[idx];
                 points.push({ label, temp });
                 html += `
@@ -3572,25 +3572,40 @@
 
             // Gráfica de temperatura: línea con degradado rojo (máxima) / azul
             // (mínima), con el dato de temperatura encima de cada punto.
+            // Se usa la temperatura YA REDONDEADA (la misma que se muestra en
+            // el texto) tanto para la altura del punto como para el color,
+            // así dos horas con el mismo "23°" quedan exactamente a la misma
+            // altura en vez de variar por decimales que no se ven.
             if (chartWrap && points.length) {
-                const temps = points.map(p => p.temp).filter(t => t !== undefined && t !== null);
-                const maxT = Math.max(...temps);
-                const minT = Math.min(...temps);
-                const W = 300, H = 64, padX = 30, padTop = 22, padBottom = 10;
+                const rTemps = points.map(p => (p.temp !== undefined && p.temp !== null) ? Math.round(p.temp) : null);
+                const validTemps = rTemps.filter(t => t !== null);
+                const maxT = Math.max(...validTemps);
+                const minT = Math.min(...validTemps);
+                const W = 300, H = 64, padX = 30, padTop = 30, padBottom = 10;
                 const n = points.length;
                 const xAt = i => (n === 1) ? W / 2 : padX + (i * (W - 2 * padX) / (n - 1));
                 const yAt = t => {
-                    if (t === undefined || t === null) return H - padBottom;
+                    if (t === null) return H - padBottom;
                     if (maxT === minT) return (H - padBottom + padTop) / 2;
                     return padTop + (1 - (t - minT) / (maxT - minT)) * (H - padTop - padBottom);
                 };
-                const coords = points.map((p, i) => ({ x: xAt(i), y: yAt(p.temp), temp: p.temp }));
+                // Color intermedio del degradado rojo→azul según dónde cae la
+                // temperatura entre el mínimo (azul) y el máximo (rojo).
+                const colorAt = t => {
+                    if (t === null) return '#ffffff';
+                    const ratio = (maxT === minT) ? 1 : (t - minT) / (maxT - minT); // 1=máxima(rojo), 0=mínima(azul)
+                    const c1 = [78, 155, 255];  // azul (mínima)
+                    const c2 = [255, 90, 78];   // rojo (máxima)
+                    const mix = c1.map((c, i) => Math.round(c + (c2[i] - c) * ratio));
+                    return `rgb(${mix[0]},${mix[1]},${mix[2]})`;
+                };
+                const coords = rTemps.map((t, i) => ({ x: xAt(i), y: yAt(t), temp: t }));
                 const path = coords.map((c, i) => (i === 0 ? 'M' : 'L') + c.x.toFixed(1) + ',' + c.y.toFixed(1)).join(' ');
                 const labelsSvg = coords.map(c =>
-                    `<text x="${c.x.toFixed(1)}" y="${(c.y - 10).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">${c.temp !== undefined && c.temp !== null ? Math.round(c.temp) + '°' : '--'}</text>`
+                    `<text x="${c.x.toFixed(1)}" y="${(c.y - 12).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="${colorAt(c.temp)}">${c.temp !== null ? c.temp + '°' : '--'}</text>`
                 ).join('');
                 const dotsSvg = coords.map(c =>
-                    `<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="3.5" fill="#ffffff"/>`
+                    `<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="2" fill="#ffffff"/>`
                 ).join('');
                 chartWrap.innerHTML = `
                     <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;">
