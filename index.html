@@ -1278,14 +1278,14 @@
                     </div>
                 </div>
 
-                <div id="proximas-5h-widget" style="width:calc(100% + (2 * var(--gutter)) + 96px);margin:16px calc((-1 * var(--gutter)) - 48px) 0 calc((-1 * var(--gutter)) - 48px);padding:20px 16px;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);border-radius:0;overflow:hidden;">
-                    <div style="font-size:20px;font-weight:300;color:#ffffff;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:12px;">Meteo<span style="font-weight:900;">flash</span></div>
+                <div id="proximas-5h-widget" style="width:calc(100% + (2 * var(--gutter)) + 96px);margin:16px calc((-1 * var(--gutter)) - 48px) 0 calc((-1 * var(--gutter)) - 48px);padding:20px 16px 32px;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);border-radius:0;overflow:hidden;">
+                    <div style="font-size:20px;font-weight:300;color:#ffffff;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:24px;">Meteo<span style="font-weight:900;">flash</span></div>
                     <div id="proximas-5h-content" style="position:relative;">
                         <div id="proximas-5h-dividers" style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;"></div>
                         <div id="proximas-5h-row" style="display:flex;align-items:stretch;justify-content:space-between;gap:6px;position:relative;">
                             <div style="flex:1;text-align:center;padding:10px 6px;color:rgba(255,255,255,0.6);font-size:11px;">Cargando…</div>
                         </div>
-                        <div id="proximas-5h-chart" style="margin-top:12px;position:relative;"></div>
+                        <div id="proximas-5h-chart" style="margin-top:18px;position:relative;"></div>
                     </div>
                 </div>
                 <img src="titular.jpg" alt="" style="display:block;width:calc(100% + (2 * var(--gutter)) + 96px);margin:0 calc((-1 * var(--gutter)) - 48px) 0 calc((-1 * var(--gutter)) - 48px);height:auto;">
@@ -3596,7 +3596,7 @@
                 const validTemps = rTemps.filter(t => t !== null);
                 const maxT = Math.max(...validTemps);
                 const minT = Math.min(...validTemps);
-                const W = 300, H = 70, padX = 30, padTop = 12, padBottom = 14;
+                const W = 300, H = 84, padX = 30, padTop = 30, padBottom = 14;
                 const n = points.length;
                 const xAt = i => (n === 1) ? W / 2 : padX + (i * (W - 2 * padX) / (n - 1));
                 const yAt = t => {
@@ -3634,7 +3634,7 @@
                 };
                 const path = smoothPath(coords);
                 // Todas las temperaturas alineadas en la misma línea horizontal
-                const labelY = padTop - 2;
+                const labelY = 14;
                 const labelsSvg = coords.map(c =>
                     `<text x="${c.x.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-size="16" font-weight="300" fill="#ffffff">${c.temp !== null ? c.temp + '°' : '--'}</text>`
                 ).join('');
