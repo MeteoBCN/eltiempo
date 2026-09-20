@@ -1280,10 +1280,13 @@
 
                 <div id="proximas-5h-widget" style="width:calc(100% + (2 * var(--gutter)) + 96px);margin:16px calc((-1 * var(--gutter)) - 48px) 0 calc((-1 * var(--gutter)) - 48px);padding:20px 16px;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);border-radius:0;overflow:hidden;">
                     <div style="font-size:20px;font-weight:300;color:#ffffff;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:12px;">Meteo<span style="font-weight:900;">flash</span></div>
-                    <div id="proximas-5h-row" style="display:flex;align-items:stretch;justify-content:space-between;gap:6px;">
-                        <div style="flex:1;text-align:center;padding:10px 6px;color:rgba(255,255,255,0.6);font-size:11px;">Cargando…</div>
+                    <div id="proximas-5h-content" style="position:relative;">
+                        <div id="proximas-5h-dividers" style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;"></div>
+                        <div id="proximas-5h-row" style="display:flex;align-items:stretch;justify-content:space-between;gap:6px;position:relative;">
+                            <div style="flex:1;text-align:center;padding:10px 6px;color:rgba(255,255,255,0.6);font-size:11px;">Cargando…</div>
+                        </div>
+                        <div id="proximas-5h-chart" style="margin-top:12px;position:relative;"></div>
                     </div>
-                    <div id="proximas-5h-chart" style="margin-top:12px;"></div>
                 </div>
                 <img src="titular.jpg" alt="" style="display:block;width:calc(100% + (2 * var(--gutter)) + 96px);margin:0 calc((-1 * var(--gutter)) - 48px) 0 calc((-1 * var(--gutter)) - 48px);height:auto;">
 
@@ -3562,26 +3565,38 @@
                 points.push({ label, temp });
                 html += `
                     <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;">
-                        <div style="display:inline-block;background:rgba(255,255,255,0.10);border-radius:16px;padding:6px 10px;">
-                            <div style="font-size:11px;font-weight:600;color:#ffffff;white-space:nowrap;">${label}</div>
-                        </div>
+                        <div style="font-size:13px;font-weight:600;color:#ffffff;white-space:nowrap;">${label}</div>
                         <div style="line-height:1;">${icon}</div>
                     </div>`;
             }
             row.innerHTML = html;
 
-            // Gráfica de temperatura: línea con degradado rojo (máxima) / azul
-            // (mínima), con el dato de temperatura encima de cada punto.
-            // Se usa la temperatura YA REDONDEADA (la misma que se muestra en
-            // el texto) tanto para la altura del punto como para el color,
-            // así dos horas con el mismo "23°" quedan exactamente a la misma
-            // altura en vez de variar por decimales que no se ven.
+            // Líneas verticales discontinuas y sutiles que separan cada franja
+            // horaria, desde la fila de horas/iconos hasta el final de la
+            // gráfica (un overlay a parte que cubre todo el bloque).
+            const dividersWrap = document.getElementById('proximas-5h-dividers');
+            if (dividersWrap) {
+                const nDiv = points.length;
+                let divHtml = '';
+                for (let i = 1; i < nDiv; i++) {
+                    const pct = (i * 100 / nDiv).toFixed(3);
+                    divHtml += `<div style="position:absolute;top:0;bottom:0;left:${pct}%;width:0;border-left:1px dashed rgba(255,255,255,0.18);"></div>`;
+                }
+                dividersWrap.innerHTML = divHtml;
+            }
+
+            // Gráfica de temperatura: línea curva con degradado rojo (máxima) /
+            // azul (mínima). Los números de temperatura van todos alineados en
+            // una misma línea (no encima de cada punto), en blanco, estilo
+            // "Meteoflash". Se usa la temperatura YA REDONDEADA (la misma que
+            // se muestra en el texto) para la altura y el color del punto, así
+            // dos horas con el mismo "23°" quedan exactamente a la misma altura.
             if (chartWrap && points.length) {
                 const rTemps = points.map(p => (p.temp !== undefined && p.temp !== null) ? Math.round(p.temp) : null);
                 const validTemps = rTemps.filter(t => t !== null);
                 const maxT = Math.max(...validTemps);
                 const minT = Math.min(...validTemps);
-                const W = 300, H = 64, padX = 30, padTop = 30, padBottom = 10;
+                const W = 300, H = 70, padX = 30, padTop = 12, padBottom = 14;
                 const n = points.length;
                 const xAt = i => (n === 1) ? W / 2 : padX + (i * (W - 2 * padX) / (n - 1));
                 const yAt = t => {
@@ -3600,17 +3615,28 @@
                     return `rgb(${mix[0]},${mix[1]},${mix[2]})`;
                 };
                 const coords = rTemps.map((t, i) => ({ x: xAt(i), y: yAt(t), temp: t }));
-                const path = coords.map((c, i) => (i === 0 ? 'M' : 'L') + c.x.toFixed(1) + ',' + c.y.toFixed(1)).join(' ');
-                // Líneas verticales discontinuas y sutiles entre cada franja horaria
-                const dividersSvg = coords.slice(0, -1).map((c, i) => {
-                    const midX = ((c.x + coords[i + 1].x) / 2).toFixed(1);
-                    return `<line x1="${midX}" y1="0" x2="${midX}" y2="${H}" stroke="rgba(255,255,255,0.18)" stroke-width="1" stroke-dasharray="2,3"/>`;
-                }).join('');
+                // Curva suave (Catmull-Rom → Bézier) en vez de segmentos rectos
+                const smoothPath = (pts) => {
+                    if (pts.length < 2) return '';
+                    let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+                    for (let i = 0; i < pts.length - 1; i++) {
+                        const p0 = pts[i === 0 ? 0 : i - 1];
+                        const p1 = pts[i];
+                        const p2 = pts[i + 1];
+                        const p3 = pts[i + 2 < pts.length ? i + 2 : i + 1];
+                        const c1x = p1.x + (p2.x - p0.x) / 6;
+                        const c1y = p1.y + (p2.y - p0.y) / 6;
+                        const c2x = p2.x - (p3.x - p1.x) / 6;
+                        const c2y = p2.y - (p3.y - p1.y) / 6;
+                        d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+                    }
+                    return d;
+                };
+                const path = smoothPath(coords);
+                // Todas las temperaturas alineadas en la misma línea horizontal
+                const labelY = padTop - 2;
                 const labelsSvg = coords.map(c =>
-                    `<text x="${c.x.toFixed(1)}" y="${(c.y - 12).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="${colorAt(c.temp)}">${c.temp !== null ? c.temp + '°' : '--'}</text>`
-                ).join('');
-                const dotsSvg = coords.map(c =>
-                    `<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="2" fill="#ffffff"/>`
+                    `<text x="${c.x.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-size="16" font-weight="300" fill="#ffffff">${c.temp !== null ? c.temp + '°' : '--'}</text>`
                 ).join('');
                 chartWrap.innerHTML = `
                     <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;">
@@ -3620,9 +3646,7 @@
                                 <stop offset="100%" stop-color="#4e9bff"/>
                             </linearGradient>
                         </defs>
-                        ${dividersSvg}
                         <path d="${path}" fill="none" stroke="url(#proximas5hTempGrad)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        ${dotsSvg}
                         ${labelsSvg}
                     </svg>`;
             }
