@@ -1815,17 +1815,16 @@
                         flex:1; min-width:0;
                         display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
                         padding:11px 3px; border-radius:11px;
-                        background:#ffffff;
-                        border:1px solid rgba(18,54,83,0.07);
-                        box-shadow:0 1px 4px rgba(18,54,83,0.07);
+                        background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);
+                        border:1px solid rgba(255,255,255,0.08);
+                        box-shadow:0 1px 4px rgba(18,54,83,0.18);
                         opacity:0; transform:translateY(3px) scale(0.97);
                         transition:opacity 0.6s ease, transform 0.6s ease;
                     }
                     .estaciones-galleta.estaciones-galleta-visible{ opacity:1; transform:translateY(0) scale(1); }
-                    .estaciones-galleta-temp{ font-size:16px;font-weight:600;color:#123653;font-family:'Fraunces',serif;line-height:1;display:flex;align-items:flex-start; }
+                    .estaciones-galleta-temp{ font-size:28px;font-weight:800;color:#ffffff;font-family:'Inter',sans-serif;letter-spacing:-1px;line-height:1;display:flex;align-items:flex-start; }
                     .estaciones-galleta-temp sup{ font-size:0.5em;font-weight:500;margin-left:1px; }
-                    .estaciones-galleta-tendencia{ font-size:8px;line-height:1;color:#3B82F6;opacity:0.75; }
-                    .estaciones-galleta-nombre{ font-size:8.5px;font-weight:500;color:#64748b;text-align:center;line-height:1.2;letter-spacing:0.1px; }
+                    .estaciones-galleta-nombre{ font-size:8.5px;font-weight:500;color:rgba(255,255,255,0.75);text-align:center;line-height:1.2;letter-spacing:0.1px;text-transform:uppercase; }
                     .estaciones-galleta-dots{ display:flex; justify-content:center; gap:5px; margin-top:14px; }
                     .estaciones-galleta-dot{
                         width:16px;height:3px;border-radius:2px;background:#dde3ea;
@@ -1835,12 +1834,18 @@
                     }
                     .estaciones-galleta-dot.activo{ background:#3B82F6; width:22px; }
                     @media (max-width: 480px) {
-                        .estaciones-galleta-title,
-                        .estaciones-galleta-row{
+                        .estaciones-galleta-title{
                             padding-left: calc(var(--gutter) + 4px);
                             padding-right: calc(var(--gutter) + 4px);
                         }
-                        .estaciones-galleta-row{ gap:5px; }
+                        .estaciones-galleta-row{
+                            width: calc(100% + (2 * var(--gutter)));
+                            margin-left: calc(-1 * var(--gutter));
+                            margin-right: calc(-1 * var(--gutter));
+                            padding-left: 6px;
+                            padding-right: 6px;
+                            gap:5px;
+                        }
                     }
                 </style>
                 <div class="estaciones-galleta-wrap">
@@ -1891,35 +1896,14 @@
                             dotsWrap.appendChild(dot);
                         });
 
-                        // Tendencia (por encima / por debajo de la media de las 15
-                        // estaciones) en vez de un color por tarjeta: un único acento
-                        // (azul de marca) con flecha, sin volver al semáforo de colores.
-                        function mediaEstaciones() {
-                            const vals = ESTACIONES
-                                .map(e => window.TOPO_TEMPS[e.key])
-                                .filter(v => typeof v === 'number' && !Number.isNaN(v));
-                            if (!vals.length) return null;
-                            return vals.reduce((a, b) => a + b, 0) / vals.length;
-                        }
-
-                        function tendenciaHtml(temp, media) {
-                            if (typeof temp !== 'number' || Number.isNaN(temp) || media === null) return '';
-                            const diff = temp - media;
-                            if (diff > 0.3) return '<span class="estaciones-galleta-tendencia">▲</span>';
-                            if (diff < -0.3) return '<span class="estaciones-galleta-tendencia">▼</span>';
-                            return '';
-                        }
-
                         function pintarGrupo(idx) {
                             fila.innerHTML = '';
-                            const media = mediaEstaciones();
                             GRUPOS[idx].forEach(est => {
                                 const temp = window.TOPO_TEMPS[est.key];
                                 const el = document.createElement('div');
                                 el.className = 'estaciones-galleta';
                                 el.innerHTML =
                                     '<span class="estaciones-galleta-temp">' + (typeof temp === 'number' && !Number.isNaN(temp) ? Math.round(temp) + '<sup>°</sup>' : '--') + '</span>' +
-                                    tendenciaHtml(temp, media) +
                                     '<span class="estaciones-galleta-nombre">' + est.nombre + '</span>';
                                 fila.appendChild(el);
                             });
