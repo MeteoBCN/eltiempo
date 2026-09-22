@@ -135,13 +135,13 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            opacity: 0.65; /* Compensa el tono más oscuro para que sigan siendo visibles */
+            opacity: 0.85; /* Mucha más presencia sobre el fondo navy */
             pointer-events: none;
         }
 
         .nube {
             position: absolute;
-            background: #3c4f60; /* Gris oscuro base */
+            background: #57626b; /* Gris neutro (menos azulado que el fondo, para que contraste) */
             border-radius: 50%;
             filter: blur(18px); /* Desenfoque reducido para que se note mejor el desplazamiento */
         }
@@ -152,8 +152,8 @@
             height: 150px;
             top: -20px;
             left: -10%;
-            background: #45596c;
-            box-shadow: 200px 50px 0 40px #35485a, -100px 20px 0 30px #2a3a48;
+            background: #626f79;
+            box-shadow: 200px 50px 0 40px #4b565f, -100px 20px 0 30px #3a434a;
             animation: viento-nube-1 8s ease-in-out infinite alternate;
         }
 
@@ -162,8 +162,8 @@
             height: 180px;
             bottom: -30px;
             right: -10%;
-            background: #4e6579;
-            box-shadow: -250px -40px 0 50px #2a3a48, 150px -20px 0 40px #3c5265;
+            background: #6c7a84;
+            box-shadow: -250px -40px 0 50px #3a434a, 150px -20px 0 40px #57646d;
             animation: viento-nube-2 16s ease-in-out infinite alternate-reverse;
         }
 
@@ -240,7 +240,7 @@
             animation: relampago-banner 10s infinite;
         }
 
-        /* ESTRUCTURA DEL RAYO (zigzag), sincronizada con los destellos de brillo */
+        /* ESTRUCTURA DEL RAYO (zigzag), solo en el destello del 64% */
         .rayo {
             position: absolute;
             top: -5%;
@@ -250,23 +250,10 @@
             pointer-events: none;
             z-index: 4; /* por delante de nubes, por detrás del logo (z-index:10) */
         }
-        .rayo-blanco {
-            left: 24%;
-            filter: drop-shadow(0 0 12px rgba(255,255,255,0.9));
-            animation: aparicion-rayo-blanco 10s infinite;
-        }
         .rayo-morado {
             right: 20%;
             filter: drop-shadow(0 0 12px rgba(190,140,255,0.9));
             animation: aparicion-rayo-morado 10s infinite;
-        }
-        @keyframes aparicion-rayo-blanco {
-            0%, 17.4%, 19%, 38.4%, 40.8%, 100% { opacity: 0; }
-            18% { opacity: 1; }
-            18.5% { opacity: 0.4; }
-            39% { opacity: 1; }
-            39.5% { opacity: 0.5; }
-            40% { opacity: 1; }
         }
         @keyframes aparicion-rayo-morado {
             0%, 63.4%, 64.7%, 100% { opacity: 0; }
@@ -1368,10 +1355,7 @@
                 <div class="nube nube-2"></div>
             </div>
 
-            <!-- Estructura del rayo (zigzag), sincronizada con los destellos -->
-            <svg class="rayo rayo-blanco" viewBox="0 0 40 100" preserveAspectRatio="none">
-                <polygon points="22,0 8,45 18,45 4,100 32,40 20,40" fill="#ffffff"></polygon>
-            </svg>
+            <!-- Estructura del rayo (zigzag), sincronizada con el destello -->
             <svg class="rayo rayo-morado" viewBox="0 0 40 100" preserveAspectRatio="none">
                 <polygon points="22,0 8,45 18,45 4,100 32,40 20,40" fill="#d9b8ff"></polygon>
             </svg>
