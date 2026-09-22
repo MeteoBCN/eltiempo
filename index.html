@@ -1739,52 +1739,55 @@
                         };
                     }
 
-                    async function obtenerFallbackOpenMeteo() {
-                        const lats = PUNTOS.map(p => p.lat).join(',');
-                        const lons = PUNTOS.map(p => p.lon).join(',');
-                        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}` +
+                    async function obtenerFallbackOpenMeteo(punto) {
+                        const url = `https://api.open-meteo.com/v1/forecast?latitude=${punto.lat}&longitude=${punto.lon}` +
                             `&current=temperature_2m,relative_humidity_2m,precipitation&timezone=Europe/Madrid`;
                         const resp = await fetch(url);
                         if (!resp.ok) throw new Error('Respuesta no OK de Open-Meteo');
-                        const data = await resp.json(); // Array con un objeto "current" por punto, en el mismo orden que PUNTOS
-                        return data.map(d => ({
-                            temp: Math.round(d.current.temperature_2m),
-                            hum: Math.round(d.current.relative_humidity_2m),
-                            lluvia: d.current.precipitation
-                        }));
+                        const data = await resp.json();
+                        return {
+                            temp: Math.round(data.current.temperature_2m),
+                            hum: Math.round(data.current.relative_humidity_2m),
+                            lluvia: data.current.precipitation
+                        };
                     }
 
-                    async function cargarEfectoAltura() {
-                        // Se piden las 6 estaciones reales EN PARALELO, más el fallback
-                        // conjunto de Open-Meteo (por si alguna estación real falla).
-                        const [realResults, fallbackResult] = await Promise.all([
-                            Promise.allSettled(PUNTOS.map(p => obtenerDatoWeathercloud(p.code))),
-                            obtenerFallbackOpenMeteo().catch(err => {
-                                console.warn('Fallback Open-Meteo no disponible:', err.message);
-                                return null;
-                            })
-                        ]);
+                    // Cada estación llama por separado, en rotación, una cada 10s
+                    // (en vez de las 15 a la vez), para no saturar el proxy de
+                    // Weathercloud. Con 15 estaciones, cada una se refresca cada
+                    // ~2,5 minutos, y el fallback a Open-Meteo es también por
+                    // estación individual si el dato real falla puntualmente.
+                    let indicePuntoActual = 0;
 
-                        PUNTOS.forEach((punto, i) => {
-                            const real = realResults[i];
-                            if (real.status === 'fulfilled') {
-                                actualizarFilaAltura(punto.key, real.value);
-                            } else {
-                                console.warn(`No se pudo obtener el dato real de "${punto.key}" (${punto.code}), uso fallback Open-Meteo:`, real.reason?.message);
-                                if (fallbackResult) actualizarFilaAltura(punto.key, fallbackResult[i]);
+                    async function cargarEstacionIndividual(punto) {
+                        try {
+                            const real = await obtenerDatoWeathercloud(punto.code);
+                            actualizarFilaAltura(punto.key, real);
+                        } catch (err) {
+                            console.warn(`No se pudo obtener el dato real de "${punto.key}" (${punto.code}), uso fallback Open-Meteo:`, err.message);
+                            try {
+                                const fallback = await obtenerFallbackOpenMeteo(punto);
+                                actualizarFilaAltura(punto.key, fallback);
+                            } catch (err2) {
+                                console.warn(`Fallback Open-Meteo tampoco disponible para "${punto.key}":`, err2.message);
                             }
-                        });
+                        }
                     }
 
-                    // Lanza la carga cuando el DOM está listo
+                    function llamarSiguienteEstacion() {
+                        const punto = PUNTOS[indicePuntoActual];
+                        indicePuntoActual = (indicePuntoActual + 1) % PUNTOS.length;
+                        cargarEstacionIndividual(punto);
+                    }
+
+                    // Primera llamada en cuanto el DOM está listo, y luego una
+                    // estación nueva cada 10 segundos, en bucle continuo.
                     if (document.readyState === 'loading') {
-                        document.addEventListener('DOMContentLoaded', cargarEfectoAltura);
+                        document.addEventListener('DOMContentLoaded', llamarSiguienteEstacion);
                     } else {
-                        cargarEfectoAltura();
+                        llamarSiguienteEstacion();
                     }
-
-                    // Refresca cada 10 minutos, igual que el resto de datos en vivo del sitio
-                    setInterval(cargarEfectoAltura, 10 * 60 * 1000);
+                    setInterval(llamarSiguienteEstacion, 10 * 1000);
                 })();
                 </script>
                 <!-- ═══ FIN MÓDULO EFECTO ALTURA ═══ -->
@@ -1797,46 +1800,53 @@
                      vivo (window.TOPO_TEMPS) que ya alimenta el resto del sitio. -->
                 <style>
                     .estaciones-galleta-wrap{ margin:18px 0 4px; }
-                    .estaciones-galleta-title{ font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;text-align:center;margin-bottom:10px; }
-                    .estaciones-galleta-title,
-                    .estaciones-galleta-leyenda{
+                    .estaciones-galleta-title{ font-size:11px;font-weight:600;color:#64748b;letter-spacing:0.8px;text-align:center;margin-bottom:10px; }
+                    .estaciones-galleta-title{
                         padding-left: calc(var(--gutter) + 24px);
                         padding-right: calc(var(--gutter) + 24px);
                     }
                     .estaciones-galleta-row{
                         display:flex; align-items:stretch; justify-content:space-between;
-                        gap:7px; min-height:72px;
+                        gap:7px; min-height:76px;
                         padding-left: calc(var(--gutter) + 24px);
                         padding-right: calc(var(--gutter) + 24px);
                     }
                     .estaciones-galleta{
                         flex:1; min-width:0;
-                        display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
-                        padding:10px 3px; border-radius:14px;
-                        box-shadow:0 2px 6px rgba(18,54,83,0.16);
-                        opacity:0; transform:translateY(3px);
+                        display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+                        padding:11px 3px; border-radius:11px;
+                        background:#ffffff;
+                        border:1px solid rgba(18,54,83,0.07);
+                        box-shadow:0 1px 4px rgba(18,54,83,0.07);
+                        opacity:0; transform:translateY(3px) scale(0.97);
                         transition:opacity 0.6s ease, transform 0.6s ease;
                     }
-                    .estaciones-galleta.estaciones-galleta-visible{ opacity:1; transform:translateY(0); }
-                    .estaciones-galleta-temp{ font-size:15px;font-weight:800;color:#123653;font-family:'Inter',sans-serif;line-height:1; }
-                    .estaciones-galleta-nombre{ font-size:8.5px;font-weight:600;color:#123653;text-align:center;line-height:1.2;letter-spacing:0.1px; }
-                    .estaciones-galleta-leyenda{ display:flex; justify-content:center; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:10px; color:#64748b; letter-spacing:0.2px; }
-                    .estaciones-galleta-leyenda span{ display:flex; align-items:center; gap:5px; }
-                    .estaciones-galleta-leyenda i{ width:10px;height:10px;border-radius:50%;display:inline-block; }
-                    .estaciones-galleta-dots{ display:flex; justify-content:center; gap:6px; margin-top:12px; }
-                    .estaciones-galleta-dot{ width:6px;height:6px;border-radius:50%;background:#cbd5e1;transition:background 0.3s ease; }
-                    .estaciones-galleta-dot.activo{ background:#3B82F6; }
+                    .estaciones-galleta.estaciones-galleta-visible{ opacity:1; transform:translateY(0) scale(1); }
+                    .estaciones-galleta-temp{ font-size:16px;font-weight:600;color:#123653;font-family:'Fraunces',serif;line-height:1;display:flex;align-items:flex-start; }
+                    .estaciones-galleta-temp sup{ font-size:0.5em;font-weight:500;margin-left:1px; }
+                    .estaciones-galleta-tendencia{ font-size:8px;line-height:1;color:#3B82F6;opacity:0.75; }
+                    .estaciones-galleta-nombre{ font-size:8.5px;font-weight:500;color:#64748b;text-align:center;line-height:1.2;letter-spacing:0.1px; }
+                    .estaciones-galleta-dots{ display:flex; justify-content:center; gap:5px; margin-top:14px; }
+                    .estaciones-galleta-dot{
+                        width:16px;height:3px;border-radius:2px;background:#dde3ea;
+                        transition:background 0.3s ease, width 0.3s ease;
+                        cursor:pointer; padding:6px 0; background-clip:content-box; box-sizing:content-box;
+                        border:none;
+                    }
+                    .estaciones-galleta-dot.activo{ background:#3B82F6; width:22px; }
+                    @media (max-width: 480px) {
+                        .estaciones-galleta-title,
+                        .estaciones-galleta-row{
+                            padding-left: calc(var(--gutter) + 4px);
+                            padding-right: calc(var(--gutter) + 4px);
+                        }
+                        .estaciones-galleta-row{ gap:5px; }
+                    }
                 </style>
                 <div class="estaciones-galleta-wrap">
                     <div class="estaciones-galleta-title">Las estaciones, en directo</div>
                     <div class="estaciones-galleta-row" id="estaciones-galleta-row"></div>
                     <div class="estaciones-galleta-dots" id="estaciones-galleta-dots"></div>
-                    <div class="estaciones-galleta-leyenda">
-                        <span><i style="background:#D9E1F2"></i>Más fresco</span>
-                        <span><i style="background:#E2F0D9"></i></span>
-                        <span><i style="background:#FFF2CC"></i></span>
-                        <span><i style="background:#F8CBAD"></i>Más calor</span>
-                    </div>
                 </div>
                 <script>
                 (function () {
@@ -1875,32 +1885,41 @@
                         GRUPOS.forEach((_, i) => {
                             const dot = document.createElement('div');
                             dot.className = 'estaciones-galleta-dot' + (i === 0 ? ' activo' : '');
+                            dot.setAttribute('role', 'button');
+                            dot.setAttribute('tabindex', '0');
+                            dot.setAttribute('aria-label', 'Ver grupo de estaciones ' + (i + 1));
                             dotsWrap.appendChild(dot);
                         });
 
-                        // Misma escala de color relativa (fresco/cálido) que el resto
-                        // del sitio, calculada sobre las 15 estaciones disponibles.
-                        function colorRelativo(t) {
+                        // Tendencia (por encima / por debajo de la media de las 15
+                        // estaciones) en vez de un color por tarjeta: un único acento
+                        // (azul de marca) con flecha, sin volver al semáforo de colores.
+                        function mediaEstaciones() {
                             const vals = ESTACIONES
                                 .map(e => window.TOPO_TEMPS[e.key])
                                 .filter(v => typeof v === 'number' && !Number.isNaN(v));
-                            if (!vals.length || typeof t !== 'number' || Number.isNaN(t)) return '#E2E8F0';
-                            const min = Math.min(...vals), max = Math.max(...vals);
-                            if (max === min) return '#E2F0D9';
-                            if (t === max) return '#F8CBAD';
-                            if (t === min) return '#D9E1F2';
-                            return ((t - min) / (max - min)) > 0.5 ? '#FFF2CC' : '#E2F0D9';
+                            if (!vals.length) return null;
+                            return vals.reduce((a, b) => a + b, 0) / vals.length;
+                        }
+
+                        function tendenciaHtml(temp, media) {
+                            if (typeof temp !== 'number' || Number.isNaN(temp) || media === null) return '';
+                            const diff = temp - media;
+                            if (diff > 0.3) return '<span class="estaciones-galleta-tendencia">▲</span>';
+                            if (diff < -0.3) return '<span class="estaciones-galleta-tendencia">▼</span>';
+                            return '';
                         }
 
                         function pintarGrupo(idx) {
                             fila.innerHTML = '';
+                            const media = mediaEstaciones();
                             GRUPOS[idx].forEach(est => {
                                 const temp = window.TOPO_TEMPS[est.key];
                                 const el = document.createElement('div');
                                 el.className = 'estaciones-galleta';
-                                el.style.background = colorRelativo(temp);
                                 el.innerHTML =
-                                    '<span class="estaciones-galleta-temp">' + (typeof temp === 'number' && !Number.isNaN(temp) ? Math.round(temp) + '°' : '--') + '</span>' +
+                                    '<span class="estaciones-galleta-temp">' + (typeof temp === 'number' && !Number.isNaN(temp) ? Math.round(temp) + '<sup>°</sup>' : '--') + '</span>' +
+                                    tendenciaHtml(temp, media) +
                                     '<span class="estaciones-galleta-nombre">' + est.nombre + '</span>';
                                 fila.appendChild(el);
                             });
@@ -1913,19 +1932,48 @@
                         }
 
                         let grupoActual = 0;
-                        pintarGrupo(grupoActual);
+                        let intervalId = null;
 
-                        function siguienteGrupo() {
+                        function irAGrupo(idx) {
+                            if (idx === grupoActual) return;
                             Array.from(fila.children).forEach(c => c.classList.remove('estaciones-galleta-visible'));
                             setTimeout(() => {
-                                grupoActual = (grupoActual + 1) % GRUPOS.length;
+                                grupoActual = idx;
                                 pintarGrupo(grupoActual);
                                 Array.from(dotsWrap.children).forEach((d, i) => d.classList.toggle('activo', i === grupoActual));
                             }, 600);
                         }
 
-                        // Las galletas visibles rotan cada 5 segundos.
-                        setInterval(siguienteGrupo, 5000);
+                        function siguienteGrupo() {
+                            irAGrupo((grupoActual + 1) % GRUPOS.length);
+                        }
+
+                        // Reinicia el temporizador de rotación automática (se llama al
+                        // arrancar y cada vez que el usuario navega a mano, para no
+                        // "pelearse" con un cambio automático justo después de tocar).
+                        function reiniciarAutoRotacion() {
+                            if (intervalId) clearInterval(intervalId);
+                            intervalId = setInterval(siguienteGrupo, 5000);
+                        }
+
+                        pintarGrupo(grupoActual);
+                        reiniciarAutoRotacion();
+
+                        // Tocar/pulsar un dot (táctil en móvil, ratón en escritorio)
+                        // lleva directamente a ese grupo del carrusel.
+                        Array.from(dotsWrap.children).forEach((dot, i) => {
+                            dot.addEventListener('click', () => {
+                                irAGrupo(i);
+                                reiniciarAutoRotacion();
+                            });
+                            dot.addEventListener('keydown', (ev) => {
+                                if (ev.key === 'Enter' || ev.key === ' ') {
+                                    ev.preventDefault();
+                                    irAGrupo(i);
+                                    reiniciarAutoRotacion();
+                                }
+                            });
+                        });
                     });
                 })();
                 </script>
