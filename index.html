@@ -1792,176 +1792,139 @@
                 </script>
                 <!-- ═══ FIN MÓDULO EFECTO ALTURA ═══ -->
 
-                <!-- ═══ ESTACIONES · Carrusel de galletas en directo ═══
-                     Sustituye al antiguo mapa Leaflet: muestra 5 estaciones a
-                     la vez en una fila, con fundido (transparencia) hacia el
-                     siguiente grupo de 5, rotando cada 5s hasta cubrir las
-                     15 estaciones disponibles. Reutiliza los mismos datos en
-                     vivo (window.TOPO_TEMPS) que ya alimenta el resto del sitio. -->
+                <!-- ═══ ESTACIONES · Mapa fijo en directo (sin carrusel) ═══
+                     Las 15 estaciones se muestran TODAS a la vez, en filas que
+                     imitan un mapa de arriba (montaña) a abajo (costa). Ya no
+                     hace ninguna llamada directa a Weathercloud desde el
+                     navegador: lee la caché que mantiene el backend Node
+                     (server.js) a través de GET /api/clima, que responde al
+                     instante porque nunca espera a ninguna API externa.
+                     Ver server.js + package.json para el backend. -->
                 <style>
-                    .estaciones-galleta-wrap{ margin:18px 0 4px; }
-                    .estaciones-galleta-title{ font-size:11px;font-weight:600;color:#64748b;letter-spacing:0.8px;text-align:center;margin-bottom:10px; }
-                    .estaciones-galleta-title{
+                    .estaciones-mapa-wrap{ margin:18px 0 4px; }
+                    .estaciones-mapa-title{
+                        font-size:11px;font-weight:600;color:#64748b;letter-spacing:0.8px;text-align:center;margin-bottom:14px;
                         padding-left: calc(var(--gutter) + 24px);
                         padding-right: calc(var(--gutter) + 24px);
                     }
-                    .estaciones-galleta-row{
-                        display:flex; align-items:stretch; justify-content:space-between;
-                        gap:7px; min-height:76px;
+                    /* Contenedor general: columna de filas (el "mapa" de arriba a abajo) */
+                    .estaciones-mapa{
+                        display:flex; flex-direction:column; gap:9px;
                         padding-left: calc(var(--gutter) + 24px);
                         padding-right: calc(var(--gutter) + 24px);
+                    }
+                    /* Cada fila se centra y reparte sus tarjetas horizontalmente */
+                    .estaciones-fila{
+                        display:flex; justify-content:center; align-items:stretch; gap:7px;
                     }
                     .estaciones-galleta{
-                        flex:1; min-width:0;
-                        display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
-                        padding:11px 3px; border-radius:11px;
+                        flex:1 1 0; min-width:0; max-width:118px;
+                        display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+                        padding:10px 3px; border-radius:11px;
                         background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);
                         border:1px solid rgba(255,255,255,0.08);
                         box-shadow:0 1px 4px rgba(18,54,83,0.18);
-                        opacity:0; transform:translateY(3px) scale(0.97);
-                        transition:opacity 0.6s ease, transform 0.6s ease;
                     }
-                    .estaciones-galleta.estaciones-galleta-visible{ opacity:1; transform:translateY(0) scale(1); }
-                    .estaciones-galleta-temp{ font-size:28px;font-weight:800;color:#ffffff;font-family:'Inter',sans-serif;letter-spacing:-1px;line-height:1;display:flex;align-items:flex-start; }
+                    .estaciones-galleta-temp{ font-size:22px;font-weight:800;color:#ffffff;font-family:'Inter',sans-serif;letter-spacing:-1px;line-height:1;display:flex;align-items:flex-start; }
                     .estaciones-galleta-temp sup{ font-size:0.5em;font-weight:500;margin-left:1px; }
-                    .estaciones-galleta-nombre{ font-size:8.5px;font-weight:500;color:rgba(255,255,255,0.75);text-align:center;line-height:1.2;letter-spacing:0.1px;text-transform:uppercase; }
-                    .estaciones-galleta-dots{ display:flex; justify-content:center; gap:5px; margin-top:14px; }
-                    .estaciones-galleta-dot{
-                        width:16px;height:3px;border-radius:2px;background:#dde3ea;
-                        transition:background 0.3s ease, width 0.3s ease;
-                        cursor:pointer; padding:6px 0; background-clip:content-box; box-sizing:content-box;
-                        border:none;
-                    }
-                    .estaciones-galleta-dot.activo{ background:#3B82F6; width:22px; }
-                    @media (max-width: 480px) {
-                        .estaciones-galleta-title{
+                    .estaciones-galleta-nombre{ font-size:7.8px;font-weight:500;color:rgba(255,255,255,0.75);text-align:center;line-height:1.2;letter-spacing:0.1px;text-transform:uppercase; }
+
+                    /* ═ Responsivo: en móvil se abandona la disposición "mapa" y se
+                       convierte en una lista vertical simple de 2 columnas (1 columna
+                       en pantallas muy estrechas), fácil de recorrer con el dedo.
+                       El truco es "display:contents" en .estaciones-fila: hace que
+                       desaparezca como contenedor y sus tarjetas pasen a ser hijas
+                       directas del grid de .estaciones-mapa. ═ */
+                    @media (max-width: 700px) {
+                        .estaciones-mapa-title{
                             padding-left: calc(var(--gutter) + 4px);
                             padding-right: calc(var(--gutter) + 4px);
                         }
-                        .estaciones-galleta-row{
-                            width: calc(100% + (2 * var(--gutter)));
-                            margin-left: calc(-1 * var(--gutter));
-                            margin-right: calc(-1 * var(--gutter));
-                            padding-left: 6px;
-                            padding-right: 6px;
-                            gap:5px;
+                        .estaciones-mapa{
+                            display:grid; grid-template-columns: repeat(2, 1fr);
+                            gap:8px;
+                            padding-left: calc(var(--gutter) + 4px);
+                            padding-right: calc(var(--gutter) + 4px);
                         }
+                        .estaciones-fila{ display:contents; }
+                        .estaciones-galleta{ max-width:none; }
+                    }
+                    @media (max-width: 380px) {
+                        .estaciones-mapa{ grid-template-columns: 1fr; }
                     }
                 </style>
-                <div class="estaciones-galleta-wrap">
-                    <div class="estaciones-galleta-title">Las estaciones, en directo</div>
-                    <div class="estaciones-galleta-row" id="estaciones-galleta-row"></div>
-                    <div class="estaciones-galleta-dots" id="estaciones-galleta-dots"></div>
+                <div class="estaciones-mapa-wrap">
+                    <div class="estaciones-mapa-title">Las estaciones, en directo</div>
+                    <div class="estaciones-mapa" id="estaciones-mapa">
+                        <!-- Fila 1 · Zona Montaña -->
+                        <div class="estaciones-fila estaciones-fila-montana">
+                            <div class="estaciones-galleta" data-key="tibidabo"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Tibidabo</span></div>
+                            <div class="estaciones-galleta" data-key="fabra"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Obs. Fabra</span></div>
+                        </div>
+                        <!-- Fila 2 · Ciudad alta -->
+                        <div class="estaciones-fila estaciones-fila-ciudad-alta">
+                            <div class="estaciones-galleta" data-key="vallhebron"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Vall d'Hebron</span></div>
+                            <div class="estaciones-galleta" data-key="horta"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Horta</span></div>
+                            <div class="estaciones-galleta" data-key="santandreu"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Sant Andreu</span></div>
+                            <div class="estaciones-galleta" data-key="sagrera"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">La Sagrera</span></div>
+                        </div>
+                        <!-- Fila 3 · Ciudad media -->
+                        <div class="estaciones-fila estaciones-fila-ciudad-media">
+                            <div class="estaciones-galleta" data-key="ronda"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">CosmoCaixa</span></div>
+                            <div class="estaciones-galleta" data-key="gracia"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Gràcia</span></div>
+                            <div class="estaciones-galleta" data-key="sarria"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Sarrià</span></div>
+                            <div class="estaciones-galleta" data-key="lescorts"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Les Corts</span></div>
+                        </div>
+                        <!-- Fila 4 · Ciudad baja -->
+                        <div class="estaciones-fila estaciones-fila-ciudad-baja">
+                            <div class="estaciones-galleta" data-key="eixample"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Eixample</span></div>
+                            <div class="estaciones-galleta" data-key="sants"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Sants</span></div>
+                            <div class="estaciones-galleta" data-key="verneda"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">La Verneda</span></div>
+                        </div>
+                        <!-- Fila 5 · Zona Costa -->
+                        <div class="estaciones-fila estaciones-fila-costa">
+                            <div class="estaciones-galleta" data-key="costa"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Port Olímpic</span></div>
+                            <div class="estaciones-galleta" data-key="poblenou"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Poblenou</span></div>
+                        </div>
+                    </div>
                 </div>
                 <script>
                 (function () {
-                    // Las 15 estaciones, en el mismo orden que TOPO_ORDEN, agrupadas
-                    // de 5 en 5 para el carrusel.
-                    const ESTACIONES = [
-                        { key: 'tibidabo',   nombre: 'Tibidabo' },
-                        { key: 'fabra',      nombre: 'Obs. Fabra' },
-                        { key: 'ronda',      nombre: 'Cosmo Caixa' },
-                        { key: 'sarria',     nombre: 'Sarrià' },
-                        { key: 'eixample',   nombre: 'Eixample' },
-                        { key: 'costa',      nombre: 'Port Olímpic' },
-                        { key: 'santandreu', nombre: 'Sant Andreu' },
-                        { key: 'horta',      nombre: 'Horta' },
-                        { key: 'gracia',     nombre: 'Gràcia' },
-                        { key: 'lescorts',   nombre: 'Les Corts' },
-                        { key: 'poblenou',   nombre: 'Poblenou' },
-                        { key: 'vallhebron', nombre: "Vall d'Hebron" },
-                        { key: 'sagrera',    nombre: 'La Sagrera' },
-                        { key: 'sants',      nombre: 'Sants' },
-                        { key: 'verneda',    nombre: 'La Verneda' }
-                    ];
-                    const POR_GRUPO = 5;
-                    const GRUPOS = [];
-                    for (let i = 0; i < ESTACIONES.length; i += POR_GRUPO) GRUPOS.push(ESTACIONES.slice(i, i + POR_GRUPO));
+                    // ⚠️ Si el backend Node (server.js) se sirve desde OTRO dominio o
+                    // puerto distinto al de esta página, cambia esto por la URL
+                    // absoluta, p. ej. 'https://api.tiempo-bcn.com/api/clima'.
+                    const API_URL = '/api/clima';
 
-                    function esperarDatos(cb) {
-                        if (window.TOPO_TEMPS && document.getElementById('estaciones-galleta-row')) return cb();
-                        setTimeout(() => esperarDatos(cb), 200);
+                    // Se consulta cada 40s (nunca a Weathercloud, solo a nuestra
+                    // propia caché local) para reflejar la última estación que el
+                    // servidor haya actualizado en su ciclo escalonado.
+                    const INTERVALO_MS = 40 * 1000;
+
+                    function pintar(datos) {
+                        document.querySelectorAll('#estaciones-mapa .estaciones-galleta').forEach(tarjeta => {
+                            const info = datos[tarjeta.dataset.key];
+                            if (!info || typeof info.temp !== 'number' || Number.isNaN(info.temp)) return;
+                            tarjeta.querySelector('.estaciones-galleta-temp').innerHTML = Math.round(info.temp) + '<sup>°</sup>';
+                            // Reutiliza el mismo dato para el resto del sitio (perfil
+                            // topográfico, etc.) si ese módulo ya está cargado.
+                            if (typeof window.actualizarFilaAltura === 'function') {
+                                window.actualizarFilaAltura(tarjeta.dataset.key, { temp: info.temp });
+                            }
+                        });
                     }
 
-                    esperarDatos(function () {
-                        const fila     = document.getElementById('estaciones-galleta-row');
-                        const dotsWrap = document.getElementById('estaciones-galleta-dots');
+                    function cargar() {
+                        fetch(API_URL, { cache: 'no-store' })
+                            .then(resp => { if (!resp.ok) throw new Error('HTTP ' + resp.status); return resp.json(); })
+                            .then(pintar)
+                            .catch(err => console.warn('[estaciones] No se pudo leer ' + API_URL + ':', err.message));
+                    }
 
-                        GRUPOS.forEach((_, i) => {
-                            const dot = document.createElement('div');
-                            dot.className = 'estaciones-galleta-dot' + (i === 0 ? ' activo' : '');
-                            dot.setAttribute('role', 'button');
-                            dot.setAttribute('tabindex', '0');
-                            dot.setAttribute('aria-label', 'Ver grupo de estaciones ' + (i + 1));
-                            dotsWrap.appendChild(dot);
-                        });
-
-                        function pintarGrupo(idx) {
-                            fila.innerHTML = '';
-                            GRUPOS[idx].forEach(est => {
-                                const temp = window.TOPO_TEMPS[est.key];
-                                const el = document.createElement('div');
-                                el.className = 'estaciones-galleta';
-                                el.innerHTML =
-                                    '<span class="estaciones-galleta-temp">' + (typeof temp === 'number' && !Number.isNaN(temp) ? Math.round(temp) + '<sup>°</sup>' : '--') + '</span>' +
-                                    '<span class="estaciones-galleta-nombre">' + est.nombre + '</span>';
-                                fila.appendChild(el);
-                            });
-                            // Doble rAF para asegurar que el navegador pinta primero el
-                            // estado opacity:0 antes de animar hacia opacity:1 (si no,
-                            // el fundido de entrada no se aprecia).
-                            requestAnimationFrame(() => requestAnimationFrame(() => {
-                                Array.from(fila.children).forEach(c => c.classList.add('estaciones-galleta-visible'));
-                            }));
-                        }
-
-                        let grupoActual = 0;
-                        let intervalId = null;
-
-                        function irAGrupo(idx) {
-                            if (idx === grupoActual) return;
-                            Array.from(fila.children).forEach(c => c.classList.remove('estaciones-galleta-visible'));
-                            setTimeout(() => {
-                                grupoActual = idx;
-                                pintarGrupo(grupoActual);
-                                Array.from(dotsWrap.children).forEach((d, i) => d.classList.toggle('activo', i === grupoActual));
-                            }, 600);
-                        }
-
-                        function siguienteGrupo() {
-                            irAGrupo((grupoActual + 1) % GRUPOS.length);
-                        }
-
-                        // Reinicia el temporizador de rotación automática (se llama al
-                        // arrancar y cada vez que el usuario navega a mano, para no
-                        // "pelearse" con un cambio automático justo después de tocar).
-                        function reiniciarAutoRotacion() {
-                            if (intervalId) clearInterval(intervalId);
-                            intervalId = setInterval(siguienteGrupo, 5000);
-                        }
-
-                        pintarGrupo(grupoActual);
-                        reiniciarAutoRotacion();
-
-                        // Tocar/pulsar un dot (táctil en móvil, ratón en escritorio)
-                        // lleva directamente a ese grupo del carrusel.
-                        Array.from(dotsWrap.children).forEach((dot, i) => {
-                            dot.addEventListener('click', () => {
-                                irAGrupo(i);
-                                reiniciarAutoRotacion();
-                            });
-                            dot.addEventListener('keydown', (ev) => {
-                                if (ev.key === 'Enter' || ev.key === ' ') {
-                                    ev.preventDefault();
-                                    irAGrupo(i);
-                                    reiniciarAutoRotacion();
-                                }
-                            });
-                        });
-                    });
+                    cargar(); // pintado inmediato al cargar la página (la caché responde al instante)
+                    setInterval(cargar, INTERVALO_MS);
                 })();
                 </script>
-                <!-- ═══ FIN ESTACIONES · Carrusel de galletas ═══ -->
+                <!-- ═══ FIN ESTACIONES · Mapa fijo en directo ═══ -->
 
                 <div style="width:calc(100% + (2 * var(--gutter)));margin:0 calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));padding:20px 0 0;background:#ffffff;border-top:1px solid rgba(28,79,120,0.3);">
                     <div style="font-size:20px;font-weight:300;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Previsión<span style="font-weight:900;">3días</span></div>
