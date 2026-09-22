@@ -1382,6 +1382,17 @@
                 opacity: 1; /* Brillo máximo */
             }
         }
+        /* Efecto de "estar corriendo" en el icono del corredor: rebote vertical
+           (impacto de la zancada) + ligera inclinación, sin rehacer el SVG. */
+        .icono-corredor {
+            display: inline-block;
+            transform-origin: 50% 85%; /* pivota cerca de los pies, no del centro */
+            animation: correr-rebote 0.6s ease-in-out infinite;
+        }
+        @keyframes correr-rebote {
+            0%, 100% { transform: translateY(0) rotate(-6deg); }
+            50%      { transform: translateY(-3px) rotate(6deg); }
+        }
     </style>
 </head>
 <body>
@@ -10407,7 +10418,7 @@
             var selectedOffset = runState.selectedOffset || 0;
             var selectedPoint = points[selectedOffset] || points[0];
             var mainData = computePoint(selectedPoint);
-            var mainIcon = maskedIconHtml(runSvg, 22, mainData.lvl.color);
+            var mainIcon = '<span class="icono-corredor">' + maskedIconHtml(runSvg, 22, mainData.lvl.color) + '</span>';
 
             var horaTexto;
             if (selectedOffset === 0) {
@@ -10443,7 +10454,7 @@
             var buttonsHTML = points.map(function(p) {
                 var d = computePoint(p);
                 var isActive = (p.offset === selectedOffset);
-                var icon = maskedIconHtml(runSvg, 18, isActive ? '#123653' : d.lvl.color);
+                var icon = '<span class="icono-corredor">' + maskedIconHtml(runSvg, 18, isActive ? '#123653' : d.lvl.color) + '</span>';
                 var labelTxt = (p.offset === 0) ? 'Ahora' : (p.label + 'h');
                 var boxStyle = isActive
                     ? 'background:#ffffff;border-color:#ffffff;'
