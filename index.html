@@ -1338,14 +1338,12 @@
            DISEÑO PREMIUM: ICONO FLOTANTE Y TEMPERATURA CON PULSO
            ====================================================== */
 
-        /* El icono del sol/nube flota elegantemente de arriba a abajo */
+        /* Icono del sol/nube: sin animación, estático */
         #icono-clima-principal {
             display: inline-block;
-            animation: flotarNube 3.5s ease-in-out infinite alternate;
-            will-change: transform;
         }
 
-        /* La temperatura se queda fija pero respira con destellos de luz sutiles */
+        /* La temperatura se queda fija pero respira con un pulso de brillo más visible */
         #temperatura-principal {
             display: inline-block;
             animation: pulsoLuz 3.5s ease-in-out infinite alternate;
@@ -1378,10 +1376,12 @@
         /* Efecto de respiración lumínica */
         @keyframes pulsoLuz {
             0% {
-                opacity: 0.85; /* Se atenúa milimétricamente */
+                opacity: 0.55; /* Se atenúa de forma más visible */
+                text-shadow: 0 0 0 rgba(59,130,246,0);
             }
             100% {
-                opacity: 1; /* Brillo máximo */
+                opacity: 1; /* Brillo máximo, con un halo suave */
+                text-shadow: 0 0 20px rgba(59,130,246,0.45);
             }
         }
     </style>
