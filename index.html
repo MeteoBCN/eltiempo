@@ -919,9 +919,6 @@
             .header-section { padding: 0; min-height: 80px; }
             .content-section { padding: 16px; --gutter: 16px; }
             body { overflow-x: hidden; max-width: 100vw; }
-            /* El mapa "Las estaciones, en el mapa" ya llega de borde a borde
-               y sin esquinas redondeadas siempre (ver reglas junto a
-               .topo-mapa-wrap), así que aquí no hace falta nada adicional. */
             .temperature { font-size: 64px; }
             .icon-large { font-size: 1.8em; }
             .radar-frame { height: 300px; }
@@ -1554,13 +1551,13 @@
                      * Cualquier campo omitido (undefined) se deja tal cual está.
                      * (El widget solo muestra temperatura; humedad y lluvia se ignoran.)
                      */
-                    const TOPO_ORDEN = ['tibidabo', 'fabra', 'ronda', 'sarria', 'eixample', 'costa', 'santandreu', 'horta', 'gracia', 'lescorts', 'poblenou'];
+                    const TOPO_ORDEN = ['tibidabo', 'fabra', 'ronda', 'sarria', 'eixample', 'costa', 'santandreu', 'horta', 'gracia', 'lescorts', 'poblenou', 'vallhebron', 'sagrera', 'sants', 'verneda'];
 
                     // Estado en memoria de las temperaturas conocidas; arranca con
                     // valores de partida razonables para no esperar a la API.
-                    const TOPO_TEMPS = { tibidabo: 28, fabra: 31, ronda: 30, sarria: 30, eixample: 29, costa: 28, santandreu: 21, horta: 21, gracia: 22, lescorts: 21, poblenou: 22 };
+                    const TOPO_TEMPS = { tibidabo: 28, fabra: 31, ronda: 30, sarria: 30, eixample: 29, costa: 28, santandreu: 21, horta: 21, gracia: 22, lescorts: 21, poblenou: 22, vallhebron: 22, sagrera: 22, sants: 21, verneda: 22 };
                     // Se expone la MISMA referencia en window para que otros módulos
-                    // (p. ej. el mapa "Las estaciones, en el mapa") lean siempre el dato
+                    // (p. ej. el carrusel "Las estaciones, en directo") lean siempre el dato
                     // real más reciente en lugar de mantener su propia copia, que podía
                     // quedarse desincronizada de esta gráfica.
                     window.TOPO_TEMPS = TOPO_TEMPS;
@@ -1694,6 +1691,10 @@
                      *   - gracia     → https://app.weathercloud.net/map#7186451298 (código 7186451298)
                      *   - lescorts   → https://app.weathercloud.net/map#1618006537 (código 1618006537)
                      *   - poblenou   → https://app.weathercloud.net/map#8654448286 (código 8654448286)
+                     *   - vallhebron → https://app.weathercloud.net/map#2673126653 (código 2673126653)
+                     *   - sagrera    → https://app.weathercloud.net/map#0535343276 (código 0535343276)
+                     *   - sants      → https://app.weathercloud.net/map#0385965238 (código 0385965238)
+                     *   - verneda    → https://app.weathercloud.net/map#0725412820 (código 0725412820)
                      *
                      *   ⚠️ Sustituye WEATHERCLOUD_WORKER por la URL real de tu Worker
                      *   una vez desplegado en Cloudflare (ver proxy-weathercloud-worker.js).
@@ -1711,7 +1712,11 @@
                         { key: 'horta',      code: '9736148442', lat: 41.4283, lon: 2.1587 },
                         { key: 'gracia',     code: '7186451298', lat: 41.4036, lon: 2.1527 },
                         { key: 'lescorts',   code: '1618006537', lat: 41.3809, lon: 2.1228 },
-                        { key: 'poblenou',   code: '8654448286', lat: 41.4036, lon: 2.2044 }
+                        { key: 'poblenou',   code: '8654448286', lat: 41.4036, lon: 2.2044 },
+                        { key: 'vallhebron', code: '2673126653', lat: 41.4277, lon: 2.1461 },
+                        { key: 'sagrera',    code: '0535343276', lat: 41.4136, lon: 2.1836 },
+                        { key: 'sants',      code: '0385965238', lat: 41.3765, lon: 2.1345 },
+                        { key: 'verneda',    code: '0725412820', lat: 41.4249, lon: 2.2003 }
                     ];
 
                     async function obtenerDatoWeathercloud(code) {
@@ -1784,68 +1789,49 @@
                 </script>
                 <!-- ═══ FIN MÓDULO EFECTO ALTURA ═══ -->
 
-                <!-- ═══ MAPA · Estaciones en su ubicación real ═══
-                     Mapa Leaflet fijo (sin zoom/arrastre) con teselas CARTO
-                     Positron (día) / Dark Matter (noche), para que el aspecto
-                     sea idéntico en cualquier dispositivo: solo cambia el
-                     tamaño del contenedor, nunca el encuadre ni el estilo. -->
+                <!-- ═══ ESTACIONES · Carrusel de galletas en directo ═══
+                     Sustituye al antiguo mapa Leaflet: muestra 5 estaciones a
+                     la vez en una fila, con fundido (transparencia) hacia el
+                     siguiente grupo de 5, rotando cada 5s hasta cubrir las
+                     15 estaciones disponibles. Reutiliza los mismos datos en
+                     vivo (window.TOPO_TEMPS) que ya alimenta el resto del sitio. -->
                 <style>
-                    /* El mapa siempre llega de borde a borde de la pantalla (cancela
-                       el --gutter de .content-section y el padding fijo de 24px de
-                       .hero-zone), sin esquinas redondeadas: ya no tiene sentido un
-                       "recuadro" flotante cuando ocupa todo el ancho. Antes esto solo
-                       pasaba por debajo de 480px; ahora es siempre así. */
-                    .topo-mapa-wrap{
-                        margin:18px 0 4px;
-                        width: calc(100% + (2 * var(--gutter)) + 48px);
-                        margin-left: calc((-1 * var(--gutter)) - 24px);
-                        margin-right: calc((-1 * var(--gutter)) - 24px);
-                    }
-                    .topo-mapa-title{ font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;text-align:center;margin-bottom:10px; }
-                    .topo-mapa-lienzo{ width:100%; aspect-ratio:4/3; border-radius:0; overflow:hidden; box-shadow:none; background:#eaf4fb; position:relative; }
-                    /* El título y la leyenda sí conservan el margen lateral: solo el
-                       mapa en sí llega de borde a borde. */
-                    .topo-mapa-title,
-                    .topo-mapa-leyenda{
+                    .estaciones-galleta-wrap{ margin:18px 0 4px; }
+                    .estaciones-galleta-title{ font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.8px;text-align:center;margin-bottom:10px; }
+                    .estaciones-galleta-title,
+                    .estaciones-galleta-leyenda{
                         padding-left: calc(var(--gutter) + 24px);
                         padding-right: calc(var(--gutter) + 24px);
                     }
-                    /* Contenedor interior girado 45° (sentido horario). Para un
-                       lienzo 4:3, un simple 150%/150% no basta para tapar las
-                       esquinas del marco tras el giro (quedaban triángulos en
-                       blanco): hace falta más margen en vertical que en
-                       horizontal. Estos porcentajes cubren de sobra las 4
-                       esquinas con margen de seguridad. */
-                    .topo-mapa-rotar{ position:absolute; top:50%; left:50%; width:140%; height:190%; transform:translate(-50%,-50%) rotate(45deg); transform-origin:center center; }
-                    .topo-mapa-rotar .leaflet-control-attribution{ display:none; }
-                    .topo-mapa-atrib{ position:absolute; right:6px; bottom:4px; font-size:7.5px; color:rgba(18,54,83,0.55); background:rgba(255,255,255,0.75); padding:1px 5px; border-radius:6px; z-index:500; pointer-events:none; }
-                    /* Brújula fija (no gira) para no perder la orientación del mapa girado. */
-                    .topo-mapa-brujula{ position:absolute; top:8px; right:8px; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.88); box-shadow:0 2px 6px rgba(18,54,83,0.25); z-index:500; display:flex; align-items:center; justify-content:center; }
-                    .topo-mapa-brujula-flecha{ transform:rotate(45deg); display:flex; flex-direction:column; align-items:center; line-height:1; }
-                    .topo-mapa-brujula-flecha span{ font-size:8px; font-weight:800; color:#123653; }
-                    .topo-mapa-leyenda{ display:flex; justify-content:center; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:10px; color:#64748b; letter-spacing:0.2px; }
-                    .topo-mapa-leyenda span{ display:flex; align-items:center; gap:5px; }
-                    .topo-mapa-leyenda i{ width:10px;height:10px;border-radius:50%;display:inline-block; }
-                    /* Todas las estaciones (las 6 reales y los 5 puntos extra) usan
-                       el mismo tamaño de círculo -el pequeño-, para que no se
-                       apelotonen ni se solapen entre ellas en el mapa. */
-                    .topo-mapa-marker{ display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;border:2px solid #ffffff;box-shadow:0 2px 6px rgba(18,54,83,0.28); }
-                    .topo-mapa-marker-temp{ font-size:9.5px;font-weight:700;color:#123653;line-height:1;font-family:'Inter',sans-serif; }
-                    .topo-mapa-marker-nombre{ position:absolute; top:100%; left:50%; transform:translateX(-50%); font-size:8.5px; font-weight:600; color:#123653; white-space:nowrap; margin-top:2px; background:rgba(255,255,255,0.88); padding:1px 4px; border-radius:4px; }
-                    /* Contrarrota el contenido del marcador para que, aunque el mapa
-                       esté girado 45°, el icono y la etiqueta se vean siempre en pie. */
-                    .topo-mapa-marker-giro{ transform:rotate(-45deg); }
+                    .estaciones-galleta-row{
+                        display:flex; align-items:stretch; justify-content:space-between;
+                        gap:7px; min-height:72px;
+                        padding-left: calc(var(--gutter) + 24px);
+                        padding-right: calc(var(--gutter) + 24px);
+                    }
+                    .estaciones-galleta{
+                        flex:1; min-width:0;
+                        display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+                        padding:10px 3px; border-radius:14px;
+                        box-shadow:0 2px 6px rgba(18,54,83,0.16);
+                        opacity:0; transform:translateY(3px);
+                        transition:opacity 0.6s ease, transform 0.6s ease;
+                    }
+                    .estaciones-galleta.estaciones-galleta-visible{ opacity:1; transform:translateY(0); }
+                    .estaciones-galleta-temp{ font-size:15px;font-weight:800;color:#123653;font-family:'Inter',sans-serif;line-height:1; }
+                    .estaciones-galleta-nombre{ font-size:8.5px;font-weight:600;color:#123653;text-align:center;line-height:1.2;letter-spacing:0.1px; }
+                    .estaciones-galleta-leyenda{ display:flex; justify-content:center; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:10px; color:#64748b; letter-spacing:0.2px; }
+                    .estaciones-galleta-leyenda span{ display:flex; align-items:center; gap:5px; }
+                    .estaciones-galleta-leyenda i{ width:10px;height:10px;border-radius:50%;display:inline-block; }
+                    .estaciones-galleta-dots{ display:flex; justify-content:center; gap:6px; margin-top:12px; }
+                    .estaciones-galleta-dot{ width:6px;height:6px;border-radius:50%;background:#cbd5e1;transition:background 0.3s ease; }
+                    .estaciones-galleta-dot.activo{ background:#3B82F6; }
                 </style>
-                <div class="topo-mapa-wrap">
-                    <div class="topo-mapa-title">Las estaciones, en el mapa</div>
-                    <div class="topo-mapa-lienzo">
-                        <div class="topo-mapa-rotar">
-                            <div id="topo-mapa-bcn" style="width:100%;height:100%;"></div>
-                        </div>
-                        <div class="topo-mapa-brujula"><div class="topo-mapa-brujula-flecha"><span>▲</span><span>N</span></div></div>
-                        <div class="topo-mapa-atrib">Esri, HERE, Garmin, © OpenStreetMap</div>
-                    </div>
-                    <div class="topo-mapa-leyenda">
+                <div class="estaciones-galleta-wrap">
+                    <div class="estaciones-galleta-title">Las estaciones, en directo</div>
+                    <div class="estaciones-galleta-row" id="estaciones-galleta-row"></div>
+                    <div class="estaciones-galleta-dots" id="estaciones-galleta-dots"></div>
+                    <div class="estaciones-galleta-leyenda">
                         <span><i style="background:#D9E1F2"></i>Más fresco</span>
                         <span><i style="background:#E2F0D9"></i></span>
                         <span><i style="background:#FFF2CC"></i></span>
@@ -1854,145 +1840,51 @@
                 </div>
                 <script>
                 (function () {
-                    function esperarLeaflet(cb) {
-                        if (window.L && document.getElementById('topo-mapa-bcn')) return cb();
-                        setTimeout(() => esperarLeaflet(cb), 200);
+                    // Las 15 estaciones, en el mismo orden que TOPO_ORDEN, agrupadas
+                    // de 5 en 5 para el carrusel.
+                    const ESTACIONES = [
+                        { key: 'tibidabo',   nombre: 'Tibidabo' },
+                        { key: 'fabra',      nombre: 'Obs. Fabra' },
+                        { key: 'ronda',      nombre: 'Cosmo Caixa' },
+                        { key: 'sarria',     nombre: 'Sarrià' },
+                        { key: 'eixample',   nombre: 'Eixample' },
+                        { key: 'costa',      nombre: 'Port Olímpic' },
+                        { key: 'santandreu', nombre: 'Sant Andreu' },
+                        { key: 'horta',      nombre: 'Horta' },
+                        { key: 'gracia',     nombre: 'Gràcia' },
+                        { key: 'lescorts',   nombre: 'Les Corts' },
+                        { key: 'poblenou',   nombre: 'Poblenou' },
+                        { key: 'vallhebron', nombre: "Vall d'Hebron" },
+                        { key: 'sagrera',    nombre: 'La Sagrera' },
+                        { key: 'sants',      nombre: 'Sants' },
+                        { key: 'verneda',    nombre: 'La Verneda' }
+                    ];
+                    const POR_GRUPO = 5;
+                    const GRUPOS = [];
+                    for (let i = 0; i < ESTACIONES.length; i += POR_GRUPO) GRUPOS.push(ESTACIONES.slice(i, i + POR_GRUPO));
+
+                    function esperarDatos(cb) {
+                        if (window.TOPO_TEMPS && document.getElementById('estaciones-galleta-row')) return cb();
+                        setTimeout(() => esperarDatos(cb), 200);
                     }
 
-                    esperarLeaflet(function () {
-                        // El marco ahora ocupa todo el ancho de la pantalla (ancho
-                        // completo, ver CSS de .topo-mapa-wrap), y ese ancho final
-                        // puede tardar un frame en aplicarse tras el primer render.
-                        // Medir clientWidth/clientHeight demasiado pronto daba un
-                        // encuadre calculado con un tamaño de marco incorrecto, lo
-                        // que hacía que el mapa se viera descentrado/recortado hacia
-                        // un lado. Se retrasa el cálculo del encuadre a doble
-                        // requestAnimationFrame para asegurar que el layout ya está
-                        // asentado.
-                        requestAnimationFrame(() => requestAnimationFrame(function () {
-                        continuarMapa();
-                        }));
-                    });
+                    esperarDatos(function () {
+                        const fila     = document.getElementById('estaciones-galleta-row');
+                        const dotsWrap = document.getElementById('estaciones-galleta-dots');
 
-                    function continuarMapa() {
-                        const map = L.map('topo-mapa-bcn', {
-                            zoomControl: false, dragging: false, scrollWheelZoom: false,
-                            doubleClickZoom: false, boxZoom: false, keyboard: false,
-                            touchZoom: false, tap: false, attributionControl: false
+                        GRUPOS.forEach((_, i) => {
+                            const dot = document.createElement('div');
+                            dot.className = 'estaciones-galleta-dot' + (i === 0 ? ' activo' : '');
+                            dotsWrap.appendChild(dot);
                         });
-                        // Encuadre FIJO (no depende del contenedor ni del dispositivo):
-                        // desde Tibidabo/Fabra hasta Sant Andreu y Port Olímpic.
-                        // El mapa real vive en un contenedor AMPLIADO (para tapar las
-                        // esquinas tras el giro de 45°), así que calcular el zoom con
-                        // fitBounds directamente sobre él da un encuadre poco fiable
-                        // (depende de medir ese contenedor grande en el primer render).
-                        // En su lugar: se crea un mapa auxiliar invisible con el tamaño
-                        // EXACTO del marco visible, se le pide a fitBounds el centro y
-                        // el zoom "correctos" ahí, y ese mismo centro/zoom se aplica
-                        // después al mapa real. Como el zoom es un valor fijo, el
-                        // contenedor ampliado simplemente enseña más terreno alrededor
-                        // sin cambiar la escala.
-                        const marco = document.querySelector('.topo-mapa-lienzo');
-                        const auxDiv = document.createElement('div');
-                        auxDiv.style.cssText = 'position:absolute; left:-9999px; top:-9999px; width:' + marco.clientWidth + 'px; height:' + marco.clientHeight + 'px;';
-                        document.body.appendChild(auxDiv);
-                        const mapaAux = L.map(auxDiv, { attributionControl: false, zoomControl: false });
-                        mapaAux.fitBounds([[41.365, 2.093], [41.450, 2.222]], { maxZoom: 16 });
-                        const centroMapa = mapaAux.getCenter();
-                        // Un poco de zoom EXTRA sobre el encuadre "perfecto" de fitBounds:
-                        // con el encuadre exacto las estaciones quedaban muy juntas en
-                        // el centro del marco (mucho monte y mucho mar alrededor). Se
-                        // sube el zoom para que las estaciones se repartan más por la
-                        // pantalla. Las teselas solo existen hasta zoom 16 (maxNativeZoom
-                        // en las capas de abajo), así que Leaflet las escala (over-zoom)
-                        // para cubrir este zoom extra sin dejar el mapa en blanco.
-                        const ZOOM_EXTRA = 1;
-                        const zoomMapa = mapaAux.getZoom() + ZOOM_EXTRA;
-                        mapaAux.remove();
-                        auxDiv.remove();
 
-                        map.invalidateSize();
-                        map.setView(centroMapa, zoomMapa);
-
-
-                        // Teselas Esri "Light/Dark Gray Canvas": minimalistas, gratuitas
-                        // y SIN necesidad de API key (a diferencia de CARTO, que ahora la exige).
-                        // maxNativeZoom:16 = último nivel con teselas reales; maxZoom:19 =
-                        // hasta dónde puede pedir zoom el mapa (Leaflet escala las teselas
-                        // de zoom 16 para los niveles 17-19, ligeramente menos nítidas pero
-                        // sin quedarse en blanco).
-                        const ATRIB_ESRI = 'Esri, HERE, Garmin, &copy; OpenStreetMap contributors';
-                        const capaClara = L.layerGroup([
-                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { attribution: ATRIB_ESRI, maxNativeZoom: 16, maxZoom: 19 }),
-                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxNativeZoom: 16, maxZoom: 19 })
-                        ]);
-                        const capaOscura = L.layerGroup([
-                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { attribution: ATRIB_ESRI, maxNativeZoom: 16, maxZoom: 19 }),
-                            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxNativeZoom: 16, maxZoom: 19 })
-                        ]);
-
-                        function esNocheBarcelona() {
-                            const h = parseInt(new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', hour12: false }), 10);
-                            return (h >= 20 || h < 7);
-                        }
-                        function actualizarCapaMapa() {
-                            if (esNocheBarcelona()) {
-                                if (map.hasLayer(capaClara)) map.removeLayer(capaClara);
-                                if (!map.hasLayer(capaOscura)) capaOscura.addTo(map);
-                            } else {
-                                if (map.hasLayer(capaOscura)) map.removeLayer(capaOscura);
-                                if (!map.hasLayer(capaClara)) capaClara.addTo(map);
-                            }
-                        }
-                        actualizarCapaMapa();
-                        setInterval(actualizarCapaMapa, 10 * 60 * 1000);
-
-                        // Las 6 estaciones del perfil topográfico (mismas coordenadas reales)
-                        const PUNTOS_MAPA = {
-                            tibidabo: { lat: 41.4214, lon: 2.1189, nombre: 'Tibidabo' },
-                            fabra:    { lat: 41.4200, lon: 2.1100, nombre: 'Obs. Fabra' },
-                            ronda:    { lat: 41.4130, lon: 2.1310, nombre: 'Cosmo Caixa' },
-                            sarria:   { lat: 41.3944, lon: 2.1278, nombre: 'Sarrià' },
-                            eixample: { lat: 41.3888, lon: 2.1590, nombre: 'Eixample' },
-                            costa:    { lat: 41.3860, lon: 2.2010, nombre: 'Port Olímpic' }
-                        };
-                        const TEMPS_INICIALES = { tibidabo: 28, fabra: 31, ronda: 30, sarria: 30, eixample: 29, costa: 28 };
-
-                        // Puntos adicionales de ciudad (sin estación física propia,
-                        // temperatura vía Open-Meteo) para dar más cobertura al mapa.
-                        const EXTRA = [
-                            { key: 'gracia',      lat: 41.4036, lon: 2.1527, nombre: 'Gràcia' },
-                            { key: 'horta',       lat: 41.4283, lon: 2.1587, nombre: 'Horta' },
-                            { key: 'santandreu',  lat: 41.4335, lon: 2.1888, nombre: 'Sant Andreu' },
-                            { key: 'lescorts',    lat: 41.3809, lon: 2.1228, nombre: 'Les Corts' },
-                            { key: 'poblenou',    lat: 41.4036, lon: 2.2044, nombre: 'Poblenou' }
-                        ];
-
-                        let TEMPS_ACTUALES = Object.assign({}, TEMPS_INICIALES);
-                        EXTRA.forEach(p => { TEMPS_ACTUALES[p.key] = null; });
-
-                        // Vuelca en TEMPS_ACTUALES el dato REAL más reciente disponible en
-                        // window.TOPO_TEMPS (misma variable que alimenta la carga de datos
-                        // en vivo de arriba). Se revisan tanto las estaciones "principales"
-                        // (PUNTOS_MAPA) como los puntos "extra": si alguno de estos últimos
-                        // tiene ya estación real conectada (p. ej. Sant Andreu), su dato de
-                        // Weathercloud tiene prioridad sobre el de Open-Meteo. Al ser la
-                        // fuente única de verdad, el mapa nunca puede quedarse mostrando
-                        // valores antiguos aunque el aviso de actualización se pierda.
-                        function sincronizarTempsReales() {
-                            Object.keys(PUNTOS_MAPA).forEach(key => {
-                                const real = window.TOPO_TEMPS && window.TOPO_TEMPS[key];
-                                if (typeof real === 'number' && !Number.isNaN(real)) TEMPS_ACTUALES[key] = real;
-                            });
-                            EXTRA.forEach(p => {
-                                const real = window.TOPO_TEMPS && window.TOPO_TEMPS[p.key];
-                                if (typeof real === 'number' && !Number.isNaN(real)) TEMPS_ACTUALES[p.key] = real;
-                            });
-                        }
-
+                        // Misma escala de color relativa (fresco/cálido) que el resto
+                        // del sitio, calculada sobre las 15 estaciones disponibles.
                         function colorRelativo(t) {
-                            const vals = Object.values(TEMPS_ACTUALES).filter(v => typeof v === 'number' && !Number.isNaN(v));
-                            if (!vals.length || typeof t !== 'number') return '#E2E8F0';
+                            const vals = ESTACIONES
+                                .map(e => window.TOPO_TEMPS[e.key])
+                                .filter(v => typeof v === 'number' && !Number.isNaN(v));
+                            if (!vals.length || typeof t !== 'number' || Number.isNaN(t)) return '#E2E8F0';
                             const min = Math.min(...vals), max = Math.max(...vals);
                             if (max === min) return '#E2F0D9';
                             if (t === max) return '#F8CBAD';
@@ -2000,80 +1892,44 @@
                             return ((t - min) / (max - min)) > 0.5 ? '#FFF2CC' : '#E2F0D9';
                         }
 
-                        function iconoEstacion(temp, nombre, esExtra) {
-                            // esExtra ya no cambia el tamaño (todas las estaciones son
-                            // iguales), se conserva el parámetro solo por compatibilidad.
-                            const html = '<div class="topo-mapa-marker-giro" style="position:relative;">' +
-                                '<div class="topo-mapa-marker" style="background:' + colorRelativo(temp) + '"><span class="topo-mapa-marker-temp">' + Math.round(temp) + '°</span></div>' +
-                                '<div class="topo-mapa-marker-nombre">' + nombre + '</div>' +
-                                '</div>';
-                            return L.divIcon({ html, className: '', iconSize: [24, 24], iconAnchor: [12, 12] });
-                        }
-
-                        const marcadores = {};
-                        Object.keys(PUNTOS_MAPA).forEach(key => {
-                            const p = PUNTOS_MAPA[key];
-                            marcadores[key] = L.marker([p.lat, p.lon], { icon: iconoEstacion(TEMPS_INICIALES[key], p.nombre, false), interactive: false }).addTo(map);
-                        });
-                        EXTRA.forEach(p => {
-                            marcadores[p.key] = L.marker([p.lat, p.lon], { icon: iconoEstacion(0, p.nombre, true), interactive: false });
-                        });
-
-                        function refrescarIconos() {
-                            sincronizarTempsReales();
-                            Object.keys(PUNTOS_MAPA).forEach(key => {
-                                const temp = TEMPS_ACTUALES[key];
-                                if (typeof temp === 'number') marcadores[key].setIcon(iconoEstacion(temp, PUNTOS_MAPA[key].nombre, false));
+                        function pintarGrupo(idx) {
+                            fila.innerHTML = '';
+                            GRUPOS[idx].forEach(est => {
+                                const temp = window.TOPO_TEMPS[est.key];
+                                const el = document.createElement('div');
+                                el.className = 'estaciones-galleta';
+                                el.style.background = colorRelativo(temp);
+                                el.innerHTML =
+                                    '<span class="estaciones-galleta-temp">' + (typeof temp === 'number' && !Number.isNaN(temp) ? Math.round(temp) + '°' : '--') + '</span>' +
+                                    '<span class="estaciones-galleta-nombre">' + est.nombre + '</span>';
+                                fila.appendChild(el);
                             });
-                            EXTRA.forEach(p => {
-                                const temp = TEMPS_ACTUALES[p.key];
-                                if (typeof temp === 'number') {
-                                    marcadores[p.key].setIcon(iconoEstacion(temp, p.nombre, true));
-                                    if (!map.hasLayer(marcadores[p.key])) marcadores[p.key].addTo(map);
-                                }
-                            });
+                            // Doble rAF para asegurar que el navegador pinta primero el
+                            // estado opacity:0 antes de animar hacia opacity:1 (si no,
+                            // el fundido de entrada no se aprecia).
+                            requestAnimationFrame(() => requestAnimationFrame(() => {
+                                Array.from(fila.children).forEach(c => c.classList.add('estaciones-galleta-visible'));
+                            }));
                         }
-                        refrescarIconos();
-                        // Red de seguridad: por si el aviso de actualización de la gráfica
-                        // de arriba llega antes de que este módulo esté listo (o se pierde
-                        // por cualquier motivo), se relee window.TOPO_TEMPS cada 20s.
-                        setInterval(refrescarIconos, 20 * 1000);
 
-                        // Vía rápida: en cuanto llega un dato nuevo, refresca el mapa al
-                        // instante (sin esperar a los 20s de arriba). Antes solo miraba
-                        // las 6 estaciones "principales" (PUNTOS_MAPA); ahora también
-                        // los puntos extra que ya tengan estación real conectada (p. ej.
-                        // Sant Andreu), para que su dato de Weathercloud se vea sin demora.
-                        const _origActualizarFilaAltura = window.actualizarFilaAltura;
-                        window.actualizarFilaAltura = function (estacion, opts) {
-                            if (typeof _origActualizarFilaAltura === 'function') _origActualizarFilaAltura(estacion, opts);
-                            const esPuntoDelMapa = PUNTOS_MAPA[estacion] || EXTRA.some(p => p.key === estacion);
-                            if (opts && typeof opts.temp === 'number' && esPuntoDelMapa) {
-                                refrescarIconos();
-                            }
-                        };
+                        let grupoActual = 0;
+                        pintarGrupo(grupoActual);
 
-                        // Temperatura real de los puntos extra vía Open-Meteo
-                        async function cargarTemperaturasExtra() {
-                            try {
-                                const lats = EXTRA.map(p => p.lat).join(',');
-                                const lons = EXTRA.map(p => p.lon).join(',');
-                                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m&timezone=Europe/Madrid`;
-                                const resp = await fetch(url);
-                                if (!resp.ok) return;
-                                const data = await resp.json();
-                                data.forEach((d, i) => { TEMPS_ACTUALES[EXTRA[i].key] = Math.round(d.current.temperature_2m); });
-                                refrescarIconos();
-                            } catch (e) { console.warn('[Mapa BCN] No se pudo cargar la temperatura de los puntos extra:', e.message); }
+                        function siguienteGrupo() {
+                            Array.from(fila.children).forEach(c => c.classList.remove('estaciones-galleta-visible'));
+                            setTimeout(() => {
+                                grupoActual = (grupoActual + 1) % GRUPOS.length;
+                                pintarGrupo(grupoActual);
+                                Array.from(dotsWrap.children).forEach((d, i) => d.classList.toggle('activo', i === grupoActual));
+                            }, 600);
                         }
-                        cargarTemperaturasExtra();
-                        setInterval(cargarTemperaturasExtra, 10 * 60 * 1000);
 
-                        setTimeout(() => map.invalidateSize(), 300);
-                    }
+                        // Las galletas visibles rotan cada 5 segundos.
+                        setInterval(siguienteGrupo, 5000);
+                    });
                 })();
                 </script>
-                <!-- ═══ FIN MAPA ═══ -->
+                <!-- ═══ FIN ESTACIONES · Carrusel de galletas ═══ -->
 
                 <div style="width:calc(100% + (2 * var(--gutter)));margin:0 calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));padding:20px 0 0;background:#ffffff;border-top:1px solid rgba(28,79,120,0.3);">
                     <div style="font-size:20px;font-weight:300;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Previsión<span style="font-weight:900;">3días</span></div>
