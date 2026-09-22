@@ -135,13 +135,13 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            opacity: 0.55; /* Más visibilidad del cielo nublado sobre el fondo oscuro */
+            opacity: 0.65; /* Compensa el tono más oscuro para que sigan siendo visibles */
             pointer-events: none;
         }
 
         .nube {
             position: absolute;
-            background: #7c9bb8; /* Gris-azulado claro base */
+            background: #3c4f60; /* Gris oscuro base */
             border-radius: 50%;
             filter: blur(25px); /* Difuminado alto para fundirse entre sí y llenar el fondo */
         }
@@ -152,8 +152,8 @@
             height: 150px;
             top: -20px;
             left: -10%;
-            background: #8fb0cc;
-            box-shadow: 200px 50px 0 40px #6f90ad, -100px 20px 0 30px #5a7996;
+            background: #45596c;
+            box-shadow: 200px 50px 0 40px #35485a, -100px 20px 0 30px #2a3a48;
             animation: viento-lento 40s ease-in-out infinite alternate;
         }
 
@@ -162,8 +162,8 @@
             height: 180px;
             bottom: -30px;
             right: -10%;
-            background: #b7cbe0;
-            box-shadow: -250px -40px 0 50px #6f90ad, 150px -20px 0 40px #9ab6cf;
+            background: #4e6579;
+            box-shadow: -250px -40px 0 50px #2a3a48, 150px -20px 0 40px #3c5265;
             animation: viento-lento 50s ease-in-out infinite alternate-reverse;
         }
 
@@ -232,14 +232,22 @@
 
         /* ANIMACIÓN DE RELÁMPAGOS */
         .efecto-tormenta {
-            animation: relampago-banner 6s infinite;
+            animation: relampago-banner 10s infinite;
         }
 
         @keyframes relampago-banner {
-            0%, 93%, 95%, 100% { filter: brightness(1) contrast(1); }
-            94% { filter: brightness(2.6) contrast(1.2); }
-            94.4% { filter: brightness(1.3); }
-            94.8% { filter: brightness(2.9) contrast(1.3); }
+            0%, 100% { filter: brightness(1) contrast(1); }
+            18% { filter: brightness(1) contrast(1); }
+            18.6% { filter: brightness(2.5) contrast(1.2); }
+            19% { filter: brightness(1) contrast(1); }
+            39% { filter: brightness(1) contrast(1); }
+            39.4% { filter: brightness(2.8) contrast(1.25); }
+            39.7% { filter: brightness(1.3); }
+            40% { filter: brightness(3) contrast(1.3); }
+            40.4% { filter: brightness(1) contrast(1); }
+            64% { filter: brightness(1) contrast(1); }
+            64.5% { filter: brightness(2.3) contrast(1.15); }
+            65% { filter: brightness(1) contrast(1); }
         }
 
         @media (min-width: 768px) {
