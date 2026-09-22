@@ -1508,6 +1508,7 @@
                         </div>
                         <div id="proximas-5h-chart" style="margin-top:18px;position:relative;"></div>
                         <div id="proximas-5h-paraguas" style="display:flex;align-items:stretch;justify-content:space-between;gap:6px;margin-top:10px;position:relative;"></div>
+                        <div id="proximas-5h-rain-text" style="text-align:center;font-size:12px;font-weight:600;color:#ffffff;opacity:0.85;margin-top:12px;letter-spacing:0.2px;text-transform:uppercase;"></div>
                     </div>
 
                     <div id="sport-section-wrap" style="margin-top:56px;">
@@ -3856,6 +3857,25 @@
                     pHtml += `<div style="flex:1;min-width:0;display:flex;justify-content:center;opacity:${opacity};">${iconHtml}</div>`;
                 });
                 paraguasWrap.innerHTML = pHtml;
+            }
+
+            // Texto resumen: distingue riesgo alto (≥60%, "se espera") de
+            // riesgo moderado (40-59%, "posibilidad") y ausencia de riesgo.
+            const rainTextEl = document.getElementById('proximas-5h-rain-text');
+            if (rainTextEl) {
+                const highHours = points.filter((p, i) => pprobs[i] >= 60).map(p => p.label);
+                const midHours = points.filter((p, i) => pprobs[i] >= 40 && pprobs[i] < 60).map(p => p.label);
+                let text;
+                if (highHours.length && midHours.length) {
+                    text = `Se espera lluvia a las ${highHours.join(', ')}, con posibilidad también a las ${midHours.join(', ')}`;
+                } else if (highHours.length) {
+                    text = `Se espera lluvia a las ${highHours.join(', ')}`;
+                } else if (midHours.length) {
+                    text = `Posibilidad de lluvia a las ${midHours.join(', ')}`;
+                } else {
+                    text = 'No se espera lluvia';
+                }
+                rainTextEl.textContent = text;
             }
 
             // Líneas verticales discontinuas y sutiles que separan cada franja
