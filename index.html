@@ -3723,8 +3723,8 @@
         }
         // ══════ FIN SVG ICONOS ══════
 
-        // ══════ ICONO REALISTA (Meteocons, CDN) — SOLO para el tiempo actual ══════
-        // Traduce un código WMO al slug de icono "premium" de Meteocons (cdn.meteocons.com),
+        // ══════ ICONO REALISTA (Weather Icons by Bas Milius, vía jsdelivr) — SOLO para el tiempo actual ══════
+        // Traduce un código WMO al slug de icono "premium" (estilo Fill: degradados y animación SMIL sutil),
         // manteniendo la misma lógica día/noche que getSvgIcon().
         function getMeteoconSlug(wmo, night=false) {
             if (wmo === 45 || wmo === 48)              return 'fog';
@@ -3732,7 +3732,7 @@
             if (wmo >= 95 && wmo <= 99)                return night ? 'thunderstorms-night-rain' : 'thunderstorms-day-rain';
             if (wmo >= 51 && wmo <= 55)                return 'drizzle';
             if (wmo >= 61 && wmo <= 65)                return 'rain';
-            if (wmo >= 80 && wmo <= 82)                return night ? 'overcast-night-rain' : 'overcast-day-rain';
+            if (wmo >= 80 && wmo <= 82)                return night ? 'partly-cloudy-night-rain' : 'partly-cloudy-day-rain';
             if (night) {
                 if (wmo === 0)          return 'clear-night';
                 if (wmo === 1 || wmo === 2) return 'partly-cloudy-night';
@@ -3750,10 +3750,11 @@
             try { imgEl.outerHTML = getSvgIcon(wmo, size, night); } catch (e) {}
         }
 
-        // Devuelve un <img> apuntando al icono "Fill" (estilo 3D/app nativa) de Meteocons.
+        // Devuelve un <img> apuntando al icono "Fill" (estilo 3D/app nativa), servido desde
+        // jsdelivr (CDN de npm, muy fiable) — paquete @bybas/weather-icons, versión fijada 2.0.0.
         function getRealisticWeatherIcon(wmo, size = 96, night = false) {
             const slug = getMeteoconSlug(wmo, night);
-            const url = 'https://cdn.meteocons.com/latest/svg/fill/' + slug + '.svg';
+            const url = 'https://cdn.jsdelivr.net/npm/@bybas/weather-icons@2.0.0/production/fill/all/' + slug + '.svg';
             return '<img src="' + url + '" width="' + size + '" height="' + size + '" ' +
                 'alt="Icono del tiempo actual" decoding="async" ' +
                 'style="display:block;width:' + size + 'px;height:' + size + 'px;" ' +
