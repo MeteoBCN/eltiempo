@@ -1547,15 +1547,15 @@
                      *
                      *   actualizarFilaAltura('fabra', { temp: 18 });
                      *
-                     * estacion: 'tibidabo' | 'fabra' | 'ronda' | 'sarria' | 'eixample' | 'costa'
+                     * estacion: 'tibidabo' | 'fabra' | 'sarria' | 'eixample' | 'costa'
                      * Cualquier campo omitido (undefined) se deja tal cual está.
                      * (El widget solo muestra temperatura; humedad y lluvia se ignoran.)
                      */
-                    const TOPO_ORDEN = ['tibidabo', 'fabra', 'ronda', 'sarria', 'eixample', 'costa', 'santandreu', 'horta', 'gracia', 'lescorts', 'poblenou', 'vallhebron', 'sagrera', 'sants', 'verneda'];
+                    const TOPO_ORDEN = ['tibidabo', 'fabra', 'sarria', 'eixample', 'costa', 'santandreu', 'gracia', 'lescorts', 'poblenou', 'vallhebron', 'sagrera'];
 
                     // Estado en memoria de las temperaturas conocidas; arranca con
                     // valores de partida razonables para no esperar a la API.
-                    const TOPO_TEMPS = { tibidabo: 28, fabra: 31, ronda: 30, sarria: 30, eixample: 29, costa: 28, santandreu: 21, horta: 21, gracia: 22, lescorts: 21, poblenou: 22, vallhebron: 22, sagrera: 22, sants: 21, verneda: 22 };
+                    const TOPO_TEMPS = { tibidabo: 28, fabra: 31, sarria: 30, eixample: 29, costa: 28, santandreu: 21, gracia: 22, lescorts: 21, poblenou: 22, vallhebron: 22, sagrera: 22 };
                     // Se expone la MISMA referencia en window para que otros módulos
                     // (p. ej. el carrusel "Las estaciones, en directo") lean siempre el dato
                     // real más reciente en lugar de mantener su propia copia, que podía
@@ -1682,19 +1682,15 @@
                      *
                      *   - tibidabo   → MeteoTibidabo         (código 7799270868, 512 m)
                      *   - fabra      → Observatori Fabra      (código 0931380607, 410 m)
-                     *   - ronda      → CosmoCaixa (código 0751853563, 180 m)
                      *   - sarria     → Salesians Sarrià CV    (código 7511856207, 90 m)
                      *   - eixample   → Estació Eixample        (código 8530132327, 40 m)
                      *   - costa      → Port Olímpic            (código 9415750150, 5 m)
                      *   - santandreu → https://app.weathercloud.net/map#4693750472 (código 4693750472)
-                     *   - horta      → https://app.weathercloud.net/map#9736148442 (código 9736148442)
                      *   - gracia     → https://app.weathercloud.net/map#7186451298 (código 7186451298)
                      *   - lescorts   → https://app.weathercloud.net/map#1618006537 (código 1618006537)
                      *   - poblenou   → https://app.weathercloud.net/map#8654448286 (código 8654448286)
                      *   - vallhebron → https://app.weathercloud.net/map#2673126653 (código 2673126653)
                      *   - sagrera    → https://app.weathercloud.net/map#0535343276 (código 0535343276)
-                     *   - sants      → https://app.weathercloud.net/map#0385965238 (código 0385965238)
-                     *   - verneda    → https://app.weathercloud.net/map#0725412820 (código 0725412820)
                      *
                      *   ⚠️ Sustituye WEATHERCLOUD_WORKER por la URL real de tu Worker
                      *   una vez desplegado en Cloudflare (ver proxy-weathercloud-worker.js).
@@ -1704,19 +1700,15 @@
                     const PUNTOS = [
                         { key: 'tibidabo',   code: '7799270868', lat: 41.4214, lon: 2.1189 },
                         { key: 'fabra',      code: '0931380607', lat: 41.4200, lon: 2.1100 },
-                        { key: 'ronda',      code: '0751853563', lat: 41.4130, lon: 2.1310 },
                         { key: 'sarria',     code: '7511856207', lat: 41.3944, lon: 2.1278 },
                         { key: 'eixample',   code: '8530132327', lat: 41.3888, lon: 2.1590 },
                         { key: 'costa',      code: '9415750150', lat: 41.3860, lon: 2.2010 },
                         { key: 'santandreu', code: '4693750472', lat: 41.4335, lon: 2.1888 },
-                        { key: 'horta',      code: '9736148442', lat: 41.4283, lon: 2.1587 },
                         { key: 'gracia',     code: '7186451298', lat: 41.4036, lon: 2.1527 },
                         { key: 'lescorts',   code: '1618006537', lat: 41.3809, lon: 2.1228 },
                         { key: 'poblenou',   code: '8654448286', lat: 41.4036, lon: 2.2044 },
                         { key: 'vallhebron', code: '2673126653', lat: 41.4277, lon: 2.1461 },
-                        { key: 'sagrera',    code: '0535343276', lat: 41.4136, lon: 2.1836 },
-                        { key: 'sants',      code: '0385965238', lat: 41.3765, lon: 2.1345 },
-                        { key: 'verneda',    code: '0725412820', lat: 41.4249, lon: 2.2003 }
+                        { key: 'sagrera',    code: '0535343276', lat: 41.4136, lon: 2.1836 }
                     ];
 
                     async function obtenerDatoWeathercloud(code) {
@@ -1752,11 +1744,13 @@
                         };
                     }
 
-                    // Cada estación llama por separado, en rotación, una cada 10s
-                    // (en vez de las 15 a la vez), para no saturar el proxy de
-                    // Weathercloud. Con 15 estaciones, cada una se refresca cada
-                    // ~2,5 minutos, y el fallback a Open-Meteo es también por
-                    // estación individual si el dato real falla puntualmente.
+                    // Cada estación llama por separado, EN ROTACIÓN (nunca todas a
+                    // la vez), para no saturar ni arriesgar un bloqueo de IP en el
+                    // proxy de Weathercloud. El intervalo se calcula para que el
+                    // ciclo completo (pasar por las PUNTOS.length estaciones) dure
+                    // exactamente 60s, así que cada estación individual queda
+                    // actualizada con datos de máximo 1 minuto de antigüedad.
+                    const INTERVALO_ESTACIONES_MS = Math.round(60000 / PUNTOS.length); // ≈4s con 15 estaciones
                     let indicePuntoActual = 0;
 
                     async function cargarEstacionIndividual(punto) {
@@ -1781,13 +1775,14 @@
                     }
 
                     // Primera llamada en cuanto el DOM está listo, y luego una
-                    // estación nueva cada 10 segundos, en bucle continuo.
+                    // estación nueva cada ~4 segundos, en bucle continuo, para
+                    // completar la vuelta a las 15 en 1 minuto.
                     if (document.readyState === 'loading') {
                         document.addEventListener('DOMContentLoaded', llamarSiguienteEstacion);
                     } else {
                         llamarSiguienteEstacion();
                     }
-                    setInterval(llamarSiguienteEstacion, 10 * 1000);
+                    setInterval(llamarSiguienteEstacion, INTERVALO_ESTACIONES_MS);
                 })();
                 </script>
                 <!-- ═══ FIN MÓDULO EFECTO ALTURA ═══ -->
@@ -1864,13 +1859,11 @@
                         <!-- Fila 2 · Ciudad alta -->
                         <div class="estaciones-fila estaciones-fila-ciudad-alta">
                             <div class="estaciones-galleta" data-key="vallhebron"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Vall d'Hebron</span></div>
-                            <div class="estaciones-galleta" data-key="horta"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Horta</span></div>
                             <div class="estaciones-galleta" data-key="santandreu"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Sant Andreu</span></div>
                             <div class="estaciones-galleta" data-key="sagrera"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">La Sagrera</span></div>
                         </div>
                         <!-- Fila 3 · Ciudad media -->
                         <div class="estaciones-fila estaciones-fila-ciudad-media">
-                            <div class="estaciones-galleta" data-key="ronda"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">CosmoCaixa</span></div>
                             <div class="estaciones-galleta" data-key="gracia"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Gràcia</span></div>
                             <div class="estaciones-galleta" data-key="sarria"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Sarrià</span></div>
                             <div class="estaciones-galleta" data-key="lescorts"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Les Corts</span></div>
@@ -1878,8 +1871,6 @@
                         <!-- Fila 4 · Ciudad baja -->
                         <div class="estaciones-fila estaciones-fila-ciudad-baja">
                             <div class="estaciones-galleta" data-key="eixample"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Eixample</span></div>
-                            <div class="estaciones-galleta" data-key="sants"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Sants</span></div>
-                            <div class="estaciones-galleta" data-key="verneda"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">La Verneda</span></div>
                         </div>
                         <!-- Fila 5 · Zona Costa -->
                         <div class="estaciones-fila estaciones-fila-costa">
@@ -1895,10 +1886,14 @@
                     // absoluta, p. ej. 'https://api.tiempo-bcn.com/api/clima'.
                     const API_URL = '/api/clima';
 
-                    // Se consulta cada 40s (nunca a Weathercloud, solo a nuestra
+                    // Se consulta cada 60s (nunca a Weathercloud, solo a nuestra
                     // propia caché local) para reflejar la última estación que el
-                    // servidor haya actualizado en su ciclo escalonado.
-                    const INTERVALO_MS = 40 * 1000;
+                    // servidor haya actualizado en su ciclo escalonado. OJO: esto
+                    // solo controla cada cuánto el FRONTEND relee la caché; que el
+                    // dato tenga de verdad ≤1 min de antigüedad depende de que
+                    // server.js (backend, no incluido en este archivo) refresque
+                    // su caché con esa misma cadencia.
+                    const INTERVALO_MS = 60 * 1000;
 
                     function pintar(datos) {
                         document.querySelectorAll('#estaciones-mapa .estaciones-galleta').forEach(tarjeta => {
