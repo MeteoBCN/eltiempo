@@ -3751,12 +3751,13 @@
         }
 
         // Devuelve un <img> apuntando al icono "Fill" (estilo 3D/app nativa), servido desde
-        // jsdelivr (CDN de npm, muy fiable) — paquete @bybas/weather-icons, versión fijada 2.0.0.
+        // tu propio servidor: los 15 SVG viven en imagenes/iconos-tiempo/ (súbelos junto al resto
+        // de imagenes/ que ya usa esta web). Así funciona igual con o sin conexión externa.
         function getRealisticWeatherIcon(wmo, size = 96, night = false) {
             const slug = getMeteoconSlug(wmo, night);
-            const url = 'https://cdn.jsdelivr.net/npm/@bybas/weather-icons@2.0.0/production/fill/all/' + slug + '.svg';
+            const url = 'imagenes/iconos-tiempo/' + slug + '.svg';
             return '<img src="' + url + '" width="' + size + '" height="' + size + '" ' +
-                'alt="Icono del tiempo actual" decoding="async" ' +
+                'alt="Icono del tiempo" decoding="async" ' +
                 'style="display:block;width:' + size + 'px;height:' + size + 'px;" ' +
                 'onerror="weatherIconFallback(this,' + wmo + ',' + size + ',' + night + ')">';
         }
@@ -3833,7 +3834,7 @@
                 const label = String(dt.getHours()).padStart(2, '0') + 'h';
                 const isNight = (typeof isNightTime === 'function') ? isNightTime(dt) : false;
                 const wmo = hourly.weather_code?.[idx] ?? 0;
-                const icon = (typeof getSvgIcon === 'function') ? getSvgIcon(wmo, 36, isNight) : '';
+                const icon = (typeof getRealisticWeatherIcon === 'function') ? getRealisticWeatherIcon(wmo, 36, isNight) : '';
                 const temp = hourly.temperature_2m?.[idx];
                 points.push({ label, temp });
                 html += `
@@ -4991,7 +4992,7 @@
                     if(!isRainCodeFranja && precipProbFranja>=50) effectiveWmoFranja=80;
                     else if(isRainCodeFranja && precipProbFranja<50) effectiveWmoFranja=3;
                 }
-                const icon = getSvgIcon(effectiveWmoFranja, 40, esNocheIcon);
+                const icon = getRealisticWeatherIcon(effectiveWmoFranja, 40, esNocheIcon);
 
                 // Lluvia total
                 const precip = ids.reduce((s,i) => s + (hourly.precipitation?.[i]||0), 0).toFixed(1);
@@ -5767,7 +5768,7 @@
                     const wmo=hourly.weather_code?.[i]??0;
                     if(!best||severity.indexOf(wmo)>severity.indexOf(best.wmo)) best={wmo,ht,cd:{cloud_cover:hourly.cloud_cover?.[i],cloud_cover_low:hourly.cloud_cover_low?.[i],cloud_cover_mid:hourly.cloud_cover_mid?.[i]}};
                 }
-                return best ? getSvgIcon(best.wmo, 32, isNightTime(best.ht)) : '—';
+                return best ? getRealisticWeatherIcon(best.wmo, 32, isNightTime(best.ht)) : '—';
             }
             const hoyIconManana=hoyIconForRange(8,13);
             const hoyIconTarde=hoyIconForRange(13,18);
@@ -5799,7 +5800,7 @@
                 pool.forEach(c=>{ freq[c.wmo]=(freq[c.wmo]||0)+1; });
                 const dominantWmo=parseInt(Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0]);
                 const usedCode=pool.find(c=>c.wmo===dominantWmo)||pool[Math.floor(pool.length/2)];
-                return getSvgIcon(usedCode.wmo, 68);
+                return getRealisticWeatherIcon(usedCode.wmo, 68);
             }
             const hoyIconDia=hoyIconForDay();
 
@@ -5833,7 +5834,7 @@
                 }
                 const night = isNightTime(ht);
                 const iconMap = night ? WMO_EMOJI_NIGHT : WMO_EMOJI_DAY;
-                const icon = getSvgIcon(isFog ? 45 : effectiveWmo, 36, night);
+                const icon = getRealisticWeatherIcon(isFog ? 45 : effectiveWmo, 36, night);
                 const temp = Math.round(hourly.temperature_2m?.[idx] ?? 0);
                 const ws = Math.round(hourly.wind_speed_10m?.[idx] ?? 0);
                 const wd = hourly.wind_direction_10m?.[idx] ?? 0;
@@ -6588,7 +6589,7 @@
 
                 container.innerHTML = rows.map((r, idx) => {
                     const dt = new Date(r.dateStr + 'T12:00:00');
-                    const icon = sources[idx] || getSvgIcon(r.wmo, 30, false);
+                    const icon = sources[idx] || getRealisticWeatherIcon(r.wmo, 30, false);
                     const label = r.isToday ? 'HOY' : DIAS[dt.getDay()];
                     return `<div class="f7-day-cell" data-idx="${idx}" onclick="openF7Day(${idx})">
                         <div class="f7-day-label">${label}</div>
@@ -6654,7 +6655,7 @@
                 const row = document.getElementById(rowId);
                 if (!row) return;
                 row.innerHTML = bbcDailyRows.slice(startIdx, endIdxExcl).map((r) => {
-                    const icon = getSvgIcon(r.wmo, 28, false);
+                    const icon = getRealisticWeatherIcon(r.wmo, 28, false);
                     return `<div class="bbc-day-cell${r.idx === selectedIdx ? ' selected' : ''}" data-idx="${r.idx}" onclick="window.${selectFnName}(${r.idx})">
                         <div class="bbc-day-name">${r.label}</div>
                         <div class="bbc-day-icon">${icon}</div>
@@ -6681,7 +6682,7 @@
                 const isRain = (wmo >= 51 && wmo <= 82) || (wmo >= 85 && wmo <= 86) || (wmo >= 95 && wmo <= 99);
                 let eWmo = wmo;
                 if (!isFog) { if (!isRain && pp >= 50) eWmo = 80; else if (isRain && pp < 50) eWmo = 3; }
-                const icon = getSvgIcon(isFog ? 45 : eWmo, 42, isNight);
+                const icon = getRealisticWeatherIcon(isFog ? 45 : eWmo, 42, isNight);
                 const temp = bbcHourly.temperature_2m?.[i] !== undefined ? Math.round(bbcHourly.temperature_2m[i]) + '°' : '--';
                 const hum = bbcHourly.relative_humidity_2m?.[i] !== undefined ? Math.round(bbcHourly.relative_humidity_2m[i]) + '%' : '--';
                 const ws = Math.round(bbcHourly.wind_speed_10m?.[i] ?? 0);
@@ -6798,7 +6799,7 @@
                 const rowsHtml = BBC_SEMANAL_SLOTS.map((slot, i) => {
                     const wmo = bbcModeWmoRange(row.dateStr, bbcHourly, slot.h0, slot.h1 - 1, row.wmo);
                     const isNightSlot = (slot.label === 'Madrugada' || slot.label === 'Noche');
-                    const icon = getSvgIcon(wmo, 50, isNightSlot);
+                    const icon = getRealisticWeatherIcon(wmo, 50, isNightSlot);
                     const iconHtml = isNightSlot ? maskedIconHtml(icon, 50, 'rgba(255,255,255,0.55)') : icon;
 
                     let tempValue, tempClass;
@@ -7057,9 +7058,9 @@
                     freq[wmo]=(freq[wmo]||0)+1;
                     if(!bestIdx2[wmo]) bestIdx2[wmo]=i;
                 }
-                if(!Object.keys(freq).length) return getSvgIcon(r.wmo||0,56,false);
+                if(!Object.keys(freq).length) return getRealisticWeatherIcon(r.wmo||0,56,false);
                 const best=Object.keys(freq).reduce((a,b)=>freq[a]>=freq[b]?a:b);
-                return getSvgIcon(Number(best),56,false);
+                return getRealisticWeatherIcon(Number(best),56,false);
             }
             const iconDia = iconForDay();
 
@@ -7086,7 +7087,7 @@
                 const isRain = (wmo>=51&&wmo<=82)||(wmo>=85&&wmo<=86)||(wmo>=95&&wmo<=99);
                 let eWmo = wmo;
                 if(!isFog){ if(!isRain&&pp2>=50) eWmo=80; else if(isRain&&pp2<50) eWmo=3; }
-                const ico   = getSvgIcon(isFog?45:eWmo,36,isNight);
+                const ico   = getRealisticWeatherIcon(isFog?45:eWmo,36,isNight);
                 const temp  = hourly.temperature_2m?.[i]!==undefined ? Math.round(hourly.temperature_2m[i])+'°' : '--';
                 const feels = hourly.apparent_temperature?.[i]!==undefined ? Math.round(hourly.apparent_temperature[i])+'°' : '--';
                 const hum   = hourly.relative_humidity_2m?.[i]!==undefined ? hourly.relative_humidity_2m[i]+'%' : '--';
@@ -9714,7 +9715,7 @@
                 const ht=new Date(hourly.time[idx]);
                 const cd={cloud_cover:hourly.cloud_cover?.[idx],cloud_cover_low:hourly.cloud_cover_low?.[idx],cloud_cover_mid:hourly.cloud_cover_mid?.[idx]};
                 const row=document.createElement('tr');
-                row.innerHTML=`<td class="table-hour">${formatHour(hourly.time[idx])}</td><td class="table-icon">${getSvgIcon(hourly.weather_code[idx], 36, isNightTime(ht))}</td><td class="table-temp">${Math.round(hourly.temperature_2m[idx])}°C</td><td class="table-rain">${(hourly.precipitation?.[idx]||0).toFixed(1)} mm</td><td class="table-wind">${Math.round(hourly.wind_speed_10m[idx])} km/h</td>`;
+                row.innerHTML=`<td class="table-hour">${formatHour(hourly.time[idx])}</td><td class="table-icon">${getRealisticWeatherIcon(hourly.weather_code[idx], 36, isNightTime(ht))}</td><td class="table-temp">${Math.round(hourly.temperature_2m[idx])}°C</td><td class="table-rain">${(hourly.precipitation?.[idx]||0).toFixed(1)} mm</td><td class="table-wind">${Math.round(hourly.wind_speed_10m[idx])} km/h</td>`;
                 tbody.appendChild(row);
             }
         }
@@ -9867,7 +9868,7 @@
                 if(!Object.keys(freq).length) return '—';
                 // Icono más frecuente
                 const mostFreqWmo = Object.keys(freq).reduce((a,b) => freq[a]>=freq[b]?a:b);
-                return getSvgIcon(Number(mostFreqWmo), 68);
+                return getRealisticWeatherIcon(Number(mostFreqWmo), 68);
             }
             const iconDia = iconForDay();
             const minT=Math.round(daily.temperature_2m_min[off]),maxT=Math.round(daily.temperature_2m_max[off]);
@@ -9964,7 +9965,7 @@
                     else if(isRainCode&&precipProb<50) effectiveWmo=3;
                 }
                 const iconMap=isNight?{0:'🌙',1:'🌙',2:'☁️',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'}:{0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
-                const ico=getSvgIcon(isFog?45:effectiveWmo, 36, isNight);
+                const ico=getRealisticWeatherIcon(isFog?45:effectiveWmo, 36, isNight);
                 const temp=hourly.temperature_2m?.[i]!==undefined?Math.round(hourly.temperature_2m[i])+'°':'--';
                 const feels=hourly.apparent_temperature?.[i]!==undefined?Math.round(hourly.apparent_temperature[i])+'°':'--';
                 const hum=hourly.relative_humidity_2m?.[i]!==undefined?hourly.relative_humidity_2m[i]+'%':'--';
@@ -10846,7 +10847,7 @@
                     // Buscar el índice real en hourly para obtener el wmo correcto
                     const hIdx = hourly.time.findIndex(t => t === p.time);
                     const wmo = hIdx !== -1 ? (hourly.weather_code?.[hIdx] ?? 0) : 0;
-                    const svgIcon = getSvgIcon(wmo, 28, p.night);
+                    const svgIcon = getRealisticWeatherIcon(wmo, 28, p.night);
                     const cell = document.createElement('div');
                     cell.style.cssText = `flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:4px 0 2px;${isNow ? 'background:rgba(37,99,235,0.07);border-radius:6px;' : ''}`;
                     cell.innerHTML = `<span style="line-height:1;display:flex;align-items:center;justify-content:center;">${svgIcon}</span>`;
@@ -11932,7 +11933,7 @@
                     wcodes2.forEach(c => { freq[c] = (freq[c]||0)+1; });
                     reprWcode = parseInt(Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0]);
                 }
-                const skyIconHtml = reprWcode !== null ? getSvgIcon(reprWcode, 30, false) : '';
+                const skyIconHtml = reprWcode !== null ? getRealisticWeatherIcon(reprWcode, 30, false) : '';
 
                 // Barra horizontal de gauge (0-100%) con icono a la izquierda
                 const gauge = (iconHtml, label, val, pct, color) => `
