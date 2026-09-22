@@ -3723,6 +3723,44 @@
         }
         // ══════ FIN SVG ICONOS ══════
 
+        // ══════ ICONO REALISTA (Meteocons, CDN) — SOLO para el tiempo actual ══════
+        // Traduce un código WMO al slug de icono "premium" de Meteocons (cdn.meteocons.com),
+        // manteniendo la misma lógica día/noche que getSvgIcon().
+        function getMeteoconSlug(wmo, night=false) {
+            if (wmo === 45 || wmo === 48)              return 'fog';
+            if ((wmo >= 71 && wmo <= 77) || (wmo >= 85 && wmo <= 86)) return 'snow';
+            if (wmo >= 95 && wmo <= 99)                return night ? 'thunderstorms-night-rain' : 'thunderstorms-day-rain';
+            if (wmo >= 51 && wmo <= 55)                return 'drizzle';
+            if (wmo >= 61 && wmo <= 65)                return 'rain';
+            if (wmo >= 80 && wmo <= 82)                return night ? 'overcast-night-rain' : 'overcast-day-rain';
+            if (night) {
+                if (wmo === 0)          return 'clear-night';
+                if (wmo === 1 || wmo === 2) return 'partly-cloudy-night';
+                return 'overcast-night';
+            }
+            if (wmo === 0)              return 'clear-day';
+            if (wmo === 1 || wmo === 2) return 'partly-cloudy-day';
+            if (wmo === 3)              return 'overcast-day';
+            return 'cloudy';
+        }
+
+        // Si el icono del CDN no carga (p.ej. sin conexión a internet), se restaura
+        // automáticamente el icono SVG local de siempre, sin dejar un hueco roto.
+        function weatherIconFallback(imgEl, wmo, size, night) {
+            try { imgEl.outerHTML = getSvgIcon(wmo, size, night); } catch (e) {}
+        }
+
+        // Devuelve un <img> apuntando al icono "Fill" (estilo 3D/app nativa) de Meteocons.
+        function getRealisticWeatherIcon(wmo, size = 96, night = false) {
+            const slug = getMeteoconSlug(wmo, night);
+            const url = 'https://cdn.meteocons.com/latest/svg/fill/' + slug + '.svg';
+            return '<img src="' + url + '" width="' + size + '" height="' + size + '" ' +
+                'alt="Icono del tiempo actual" decoding="async" ' +
+                'style="display:block;width:' + size + 'px;height:' + size + 'px;" ' +
+                'onerror="weatherIconFallback(this,' + wmo + ',' + size + ',' + night + ')">';
+        }
+        // ══════ FIN ICONO REALISTA ══════
+
         // ── Iconos de paraguas (abierto / plegado) para sección "El paraguas" ──
         function umbrellaOpenSvg(size=22, color='#123653') {
             const s = size;
@@ -9625,7 +9663,7 @@
             const now=new Date();
             document.getElementById('current-temp').textContent=Math.round(current.temperature_2m)+'°';
             const nowMs = now.getTime();
-            document.getElementById('current-icon').innerHTML=getSvgIcon(weatherCode, 96, isNightTime(now));
+            document.getElementById('current-icon').innerHTML=getRealisticWeatherIcon(weatherCode, 96, isNightTime(now));
             const pressureEl = document.getElementById('pressure');
             if (pressureEl) pressureEl.textContent=Math.round(current.pressure_msl)+' hPa';
             document.getElementById('humidity').textContent=current.relative_humidity_2m+'%';
