@@ -1343,6 +1343,57 @@
             }
         }
         /* ══════════ FIN METEOPANEL MASONRY ══════════ */
+
+        /* ======================================================
+           DISEÑO PREMIUM: ICONO FLOTANTE Y TEMPERATURA CON PULSO
+           ====================================================== */
+
+        /* El icono del sol/nube flota elegantemente de arriba a abajo */
+        #icono-clima-principal {
+            display: inline-block;
+            animation: flotarNube 3.5s ease-in-out infinite alternate;
+            will-change: transform;
+        }
+
+        /* La temperatura se queda fija pero respira con destellos de luz sutiles */
+        #temperatura-principal {
+            display: inline-block;
+            animation: pulsoLuz 3.5s ease-in-out infinite alternate;
+            will-change: opacity;
+        }
+
+        /* Forzamos a que cualquier icono o texto dentro de las previsiones ignore estos efectos */
+        .previsiones img,
+        .pronostico-item img,
+        .pronostico-item span,
+        .day-head-icon,
+        .day-head-icon * {
+            animation: none !important;
+            transform: none !important;
+            opacity: 1 !important;
+        }
+
+        /* --- ANIMACIONES SINCRONIZADAS (3.5 segundos) --- */
+
+        /* Movimiento de flotación vertical */
+        @keyframes flotarNube {
+            0% {
+                transform: translateY(0px);
+            }
+            100% {
+                transform: translateY(-6px); /* Sube 6 píxeles de forma muy suave */
+            }
+        }
+
+        /* Efecto de respiración lumínica */
+        @keyframes pulsoLuz {
+            0% {
+                opacity: 0.85; /* Se atenúa milimétricamente */
+            }
+            100% {
+                opacity: 1; /* Brillo máximo */
+            }
+        }
     </style>
 </head>
 <body>
@@ -1402,8 +1453,12 @@
                 <div class="current-weather" style="text-align:left;padding:20px 20px 18px;background:#ffffff;">
                 <div id="current-datetime" style="font-size:13px;font-weight:400;color:#123653;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px;">--</div>
                 <div id="current-icon-temp-row" style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
-                    <div class="icon-large" id="current-icon" style="font-size:2em;margin:0;line-height:1;">🌧️</div>
-                    <div class="temperature" id="current-temp" style="color:#123653;font-size:56px;font-weight:800;margin-bottom:0;display:inline-block;transform:scaleX(1.25);transform-origin:left center;">--°</div>
+                    <span id="icono-clima-principal">
+                        <div class="icon-large" id="current-icon" style="font-size:2em;margin:0;line-height:1;">🌧️</div>
+                    </span>
+                    <span id="temperatura-principal">
+                        <div class="temperature" id="current-temp" style="color:#123653;font-size:56px;font-weight:800;margin-bottom:0;display:inline-block;transform:scaleX(1.25);transform-origin:left center;">--°</div>
+                    </span>
                 </div>
 
                 <div style="padding:20px 4px 4px;display:grid;grid-template-columns:repeat(3,1fr);row-gap:22px;column-gap:6px;">
