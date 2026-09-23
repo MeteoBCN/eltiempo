@@ -1793,13 +1793,13 @@
                 <!-- ═══ FIN MÓDULO EFECTO ALTURA ═══ -->
 
                 <!-- ═══ ESTACIONES · Mapa fijo en directo (sin carrusel) ═══
-                     Las 15 estaciones se muestran TODAS a la vez, en filas que
-                     imitan un mapa de arriba (montaña) a abajo (costa). Ya no
-                     hace ninguna llamada directa a Weathercloud desde el
-                     navegador: lee la caché que mantiene el backend Node
-                     (server.js) a través de GET /api/clima, que responde al
-                     instante porque nunca espera a ninguna API externa.
-                     Ver server.js + package.json para el backend. -->
+                     Las 4 estaciones se muestran todas a la vez, en una única
+                     fila. El navegador de cada visitante YA NO llama a
+                     Meteoclimatic ni a Weathercloud: lee datos/estaciones.json,
+                     un archivo estático del propio repo que se regenera solo
+                     cada pocos minutos mediante GitHub Actions.
+                     Ver scripts/actualizar-estaciones.js y
+                     .github/workflows/actualizar-estaciones.yml. -->
                 <style>
                     .estaciones-mapa-wrap{ margin:18px 0 4px; }
                     .estaciones-mapa-title{
@@ -1864,90 +1864,21 @@
                 <script>
                 (function () {
                     /**
-                     * ═══ Carga de datos reales para las 4 tarjetas ═══
-                     * Fuentes por estación (según lo pedido):
-                     *   - tibidabo → Meteoclimatic (ESCAT0800000008023C) · temp actual + precip. del día
-                     *   - gracia   → Meteoclimatic (ESCAT0800000008023I) · temp actual + precip. del día
-                     *   - lescorts → Weathercloud (código 1618006537)   · temp + precip. del día
-                     *   - costa    → Weathercloud (código 9415750150)  · temp + precip. del día
-                     *
-                     *   El Worker de Meteoclimatic (proxy-meteoclimatic.lojasergi.workers.dev)
-                     *   sirve el feed RSS completo de todas las estaciones de la
-                     *   demarcación de Barcelona; cada estación lleva, oculto en un
-                     *   comentario dentro de su <item>, un bloque con formato:
-                     *     [[<CODIGO;(temp;max;min;icono);(hum;max;min);(baro;max;min);(viento;max;dir);(precip);Nombre>]]
-                     *   Se pide el feed una sola vez y se extraen de ahí Tibidabo y
-                     *   Gràcia, en vez de hacer una petición HTML por estación.
+                     * ═══ Estaciones en directo — SOLO lectura de caché propia ═══
+                     * El navegador de cada visitante ya NO llama a Meteoclimatic
+                     * ni a Weathercloud. En su lugar lee datos/estaciones.json,
+                     * un archivo estático del propio repo que scripts/actualizar-estaciones.js
+                     * regenera cada pocos minutos desde GitHub Actions
+                     * (.github/workflows/actualizar-estaciones.yml) y sube con un
+                     * commit automático. Así, sean 1 o 10.000 visitas, Meteoclimatic
+                     * y Weathercloud solo reciben las llamadas de esa Action, nunca
+                     * las de los visitantes.
                      */
-                    const METEOCLIMATIC_PROXY = 'https://proxy-meteoclimatic.lojasergi.workers.dev';
-                    // Mismo Worker que usa el perfil topográfico más arriba (ver
-                    // ese bloque para sustituirlo por tu propia URL de Cloudflare
-                    // si cambia).
-                    const WEATHERCLOUD_WORKER = 'https://proxy-weathercloud.lojasergi.workers.dev';
-
-                    const TARJETAS = [
-                        { key: 'tibidabo', fuente: 'meteoclimatic', code: 'ESCAT0800000008023C' },
-                        { key: 'lescorts', fuente: 'weathercloud',  code: '1618006537' },
-                        { key: 'gracia',   fuente: 'meteoclimatic', code: 'ESCAT0800000008023I' },
-                        { key: 'costa',    fuente: 'weathercloud',  code: '9415750150' }
-                    ];
-
-                    // El feed de Meteoclimatic trae TODAS las estaciones en una sola
-                    // respuesta, así que se cachea un ratito para no pedirlo dos
-                    // veces seguidas (una vez por Tibidabo, otra por Gràcia).
-                    let feedMeteoclimaticCache = null;
-                    let feedMeteoclimaticTimestamp = 0;
-                    const FEED_METEOCLIMATIC_CACHE_MS = 4 * 60 * 1000;
-
-                    async function obtenerFeedMeteoclimatic() {
-                        const ahora = Date.now();
-                        if (feedMeteoclimaticCache && (ahora - feedMeteoclimaticTimestamp) < FEED_METEOCLIMATIC_CACHE_MS) {
-                            return feedMeteoclimaticCache;
-                        }
-                        const resp = await fetch(METEOCLIMATIC_PROXY, { signal: AbortSignal.timeout(10000) });
-                        if (!resp.ok) throw new Error('Respuesta no OK del proxy Meteoclimatic');
-                        const texto = await resp.text();
-                        feedMeteoclimaticCache = texto;
-                        feedMeteoclimaticTimestamp = ahora;
-                        return texto;
-                    }
-
-                    function extraerEstacionMeteoclimatic(xml, code) {
-                        const marcador = '[[<' + code + ';';
-                        const inicio = xml.indexOf(marcador);
-                        if (inicio === -1) throw new Error('Estación ' + code + ' no encontrada en el feed');
-                        const fin = xml.indexOf('>]]', inicio);
-                        const bloque = xml.slice(inicio + marcador.length, fin);
-                        const grupos = bloque.match(/\(([^)]*)\)/g);
-                        if (!grupos || grupos.length < 5) throw new Error('Formato inesperado para ' + code);
-                        // grupos[0] = (temp;max;min;icono) · grupos[4] = (precip del día)
-                        const temp = parseFloat(grupos[0].replace(/[()]/g, '').split(';')[0].replace(',', '.'));
-                        const lluvia = parseFloat(grupos[4].replace(/[()]/g, '').replace(',', '.'));
-                        return {
-                            temp: Number.isNaN(temp) ? null : Math.round(temp),
-                            lluvia: Number.isNaN(lluvia) ? null : lluvia
-                        };
-                    }
-
-                    async function obtenerDatoMeteoclimatic(code) {
-                        const xml = await obtenerFeedMeteoclimatic();
-                        return extraerEstacionMeteoclimatic(xml, code);
-                    }
-
-                    async function obtenerDatoWeathercloud(code) {
-                        const resp = await fetch(`${WEATHERCLOUD_WORKER}?code=${code}`, { signal: AbortSignal.timeout(8000) });
-                        if (!resp.ok) throw new Error('Respuesta no OK del proxy Weathercloud (' + code + ')');
-                        const data = await resp.json();
-                        const v = data.values || data;
-                        const temp = v.temp ?? v.temperature;
-                        // Alias más comunes para la lluvia acumulada del día.
-                        const lluvia = v.rain ?? v.rainDay ?? v.rainday ?? v.rainrate ?? v.rain_day;
-                        if (temp === undefined || temp === null) throw new Error('Sin dato de temperatura (' + code + ')');
-                        return {
-                            temp: Math.round(temp),
-                            lluvia: (lluvia === undefined || lluvia === null) ? null : Number(lluvia)
-                        };
-                    }
+                    const JSON_ESTACIONES = './datos/estaciones.json';
+                    // El JSON lo regenera la Action cada pocos minutos; con releer
+                    // cada 2 minutos en el navegador es más que suficiente y no
+                    // supone ninguna carga para el repo (es un archivo estático).
+                    const INTERVALO_REFRESCO_MS = 2 * 60 * 1000;
 
                     function pintarTarjeta(key, { temp, lluvia } = {}) {
                         const tarjeta = document.querySelector('#estaciones-mapa .estaciones-galleta[data-key="' + key + '"]');
@@ -1966,33 +1897,22 @@
                         }
                     }
 
-                    async function cargarTarjeta(estacion) {
+                    async function cargarDesdeCachePropia() {
                         try {
-                            const datos = estacion.fuente === 'meteoclimatic'
-                                ? await obtenerDatoMeteoclimatic(estacion.code)
-                                : await obtenerDatoWeathercloud(estacion.code);
-                            pintarTarjeta(estacion.key, datos);
+                            const resp = await fetch(JSON_ESTACIONES + '?t=' + Date.now(), { cache: 'no-store' });
+                            if (!resp.ok) throw new Error('estaciones.json no accesible (HTTP ' + resp.status + ')');
+                            const data = await resp.json();
+                            const estaciones = data.estaciones || {};
+                            Object.keys(estaciones).forEach(key => pintarTarjeta(key, estaciones[key]));
+                            console.log('[estaciones] Cargadas desde caché propia (' + JSON_ESTACIONES + '), generadas:', data.generado);
                         } catch (err) {
-                            console.warn(`[estaciones] No se pudo obtener el dato de "${estacion.key}":`, err.message);
+                            console.warn('[estaciones] No se pudo leer la caché propia (¿aún no se ha ejecutado la Action?):', err.message);
                         }
                     }
 
-                    // Todas las tarjetas se cargan a la vez al entrar (solo son 4,
-                    // no hay riesgo de saturar los proxys) y luego se van
-                    // refrescando UNA a UNA en rotación cada ~15s, así cada tarjeta
-                    // queda con datos de máximo 1 minuto de antigüedad.
-                    const INTERVALO_TARJETAS_MS = Math.round(60000 / TARJETAS.length);
-                    let indiceTarjetaActual = 0;
-
-                    function cargarSiguienteTarjeta() {
-                        const estacion = TARJETAS[indiceTarjetaActual];
-                        indiceTarjetaActual = (indiceTarjetaActual + 1) % TARJETAS.length;
-                        cargarTarjeta(estacion);
-                    }
-
                     function iniciar() {
-                        TARJETAS.forEach(cargarTarjeta);
-                        setInterval(cargarSiguienteTarjeta, INTERVALO_TARJETAS_MS);
+                        cargarDesdeCachePropia();
+                        setInterval(cargarDesdeCachePropia, INTERVALO_REFRESCO_MS);
                     }
 
                     if (document.readyState === 'loading') {
