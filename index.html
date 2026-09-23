@@ -3791,25 +3791,27 @@
                 };
                 const tema = temas[tipoFondo];
 
-                // Sol detallado y estático: halo, rayos afilados de dos longitudes, corona y disco con brillo
+                // Sol estilo dibujo animado (estático): rayos redondeados con contorno, disco plano con carita
                 const sunRayos = (() => {
                     let r = '';
-                    for (let i = 0; i < 24; i++) {
-                        const a = i * 15, largo = (i % 2 === 0);
-                        const r2 = largo ? 54 : 42, w = largo ? 3.4 : 2.2;
-                        r += `<polygon transform="rotate(${a})" points="0,-${r2} -${w},-24 ${w},-24" fill="url(#mw-sun-ray)" opacity="${largo ? 0.95 : 0.75}"/>`;
+                    for (let i = 0; i < 12; i++) {
+                        const a = i * 30, largo = (i % 2 === 0);
+                        const r2 = largo ? 53 : 45, w = largo ? 6.5 : 5.5;
+                        r += `<polygon transform="rotate(${a})" points="0,-${r2} -${w},-32 ${w},-32" fill="#ffc21a" stroke="#f28c00" stroke-width="3" stroke-linejoin="round"/>`;
                     }
                     return r;
                 })();
                 const sunSvg = `<g class="mw-sol" transform="translate(375 34)">
-                    <circle r="78" fill="url(#mw-sun-halo)"/>
                     ${sunRayos}
-                    <circle r="30" fill="url(#mw-sun-corona)"/>
-                    <circle r="21" fill="url(#mw-sun-core)"/>
-                    <circle r="21" fill="none" stroke="#ff9800" stroke-opacity="0.35" stroke-width="1.2"/>
-                    <ellipse cx="-7" cy="-8" rx="8" ry="5.5" fill="#ffffff" opacity="0.45" transform="rotate(-35 -7 -8)"/>
-                    <circle cx="-34" cy="30" r="3.2" fill="#fff6c8" opacity="0.28"/>
-                    <circle cx="-47" cy="42" r="2" fill="#ffe08a" opacity="0.22"/>
+                    <circle r="27" fill="#ffd93b" stroke="#f28c00" stroke-width="3.5"/>
+                    <path d="M-17 -12 A21 21 0 0 1 -2 -21" fill="none" stroke="#fff3a0" stroke-width="3.5" stroke-linecap="round" opacity="0.9"/>
+                    <ellipse cx="-9" cy="-4" rx="2.8" ry="4" fill="#5a3410"/>
+                    <ellipse cx="9" cy="-4" rx="2.8" ry="4" fill="#5a3410"/>
+                    <circle cx="-8.2" cy="-5.6" r="1.1" fill="#ffffff"/>
+                    <circle cx="9.8" cy="-5.6" r="1.1" fill="#ffffff"/>
+                    <ellipse cx="-15" cy="5" rx="4.2" ry="2.8" fill="#ff7a59" opacity="0.55"/>
+                    <ellipse cx="15" cy="5" rx="4.2" ry="2.8" fill="#ff7a59" opacity="0.55"/>
+                    <path d="M-8 6 Q0 15 8 6" fill="none" stroke="#5a3410" stroke-width="2.6" stroke-linecap="round"/>
                 </g>`;
 
                 let fondo = '';
@@ -3836,7 +3838,7 @@
                           + (esTormenta ? `<rect class="mw-rayo" x="-10" y="-30" width="520" height="240" fill="#ffffff"/>` : '');
                 }
 
-                const panelW = Math.min(300, Math.max(150, Math.round(descripcion.length * 12.3 + 28)));
+                const panelW = Math.min(300, Math.max(140, Math.round(descripcion.length * 12.3 + 30)));
 
                 const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 178" width="100%" role="img" aria-label="Previsión de mañana: ${descripcion}, máxima ${tMax} grados (tendencia: ${deltaMaxTxt}), mínima ${tMin} grados (tendencia: ${deltaMinTxt})" style="display:block;overflow:hidden;border-radius:14px;">
@@ -3890,14 +3892,14 @@
   </defs>
   <rect width="500" height="178" fill="url(#mw-bg)"/>
   <g id="fondo-animado" transform="translate(0 25)">${fondo}</g>
-  <rect id="panel-datos" x="10" y="12" width="${panelW}" height="158" rx="14" fill="#0b1e33" fill-opacity="0.42"/>
+  <rect id="panel-datos" x="0" y="0" width="${panelW}" height="178" fill="#0b1e33" fill-opacity="0.42"/>
   <g id="textos-y-datos" class="mw-txt" transform="translate(0 25)" filter="url(#mw-sombra)">
-    <text x="24" y="36" font-size="26" font-weight="800" letter-spacing="0.5" fill="${tema.txt}">MAÑANA</text>
-    <text x="24" y="66" font-size="18" font-weight="600" fill="${tema.sub}" letter-spacing="0.5">${descripcion.toUpperCase()}</text>
-    <text x="50" y="112" text-anchor="middle" font-size="32" font-weight="800" fill="${tema.max}">${tMax}°</text>
-    <text x="115" y="112" text-anchor="middle" font-size="32" font-weight="800" fill="${tema.min}">${tMin}°</text>
-    <text x="50" y="138" text-anchor="middle" font-size="20" font-weight="700" fill="${tema.max}">${deltaMaxTxt}</text>
-    <text x="115" y="138" text-anchor="middle" font-size="20" font-weight="700" fill="${tema.min}">${deltaMinTxt}</text>
+    <text x="16" y="36" font-size="26" font-weight="800" letter-spacing="0.5" fill="${tema.txt}">MAÑANA</text>
+    <text x="16" y="66" font-size="18" font-weight="600" fill="${tema.sub}" letter-spacing="0.5">${descripcion.toUpperCase()}</text>
+    <text x="42" y="112" text-anchor="middle" font-size="32" font-weight="800" fill="${tema.max}">${tMax}°</text>
+    <text x="107" y="112" text-anchor="middle" font-size="32" font-weight="800" fill="${tema.min}">${tMin}°</text>
+    <text x="42" y="138" text-anchor="middle" font-size="20" font-weight="700" fill="${tema.max}">${deltaMaxTxt}</text>
+    <text x="107" y="138" text-anchor="middle" font-size="20" font-weight="700" fill="${tema.min}">${deltaMinTxt}</text>
   </g>
 </svg>`;
                 host.innerHTML = svg;
