@@ -3849,6 +3849,9 @@
                           + (esTormenta ? `<rect class="mw-rayo" x="-10" y="-30" width="520" height="240" fill="#ffffff"/>` : '');
                 }
 
+                const maxTxt = tMax + '°' + (deltaMaxTxt ? ' ' + deltaMaxTxt : '');
+                const minTxt = tMin + '°' + (deltaMinTxt ? ' ' + deltaMinTxt : '');
+
                 const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 178" width="100%" role="img" aria-label="Previsión de mañana: ${fechaTxt}, ${descripcion}, máxima ${tMax} grados${deltaMaxTxt ? ' (tendencia: ' + deltaMaxTxt + ')' : ''}, mínima ${tMin} grados${deltaMinTxt ? ' (tendencia: ' + deltaMinTxt + ')' : ''}" style="display:block;overflow:hidden;border-radius:0;">
   <style>
@@ -3908,14 +3911,14 @@
   </defs>
   <rect width="500" height="178" fill="url(#mw-bg)"/>
   <g id="fondo-animado" transform="translate(0 25)">${fondo}</g>
-  <rect id="panel-datos" x="0" y="46" width="500" height="132" fill="#0b1e33" fill-opacity="0.42"/>
-  <g id="textos-y-datos" class="mw-txt" transform="translate(0 25)" filter="url(#mw-sombra)">
-    <text x="16" y="36" font-size="26" font-weight="800" letter-spacing="0.5" fill="${tema.txt}">${fechaTxt.toUpperCase()}</text>
-    <text x="16" y="66" font-size="18" font-weight="600" fill="${tema.sub}" letter-spacing="0.5">${descripcion.toUpperCase()}</text>
-    <text x="42" y="112" text-anchor="middle" font-size="32" font-weight="800" fill="${tema.max}">${tMax}°</text>
-    <text x="107" y="112" text-anchor="middle" font-size="32" font-weight="800" fill="${tema.min}">${tMin}°</text>
-    <text x="42" y="138" text-anchor="middle" font-size="20" font-weight="700" fill="${tema.max}">${deltaMaxTxt}</text>
-    <text x="107" y="138" text-anchor="middle" font-size="20" font-weight="700" fill="${tema.min}">${deltaMinTxt}</text>
+  <rect id="panel-datos" x="0" y="142" width="500" height="36" fill="#0b1e33" fill-opacity="0.42"/>
+  <g id="fecha-titulo" class="mw-txt" filter="url(#mw-sombra)">
+    <text x="16" y="32" font-size="26" font-weight="800" letter-spacing="0.5" fill="${tema.txt}">${fechaTxt.toUpperCase()}</text>
+  </g>
+  <g id="textos-y-datos" class="mw-txt" filter="url(#mw-sombra)">
+    <text x="16" y="165" font-size="13" font-weight="600" fill="${tema.sub}" letter-spacing="0.5">${descripcion.toUpperCase()}</text>
+    <text x="370" y="165" text-anchor="middle" font-size="18" font-weight="800" fill="${tema.max}">${maxTxt}</text>
+    <text x="460" y="165" text-anchor="middle" font-size="18" font-weight="800" fill="${tema.min}">${minTxt}</text>
   </g>
 </svg>`;
                 host.innerHTML = svg;
