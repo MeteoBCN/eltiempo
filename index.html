@@ -187,26 +187,19 @@
             100% { transform: translate(-180px, -15px) scale(1.08); }
         }
 
-        /* Nube blanca ancha, ocupa todo el ancho en la parte superior */
+        /* Nube blanca ancha (SVG), silueta realista con degradado para dar volumen */
         .nube-top-white {
             position: absolute;
-            top: -85px;
+            top: -78px;
             left: -8%;
             width: 116%;
-            height: 110px;
-            background: #ffffff;
-            border-radius: 50%;
-            filter: blur(16px);
-            opacity: 0.35;
+            height: 140px;
             z-index: 2;
-            box-shadow:
-                0 35px 0 -12px #ffffff,
-                120px 15px 0 -10px #ffffff,
-                -120px 15px 0 -10px #ffffff,
-                260px 25px 0 -22px #ffffff,
-                -260px 25px 0 -22px #ffffff;
+            opacity: 0.4;
+            pointer-events: none;
             animation: viento-nube-top 14s ease-in-out infinite alternate;
         }
+        .nube-top-white svg { width: 100%; height: 100%; display: block; filter: blur(2px); }
 
         @keyframes viento-nube-top {
             0% { transform: translateX(-25px); }
@@ -1416,7 +1409,27 @@
 
         <header id="banner-meteo" class="banner-base efecto-tormenta">
             <!-- Capa de nubes animadas por detrás -->
-            <div class="nube-top-white"></div>
+            <div class="nube-top-white">
+                <svg viewBox="0 0 1200 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="nubeGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#ffffff"/>
+                            <stop offset="100%" stop-color="#c7d3dc"/>
+                        </linearGradient>
+                    </defs>
+                    <path fill="url(#nubeGrad)" d="M0,140
+                        C40,120 80,90 150,95
+                        C160,55 220,30 270,55
+                        C300,20 370,15 410,50
+                        C450,25 520,30 545,65
+                        C600,45 660,55 680,90
+                        C740,70 800,80 820,110
+                        C880,90 940,100 960,125
+                        C1020,110 1080,120 1120,140
+                        C1160,145 1190,150 1200,155
+                        L1200,200 L0,200 Z"/>
+                </svg>
+            </div>
             <div class="capa-nubes">
                 <div class="nube nube-1"></div>
                 <div class="nube nube-2"></div>
