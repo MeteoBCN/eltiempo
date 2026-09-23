@@ -977,15 +977,13 @@
         }
 
         /* Widget "Mañana" (SVG animado, justo encima de "¿Vas a correr por
-           Barcelona?"): en móvil se ensancha hasta ocupar casi todo el ancho
-           de pantalla, rompiendo el padding lateral del panel Meteoflash
-           que lo contiene (misma técnica que las gráficas de arriba). */
-        @media (max-width: 480px) {
-            #manana-widget {
-                width: calc(100vw - 16px) !important;
-                margin-left: calc(50% - 50vw + 8px) !important;
-                margin-right: calc(50% - 50vw + 8px) !important;
-            }
+           Barcelona?"): rompe el padding lateral fijo (16px) del panel
+           Meteoflash que lo contiene para llegar a los mismos bordes que la
+           imagen "titular.jpg" de debajo — ancho completo, sin aire. */
+        #manana-widget {
+            width: calc(100% + 32px) !important;
+            margin-left: -16px !important;
+            margin-right: -16px !important;
         }
 
         /* ══════════ RESUMEN 7 DÍAS ══════════ */
@@ -3750,13 +3748,15 @@
                 const tHoy = (maxHoy == null) ? null : Math.round(maxHoy);
                 const tHoyMin = (minHoy == null) ? null : Math.round(minHoy);
 
-                // 4) Tendencia (máxima y mínima de mañana frente a hoy), expresada
-                //    como flecha entre paréntesis: "↑" si sube, "↓" si baja,
-                //    "=" si no hay cambio o no hay dato de referencia de hoy.
+                // 4) Tendencia (máxima y mínima de mañana frente a hoy): solo se
+                //    muestra flecha ("↑" sube / "↓" baja) cuando la diferencia es
+                //    de 2 grados o más (en cualquiera de los dos sentidos). Si el
+                //    cambio es menor, o no hay dato de referencia de hoy, no se
+                //    muestra nada (sin símbolo "=").
                 const deltaMax = (tHoy !== null) ? (tMax - tHoy) : 0;
-                const deltaMaxTxt = deltaMax > 0 ? '↑' : (deltaMax < 0 ? '↓' : '=');
+                const deltaMaxTxt = deltaMax >= 2 ? '↑' : (deltaMax <= -2 ? '↓' : '');
                 const deltaMin = (tHoyMin !== null) ? (tMin - tHoyMin) : 0;
-                const deltaMinTxt = deltaMin > 0 ? '↑' : (deltaMin < 0 ? '↓' : '=');
+                const deltaMinTxt = deltaMin >= 2 ? '↑' : (deltaMin <= -2 ? '↓' : '');
 
                 // Categoría visual y texto del estado predominante
                 let categoria, descripcion;
@@ -3849,10 +3849,8 @@
                           + (esTormenta ? `<rect class="mw-rayo" x="-10" y="-30" width="520" height="240" fill="#ffffff"/>` : '');
                 }
 
-                const panelW = Math.min(300, Math.max(140, Math.round(descripcion.length * 12.3 + 30)));
-
                 const svg = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 178" width="100%" role="img" aria-label="Previsión de mañana: ${descripcion}, máxima ${tMax} grados (tendencia: ${deltaMaxTxt}), mínima ${tMin} grados (tendencia: ${deltaMinTxt})" style="display:block;overflow:hidden;border-radius:14px;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 178" width="100%" role="img" aria-label="Previsión de mañana: ${fechaTxt}, ${descripcion}, máxima ${tMax} grados${deltaMaxTxt ? ' (tendencia: ' + deltaMaxTxt + ')' : ''}, mínima ${tMin} grados${deltaMinTxt ? ' (tendencia: ' + deltaMinTxt + ')' : ''}" style="display:block;overflow:hidden;border-radius:0;">
   <style>
     .mw-txt { font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif; }
     .mw-sol   { opacity: 1; }
@@ -3910,9 +3908,9 @@
   </defs>
   <rect width="500" height="178" fill="url(#mw-bg)"/>
   <g id="fondo-animado" transform="translate(0 25)">${fondo}</g>
-  <rect id="panel-datos" x="0" y="0" width="${panelW}" height="178" fill="#0b1e33" fill-opacity="0.42"/>
+  <rect id="panel-datos" x="0" y="46" width="500" height="132" fill="#0b1e33" fill-opacity="0.42"/>
   <g id="textos-y-datos" class="mw-txt" transform="translate(0 25)" filter="url(#mw-sombra)">
-    <text x="16" y="36" font-size="26" font-weight="800" letter-spacing="0.5" fill="${tema.txt}">MAÑANA</text>
+    <text x="16" y="36" font-size="26" font-weight="800" letter-spacing="0.5" fill="${tema.txt}">${fechaTxt.toUpperCase()}</text>
     <text x="16" y="66" font-size="18" font-weight="600" fill="${tema.sub}" letter-spacing="0.5">${descripcion.toUpperCase()}</text>
     <text x="42" y="112" text-anchor="middle" font-size="32" font-weight="800" fill="${tema.max}">${tMax}°</text>
     <text x="107" y="112" text-anchor="middle" font-size="32" font-weight="800" fill="${tema.min}">${tMin}°</text>
