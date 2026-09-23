@@ -1818,41 +1818,35 @@
                         display:flex; justify-content:center; align-items:stretch; gap:7px;
                     }
                     .estaciones-galleta{
-                        flex:1 1 0; min-width:0; max-width:118px;
+                        flex:1 1 0; min-width:0; max-width:88px;
                         display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
-                        padding:10px 3px; border-radius:11px;
+                        padding:10px 2px; border-radius:11px;
                         background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);
                         border:1px solid rgba(255,255,255,0.08);
                         box-shadow:0 1px 4px rgba(18,54,83,0.18);
                     }
                     .estaciones-galleta-temp{ font-size:22px;font-weight:800;color:#ffffff;font-family:'Inter',sans-serif;letter-spacing:-1px;line-height:1;display:flex;align-items:flex-start; }
                     .estaciones-galleta-temp sup{ font-size:0.5em;font-weight:500;margin-left:1px; }
-                    .estaciones-galleta-precip{ display:flex;align-items:center;gap:2px;font-size:9px;font-weight:600;color:#7DD3FC;letter-spacing:0.1px; }
-                    .estaciones-galleta-precip::before{ content:'💧';font-size:8px;opacity:0.85; }
-                    .estaciones-galleta-nombre{ font-size:7.8px;font-weight:500;color:rgba(255,255,255,0.75);text-align:center;line-height:1.2;letter-spacing:0.1px;text-transform:uppercase; }
+                    .estaciones-galleta-nombre{ font-size:7.8px;font-weight:500;color:#ffffff;text-align:center;line-height:1.2;letter-spacing:0.1px;text-transform:uppercase; }
 
-                    /* ═ Responsivo: en móvil se abandona la disposición "mapa" y se
-                       convierte en una lista vertical simple de 2 columnas (1 columna
-                       en pantallas muy estrechas), fácil de recorrer con el dedo.
-                       El truco es "display:contents" en .estaciones-fila: hace que
-                       desaparezca como contenedor y sus tarjetas pasen a ser hijas
-                       directas del grid de .estaciones-mapa. ═ */
+                    /* ═ Responsivo: las 4 estaciones se mantienen siempre en una
+                       sola fila (también en móvil); las galletas ya son lo
+                       bastante estrechas como para no necesitar romper a 2
+                       columnas. ═ */
                     @media (max-width: 700px) {
                         .estaciones-mapa-title{
                             padding-left: calc(var(--gutter) + 4px);
                             padding-right: calc(var(--gutter) + 4px);
                         }
                         .estaciones-mapa{
-                            display:grid; grid-template-columns: repeat(2, 1fr);
-                            gap:8px;
                             padding-left: calc(var(--gutter) + 4px);
                             padding-right: calc(var(--gutter) + 4px);
                         }
-                        .estaciones-fila{ display:contents; }
-                        .estaciones-galleta{ max-width:none; }
+                        .estaciones-galleta{ max-width:76px; }
                     }
                     @media (max-width: 380px) {
-                        .estaciones-mapa{ grid-template-columns: 1fr; }
+                        .estaciones-galleta{ max-width:66px; padding:8px 2px; }
+                        .estaciones-galleta-temp{ font-size:19px; }
                     }
                 </style>
                 <div class="estaciones-mapa-wrap">
@@ -1860,10 +1854,10 @@
                     <div class="estaciones-mapa" id="estaciones-mapa">
                         <!-- Fila única · 4 estaciones seleccionadas -->
                         <div class="estaciones-fila estaciones-fila-seleccion">
-                            <div class="estaciones-galleta" data-key="tibidabo"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-precip">-- mm</span><span class="estaciones-galleta-nombre">Tibidabo</span></div>
-                            <div class="estaciones-galleta" data-key="gracia"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-precip">-- mm</span><span class="estaciones-galleta-nombre">Gràcia</span></div>
-                            <div class="estaciones-galleta" data-key="lescorts"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-precip">-- mm</span><span class="estaciones-galleta-nombre">Les Corts</span></div>
-                            <div class="estaciones-galleta" data-key="costa"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-precip">-- mm</span><span class="estaciones-galleta-nombre">Port Olímpic</span></div>
+                            <div class="estaciones-galleta" data-key="tibidabo"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Tibidabo</span></div>
+                            <div class="estaciones-galleta" data-key="lescorts"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Les Corts</span></div>
+                            <div class="estaciones-galleta" data-key="gracia"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Gràcia</span></div>
+                            <div class="estaciones-galleta" data-key="costa"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Port Olímpic</span></div>
                         </div>
                     </div>
                 </div>
@@ -1960,10 +1954,6 @@
                         if (!tarjeta) return;
                         if (typeof temp === 'number' && !Number.isNaN(temp)) {
                             tarjeta.querySelector('.estaciones-galleta-temp').innerHTML = Math.round(temp) + '<sup>°</sup>';
-                        }
-                        const elPrecip = tarjeta.querySelector('.estaciones-galleta-precip');
-                        if (elPrecip && typeof lluvia === 'number' && !Number.isNaN(lluvia)) {
-                            elPrecip.textContent = lluvia.toFixed(1).replace('.', ',') + ' mm';
                         }
                         // Reutiliza el dato de temperatura para el perfil topográfico
                         // de la montaña, si ese módulo ya está cargado.
