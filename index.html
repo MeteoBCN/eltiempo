@@ -3851,6 +3851,7 @@
 
                 const maxTxt = tMax + '°' + (deltaMaxTxt ? ' ' + deltaMaxTxt : '');
                 const minTxt = tMin + '°' + (deltaMinTxt ? ' ' + deltaMinTxt : '');
+                const minTxtX = 16 + Math.round(maxTxt.length * 17) + 10;
 
                 const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 178" width="100%" role="img" aria-label="Previsión de mañana: ${fechaTxt}, ${descripcion}, máxima ${tMax} grados${deltaMaxTxt ? ' (tendencia: ' + deltaMaxTxt + ')' : ''}, mínima ${tMin} grados${deltaMinTxt ? ' (tendencia: ' + deltaMinTxt + ')' : ''}" style="display:block;overflow:hidden;border-radius:0;">
@@ -3916,8 +3917,8 @@
   </g>
   <g id="textos-y-datos" class="mw-txt" filter="url(#mw-sombra)">
     <text x="16" y="62" font-size="18" font-weight="700" fill="${tema.sub}" letter-spacing="0.5">${descripcion.toUpperCase()}</text>
-    <text x="16" y="104" font-size="26" font-weight="800" fill="${tema.max}">${maxTxt}</text>
-    <text x="140" y="104" font-size="26" font-weight="800" fill="${tema.min}">${minTxt}</text>
+    <text x="16" y="106" font-size="32" font-weight="800" fill="${tema.max}" stroke="rgba(0,0,0,0.45)" stroke-width="4" stroke-linejoin="round" paint-order="stroke">${maxTxt}</text>
+    <text x="${minTxtX}" y="106" font-size="32" font-weight="800" fill="${tema.min}" stroke="rgba(0,0,0,0.45)" stroke-width="4" stroke-linejoin="round" paint-order="stroke">${minTxt}</text>
   </g>
 </svg>`;
                 host.innerHTML = svg;
