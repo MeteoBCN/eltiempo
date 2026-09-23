@@ -3766,8 +3766,9 @@
                     .replace(',', '');
 
                 // ── Capa de fondo animado (opacidad siempre entre 0.10 y 0.25) ──
-                const nube = (y, s, cls, op = 0.16, col = '#ffffff') => `
-                    <g transform="translate(0 ${y})"><g class="mw-cloud ${cls}"><g transform="scale(${s})" fill="${col}" opacity="${op}">
+                const durNube = { 'mw-c1': 38, 'mw-c2': 54, 'mw-c3': 30, 'mw-c4': 46 };
+                const nube = (y, s, cls, op = 0.16, col = '#ffffff', prog = null) => `
+                    <g transform="translate(0 ${y})"><g class="mw-cloud ${cls}"${prog === null ? '' : ` style="animation-delay:-${(prog * durNube[cls]).toFixed(2)}s"`}><g transform="scale(${s})" fill="${col}" opacity="${op}">
                         <circle cx="40" cy="34" r="22"/><circle cx="70" cy="24" r="28"/><circle cx="102" cy="34" r="20"/>
                         <rect x="20" y="34" width="102" height="22" rx="11"/>
                     </g></g></g>`;
@@ -3791,27 +3792,25 @@
                 };
                 const tema = temas[tipoFondo];
 
-                // Sol estilo dibujo animado (estático): rayos redondeados con contorno, disco plano con carita
+                // Sol realista y estático: núcleo blanco incandescente, resplandor atmosférico,
+                // destellos de luz suaves y reflejos de lente muy sutiles
                 const sunRayos = (() => {
                     let r = '';
-                    for (let i = 0; i < 12; i++) {
-                        const a = i * 30, largo = (i % 2 === 0);
-                        const r2 = largo ? 53 : 45, w = largo ? 6.5 : 5.5;
-                        r += `<polygon transform="rotate(${a})" points="0,-${r2} -${w},-32 ${w},-32" fill="#ffc21a" stroke="#f28c00" stroke-width="3" stroke-linejoin="round"/>`;
+                    for (let i = 0; i < 16; i++) {
+                        const a = i * 22.5 + 4, largo = (i % 2 === 0);
+                        const r2 = largo ? 72 : 52, w = largo ? 2.6 : 1.8;
+                        r += `<polygon transform="rotate(${a})" points="0,-${r2} -${w},-14 ${w},-14" fill="url(#mw-sun-ray)" opacity="${largo ? 0.8 : 0.55}"/>`;
                     }
                     return r;
                 })();
                 const sunSvg = `<g class="mw-sol" transform="translate(375 34)">
-                    ${sunRayos}
-                    <circle r="27" fill="#ffd93b" stroke="#f28c00" stroke-width="3.5"/>
-                    <path d="M-17 -12 A21 21 0 0 1 -2 -21" fill="none" stroke="#fff3a0" stroke-width="3.5" stroke-linecap="round" opacity="0.9"/>
-                    <ellipse cx="-9" cy="-4" rx="2.8" ry="4" fill="#5a3410"/>
-                    <ellipse cx="9" cy="-4" rx="2.8" ry="4" fill="#5a3410"/>
-                    <circle cx="-8.2" cy="-5.6" r="1.1" fill="#ffffff"/>
-                    <circle cx="9.8" cy="-5.6" r="1.1" fill="#ffffff"/>
-                    <ellipse cx="-15" cy="5" rx="4.2" ry="2.8" fill="#ff7a59" opacity="0.55"/>
-                    <ellipse cx="15" cy="5" rx="4.2" ry="2.8" fill="#ff7a59" opacity="0.55"/>
-                    <path d="M-8 6 Q0 15 8 6" fill="none" stroke="#5a3410" stroke-width="2.6" stroke-linecap="round"/>
+                    <circle r="95" fill="url(#mw-sun-halo)"/>
+                    <g filter="url(#mw-blur)">${sunRayos}</g>
+                    <circle r="34" fill="url(#mw-sun-corona)"/>
+                    <circle r="17" fill="url(#mw-sun-real)"/>
+                    <circle cx="-42" cy="28" r="6" fill="#fff2b8" opacity="0.16"/>
+                    <circle cx="-68" cy="46" r="10" fill="#ffd9a0" opacity="0.10"/>
+                    <circle cx="-96" cy="66" r="4" fill="#fff8d0" opacity="0.14"/>
                 </g>`;
 
                 let fondo = '';
@@ -3819,13 +3818,13 @@
                     fondo = `${sunSvg}`;
                 } else if (tipoFondo === 'mayor') {
                     fondo = `${sunSvg}`
-                          + nube(14, 1.0, 'mw-c1', 0.85) + nube(66, 0.75, 'mw-c2', 0.7);
+                          + nube(14, 1.0, 'mw-c1', 0.85, '#ffffff', 0.5) + nube(66, 0.75, 'mw-c2', 0.7, '#ffffff', 0.25);
                 } else if (tipoFondo === 'parcial') {
                     fondo = `${sunSvg}`
-                          + nube(0, 1.15, 'mw-c1', 0.85) + nube(58, 0.85, 'mw-c2', 0.75)
-                          + nube(26, 1.4, 'mw-c3', 0.8) + nube(84, 0.95, 'mw-c4', 0.7);
+                          + nube(0, 1.15, 'mw-c1', 0.85, '#ffffff', 0.5) + nube(58, 0.85, 'mw-c2', 0.75, '#ffffff', 0.25)
+                          + nube(26, 1.4, 'mw-c3', 0.8, '#ffffff', 0.75) + nube(84, 0.95, 'mw-c4', 0.7, '#ffffff', 0.4);
                 } else if (tipoFondo === 'nublado') {
-                    fondo = nube(-2, 1.4, 'mw-c1', 0.55, '#f2f5f8') + nube(52, 1.0, 'mw-c2', 0.5, '#e6ebf0') + nube(20, 1.6, 'mw-c3', 0.4, '#dde3ea');
+                    fondo = nube(-2, 1.4, 'mw-c1', 0.55, '#f2f5f8', 0.5) + nube(52, 1.0, 'mw-c2', 0.5, '#e6ebf0', 0.25) + nube(20, 1.6, 'mw-c3', 0.4, '#dde3ea', 0.75);
                 } else {
                     const xs = [18, 52, 88, 124, 160, 196, 232, 268, 304, 340, 376, 412, 448, 482];
                     const dur = [1.5, 1.2, 1.7, 1.3, 1.6, 1.1, 1.8, 1.4, 1.25, 1.65, 1.35, 1.55, 1.15, 1.75];
@@ -3834,7 +3833,7 @@
                     xs.forEach((x, i) => {
                         gotas += `<g transform="translate(${x} 0)"><line class="mw-gota" x1="0" y1="0" x2="-5" y2="16" stroke="#cfe6ff" stroke-width="1.8" stroke-linecap="round" style="animation-duration:${dur[i]}s;animation-delay:${del[i]}s"/></g>`;
                     });
-                    fondo = nube(-6, 1.5, 'mw-c1', 0.5, '#9aa8b6') + nube(8, 1.2, 'mw-c3', 0.45, '#8796a5') + nube(-2, 1.0, 'mw-c2', 0.4, '#a7b4c1') + gotas
+                    fondo = nube(-6, 1.5, 'mw-c1', 0.5, '#9aa8b6', 0.5) + nube(8, 1.2, 'mw-c3', 0.45, '#8796a5', 0.25) + nube(-2, 1.0, 'mw-c2', 0.4, '#a7b4c1', 0.75) + gotas
                           + (esTormenta ? `<rect class="mw-rayo" x="-10" y="-30" width="520" height="240" fill="#ffffff"/>` : '');
                 }
 
@@ -3864,6 +3863,12 @@
       <stop offset="100%" stop-color="${tema.g[2]}"/>
     </linearGradient>
     <filter id="mw-sombra" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity="0.35"/></filter>
+    <filter id="mw-blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.3"/></filter>
+    <radialGradient id="mw-sun-real" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="70%" stop-color="#fffdf0"/>
+      <stop offset="100%" stop-color="#fff2b0" stop-opacity="0.95"/>
+    </radialGradient>
     <radialGradient id="mw-sun-halo" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#fff7cc" stop-opacity="0.75"/>
       <stop offset="30%" stop-color="#ffe082" stop-opacity="0.38"/>
@@ -3871,8 +3876,9 @@
       <stop offset="100%" stop-color="#ffcc66" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="mw-sun-corona" cx="50%" cy="50%" r="50%">
-      <stop offset="60%" stop-color="#ffd54f" stop-opacity="0.85"/>
-      <stop offset="100%" stop-color="#ffb300" stop-opacity="0"/>
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="40%" stop-color="#fff2a8" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#ffe082" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="mw-sun-core" cx="42%" cy="40%" r="65%">
       <stop offset="0%" stop-color="#fffef2"/>
@@ -3880,9 +3886,9 @@
       <stop offset="80%" stop-color="#ffc233"/>
       <stop offset="100%" stop-color="#ff9f1a"/>
     </radialGradient>
-    <linearGradient id="mw-sun-ray" gradientUnits="userSpaceOnUse" x1="0" y1="-24" x2="0" y2="-54">
-      <stop offset="0%" stop-color="#fff3b0" stop-opacity="0.95"/>
-      <stop offset="100%" stop-color="#ffd166" stop-opacity="0"/>
+    <linearGradient id="mw-sun-ray" gradientUnits="userSpaceOnUse" x1="0" y1="-14" x2="0" y2="-72">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#fff0a0" stop-opacity="0"/>
     </linearGradient>
     <radialGradient id="mw-sol-grad" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#ffd166" stop-opacity="1"/>
