@@ -1692,6 +1692,11 @@
                      *   - vallhebron → https://app.weathercloud.net/map#2673126653 (código 2673126653)
                      *   - sagrera    → https://app.weathercloud.net/map#0535343276 (código 0535343276)
                      *
+                     *   Este bucle SOLO alimenta el perfil topográfico de la montaña
+                     *   (TOPO_TEMPS / renderPerfilTopografico). Las 4 tarjetas de
+                     *   "Las estaciones, en directo" tienen su propio bloque de carga
+                     *   más abajo, con Meteoclimatic para Tibidabo/Gràcia.
+                     *
                      *   ⚠️ Sustituye WEATHERCLOUD_WORKER por la URL real de tu Worker
                      *   una vez desplegado en Cloudflare (ver proxy-weathercloud-worker.js).
                      */
@@ -1750,7 +1755,7 @@
                     // ciclo completo (pasar por las PUNTOS.length estaciones) dure
                     // exactamente 60s, así que cada estación individual queda
                     // actualizada con datos de máximo 1 minuto de antigüedad.
-                    const INTERVALO_ESTACIONES_MS = Math.round(60000 / PUNTOS.length); // ≈4s con 15 estaciones
+                    const INTERVALO_ESTACIONES_MS = Math.round(60000 / PUNTOS.length); // ≈5s con 11 estaciones
                     let indicePuntoActual = 0;
 
                     async function cargarEstacionIndividual(punto) {
@@ -1822,6 +1827,8 @@
                     }
                     .estaciones-galleta-temp{ font-size:22px;font-weight:800;color:#ffffff;font-family:'Inter',sans-serif;letter-spacing:-1px;line-height:1;display:flex;align-items:flex-start; }
                     .estaciones-galleta-temp sup{ font-size:0.5em;font-weight:500;margin-left:1px; }
+                    .estaciones-galleta-precip{ display:flex;align-items:center;gap:2px;font-size:9px;font-weight:600;color:#7DD3FC;letter-spacing:0.1px; }
+                    .estaciones-galleta-precip::before{ content:'💧';font-size:8px;opacity:0.85; }
                     .estaciones-galleta-nombre{ font-size:7.8px;font-weight:500;color:rgba(255,255,255,0.75);text-align:center;line-height:1.2;letter-spacing:0.1px;text-transform:uppercase; }
 
                     /* ═ Responsivo: en móvil se abandona la disposición "mapa" y se
@@ -1851,72 +1858,154 @@
                 <div class="estaciones-mapa-wrap">
                     <div class="estaciones-mapa-title">Las estaciones, en directo</div>
                     <div class="estaciones-mapa" id="estaciones-mapa">
-                        <!-- Fila 1 · Zona Montaña -->
-                        <div class="estaciones-fila estaciones-fila-montana">
-                            <div class="estaciones-galleta" data-key="tibidabo"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Tibidabo</span></div>
-                            <div class="estaciones-galleta" data-key="fabra"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Obs. Fabra</span></div>
-                        </div>
-                        <!-- Fila 2 · Ciudad alta -->
-                        <div class="estaciones-fila estaciones-fila-ciudad-alta">
-                            <div class="estaciones-galleta" data-key="vallhebron"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Vall d'Hebron</span></div>
-                            <div class="estaciones-galleta" data-key="santandreu"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Sant Andreu</span></div>
-                            <div class="estaciones-galleta" data-key="sagrera"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">La Sagrera</span></div>
-                        </div>
-                        <!-- Fila 3 · Ciudad media -->
-                        <div class="estaciones-fila estaciones-fila-ciudad-media">
-                            <div class="estaciones-galleta" data-key="gracia"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Gràcia</span></div>
-                            <div class="estaciones-galleta" data-key="sarria"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Sarrià</span></div>
-                            <div class="estaciones-galleta" data-key="lescorts"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Les Corts</span></div>
-                        </div>
-                        <!-- Fila 4 · Ciudad baja -->
-                        <div class="estaciones-fila estaciones-fila-ciudad-baja">
-                            <div class="estaciones-galleta" data-key="eixample"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Eixample</span></div>
-                        </div>
-                        <!-- Fila 5 · Zona Costa -->
-                        <div class="estaciones-fila estaciones-fila-costa">
-                            <div class="estaciones-galleta" data-key="costa"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Port Olímpic</span></div>
-                            <div class="estaciones-galleta" data-key="poblenou"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-nombre">Poblenou</span></div>
+                        <!-- Fila única · 4 estaciones seleccionadas -->
+                        <div class="estaciones-fila estaciones-fila-seleccion">
+                            <div class="estaciones-galleta" data-key="tibidabo"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-precip">-- mm</span><span class="estaciones-galleta-nombre">Tibidabo</span></div>
+                            <div class="estaciones-galleta" data-key="gracia"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-precip">-- mm</span><span class="estaciones-galleta-nombre">Gràcia</span></div>
+                            <div class="estaciones-galleta" data-key="lescorts"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-precip">-- mm</span><span class="estaciones-galleta-nombre">Les Corts</span></div>
+                            <div class="estaciones-galleta" data-key="costa"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-precip">-- mm</span><span class="estaciones-galleta-nombre">Port Olímpic</span></div>
                         </div>
                     </div>
                 </div>
                 <script>
                 (function () {
-                    // ⚠️ Si el backend Node (server.js) se sirve desde OTRO dominio o
-                    // puerto distinto al de esta página, cambia esto por la URL
-                    // absoluta, p. ej. 'https://api.tiempo-bcn.com/api/clima'.
-                    const API_URL = '/api/clima';
+                    /**
+                     * ═══ Carga de datos reales para las 4 tarjetas ═══
+                     * Fuentes por estación (según lo pedido):
+                     *   - tibidabo → Meteoclimatic (ESCAT0800000008023C) · temp actual + precip. del día
+                     *   - gracia   → Meteoclimatic (ESCAT0800000008023I) · temp actual + precip. del día
+                     *   - lescorts → Weathercloud (código 1618006537)   · temp + precip. del día
+                     *   - costa    → Weathercloud (código 9415750150)  · temp + precip. del día
+                     *
+                     *   El Worker de Meteoclimatic (proxy-meteoclimatic.lojasergi.workers.dev)
+                     *   sirve el feed RSS completo de todas las estaciones de la
+                     *   demarcación de Barcelona; cada estación lleva, oculto en un
+                     *   comentario dentro de su <item>, un bloque con formato:
+                     *     [[<CODIGO;(temp;max;min;icono);(hum;max;min);(baro;max;min);(viento;max;dir);(precip);Nombre>]]
+                     *   Se pide el feed una sola vez y se extraen de ahí Tibidabo y
+                     *   Gràcia, en vez de hacer una petición HTML por estación.
+                     */
+                    const METEOCLIMATIC_PROXY = 'https://proxy-meteoclimatic.lojasergi.workers.dev';
+                    // Mismo Worker que usa el perfil topográfico más arriba (ver
+                    // ese bloque para sustituirlo por tu propia URL de Cloudflare
+                    // si cambia).
+                    const WEATHERCLOUD_WORKER = 'https://proxy-weathercloud.lojasergi.workers.dev';
 
-                    // Se consulta cada 60s (nunca a Weathercloud, solo a nuestra
-                    // propia caché local) para reflejar la última estación que el
-                    // servidor haya actualizado en su ciclo escalonado. OJO: esto
-                    // solo controla cada cuánto el FRONTEND relee la caché; que el
-                    // dato tenga de verdad ≤1 min de antigüedad depende de que
-                    // server.js (backend, no incluido en este archivo) refresque
-                    // su caché con esa misma cadencia.
-                    const INTERVALO_MS = 60 * 1000;
+                    const TARJETAS = [
+                        { key: 'tibidabo', fuente: 'meteoclimatic', code: 'ESCAT0800000008023C' },
+                        { key: 'gracia',   fuente: 'meteoclimatic', code: 'ESCAT0800000008023I' },
+                        { key: 'lescorts', fuente: 'weathercloud',  code: '1618006537' },
+                        { key: 'costa',    fuente: 'weathercloud',  code: '9415750150' }
+                    ];
 
-                    function pintar(datos) {
-                        document.querySelectorAll('#estaciones-mapa .estaciones-galleta').forEach(tarjeta => {
-                            const info = datos[tarjeta.dataset.key];
-                            if (!info || typeof info.temp !== 'number' || Number.isNaN(info.temp)) return;
-                            tarjeta.querySelector('.estaciones-galleta-temp').innerHTML = Math.round(info.temp) + '<sup>°</sup>';
-                            // Reutiliza el mismo dato para el resto del sitio (perfil
-                            // topográfico, etc.) si ese módulo ya está cargado.
-                            if (typeof window.actualizarFilaAltura === 'function') {
-                                window.actualizarFilaAltura(tarjeta.dataset.key, { temp: info.temp });
-                            }
-                        });
+                    // El feed de Meteoclimatic trae TODAS las estaciones en una sola
+                    // respuesta, así que se cachea un ratito para no pedirlo dos
+                    // veces seguidas (una vez por Tibidabo, otra por Gràcia).
+                    let feedMeteoclimaticCache = null;
+                    let feedMeteoclimaticTimestamp = 0;
+                    const FEED_METEOCLIMATIC_CACHE_MS = 4 * 60 * 1000;
+
+                    async function obtenerFeedMeteoclimatic() {
+                        const ahora = Date.now();
+                        if (feedMeteoclimaticCache && (ahora - feedMeteoclimaticTimestamp) < FEED_METEOCLIMATIC_CACHE_MS) {
+                            return feedMeteoclimaticCache;
+                        }
+                        const resp = await fetch(METEOCLIMATIC_PROXY, { signal: AbortSignal.timeout(10000) });
+                        if (!resp.ok) throw new Error('Respuesta no OK del proxy Meteoclimatic');
+                        const texto = await resp.text();
+                        feedMeteoclimaticCache = texto;
+                        feedMeteoclimaticTimestamp = ahora;
+                        return texto;
                     }
 
-                    function cargar() {
-                        fetch(API_URL, { cache: 'no-store' })
-                            .then(resp => { if (!resp.ok) throw new Error('HTTP ' + resp.status); return resp.json(); })
-                            .then(pintar)
-                            .catch(err => console.warn('[estaciones] No se pudo leer ' + API_URL + ':', err.message));
+                    function extraerEstacionMeteoclimatic(xml, code) {
+                        const marcador = '[[<' + code + ';';
+                        const inicio = xml.indexOf(marcador);
+                        if (inicio === -1) throw new Error('Estación ' + code + ' no encontrada en el feed');
+                        const fin = xml.indexOf('>]]', inicio);
+                        const bloque = xml.slice(inicio + marcador.length, fin);
+                        const grupos = bloque.match(/\(([^)]*)\)/g);
+                        if (!grupos || grupos.length < 5) throw new Error('Formato inesperado para ' + code);
+                        // grupos[0] = (temp;max;min;icono) · grupos[4] = (precip del día)
+                        const temp = parseFloat(grupos[0].replace(/[()]/g, '').split(';')[0].replace(',', '.'));
+                        const lluvia = parseFloat(grupos[4].replace(/[()]/g, '').replace(',', '.'));
+                        return {
+                            temp: Number.isNaN(temp) ? null : Math.round(temp),
+                            lluvia: Number.isNaN(lluvia) ? null : lluvia
+                        };
                     }
 
-                    cargar(); // pintado inmediato al cargar la página (la caché responde al instante)
-                    setInterval(cargar, INTERVALO_MS);
+                    async function obtenerDatoMeteoclimatic(code) {
+                        const xml = await obtenerFeedMeteoclimatic();
+                        return extraerEstacionMeteoclimatic(xml, code);
+                    }
+
+                    async function obtenerDatoWeathercloud(code) {
+                        const resp = await fetch(`${WEATHERCLOUD_WORKER}?code=${code}`, { signal: AbortSignal.timeout(8000) });
+                        if (!resp.ok) throw new Error('Respuesta no OK del proxy Weathercloud (' + code + ')');
+                        const data = await resp.json();
+                        const v = data.values || data;
+                        const temp = v.temp ?? v.temperature;
+                        // Alias más comunes para la lluvia acumulada del día.
+                        const lluvia = v.rain ?? v.rainDay ?? v.rainday ?? v.rainrate ?? v.rain_day;
+                        if (temp === undefined || temp === null) throw new Error('Sin dato de temperatura (' + code + ')');
+                        return {
+                            temp: Math.round(temp),
+                            lluvia: (lluvia === undefined || lluvia === null) ? null : Number(lluvia)
+                        };
+                    }
+
+                    function pintarTarjeta(key, { temp, lluvia } = {}) {
+                        const tarjeta = document.querySelector('#estaciones-mapa .estaciones-galleta[data-key="' + key + '"]');
+                        if (!tarjeta) return;
+                        if (typeof temp === 'number' && !Number.isNaN(temp)) {
+                            tarjeta.querySelector('.estaciones-galleta-temp').innerHTML = Math.round(temp) + '<sup>°</sup>';
+                        }
+                        const elPrecip = tarjeta.querySelector('.estaciones-galleta-precip');
+                        if (elPrecip && typeof lluvia === 'number' && !Number.isNaN(lluvia)) {
+                            elPrecip.textContent = lluvia.toFixed(1).replace('.', ',') + ' mm';
+                        }
+                        // Reutiliza el dato de temperatura para el perfil topográfico
+                        // de la montaña, si ese módulo ya está cargado.
+                        if (typeof window.actualizarFilaAltura === 'function' && typeof temp === 'number') {
+                            window.actualizarFilaAltura(key, { temp });
+                        }
+                    }
+
+                    async function cargarTarjeta(estacion) {
+                        try {
+                            const datos = estacion.fuente === 'meteoclimatic'
+                                ? await obtenerDatoMeteoclimatic(estacion.code)
+                                : await obtenerDatoWeathercloud(estacion.code);
+                            pintarTarjeta(estacion.key, datos);
+                        } catch (err) {
+                            console.warn(`[estaciones] No se pudo obtener el dato de "${estacion.key}":`, err.message);
+                        }
+                    }
+
+                    // Todas las tarjetas se cargan a la vez al entrar (solo son 4,
+                    // no hay riesgo de saturar los proxys) y luego se van
+                    // refrescando UNA a UNA en rotación cada ~15s, así cada tarjeta
+                    // queda con datos de máximo 1 minuto de antigüedad.
+                    const INTERVALO_TARJETAS_MS = Math.round(60000 / TARJETAS.length);
+                    let indiceTarjetaActual = 0;
+
+                    function cargarSiguienteTarjeta() {
+                        const estacion = TARJETAS[indiceTarjetaActual];
+                        indiceTarjetaActual = (indiceTarjetaActual + 1) % TARJETAS.length;
+                        cargarTarjeta(estacion);
+                    }
+
+                    function iniciar() {
+                        TARJETAS.forEach(cargarTarjeta);
+                        setInterval(cargarSiguienteTarjeta, INTERVALO_TARJETAS_MS);
+                    }
+
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', iniciar);
+                    } else {
+                        iniciar();
+                    }
                 })();
                 </script>
                 <!-- ═══ FIN ESTACIONES · Mapa fijo en directo ═══ -->
