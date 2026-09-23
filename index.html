@@ -1570,6 +1570,9 @@
                         <div id="proximas-5h-rain-text" style="text-align:center;font-size:13px !important;font-weight:400 !important;-webkit-text-stroke:0;color:#ffffff;line-height:1.3;margin-top:8px;padding:0 8px;letter-spacing:0.4px;text-transform:uppercase;text-shadow:0 0 5px rgba(96,190,255,0.5),0 0 10px rgba(56,160,240,0.25);"></div>
                     </div>
 
+                    <!-- Widget "Mañana" (SVG animado) -->
+                    <div id="manana-widget" style="display:none;margin-top:28px;"></div>
+
                     <div id="sport-section-wrap" style="margin-top:56px;">
                         <div style="font-family:'Fraunces',serif;font-style:italic;font-size:19px;font-weight:500;color:#ffffff;text-align:center;margin-bottom:2px;letter-spacing:0.2px;">¿Vas a correr por Barcelona?</div>
                         <div id="sport-section-subtitle" style="font-size:10px;font-weight:600;color:#ffffff;opacity:0.75;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:10px;margin-bottom:6px;">Elige la hora perfecta para tu plan</div>
@@ -3685,6 +3688,152 @@
                 <line x1="4" y1="21" x2="20" y2="3" stroke="${color}" stroke-width="1.7" stroke-linecap="round"/>
             </svg>`;
         }
+
+        // ══════ WIDGET "MAÑANA" (SVG + CSS animado) ══════
+        // Procesa el JSON de Open-Meteo (hourly.weather_code + daily.temperature_2m_max/min)
+        // y pinta un único <svg> dentro de #manana-widget.
+        //  · Estado predominante = moda de weather_code entre las 08:00 y las 20:00 de mañana
+        //    (13 horas). En caso de empate gana el código más significativo (el mayor).
+        //  · Tendencia = máxima de mañana vs. máxima de hoy (valores enteros).
+        //  · Animaciones solo con transform/opacity (aceleradas por GPU), sin librerías.
+        function updateMananaWidget(hourly, daily) {
+            const host = document.getElementById('manana-widget');
+            if (!host) return;
+            try {
+                if (!hourly?.time || !hourly?.weather_code || !daily?.time) { host.style.display = 'none'; return; }
+
+                // Fechas "hoy" y "mañana" en hora de Barcelona (YYYY-MM-DD)
+                const hoyStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
+                const [yy, mm, dd] = hoyStr.split('-').map(Number);
+                const mananaStr = new Date(Date.UTC(yy, mm - 1, dd + 1)).toISOString().slice(0, 10);
+
+                // 1) Filtrado horario 08:00–20:00 de mañana
+                const codes = [];
+                hourly.time.forEach((t, i) => {
+                    if (t.slice(0, 10) !== mananaStr) return;
+                    const h = parseInt(t.slice(11, 13), 10);
+                    const c = hourly.weather_code[i];
+                    if (h >= 8 && h <= 20 && c !== null && c !== undefined) codes.push(Number(c));
+                });
+
+                // 3) Extremas de mañana y de hoy
+                const iHoy = daily.time.indexOf(hoyStr);
+                const iMan = daily.time.indexOf(mananaStr);
+                const maxMan = daily.temperature_2m_max?.[iMan];
+                const minMan = daily.temperature_2m_min?.[iMan];
+                const maxHoy = daily.temperature_2m_max?.[iHoy];
+                if (!codes.length || iMan === -1 || maxMan == null || minMan == null) { host.style.display = 'none'; return; }
+
+                // 2) Moda estadística (empate → código mayor)
+                const freq = {};
+                codes.forEach(c => { freq[c] = (freq[c] || 0) + 1; });
+                let modo = codes[0], best = 0;
+                Object.keys(freq).forEach(k => {
+                    const n = freq[k], kc = Number(k);
+                    if (n > best || (n === best && kc > modo)) { best = n; modo = kc; }
+                });
+
+                const tMax = Math.round(maxMan), tMin = Math.round(minMan);
+                const tHoy = (maxHoy == null) ? null : Math.round(maxHoy);
+
+                // 4) Tendencia
+                let flecha = '→', colorFlecha = '#b8c2cc';
+                if (tHoy !== null) {
+                    if (tMax > tHoy) { flecha = '↑'; colorFlecha = '#ff7a59'; }
+                    else if (tMax < tHoy) { flecha = '↓'; colorFlecha = '#6cb6ff'; }
+                }
+
+                // Categoría visual y texto del estado predominante
+                let categoria, descripcion;
+                if (modo === 0)                 { categoria = 'sol';    descripcion = 'Despejado'; }
+                else if (modo === 1)            { categoria = 'sol';    descripcion = 'Poco nuboso'; }
+                else if (modo === 2)            { categoria = 'nubes';  descripcion = 'Parcialmente nublado'; }
+                else if (modo === 3)            { categoria = 'nubes';  descripcion = 'Nublado'; }
+                else if (modo === 45 || modo === 48) { categoria = 'nubes'; descripcion = 'Niebla'; }
+                else if (modo >= 51 && modo <= 57)   { categoria = 'lluvia'; descripcion = 'Llovizna'; }
+                else if (modo >= 61 && modo <= 67)   { categoria = 'lluvia'; descripcion = 'Lluvia'; }
+                else if (modo >= 71 && modo <= 77)   { categoria = 'nubes';  descripcion = 'Nieve'; }
+                else if (modo >= 80 && modo <= 82)   { categoria = 'lluvia'; descripcion = 'Chubascos'; }
+                else if (modo === 85 || modo === 86) { categoria = 'nubes';  descripcion = 'Chubascos de nieve'; }
+                else if (modo >= 95)                 { categoria = 'lluvia'; descripcion = 'Tormenta'; }
+                else                                 { categoria = 'nubes';  descripcion = 'Variable'; }
+
+                const fechaTxt = new Date(Date.UTC(yy, mm - 1, dd + 1))
+                    .toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short', timeZone: 'UTC' })
+                    .replace(',', '').replace('.', '');
+
+                // ── Capa de fondo animado (opacidad siempre entre 0.10 y 0.25) ──
+                const nube = (y, s, cls) => `
+                    <g transform="translate(0 ${y})"><g class="mw-cloud ${cls}"><g transform="scale(${s})" fill="#ffffff" opacity="0.16">
+                        <circle cx="40" cy="34" r="22"/><circle cx="70" cy="24" r="28"/><circle cx="102" cy="34" r="20"/>
+                        <rect x="20" y="34" width="102" height="22" rx="11"/>
+                    </g></g></g>`;
+                let fondo = '';
+                if (categoria === 'sol') {
+                    fondo = `<circle class="mw-sol" cx="250" cy="60" r="105" fill="url(#mw-sol-grad)"/>`;
+                } else if (categoria === 'nubes') {
+                    fondo = nube(6, 1.15, 'mw-c1') + nube(52, 0.8, 'mw-c2') + nube(24, 1.5, 'mw-c3');
+                } else {
+                    const xs = [18, 52, 88, 124, 160, 196, 232, 268, 304, 340, 376, 412, 448, 482];
+                    const dur = [1.5, 1.2, 1.7, 1.3, 1.6, 1.1, 1.8, 1.4, 1.25, 1.65, 1.35, 1.55, 1.15, 1.75];
+                    const del = [0, -0.6, -1.1, -0.3, -0.9, -1.4, -0.2, -0.8, -1.2, -0.5, -1.6, -0.1, -1.0, -0.7];
+                    let gotas = '';
+                    xs.forEach((x, i) => {
+                        gotas += `<g transform="translate(${x} 0)"><line class="mw-gota" x1="0" y1="0" x2="-5" y2="16" stroke="#9ad0ff" stroke-width="1.6" stroke-linecap="round" style="animation-duration:${dur[i]}s;animation-delay:${del[i]}s"/></g>`;
+                    });
+                    fondo = nube(-4, 1.3, 'mw-c1') + nube(10, 1.0, 'mw-c3') + gotas;
+                }
+
+                // Icono estático de referencia (Meteocons del proyecto) con texto de respaldo
+                const slug = (typeof getMeteoconSlug === 'function') ? getMeteoconSlug(modo, false) : null;
+                const iconoSvg = slug
+                    ? `<image href="imagenes/${slug}.svg" x="218" y="26" width="64" height="64" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
+                       <text x="250" y="72" text-anchor="middle" font-size="12" fill="#c9d6e2" style="display:none">${descripcion}</text>`
+                    : '';
+
+                const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 120" width="100%" role="img" aria-label="Previsión de mañana: ${descripcion}, máxima ${tMax} grados, mínima ${tMin} grados" style="display:block;overflow:hidden;border-radius:14px;">
+  <style>
+    .mw-txt { font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif; }
+    .mw-sol   { transform-box: fill-box; transform-origin: center; animation: mw-pulso 5s ease-in-out infinite; will-change: transform, opacity; }
+    .mw-cloud { animation: mw-desplaza 40s linear infinite; will-change: transform; }
+    .mw-c1 { animation-duration: 38s; animation-delay: -12s; }
+    .mw-c2 { animation-duration: 54s; animation-delay: -30s; }
+    .mw-c3 { animation-duration: 30s; animation-delay: -4s; }
+    .mw-gota  { animation: mw-cae 1.5s linear infinite; opacity: 0; will-change: transform, opacity; }
+    @keyframes mw-pulso    { 0%,100% { opacity: 0.12; transform: scale(1); } 50% { opacity: 0.25; transform: scale(1.07); } }
+    @keyframes mw-desplaza { from { transform: translateX(-170px); } to { transform: translateX(560px); } }
+    @keyframes mw-cae      { 0% { transform: translate(0,-24px); opacity: 0; } 12% { opacity: 0.22; } 85% { opacity: 0.22; } 100% { transform: translate(-47px,150px); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .mw-sol, .mw-cloud, .mw-gota { animation: none; } .mw-gota { opacity: 0.18; } }
+  </style>
+  <defs>
+    <radialGradient id="mw-sol-grad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffd166" stop-opacity="1"/>
+      <stop offset="70%" stop-color="#ffb347" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#ffb347" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="500" height="120" fill="#0f3057"/>
+  <g id="fondo-animado">${fondo}</g>
+  <g id="textos-y-datos" class="mw-txt">
+    <text x="24" y="30" font-size="11" letter-spacing="2" fill="#9fb3c8">MAÑANA</text>
+    <text x="24" y="54" font-size="16" font-weight="600" fill="#ffffff">${fechaTxt}</text>
+    <text x="24" y="77" font-size="14" fill="#dbe6f0">${descripcion}</text>
+    <text x="24" y="98" font-size="11" fill="#9fb3c8">Predominante 08–20 h</text>
+    ${iconoSvg}
+    <text x="476" y="66" text-anchor="end" font-size="42" font-weight="700" fill="#ffffff"><tspan fill="${colorFlecha}" font-size="32" dx="0">${flecha}</tspan><tspan dx="6">${tMax}°</tspan></text>
+    <text x="476" y="90" text-anchor="end" font-size="16" fill="#c9d6e2">mín ${tMin}°</text>
+    ${tHoy !== null ? `<text x="476" y="108" text-anchor="end" font-size="11" fill="#9fb3c8">Máx. hoy ${tHoy}°</text>` : ''}
+  </g>
+</svg>`;
+                host.innerHTML = svg;
+                host.style.display = 'block';
+            } catch (e) {
+                console.warn('updateMananaWidget error:', e);
+                host.style.display = 'none';
+            }
+        }
+        // ══════ FIN WIDGET MAÑANA ══════
 
         // ── Franja "Próximas horas": hora, icono de cielo, y gráfica de temperatura ──
         function updateProximas5h(hourly) {
@@ -9440,6 +9589,7 @@
                 updateRunningIndex(data.current, data.hourly, data.daily, aqData?.hourly ?? null);
                 updateSportSection(data.current, data.hourly, aqData?.hourly ?? null);
                 updateProximas5h(data.hourly);
+                updateMananaWidget(data.hourly, data.daily);
                 drawParaguasHourlyChart(data.hourly);
                 loadGhostTrendChart(data.daily);
                 _hourlyCache = data.hourly;
