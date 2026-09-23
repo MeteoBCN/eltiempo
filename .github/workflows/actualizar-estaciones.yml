@@ -1,0 +1,34 @@
+name: Actualizar estaciones en directo
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    # Cada 10 minutos, en hora UTC. GitHub no garantiza el minuto exacto,
+    # puede ejecutarse con algunos minutos de retraso en horas de mucha carga.
+    - cron: '*/10 * * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repo
+        uses: actions/checkout@v4
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Ejecutar script de recogida (Meteoclimatic + Weathercloud)
+        run: node scripts/actualizar-estaciones.js
+
+      - name: Hacer commit de datos/estaciones.json si ha cambiado
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add datos/estaciones.json
+          git diff --staged --quiet || git commit -m "Actualiza datos de estaciones [automático]"
+          git push
