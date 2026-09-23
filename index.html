@@ -3793,12 +3793,12 @@
 
                 let fondo = '';
                 if (tipoFondo === 'sol') {
-                    fondo = `<circle class="mw-sol" cx="250" cy="60" r="115" fill="url(#mw-sol-grad)"/>`;
+                    fondo = `<circle class="mw-sol" cx="375" cy="34" r="60" fill="url(#mw-sol-grad)"/>`;
                 } else if (tipoFondo === 'mayor') {
-                    fondo = `<circle class="mw-sol" cx="250" cy="60" r="115" fill="url(#mw-sol-grad)"/>`
+                    fondo = `<circle class="mw-sol" cx="375" cy="34" r="60" fill="url(#mw-sol-grad)"/>`
                           + nube(14, 1.0, 'mw-c1', 0.85) + nube(66, 0.75, 'mw-c2', 0.7);
                 } else if (tipoFondo === 'parcial') {
-                    fondo = `<circle class="mw-sol" cx="400" cy="30" r="90" fill="url(#mw-sol-grad)"/>`
+                    fondo = `<circle class="mw-sol" cx="375" cy="34" r="60" fill="url(#mw-sol-grad)"/>`
                           + nube(0, 1.15, 'mw-c1', 0.85) + nube(58, 0.85, 'mw-c2', 0.75)
                           + nube(26, 1.4, 'mw-c3', 0.8) + nube(84, 0.95, 'mw-c4', 0.7);
                 } else if (tipoFondo === 'nublado') {
@@ -3814,13 +3814,6 @@
                     fondo = nube(-6, 1.5, 'mw-c1', 0.5, '#9aa8b6') + nube(8, 1.2, 'mw-c3', 0.45, '#8796a5') + nube(-2, 1.0, 'mw-c2', 0.4, '#a7b4c1') + gotas
                           + (esTormenta ? `<rect class="mw-rayo" x="-10" y="-30" width="520" height="240" fill="#ffffff"/>` : '');
                 }
-
-                // Icono estático de referencia (Meteocons del proyecto) con texto de respaldo
-                const slug = (typeof getMeteoconSlug === 'function') ? getMeteoconSlug(modo, false) : null;
-                const iconoSvg = slug
-                    ? `<image href="imagenes/${slug}.svg" x="205" y="28" width="60" height="60" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
-                       <text x="235" y="72" text-anchor="middle" font-size="12" fill="#c9d6e2" style="display:none">${descripcion}</text>`
-                    : '';
 
                 const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 178" width="100%" role="img" aria-label="Previsión de mañana: ${descripcion}, máxima ${tMax} grados (tendencia: ${deltaMaxTxt}), mínima ${tMin} grados (tendencia: ${deltaMinTxt})" style="display:block;overflow:hidden;border-radius:14px;">
@@ -3857,7 +3850,6 @@
   <g id="textos-y-datos" class="mw-txt" transform="translate(0 25)" filter="url(#mw-sombra)">
     <text x="24" y="36" font-size="26" font-weight="800" letter-spacing="0.5" fill="${tema.txt}">MAÑANA</text>
     <text x="24" y="66" font-size="18" font-weight="600" fill="${tema.sub}" letter-spacing="0.5">${descripcion.toUpperCase()}</text>
-    ${iconoSvg}
     <text x="50" y="112" text-anchor="middle" font-size="32" font-weight="800" fill="${tema.max}">${tMax}°</text>
     <text x="115" y="112" text-anchor="middle" font-size="32" font-weight="800" fill="${tema.min}">${tMin}°</text>
     <text x="50" y="138" text-anchor="middle" font-size="20" font-weight="700" fill="${tema.max}">${deltaMaxTxt}</text>
