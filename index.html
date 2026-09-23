@@ -3849,6 +3849,18 @@
                           + (esTormenta ? `<rect class="mw-rayo" x="-10" y="-30" width="520" height="240" fill="#ffffff"/>` : '');
                 }
 
+                // ── Pájaros: 1 ó 2 siluetas volando solo con cielo despejado o poco nuboso ──
+                //    Cada uno con trayectoria, velocidad, tamaño y ritmo de aleteo distintos.
+                const pajaro = (cls, esc) => `
+                    <g class="mw-ave ${cls}"><g transform="scale(${esc})" fill="#0e2f4a">
+                        <g class="mw-ala"><path d="M0 0C4-5 10-6.500 17-3C11-3.800 6-1.500 0 1.800Z"/></g>
+                        <g transform="scale(-1 1)"><g class="mw-ala"><path d="M0 0C4-5 10-6.500 17-3C11-3.800 6-1.500 0 1.800Z"/></g></g>
+                        <ellipse cx="0" cy="1" rx="2" ry="1.300"/>
+                    </g></g>`;
+                const pajaros = (modo === 0 || modo === 1)
+                    ? `<g id="pajaros" aria-hidden="true">${pajaro('mw-ave1', 0.8)}${pajaro('mw-ave2', 0.55)}</g>`
+                    : '';
+
                 const numMaxTxt = tMax + '°';
                 const numMinTxt = tMin + '°';
                 const numMaxWidth = Math.round(numMaxTxt.length * 18);
@@ -3872,7 +3884,39 @@
     @keyframes mw-flash    { 0%,90%,100% { opacity: 0; } 91% { opacity: 0.35; } 92% { opacity: 0; } 93.5% { opacity: 0.25; } 95% { opacity: 0; } }
     @keyframes mw-desplaza { from { transform: translateX(-170px); } to { transform: translateX(560px); } }
     @keyframes mw-cae      { 0% { transform: translate(0,-24px); opacity: 0; } 12% { opacity: 0.6; } 85% { opacity: 0.6; } 100% { transform: translate(-47px,200px); opacity: 0; } }
-    @media (prefers-reduced-motion: reduce) { .mw-cloud, .mw-gota { animation: none; } .mw-gota { opacity: 0.5; } .mw-rayo { animation: none; } }
+    /* Pájaros: siluetas minimalistas (solo con cielo despejado / poco nuboso) */
+    .mw-ave   { opacity: 0; will-change: transform, opacity; }
+    .mw-ave1  { animation: mw-vuelo1 26s linear infinite; animation-delay: -6s; }
+    .mw-ave2  { animation: mw-vuelo2 34s linear infinite; animation-delay: -14s; }
+    .mw-ala   { transform-origin: 0 0; animation: mw-aletea 5s ease-in-out infinite; will-change: transform; }
+    .mw-ave2 .mw-ala { animation-duration: 4.2s; animation-delay: -1.3s; }
+    @keyframes mw-aletea {
+      0% { transform: rotate(-6deg); } 8% { transform: rotate(-26deg); } 16% { transform: rotate(20deg); }
+      24% { transform: rotate(-26deg); } 32% { transform: rotate(20deg); } 40% { transform: rotate(-26deg); }
+      48% { transform: rotate(20deg); } 56% { transform: rotate(-6deg); } 100% { transform: rotate(-6deg); }
+    }
+    @keyframes mw-vuelo1 {
+      0%   { transform: translate(215px,72px); opacity: 0; }
+      5%   { opacity: 0.8; }
+      25%  { transform: translate(290px,58px); }
+      45%  { transform: translate(370px,68px); }
+      65%  { transform: translate(455px,50px); }
+      72%  { transform: translate(500px,55px); opacity: 0.8; }
+      76%  { transform: translate(540px,52px); opacity: 0; }
+      100% { transform: translate(540px,52px); opacity: 0; }
+    }
+    @keyframes mw-vuelo2 {
+      0%   { transform: translate(545px,112px); opacity: 0; }
+      6%   { opacity: 0.7; }
+      30%  { transform: translate(470px,124px); }
+      55%  { transform: translate(380px,112px); }
+      80%  { transform: translate(290px,122px); }
+      90%  { transform: translate(240px,116px); opacity: 0.7; }
+      94%  { transform: translate(225px,112px); opacity: 0; }
+      100% { transform: translate(225px,112px); opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) { .mw-cloud, .mw-gota { animation: none; } .mw-gota { opacity: 0.5; } .mw-rayo { animation: none; }
+      .mw-ave1, .mw-ave2, .mw-ala { animation: none; } .mw-ave { opacity: 0.7; } .mw-ave1 { transform: translate(430px,88px); } .mw-ave2 { transform: translate(300px,118px); } }
   </style>
   <defs>
     <linearGradient id="mw-bg" x1="0" y1="0" x2="0" y2="1">
@@ -3917,6 +3961,7 @@
   </defs>
   <rect width="500" height="178" fill="url(#mw-bg)"/>
   <g id="fondo-animado" transform="translate(0 25)">${fondo}</g>
+  ${pajaros}
   <g id="fecha-titulo" class="mw-txt" filter="url(#mw-sombra)">
     <text x="16" y="32" font-size="26" font-weight="800" letter-spacing="0.5" fill="${tema.txt}">${fechaTxt.toUpperCase()}</text>
   </g>
