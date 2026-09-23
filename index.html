@@ -3738,17 +3738,13 @@
                 const tHoy = (maxHoy == null) ? null : Math.round(maxHoy);
                 const tHoyMin = (minHoy == null) ? null : Math.round(minHoy);
 
-                // 4) Tendencia (máxima y mínima de mañana frente a hoy)
-                let flecha = '→', colorFlecha = '#b8c2cc';
-                if (tHoy !== null) {
-                    if (tMax > tHoy) { flecha = '↑'; colorFlecha = '#ff7a59'; }
-                    else if (tMax < tHoy) { flecha = '↓'; colorFlecha = '#6cb6ff'; }
-                }
-                let flechaMin = '→', colorFlechaMin = '#b8c2cc';
-                if (tHoyMin !== null) {
-                    if (tMin > tHoyMin) { flechaMin = '↑'; colorFlechaMin = '#ff7a59'; }
-                    else if (tMin < tHoyMin) { flechaMin = '↓'; colorFlechaMin = '#6cb6ff'; }
-                }
+                // 4) Tendencia (máxima y mínima de mañana frente a hoy), expresada
+                //    como diferencia en grados entre paréntesis: "+2º" / "-1º" / "0º"
+                //    si no hay cambio o no hay dato de referencia de hoy.
+                const deltaMax = (tHoy !== null) ? (tMax - tHoy) : 0;
+                const deltaMaxTxt = deltaMax > 0 ? `+${deltaMax}º` : (deltaMax < 0 ? `${deltaMax}º` : '0º');
+                const deltaMin = (tHoyMin !== null) ? (tMin - tHoyMin) : 0;
+                const deltaMinTxt = deltaMin > 0 ? `+${deltaMin}º` : (deltaMin < 0 ? `${deltaMin}º` : '0º');
 
                 // Categoría visual y texto del estado predominante
                 let categoria, descripcion;
@@ -3799,7 +3795,7 @@
                     : '';
 
                 const svg = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 150" width="100%" role="img" aria-label="Previsión de mañana: ${descripcion}, máxima ${tMax} grados, mínima ${tMin} grados" style="display:block;overflow:hidden;border-radius:14px;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 190" width="100%" role="img" aria-label="Previsión de mañana: ${descripcion}, máxima ${tMax} grados (${deltaMaxTxt} respecto a hoy), mínima ${tMin} grados (${deltaMinTxt} respecto a hoy)" style="display:block;overflow:hidden;border-radius:14px;">
   <style>
     .mw-txt { font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif; }
     .mw-sol   { transform-box: fill-box; transform-origin: center; animation: mw-pulso 5s ease-in-out infinite; will-change: transform, opacity; }
@@ -3810,7 +3806,7 @@
     .mw-gota  { animation: mw-cae 1.5s linear infinite; opacity: 0; will-change: transform, opacity; }
     @keyframes mw-pulso    { 0%,100% { opacity: 0.12; transform: scale(1); } 50% { opacity: 0.25; transform: scale(1.07); } }
     @keyframes mw-desplaza { from { transform: translateX(-170px); } to { transform: translateX(560px); } }
-    @keyframes mw-cae      { 0% { transform: translate(0,-24px); opacity: 0; } 12% { opacity: 0.22; } 85% { opacity: 0.22; } 100% { transform: translate(-47px,150px); opacity: 0; } }
+    @keyframes mw-cae      { 0% { transform: translate(0,-24px); opacity: 0; } 12% { opacity: 0.22; } 85% { opacity: 0.22; } 100% { transform: translate(-47px,190px); opacity: 0; } }
     @media (prefers-reduced-motion: reduce) { .mw-sol, .mw-cloud, .mw-gota { animation: none; } .mw-gota { opacity: 0.18; } }
   </style>
   <defs>
@@ -3820,17 +3816,17 @@
       <stop offset="100%" stop-color="#ffb347" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="500" height="150" fill="#0f3057"/>
-  <g id="fondo-animado" transform="translate(0 15)">${fondo}</g>
-  <g id="textos-y-datos" class="mw-txt" transform="translate(0 15)">
+  <rect width="500" height="190" fill="#0f3057"/>
+  <g id="fondo-animado" transform="translate(0 25)">${fondo}</g>
+  <g id="textos-y-datos" class="mw-txt" transform="translate(0 25)">
     <text x="24" y="36" font-size="26" font-weight="800" letter-spacing="0.5" fill="#ffffff">MAÑANA</text>
     <text x="24" y="64" font-size="15" font-weight="500" fill="#dbe6f0">${fechaTxt}</text>
     <text x="24" y="88" font-size="13" fill="#9fb3c8">${descripcion}</text>
     ${iconoSvg}
-    <text x="476" y="40" text-anchor="end" font-size="10" letter-spacing="1.5" fill="#9fb3c8">MÁX</text>
-    <text x="476" y="66" text-anchor="end" font-size="34" font-weight="700" fill="#ffffff"><tspan fill="${colorFlecha}" font-size="26" dx="0">${flecha}</tspan><tspan dx="5">${tMax}°</tspan></text>
-    <text x="476" y="90" text-anchor="end" font-size="10" letter-spacing="1.5" fill="#9fb3c8">MÍN</text>
-    <text x="476" y="114" text-anchor="end" font-size="30" font-weight="700" fill="#c9d6e2"><tspan fill="${colorFlechaMin}" font-size="22" dx="0">${flechaMin}</tspan><tspan dx="5">${tMin}°</tspan></text>
+    <text x="476" y="46" text-anchor="end" font-size="10" letter-spacing="1.5" fill="#9fb3c8">MÁX</text>
+    <text x="476" y="78" text-anchor="end" font-size="30" font-weight="700" fill="#ffffff">${tMax}°<tspan font-size="14" font-weight="600" fill="#ffffff" dx="5">(${deltaMaxTxt})</tspan></text>
+    <text x="476" y="112" text-anchor="end" font-size="10" letter-spacing="1.5" fill="#9fb3c8">MÍN</text>
+    <text x="476" y="144" text-anchor="end" font-size="30" font-weight="700" fill="#ffffff">${tMin}°<tspan font-size="14" font-weight="600" fill="#ffffff" dx="5">(${deltaMinTxt})</tspan></text>
   </g>
 </svg>`;
                 host.innerHTML = svg;
