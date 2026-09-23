@@ -3796,11 +3796,11 @@
 
                 // Degradado del fondo completo del widget + colores de texto legibles
                 const temas = {
-                    sol:     { g: ['#1e88e5', '#5db8ff', '#bfe6ff'], min: '#8ec9ff', max: '#ff7a6e', txt: '#ffffff', sub: '#f1f8ff' },
-                    mayor:   { g: ['#1e88e5', '#5db8ff', '#bfe6ff'], min: '#8ec9ff', max: '#ff7a6e', txt: '#ffffff', sub: '#f1f8ff' },
-                    parcial: { g: ['#2f8fe0', '#6fbdf5', '#c6e4f8'], min: '#8ec9ff', max: '#ff7a6e', txt: '#ffffff', sub: '#f1f8ff' },
-                    nublado: { g: ['#5f6f80', '#8a97a5', '#b9c2cc'], min: '#8ec9ff', max: '#ff7a6e', txt: '#ffffff', sub: '#eef2f6' },
-                    lluvia:  { g: ['#2b3642', '#46586a', '#6b7d8f'], min: '#8ec9ff', max: '#ff7a6e', txt: '#ffffff', sub: '#dbe6f0' }
+                    sol:     { g: ['#1e88e5', '#5db8ff', '#bfe6ff'], min: '#9ccbee', max: '#f2948b', txt: '#123653', sub: '#123653', claro: true },
+                    mayor:   { g: ['#1e88e5', '#5db8ff', '#bfe6ff'], min: '#9ccbee', max: '#f2948b', txt: '#123653', sub: '#123653', claro: true },
+                    parcial: { g: ['#2f8fe0', '#6fbdf5', '#c6e4f8'], min: '#9ccbee', max: '#f2948b', txt: '#123653', sub: '#123653', claro: true },
+                    nublado: { g: ['#5f6f80', '#8a97a5', '#b9c2cc'], min: '#9ccbee', max: '#f2948b', txt: '#ffffff', sub: '#eef2f6' },
+                    lluvia:  { g: ['#2b3642', '#46586a', '#6b7d8f'], min: '#9ccbee', max: '#f2948b', txt: '#ffffff', sub: '#dbe6f0' }
                 };
                 const tema = temas[tipoFondo];
 
@@ -3863,8 +3863,8 @@
 
                 const numMaxTxt = tMax + '°';
                 const numMinTxt = tMin + '°';
-                const numMaxWidth = Math.round(numMaxTxt.length * 18);
-                const numMinWidth = Math.round(numMinTxt.length * 18);
+                const numMaxWidth = Math.round(numMaxTxt.length * 23);
+                const numMinWidth = Math.round(numMinTxt.length * 23);
                 const numMinX = 16 + numMaxWidth + 14;
                 const maxCenterX = 16 + numMaxWidth / 2;
                 const minCenterX = numMinX + numMinWidth / 2;
@@ -3925,6 +3925,7 @@
       <stop offset="100%" stop-color="${tema.g[2]}"/>
     </linearGradient>
     <filter id="mw-sombra" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity="0.35"/></filter>
+    <filter id="mw-sombra-clara" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#ffffff" flood-opacity="0.45"/></filter>
     <filter id="mw-halo-temp" x="-80%" y="-80%" width="260%" height="260%"><feDropShadow dx="0" dy="0" stdDeviation="4.5" flood-color="#000000" flood-opacity="0.8"/></filter>
     <filter id="mw-blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.3"/></filter>
     <radialGradient id="mw-sun-real" cx="50%" cy="50%" r="50%">
@@ -3962,17 +3963,17 @@
   <rect width="500" height="178" fill="url(#mw-bg)"/>
   <g id="fondo-animado" transform="translate(0 25)">${fondo}</g>
   ${pajaros}
-  <g id="fecha-titulo" class="mw-txt" filter="url(#mw-sombra)">
+  <g id="fecha-titulo" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
     <text x="16" y="32" font-size="26" font-weight="800" letter-spacing="0.5" fill="${tema.txt}">${fechaTxt.toUpperCase()}</text>
   </g>
-  <g id="textos-y-datos" class="mw-txt" filter="url(#mw-sombra)">
-    <text x="16" y="62" font-size="18" font-weight="700" fill="${tema.sub}" letter-spacing="0.5">${descripcion.toUpperCase()}</text>
+  <g id="textos-y-datos" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
+    <text x="16" y="64" font-size="22" font-weight="700" fill="${tema.sub}" letter-spacing="0.5">${descripcion.toUpperCase()}</text>
   </g>
   <g id="temps-halo" class="mw-txt" filter="url(#mw-halo-temp)">
-    <text x="16" y="106" font-size="32" font-weight="800" fill="${tema.max}">${numMaxTxt}</text>
-    <text x="${numMinX}" y="106" font-size="32" font-weight="800" fill="${tema.min}">${numMinTxt}</text>
-    ${deltaMaxTxt ? `<text x="${maxCenterX}" y="132" text-anchor="middle" font-size="20" font-weight="800" fill="${tema.max}">${deltaMaxTxt}</text>` : ''}
-    ${deltaMinTxt ? `<text x="${minCenterX}" y="132" text-anchor="middle" font-size="20" font-weight="800" fill="${tema.min}">${deltaMinTxt}</text>` : ''}
+    <text x="16" y="114" font-size="40" font-weight="800" fill="${tema.max}">${numMaxTxt}</text>
+    <text x="${numMinX}" y="114" font-size="40" font-weight="800" fill="${tema.min}">${numMinTxt}</text>
+    ${deltaMaxTxt ? `<text x="${maxCenterX}" y="142" text-anchor="middle" font-size="24" font-weight="800" fill="${tema.max}">${deltaMaxTxt}</text>` : ''}
+    ${deltaMinTxt ? `<text x="${minCenterX}" y="142" text-anchor="middle" font-size="24" font-weight="800" fill="${tema.min}">${deltaMinTxt}</text>` : ''}
   </g>
 </svg>`;
                 host.innerHTML = svg;
