@@ -3849,9 +3849,13 @@
                           + (esTormenta ? `<rect class="mw-rayo" x="-10" y="-30" width="520" height="240" fill="#ffffff"/>` : '');
                 }
 
-                const maxTxt = tMax + '°' + (deltaMaxTxt ? ' ' + deltaMaxTxt : '');
-                const minTxt = tMin + '°' + (deltaMinTxt ? ' ' + deltaMinTxt : '');
-                const minTxtX = 16 + Math.round(maxTxt.length * 17) + 10;
+                const numMaxTxt = tMax + '°';
+                const numMinTxt = tMin + '°';
+                const numMaxWidth = Math.round(numMaxTxt.length * 18);
+                const numMinWidth = Math.round(numMinTxt.length * 18);
+                const numMinX = 16 + numMaxWidth + 14;
+                const maxCenterX = 16 + numMaxWidth / 2;
+                const minCenterX = numMinX + numMinWidth / 2;
 
                 const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 178" width="100%" role="img" aria-label="Previsión de mañana: ${fechaTxt}, ${descripcion}, máxima ${tMax} grados${deltaMaxTxt ? ' (tendencia: ' + deltaMaxTxt + ')' : ''}, mínima ${tMin} grados${deltaMinTxt ? ' (tendencia: ' + deltaMinTxt + ')' : ''}" style="display:block;overflow:hidden;border-radius:0;">
@@ -3877,6 +3881,7 @@
       <stop offset="100%" stop-color="${tema.g[2]}"/>
     </linearGradient>
     <filter id="mw-sombra" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity="0.35"/></filter>
+    <filter id="mw-halo-temp" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#000000" flood-opacity="0.55"/></filter>
     <filter id="mw-blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.3"/></filter>
     <radialGradient id="mw-sun-real" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#ffffff"/>
@@ -3917,8 +3922,12 @@
   </g>
   <g id="textos-y-datos" class="mw-txt" filter="url(#mw-sombra)">
     <text x="16" y="62" font-size="18" font-weight="700" fill="${tema.sub}" letter-spacing="0.5">${descripcion.toUpperCase()}</text>
-    <text x="16" y="106" font-size="32" font-weight="800" fill="${tema.max}" stroke="rgba(0,0,0,0.45)" stroke-width="4" stroke-linejoin="round" paint-order="stroke">${maxTxt}</text>
-    <text x="${minTxtX}" y="106" font-size="32" font-weight="800" fill="${tema.min}" stroke="rgba(0,0,0,0.45)" stroke-width="4" stroke-linejoin="round" paint-order="stroke">${minTxt}</text>
+  </g>
+  <g id="temps-halo" class="mw-txt" filter="url(#mw-halo-temp)">
+    <text x="16" y="106" font-size="32" font-weight="800" fill="${tema.max}">${numMaxTxt}</text>
+    <text x="${numMinX}" y="106" font-size="32" font-weight="800" fill="${tema.min}">${numMinTxt}</text>
+    ${deltaMaxTxt ? `<text x="${maxCenterX}" y="132" text-anchor="middle" font-size="20" font-weight="800" fill="${tema.max}">${deltaMaxTxt}</text>` : ''}
+    ${deltaMinTxt ? `<text x="${minCenterX}" y="132" text-anchor="middle" font-size="20" font-weight="800" fill="${tema.min}">${deltaMinTxt}</text>` : ''}
   </g>
 </svg>`;
                 host.innerHTML = svg;
