@@ -120,7 +120,7 @@
             position: relative;
             width: 100%;
             padding: 45px 0 25px 0;
-            background-color: #0b223a; /* Azul tormenta más profundo */
+            background: linear-gradient(180deg, #1c4f78 0%, #0b223a 100%); /* Azul tormenta, más claro hacia arriba */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -185,6 +185,25 @@
         @keyframes viento-nube-2 {
             0% { transform: translate(20px, 0) scale(1); }
             100% { transform: translate(-180px, -15px) scale(1.08); }
+        }
+
+        /* Nube blanca ancha, ocupa todo el ancho en la parte superior */
+        .nube-top-white {
+            position: absolute;
+            top: -40px;
+            left: -5%;
+            width: 110%;
+            height: 120px;
+            background: #ffffff;
+            border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+            filter: blur(20px);
+            opacity: 0.85;
+            box-shadow:
+                0 30px 0 -10px #ffffff,
+                100px 10px 0 -5px #ffffff,
+                -100px 10px 0 -5px #ffffff,
+                250px 20px 0 -15px #ffffff,
+                -250px 20px 0 -15px #ffffff;
         }
 
         /* MARCA POR DELANTE */
@@ -1391,6 +1410,7 @@
         <header id="banner-meteo" class="banner-base efecto-tormenta">
             <!-- Capa de nubes animadas por detrás -->
             <div class="capa-nubes">
+                <div class="nube-top-white"></div>
                 <div class="nube nube-1"></div>
                 <div class="nube nube-2"></div>
             </div>
