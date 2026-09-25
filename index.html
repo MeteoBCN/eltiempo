@@ -3777,6 +3777,12 @@
                 const fechaActualizada = `${diaSemanaCap}, ${diaNumero} ${MW_MESES_ABR[mesIdx]}.`;
                 const tempActualWidget = (typeof current.temperature_2m === 'number' && !Number.isNaN(current.temperature_2m))
                     ? Math.round(current.temperature_2m) + '°' : '--°';
+                const sensacionActualWidget = (typeof current.apparent_temperature === 'number' && !Number.isNaN(current.apparent_temperature))
+                    ? Math.round(current.apparent_temperature) + '°' : '--°';
+                const humedadActualWidget = (typeof current.relative_humidity_2m === 'number' && !Number.isNaN(current.relative_humidity_2m))
+                    ? Math.round(current.relative_humidity_2m) + '%' : '--%';
+                const presionActualWidget = (typeof current.pressure_msl === 'number' && !Number.isNaN(current.pressure_msl))
+                    ? Math.round(current.pressure_msl) + ' hPa' : '-- hPa';
 
                 // ── Capa de fondo animado (opacidad siempre entre 0.10 y 0.25) ──
                 const durNube = { 'mw-c1': 38, 'mw-c2': 54, 'mw-c3': 30, 'mw-c4': 46 };
@@ -3894,6 +3900,12 @@
                 // estaciones) se desplaza hacia abajo esa misma cantidad.
                 const MW_OFFSET_TOP = 120;
                 const MW_ALTO = 270 + MW_OFFSET_TOP;
+                // Desplazamiento vertical del bloque de contenido (cielo animado,
+                // sol/luna, nubes, pájaros, manga de viento y tarjetas de estaciones)
+                // DENTRO del espacio reservado bajo el titular. Un valor menor que
+                // MW_OFFSET_TOP sube visualmente todo este bloque (antes quedaba
+                // centrado más abajo); el alto total del SVG (MW_ALTO) no cambia.
+                const MW_CONTENT_TOP = MW_OFFSET_TOP - 35;
                 const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 ${MW_ALTO}" width="100%" role="img" aria-label="${fechaActualizada}, ${horaActualizado}, ${tempActualWidget}, ${descripcion}" style="display:block;overflow:hidden;border-radius:0;">
   <style>
@@ -4010,15 +4022,17 @@
   </defs>
   <rect width="500" height="${MW_ALTO}" fill="url(#mw-bg)"/>
   ${franja ? `<rect width="500" height="${MW_ALTO}" fill="url(#mw-crepusculo)" opacity="${(franja.intensidad * 0.85).toFixed(2)}"/>` : ''}
-  <g transform="translate(0 ${MW_OFFSET_TOP})">
+  <g transform="translate(0 ${MW_CONTENT_TOP})">
     <g id="fondo-animado" transform="translate(0 25)">${fondo}</g>
     ${pajaros}
-    ${mangaSvg}
     ${estacionesSvg}
   </g>
   <g id="hora-titulo" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
     <text x="16" y="26" fill="${tema.txt}"><tspan font-size="14" font-weight="600" letter-spacing="0.3" opacity="0.9">${fechaActualizada}</tspan><tspan dx="10" font-size="18" font-weight="800" letter-spacing="0.3">${horaActualizado}</tspan></text>
     <text x="16" y="94" font-size="56" font-weight="800" letter-spacing="-1" fill="${tema.txt}">${tempActualWidget}</text>
+    <text x="${16 + tempActualWidget.length * 33 + 12}" y="50" font-size="13" font-weight="700" fill="${tema.txt}"><tspan opacity="0.75" font-weight="600">Sensación </tspan>${sensacionActualWidget}</text>
+    <text x="${16 + tempActualWidget.length * 33 + 12}" y="68" font-size="13" font-weight="700" fill="${tema.txt}"><tspan opacity="0.75" font-weight="600">Humedad </tspan>${humedadActualWidget}</text>
+    <text x="${16 + tempActualWidget.length * 33 + 12}" y="86" font-size="13" font-weight="700" fill="${tema.txt}"><tspan opacity="0.75" font-weight="600">Presión </tspan>${presionActualWidget}</text>
   </g>
 </svg>`;
                 host.innerHTML = svg;
