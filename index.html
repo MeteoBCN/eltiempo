@@ -3710,10 +3710,9 @@
             const host = document.getElementById('manana-widget');
             if (!host) return;
             try {
-                if (!current || current.temperature_2m == null || current.weather_code == null) { host.style.display = 'none'; return; }
+                if (!current || current.weather_code == null) { host.style.display = 'none'; return; }
 
                 const modo = Number(current.weather_code);
-                const tActual = Math.round(current.temperature_2m);
 
                 // Categoría visual y texto del estado actual
                 let categoria, descripcion;
@@ -3730,14 +3729,7 @@
                 else if (modo >= 95)                 { categoria = 'lluvia'; descripcion = 'Tormenta'; }
                 else                                 { categoria = 'nubes';  descripcion = 'Variable'; }
 
-                // Fecha de HOY en hora de Barcelona
-                const hoyStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
-                const [yy, mm, dd] = hoyStr.split('-').map(Number);
-                const fechaTxt = new Date(Date.UTC(yy, mm - 1, dd))
-                    .toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', timeZone: 'UTC' })
-                    .replace(',', '');
-
-                // Hora de la última actualización (la del propio dato "current" si
+                // Hora actual (sustituye a la fecha como titular del widget) (la del propio dato "current" si
                 // viene informada; si no, la hora local en el momento de pintar).
                 const instanteDato = current.time ? new Date(current.time) : new Date();
                 const horaActualizado = instanteDato.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
@@ -3826,10 +3818,8 @@
                     ? `<g id="pajaros" aria-hidden="true">${pajaro('mw-ave1', 0.8)}${pajaro('mw-ave2', 0.55)}</g>`
                     : '';
 
-                const numTxt = tActual + '°';
-
                 const svg = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 230" width="100%" role="img" aria-label="Tiempo actual: ${fechaTxt}, ${descripcion}, ${tActual} grados, actualizado a las ${horaActualizado}" style="display:block;overflow:hidden;border-radius:0;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 230" width="100%" role="img" aria-label="Tiempo actual: ${horaActualizado}, ${descripcion}" style="display:block;overflow:hidden;border-radius:0;">
   <style>
     .mw-txt { font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif; }
     .mw-sol   { opacity: 1; }
@@ -3922,17 +3912,11 @@
   <rect width="500" height="230" fill="url(#mw-bg)"/>
   <g id="fondo-animado" transform="translate(0 25)">${fondo}</g>
   ${pajaros}
-  <g id="fecha-titulo" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
-    <text x="16" y="32" font-size="26" font-weight="800" letter-spacing="0.5" fill="${tema.txt}">${fechaTxt.toUpperCase()}</text>
+  <g id="hora-titulo" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
+    <text x="16" y="40" font-size="34" font-weight="800" letter-spacing="0.5" fill="${tema.txt}">${horaActualizado}</text>
   </g>
   <g id="textos-y-datos" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
-    <text x="16" y="64" font-size="22" font-weight="700" fill="${tema.sub}" letter-spacing="0.5">${descripcion.toUpperCase()}</text>
-  </g>
-  <g id="temp-actual-halo" class="mw-txt" filter="url(#mw-halo-temp)">
-    <text x="16" y="160" font-size="72" font-weight="800" fill="${tema.num}">${numTxt}</text>
-  </g>
-  <g id="actualizado" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
-    <text x="16" y="212" font-size="14" font-weight="600" fill="${tema.sub}" opacity="0.85">Actualizado ${horaActualizado}</text>
+    <text x="16" y="72" font-size="22" font-weight="700" fill="${tema.sub}" letter-spacing="0.5">${descripcion.toUpperCase()}</text>
   </g>
 </svg>`;
                 host.innerHTML = svg;
