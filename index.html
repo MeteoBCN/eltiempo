@@ -3585,8 +3585,8 @@
             const chipW = 108, gap = 14, n = ESTACIONES_DEF.length;
             const totalW = n * chipW + (n - 1) * gap;
             const xStart = (500 - totalW) / 2;
-            const chipH = 76;
-            const y = 150; // se superpone a la ilustración, dentro del alto original del widget
+            const chipH = 88;
+            const y = 136; // se superpone a la ilustración, dentro del alto original del widget
             let chips = '';
             ESTACIONES_DEF.forEach((e, i) => {
                 const x = xStart + i * (chipW + gap);
@@ -3594,7 +3594,7 @@
                 const temp = (typeof d.temp === 'number' && !Number.isNaN(d.temp)) ? Math.round(d.temp) + '°' : '--';
                 chips += `
                 <g transform="translate(${x} ${y})">
-                    <rect width="${chipW}" height="${chipH}" rx="14" fill="rgba(255,255,255,0.40)" stroke="rgba(255,255,255,0.50)" stroke-width="1"/>
+                    <rect width="${chipW}" height="${chipH}" rx="14" fill="#123653" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
                     <text id="mw-est-${e.key}-temp" x="${chipW / 2}" y="30" font-size="21" font-weight="800" fill="#ffffff" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="-0.5">${temp}</text>
                     <text x="${chipW / 2}" y="52" font-size="10" font-weight="700" fill="#ffffff" opacity="0.95" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="0.3">${e.nombre.toUpperCase()}</text>
                     <text x="${chipW / 2}" y="66" font-size="8.5" font-weight="600" fill="#ffffff" opacity="0.75" text-anchor="middle" font-family="'Inter',sans-serif">${e.altitud} m</text>
@@ -3602,7 +3602,6 @@
             });
             return `
             <g id="mw-estaciones" class="mw-txt" filter="url(#mw-sombra)">
-                <text x="250" y="140" font-size="9.5" font-weight="600" fill="#ffffff" opacity="0.8" text-anchor="middle" letter-spacing="1" font-family="'Inter',sans-serif">LAS ESTACIONES, EN DIRECTO</text>
                 ${chips}
             </g>`;
         }
@@ -3833,10 +3832,7 @@
   <g id="fondo-animado" transform="translate(0 25)">${fondo}</g>
   ${pajaros}
   <g id="hora-titulo" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
-    <text x="16" y="40" font-size="34" font-weight="800" letter-spacing="0.5" fill="${tema.txt}">${horaActualizado}</text>
-  </g>
-  <g id="textos-y-datos" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
-    <text x="16" y="72" font-size="22" font-weight="700" fill="${tema.sub}" letter-spacing="0.5">${descripcion.toUpperCase()}</text>
+    <text x="16" y="36" font-size="26" font-weight="800" letter-spacing="0.5" fill="${tema.txt}">${horaActualizado}</text>
   </g>
   ${estacionesSvg}
 </svg>`;
