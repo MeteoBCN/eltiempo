@@ -3649,6 +3649,28 @@
         ];
         window.ESTACIONES_ULTIMAS = window.ESTACIONES_ULTIMAS || {};
 
+        // Pájaro posado en el borde superior ("alero") de una ficha de estación,
+        // con comportamiento "vivo": balanceo idle, giro de cabeza y picoteo
+        // ocasionales, y algún aleteo corto de vez en cuando. Silueta plana en
+        // el mismo tono que el resto de iconografía del widget (#0e2f4a).
+        const pajaroPosadoSvg = (cx, yBorde) => `
+        <g transform="translate(${cx} ${yBorde})" aria-hidden="true">
+            <g class="mw-perch">
+                <line x1="-2" y1="0" x2="-2.6" y2="-4" stroke="#0e2f4a" stroke-width="1.1" stroke-linecap="round"/>
+                <line x1="2" y1="0" x2="2.6" y2="-4" stroke="#0e2f4a" stroke-width="1.1" stroke-linecap="round"/>
+                <path class="mw-perch-cola" d="M-5,-8.5 L-14,-13.5 L-5,-11 Z" fill="#0e2f4a"/>
+                <ellipse cx="0" cy="-11" rx="7" ry="5.6" fill="#0e2f4a"/>
+                <path class="mw-perch-ala" d="M-2,-9 C1,-6.2 5,-7 6,-11.5 C3,-9.8 0,-10.2 -2,-9 Z" fill="#0e2f4a" opacity="0.88"/>
+                <g transform="translate(6 -15)">
+                    <g class="mw-perch-cabeza">
+                        <circle r="3.6" fill="#0e2f4a"/>
+                        <path d="M3.2,-0.3 L7,0.4 L3.2,1.3 Z" fill="#f2a13a"/>
+                        <circle cx="1.1" cy="-0.8" r="0.55" fill="#ffffff" opacity="0.9"/>
+                    </g>
+                </g>
+            </g>
+        </g>`;
+
         function estacionesRowSvg() {
             const datos = window.ESTACIONES_ULTIMAS || {};
             const chipW = 108, gap = 14, n = ESTACIONES_DEF.length;
@@ -3657,6 +3679,7 @@
             const chipH = 88;
             const y = 136; // se superpone a la ilustración, dentro del alto original del widget
             let chips = '';
+            let pajaroChip = '';
             ESTACIONES_DEF.forEach((e, i) => {
                 const x = xStart + i * (chipW + gap);
                 const d = datos[e.key] || {};
@@ -3668,11 +3691,15 @@
                     <text x="${chipW / 2}" y="52" font-size="10" font-weight="700" fill="#ffffff" opacity="0.95" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="0.3">${e.nombre.toUpperCase()}</text>
                     <text x="${chipW / 2}" y="66" font-size="8.5" font-weight="600" fill="#ffffff" opacity="0.75" text-anchor="middle" font-family="'Inter',sans-serif">${e.altitud} m</text>
                 </g>`;
+                // 3ª ficha empezando por la izquierda (Gràcia, i=2): pájaro posado
+                // en su borde superior, como en un alero.
+                if (i === 2) pajaroChip = pajaroPosadoSvg(x + chipW / 2, y);
             });
             return `
             <g id="mw-estaciones" class="mw-txt" filter="url(#mw-sombra)">
                 ${chips}
-            </g>`;
+            </g>
+            ${pajaroChip}`;
         }
 
         // Actualiza una tarjeta ya pintada en el DOM del SVG sin tener que
@@ -3878,9 +3905,38 @@
     /* Luna: leve resplandor "respirando" */
     .mw-luna { animation: mw-luna-brillo 6s ease-in-out infinite; transform-origin: center; }
     @keyframes mw-luna-brillo { 0%,100% { opacity: 0.94; } 50% { opacity: 1; } }
+    /* Pájaro posado en el alero de la ficha de estación: idle + giro de
+       cabeza + picoteo + algún aleteo corto, todo en bucles largos para que
+       no se note repetitivo. */
+    .mw-perch        { animation: mw-perch-idle 3.6s ease-in-out infinite; will-change: transform; }
+    .mw-perch-cabeza { transform-origin: 0 0; animation: mw-perch-cabeza-mov 9s ease-in-out infinite; will-change: transform; }
+    .mw-perch-ala    { transform-origin: -2px -9px; animation: mw-perch-aleteo 9s ease-in-out infinite; will-change: transform; }
+    .mw-perch-cola   { transform-origin: -5px -9px; animation: mw-perch-cola-mov 3.6s ease-in-out infinite; will-change: transform; }
+    @keyframes mw-perch-idle {
+      0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.4px); }
+    }
+    @keyframes mw-perch-cabeza-mov {
+      0%, 55%   { transform: rotate(0deg) translateY(0); }
+      60%       { transform: rotate(18deg) translateY(0); }
+      66%       { transform: rotate(18deg) translateY(0); }
+      71%, 100% { transform: rotate(0deg) translateY(0); }
+      82%       { transform: rotate(-6deg) translateY(2.4px); }
+      86%       { transform: rotate(-6deg) translateY(2.4px); }
+      91%       { transform: rotate(0deg) translateY(0); }
+    }
+    @keyframes mw-perch-aleteo {
+      0%, 30%, 100% { transform: rotate(0deg); }
+      33% { transform: rotate(-22deg); } 36% { transform: rotate(10deg); }
+      39% { transform: rotate(-18deg); } 43% { transform: rotate(0deg); }
+    }
+    @keyframes mw-perch-cola-mov {
+      0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(4deg); }
+    }
     @media (prefers-reduced-motion: reduce) { .mw-cloud, .mw-gota { animation: none; } .mw-gota { opacity: 0.5; } .mw-rayo { animation: none; }
       .mw-ave1, .mw-ave2, .mw-ala { animation: none; } .mw-ave { opacity: 0.7; } .mw-ave1 { transform: translate(430px,88px); } .mw-ave2 { transform: translate(300px,118px); }
-      .mw-star, .mw-luna { animation: none; } .mw-star { opacity: 0.6; } }
+      .mw-star, .mw-luna { animation: none; }
+      .mw-perch, .mw-perch-cabeza, .mw-perch-ala, .mw-perch-cola { animation: none; }
+      .mw-star { opacity: 0.6; } }
   </style>
   <defs>
     <linearGradient id="mw-bg" x1="0" y1="0" x2="0" y2="1">
