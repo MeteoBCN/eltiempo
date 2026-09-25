@@ -3764,10 +3764,19 @@
                 else if (modo >= 95)                 { categoria = 'lluvia'; descripcion = 'Tormenta'; }
                 else                                 { categoria = 'nubes';  descripcion = 'Variable'; }
 
-                // Hora actual (sustituye a la fecha como titular del widget) (la del propio dato "current" si
-                // viene informada; si no, la hora local en el momento de pintar).
+                // Hora actual (la del propio dato "current" si viene informada;
+                // si no, la hora local en el momento de pintar). Encima se
+                // muestra la fecha, y debajo, en grande, la temperatura actual.
                 const instanteDato = current.time ? new Date(current.time) : new Date();
                 const horaActualizado = instanteDato.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+                const MW_MESES_ABR = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+                let diaSemanaCap = instanteDato.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', weekday: 'long' });
+                diaSemanaCap = diaSemanaCap.charAt(0).toUpperCase() + diaSemanaCap.slice(1);
+                const diaNumero = Number(instanteDato.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric' }));
+                const mesIdx = Number(instanteDato.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', month: 'numeric' })) - 1;
+                const fechaActualizada = `${diaSemanaCap}, ${diaNumero} ${MW_MESES_ABR[mesIdx]}.`;
+                const tempActualWidget = (typeof current.temperature_2m === 'number' && !Number.isNaN(current.temperature_2m))
+                    ? Math.round(current.temperature_2m) + '°' : '--°';
 
                 // ── Capa de fondo animado (opacidad siempre entre 0.10 y 0.25) ──
                 const durNube = { 'mw-c1': 38, 'mw-c2': 54, 'mw-c3': 30, 'mw-c4': 46 };
@@ -3879,8 +3888,14 @@
                 const mangaSvg = mangaVientoSvg(250, 60, anguloMangaViento(wsViento), wsViento !== null && wsViento >= 40);
 
                 const estacionesSvg = estacionesRowSvg();
+                // Espacio extra reservado ARRIBA del widget para el nuevo bloque
+                // de titular (fecha + hora + temperatura grande). Todo el resto
+                // del contenido (cielo animado, pájaros, manga de viento y
+                // estaciones) se desplaza hacia abajo esa misma cantidad.
+                const MW_OFFSET_TOP = 120;
+                const MW_ALTO = 270 + MW_OFFSET_TOP;
                 const svg = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 270" width="100%" role="img" aria-label="Tiempo actual: ${horaActualizado}, ${descripcion}" style="display:block;overflow:hidden;border-radius:0;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 ${MW_ALTO}" width="100%" role="img" aria-label="${fechaActualizada}, ${horaActualizado}, ${tempActualWidget}, ${descripcion}" style="display:block;overflow:hidden;border-radius:0;">
   <style>
     .mw-txt { font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif; }
     .mw-sol   { opacity: 1; }
@@ -3993,15 +4008,18 @@
       <stop offset="100%" stop-color="#ffb199" stop-opacity="0"/>
     </linearGradient>
   </defs>
-  <rect width="500" height="270" fill="url(#mw-bg)"/>
-  ${franja ? `<rect width="500" height="270" fill="url(#mw-crepusculo)" opacity="${(franja.intensidad * 0.85).toFixed(2)}"/>` : ''}
-  <g id="fondo-animado" transform="translate(0 25)">${fondo}</g>
-  ${pajaros}
-  ${mangaSvg}
-  <g id="hora-titulo" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
-    <text x="16" y="36" font-size="26" font-weight="800" letter-spacing="0.5" fill="${tema.txt}">${horaActualizado}</text>
+  <rect width="500" height="${MW_ALTO}" fill="url(#mw-bg)"/>
+  ${franja ? `<rect width="500" height="${MW_ALTO}" fill="url(#mw-crepusculo)" opacity="${(franja.intensidad * 0.85).toFixed(2)}"/>` : ''}
+  <g transform="translate(0 ${MW_OFFSET_TOP})">
+    <g id="fondo-animado" transform="translate(0 25)">${fondo}</g>
+    ${pajaros}
+    ${mangaSvg}
+    ${estacionesSvg}
   </g>
-  ${estacionesSvg}
+  <g id="hora-titulo" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
+    <text x="16" y="26" fill="${tema.txt}"><tspan font-size="14" font-weight="600" letter-spacing="0.3" opacity="0.9">${fechaActualizada}</tspan><tspan dx="10" font-size="18" font-weight="800" letter-spacing="0.3">${horaActualizado}</tspan></text>
+    <text x="16" y="94" font-size="56" font-weight="800" letter-spacing="-1" fill="${tema.txt}">${tempActualWidget}</text>
+  </g>
 </svg>`;
                 host.innerHTML = svg;
                 host.style.display = 'block';
