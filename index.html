@@ -1582,7 +1582,6 @@
 
                     <!-- Widget "Ahora" (SVG animado, estado actual) -->
                     <div id="manana-widget" style="display:none;margin-top:28px;"></div>
-
                     <div id="sport-section-wrap" style="margin-top:56px;">
                         <div style="font-family:'Fraunces',serif;font-style:italic;font-size:19px;font-weight:500;color:#ffffff;text-align:center;margin-bottom:2px;letter-spacing:0.2px;">¿Vas a correr por Barcelona?</div>
                         <div id="sport-section-subtitle" style="font-size:10px;font-weight:600;color:#ffffff;opacity:0.75;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:10px;margin-bottom:6px;">Elige la hora perfecta para tu plan</div>
@@ -1867,145 +1866,6 @@
                 </script>
                 <!-- ═══ FIN MÓDULO EFECTO ALTURA ═══ -->
 
-                <!-- ═══ ESTACIONES · Mapa fijo en directo (sin carrusel) ═══
-                     Las 4 estaciones se muestran todas a la vez, en una única
-                     fila. El navegador de cada visitante YA NO llama a
-                     Meteoclimatic ni a Weathercloud: lee datos/estaciones.json,
-                     un archivo estático del propio repo que se regenera solo
-                     cada pocos minutos mediante GitHub Actions.
-                     Ver scripts/actualizar-estaciones.js y
-                     .github/workflows/actualizar-estaciones.yml. -->
-                <style>
-                    .estaciones-mapa-wrap{ margin:18px 0 4px; }
-                    .estaciones-mapa-title{
-                        font-size:11px;font-weight:600;color:#64748b;letter-spacing:0.8px;text-align:center;margin-bottom:14px;
-                        padding-left: calc(var(--gutter) + 24px);
-                        padding-right: calc(var(--gutter) + 24px);
-                    }
-                    /* Contenedor general: columna de filas (el "mapa" de arriba a abajo) */
-                    .estaciones-mapa{
-                        display:flex; flex-direction:column; gap:9px;
-                        padding-left: calc(var(--gutter) + 24px);
-                        padding-right: calc(var(--gutter) + 24px);
-                    }
-                    /* Cada fila se centra y reparte sus tarjetas horizontalmente */
-                    .estaciones-fila{
-                        display:flex; justify-content:center; align-items:stretch; gap:7px;
-                    }
-                    .estaciones-galleta{
-                        flex:1 1 0; min-width:0; max-width:150px;
-                        display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
-                        padding:18px 6px; border-radius:14px;
-                        background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);
-                        border:1px solid rgba(255,255,255,0.08);
-                        box-shadow:0 1px 4px rgba(18,54,83,0.18);
-                    }
-                    .estaciones-galleta-temp{ font-size:22px;font-weight:800;color:#ffffff;font-family:'Inter',sans-serif;letter-spacing:-1px;line-height:1;display:flex;align-items:flex-start; }
-                    .estaciones-galleta-temp sup{ font-size:0.5em;font-weight:500;margin-left:1px; }
-                    .estaciones-galleta-precip{ display:flex;align-items:center;gap:2px;font-size:9px;font-weight:600;color:#7DD3FC;letter-spacing:0.1px; }
-                    .estaciones-galleta-nombre{ font-size:11.5px;font-weight:700;color:#ffffff;text-align:center;line-height:1.2;letter-spacing:0.1px;text-transform:uppercase; }
-
-                    /* ═ Responsivo: en móvil se abandona la disposición "mapa" y se
-                       convierte en una lista vertical simple de 2 columnas (1 columna
-                       en pantallas muy estrechas), fácil de recorrer con el dedo.
-                       El truco es "display:contents" en .estaciones-fila: hace que
-                       desaparezca como contenedor y sus tarjetas pasen a ser hijas
-                       directas del grid de .estaciones-mapa. ═ */
-                    @media (max-width: 700px) {
-                        .estaciones-mapa-title{
-                            padding-left: calc(var(--gutter) + 4px);
-                            padding-right: calc(var(--gutter) + 4px);
-                        }
-                        /* La fila se sale del margen general de la web (igual que
-                           hace el bloque "Próximas 5h") para ganar todo el ancho
-                           posible y que las 4 galletas puedan crecer de verdad. */
-                        .estaciones-mapa{
-                            width: calc(100% + (2 * var(--gutter)));
-                            margin-left: calc(-1 * var(--gutter));
-                            margin-right: calc(-1 * var(--gutter));
-                            padding-left: 6px;
-                            padding-right: 6px;
-                        }
-                        .estaciones-fila{ gap:4px; }
-                        .estaciones-galleta{ max-width:none; padding:18px 3px; min-height:92px; gap:7px; }
-                        .estaciones-galleta-temp{ font-size:25px; }
-                        .estaciones-galleta-nombre{ font-size:10px; }
-                    }
-                </style>
-                <div class="estaciones-mapa-wrap">
-                    <div class="estaciones-mapa-title">Las estaciones, en directo</div>
-                    <div class="estaciones-mapa" id="estaciones-mapa">
-                        <!-- Fila única · 4 estaciones seleccionadas -->
-                        <div class="estaciones-fila estaciones-fila-seleccion">
-                            <div class="estaciones-galleta" data-key="tibidabo"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-precip">-- mm</span><span class="estaciones-galleta-nombre">Tibidabo</span></div>
-                            <div class="estaciones-galleta" data-key="lescorts"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-precip">-- mm</span><span class="estaciones-galleta-nombre">Les Corts</span></div>
-                            <div class="estaciones-galleta" data-key="gracia"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-precip">-- mm</span><span class="estaciones-galleta-nombre">Gràcia</span></div>
-                            <div class="estaciones-galleta" data-key="costa"><span class="estaciones-galleta-temp">--</span><span class="estaciones-galleta-precip">-- mm</span><span class="estaciones-galleta-nombre">Port Olímpic</span></div>
-                        </div>
-                    </div>
-                </div>
-                <script>
-                (function () {
-                    /**
-                     * ═══ Estaciones en directo — SOLO lectura de caché propia ═══
-                     * El navegador de cada visitante ya NO llama a Meteoclimatic
-                     * ni a Weathercloud. En su lugar lee datos/estaciones.json,
-                     * un archivo estático del propio repo que scripts/actualizar-estaciones.js
-                     * regenera cada pocos minutos desde GitHub Actions
-                     * (.github/workflows/actualizar-estaciones.yml) y sube con un
-                     * commit automático. Así, sean 1 o 10.000 visitas, Meteoclimatic
-                     * y Weathercloud solo reciben las llamadas de esa Action, nunca
-                     * las de los visitantes.
-                     */
-                    const JSON_ESTACIONES = './datos/estaciones.json';
-                    // El JSON lo regenera la Action cada pocos minutos; con releer
-                    // cada 2 minutos en el navegador es más que suficiente y no
-                    // supone ninguna carga para el repo (es un archivo estático).
-                    const INTERVALO_REFRESCO_MS = 2 * 60 * 1000;
-
-                    function pintarTarjeta(key, { temp, lluvia } = {}) {
-                        const tarjeta = document.querySelector('#estaciones-mapa .estaciones-galleta[data-key="' + key + '"]');
-                        if (!tarjeta) return;
-                        if (typeof temp === 'number' && !Number.isNaN(temp)) {
-                            tarjeta.querySelector('.estaciones-galleta-temp').innerHTML = Math.round(temp) + '<sup>°</sup>';
-                        }
-                        const elPrecip = tarjeta.querySelector('.estaciones-galleta-precip');
-                        if (elPrecip && typeof lluvia === 'number' && !Number.isNaN(lluvia)) {
-                            elPrecip.textContent = lluvia.toFixed(1).replace('.', ',') + ' mm';
-                        }
-                        // Reutiliza el dato de temperatura para el perfil topográfico
-                        // de la montaña, si ese módulo ya está cargado.
-                        if (typeof window.actualizarFilaAltura === 'function' && typeof temp === 'number') {
-                            window.actualizarFilaAltura(key, { temp });
-                        }
-                    }
-
-                    async function cargarDesdeCachePropia() {
-                        try {
-                            const resp = await fetch(JSON_ESTACIONES + '?t=' + Date.now(), { cache: 'no-store' });
-                            if (!resp.ok) throw new Error('estaciones.json no accesible (HTTP ' + resp.status + ')');
-                            const data = await resp.json();
-                            const estaciones = data.estaciones || {};
-                            Object.keys(estaciones).forEach(key => pintarTarjeta(key, estaciones[key]));
-                            console.log('[estaciones] Cargadas desde caché propia (' + JSON_ESTACIONES + '), generadas:', data.generado);
-                        } catch (err) {
-                            console.warn('[estaciones] No se pudo leer la caché propia (¿aún no se ha ejecutado la Action?):', err.message);
-                        }
-                    }
-
-                    function iniciar() {
-                        cargarDesdeCachePropia();
-                        setInterval(cargarDesdeCachePropia, INTERVALO_REFRESCO_MS);
-                    }
-
-                    if (document.readyState === 'loading') {
-                        document.addEventListener('DOMContentLoaded', iniciar);
-                    } else {
-                        iniciar();
-                    }
-                })();
-                </script>
-                <!-- ═══ FIN ESTACIONES · Mapa fijo en directo ═══ -->
 
                 <div style="width:calc(100% + (2 * var(--gutter)));margin:0 calc(-1 * var(--gutter)) 0 calc(-1 * var(--gutter));padding:20px 0 0;background:#ffffff;border-top:1px solid rgba(28,79,120,0.3);">
                     <div style="font-size:20px;font-weight:300;color:#123653;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:2px;">Previsión<span style="font-weight:900;">3días</span></div>
@@ -3706,6 +3566,70 @@
         // se refresca el dato en vivo (cada 10 minutos), así que la fecha y la
         // hora de "Actualizado" quedan siempre al día.
         //  · Animaciones solo con transform/opacity (aceleradas por GPU), sin librerías.
+        // ══════ Estaciones en directo · integradas DENTRO del SVG del widget "Ahora" ══════
+        // Las 4 tarjetas ya no viven en HTML aparte: se dibujan como <text>/<rect>
+        // dentro del propio SVG, en una franja al pie. window.ESTACIONES_ULTIMAS
+        // guarda el último dato conocido de cada estación (lo actualiza el fetch
+        // de más abajo) para que, aunque el SVG se regenere entero cada 10 min,
+        // el valor mostrado siga siendo el más reciente y no vuelva a "--".
+        const ESTACIONES_DEF = [
+            { key: 'tibidabo', nombre: 'Tibidabo' },
+            { key: 'lescorts', nombre: 'Les Corts' },
+            { key: 'gracia',   nombre: 'Gràcia' },
+            { key: 'costa',    nombre: 'Port Olímpic' }
+        ];
+        window.ESTACIONES_ULTIMAS = window.ESTACIONES_ULTIMAS || {};
+
+        function estacionesRowSvg() {
+            const datos = window.ESTACIONES_ULTIMAS || {};
+            const chipW = 108, gap = 14, n = ESTACIONES_DEF.length;
+            const totalW = n * chipW + (n - 1) * gap;
+            const xStart = (500 - totalW) / 2;
+            const y = 268;
+            let chips = '';
+            ESTACIONES_DEF.forEach((e, i) => {
+                const x = xStart + i * (chipW + gap);
+                const d = datos[e.key] || {};
+                const temp = (typeof d.temp === 'number' && !Number.isNaN(d.temp)) ? Math.round(d.temp) + '°' : '--';
+                const lluvia = (typeof d.lluvia === 'number' && !Number.isNaN(d.lluvia)) ? d.lluvia.toFixed(1).replace('.', ',') + ' mm' : '-- mm';
+                chips += `
+                <g transform="translate(${x} ${y})">
+                    <rect width="${chipW}" height="60" rx="12" fill="rgba(255,255,255,0.10)" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+                    <text id="mw-est-${e.key}-temp" x="${chipW / 2}" y="24" font-size="19" font-weight="800" fill="#ffffff" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="-0.5">${temp}</text>
+                    <text id="mw-est-${e.key}-precip" x="${chipW / 2}" y="36" font-size="8" font-weight="600" fill="#7DD3FC" text-anchor="middle" font-family="'Inter',sans-serif">${lluvia}</text>
+                    <text x="${chipW / 2}" y="51" font-size="9.5" font-weight="700" fill="#ffffff" opacity="0.9" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="0.3">${e.nombre.toUpperCase()}</text>
+                </g>`;
+            });
+            return `
+            <g id="mw-estaciones" class="mw-txt">
+                <text x="250" y="242" font-size="10" font-weight="600" fill="#ffffff" opacity="0.65" text-anchor="middle" letter-spacing="1" font-family="'Inter',sans-serif">LAS ESTACIONES, EN DIRECTO</text>
+                <line x1="16" y1="250" x2="484" y2="250" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+                ${chips}
+            </g>`;
+        }
+
+        // Actualiza una tarjeta ya pintada en el DOM del SVG sin tener que
+        // regenerar el widget entero (así no se interrumpen sus animaciones).
+        // Si el SVG aún no existe (p. ej. la primera carga), no pasa nada:
+        // el próximo updateMananaWidget() la pintará con el dato ya guardado
+        // en window.ESTACIONES_ULTIMAS.
+        function pintarEstacionEnSvg(key, { temp, lluvia } = {}) {
+            window.ESTACIONES_ULTIMAS[key] = { temp, lluvia };
+            const elTemp = document.getElementById('mw-est-' + key + '-temp');
+            if (elTemp && typeof temp === 'number' && !Number.isNaN(temp)) {
+                elTemp.textContent = Math.round(temp) + '°';
+            }
+            const elPrecip = document.getElementById('mw-est-' + key + '-precip');
+            if (elPrecip && typeof lluvia === 'number' && !Number.isNaN(lluvia)) {
+                elPrecip.textContent = lluvia.toFixed(1).replace('.', ',') + ' mm';
+            }
+            // Reutiliza el dato para el perfil topográfico de la montaña, si
+            // ese módulo ya está cargado (igual que hacía la versión anterior).
+            if (typeof window.actualizarFilaAltura === 'function' && typeof temp === 'number') {
+                window.actualizarFilaAltura(key, { temp });
+            }
+        }
+
         function updateMananaWidget(current) {
             const host = document.getElementById('manana-widget');
             if (!host) return;
@@ -3858,8 +3782,9 @@
                         </g>
                     </g>`;
 
+                const estacionesSvg = estacionesRowSvg();
                 const svg = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 230" width="100%" role="img" aria-label="Tiempo actual: ${horaActualizado}, ${descripcion}" style="display:block;overflow:hidden;border-radius:0;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 336" width="100%" role="img" aria-label="Tiempo actual: ${horaActualizado}, ${descripcion}" style="display:block;overflow:hidden;border-radius:0;">
   <style>
     .mw-txt { font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif; }
     .mw-sol   { opacity: 1; }
@@ -3949,7 +3874,7 @@
       <stop offset="100%" stop-color="#ffb347" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="500" height="230" fill="url(#mw-bg)"/>
+  <rect width="500" height="336" fill="url(#mw-bg)"/>
   <g id="fondo-animado" transform="translate(0 25)">${fondo}</g>
   ${pajaros}
   ${skyline}
@@ -3959,6 +3884,7 @@
   <g id="textos-y-datos" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
     <text x="16" y="72" font-size="22" font-weight="700" fill="${tema.sub}" letter-spacing="0.5">${descripcion.toUpperCase()}</text>
   </g>
+  ${estacionesSvg}
 </svg>`;
                 host.innerHTML = svg;
                 host.style.display = 'block';
@@ -3968,6 +3894,45 @@
             }
         }
         // ══════ FIN WIDGET AHORA ══════
+
+        // ══════ Estaciones en directo · carga de datos (SOLO lectura de caché propia) ══════
+        // El navegador de cada visitante NO llama a Meteoclimatic ni a Weathercloud.
+        // Lee datos/estaciones.json, un archivo estático del propio repo que
+        // scripts/actualizar-estaciones.js regenera cada pocos minutos desde GitHub
+        // Actions (.github/workflows/actualizar-estaciones.yml) y sube con un commit
+        // automático. Así, sean 1 o 10.000 visitas, Meteoclimatic y Weathercloud solo
+        // reciben las llamadas de esa Action, nunca las de los visitantes.
+        // Las 4 tarjetas se pintan directamente dentro del SVG de "Ahora"
+        // (ver estacionesRowSvg / pintarEstacionEnSvg más arriba).
+        (function () {
+            const JSON_ESTACIONES = './datos/estaciones.json';
+            const INTERVALO_REFRESCO_MS = 2 * 60 * 1000;
+
+            async function cargarDesdeCachePropia() {
+                try {
+                    const resp = await fetch(JSON_ESTACIONES + '?t=' + Date.now(), { cache: 'no-store' });
+                    if (!resp.ok) throw new Error('estaciones.json no accesible (HTTP ' + resp.status + ')');
+                    const data = await resp.json();
+                    const estaciones = data.estaciones || {};
+                    Object.keys(estaciones).forEach(key => pintarEstacionEnSvg(key, estaciones[key]));
+                    console.log('[estaciones] Cargadas desde caché propia (' + JSON_ESTACIONES + '), generadas:', data.generado);
+                } catch (err) {
+                    console.warn('[estaciones] No se pudo leer la caché propia (¿aún no se ha ejecutado la Action?):', err.message);
+                }
+            }
+
+            function iniciar() {
+                cargarDesdeCachePropia();
+                setInterval(cargarDesdeCachePropia, INTERVALO_REFRESCO_MS);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', iniciar);
+            } else {
+                iniciar();
+            }
+        })();
+        // ══════ FIN Estaciones en directo ══════
 
 
         // ── Franja "Próximas horas": hora, icono de cielo, y gráfica de temperatura ──
