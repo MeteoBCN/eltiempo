@@ -3649,6 +3649,54 @@
         ];
         window.ESTACIONES_ULTIMAS = window.ESTACIONES_ULTIMAS || {};
 
+        // Manga de viento (windsock) centrada en el widget "Ahora". Gira sobre
+        // el mástil según la intensidad real del viento: en calma cuelga hacia
+        // abajo, con viento flojo empieza a estirarse, con moderado queda casi
+        // recta y con fuerte queda recta del todo y además "balancea" (un
+        // ligero vaivén continuo que imita las rachas).
+        function mangaVientoSvg(cx, cy, anguloDeg, balanceo) {
+            const L = 62, rMouth = 11, rTip = 2;
+            const outline = `M0,${-rMouth}
+                C${(L * 0.3).toFixed(1)},${(-rMouth * 0.82).toFixed(1)} ${(L * 0.64).toFixed(1)},${(-rTip * 2.4).toFixed(1)} ${L},${-rTip}
+                L${L},${rTip}
+                C${(L * 0.64).toFixed(1)},${(rTip * 2.4).toFixed(1)} ${(L * 0.3).toFixed(1)},${(rMouth * 0.82).toFixed(1)} 0,${rMouth} Z`;
+            return `
+            <g transform="translate(${cx} ${cy})" aria-hidden="true">
+                <rect x="-2.3" y="-14" width="4.6" height="7" rx="1.4" fill="#eef1f3"/>
+                <line x1="0" y1="-7" x2="0" y2="48" stroke="#eef1f3" stroke-width="3.4" stroke-linecap="round"/>
+                <line x1="0" y1="1" x2="0" y2="7" stroke="#d6524a" stroke-width="3.4"/>
+                <line x1="0" y1="15" x2="0" y2="21" stroke="#d6524a" stroke-width="3.4"/>
+                <line x1="0" y1="29" x2="0" y2="35" stroke="#d6524a" stroke-width="3.4"/>
+                <line x1="0" y1="43" x2="0" y2="48" stroke="#d6524a" stroke-width="3.4"/>
+                <g transform="rotate(${anguloDeg.toFixed(1)})">
+                    <g class="${balanceo ? 'mw-manga-balance' : ''}">
+                        <line x1="0" y1="0" x2="14" y2="-11" stroke="#eef1f3" stroke-width="1" opacity="0.8"/>
+                        <line x1="0" y1="0" x2="17" y2="-6" stroke="#eef1f3" stroke-width="1" opacity="0.8"/>
+                        <clipPath id="mw-manga-clip"><path d="${outline}"/></clipPath>
+                        <path d="${outline}" fill="#dd5148"/>
+                        <g clip-path="url(#mw-manga-clip)">
+                            <rect x="18" y="-13" width="13" height="26" fill="#f3f5f6"/>
+                            <rect x="42" y="-13" width="12" height="26" fill="#f3f5f6"/>
+                        </g>
+                        <ellipse cx="0" cy="0" rx="4.4" ry="${rMouth}" fill="#a02a29"/>
+                    </g>
+                </g>
+            </g>`;
+        }
+        // Ángulo del cono (0° = horizontal/recto, 90° = colgando hacia abajo)
+        // interpolado a partir de la velocidad real del viento (km/h), pasando
+        // por los puntos de referencia calma/flojo/moderado/fuerte.
+        function anguloMangaViento(ws) {
+            if (ws == null || Number.isNaN(ws)) return 88;
+            const pts = [[0, 88], [5, 78], [12, 58], [20, 40], [30, 24], [40, 11], [60, 4]];
+            if (ws <= pts[0][0]) return pts[0][1];
+            for (let i = 0; i < pts.length - 1; i++) {
+                const [x0, y0] = pts[i], [x1, y1] = pts[i + 1];
+                if (ws >= x0 && ws <= x1) return y0 + (y1 - y0) * ((ws - x0) / (x1 - x0));
+            }
+            return pts[pts.length - 1][1];
+        }
+
         function estacionesRowSvg() {
             const datos = window.ESTACIONES_ULTIMAS || {};
             const chipW = 108, gap = 14, n = ESTACIONES_DEF.length;
@@ -3825,6 +3873,11 @@
                     ? `<g id="pajaros" aria-hidden="true">${pajaro('mw-ave1', 0.8)}${pajaro('mw-ave2', 0.55)}</g>`
                     : '';
 
+                // Manga de viento centrada, con el ángulo/balanceo según el
+                // viento real del dato "current" (wind_speed_10m, km/h).
+                const wsViento = (typeof current.wind_speed_10m === 'number' && !Number.isNaN(current.wind_speed_10m)) ? current.wind_speed_10m : null;
+                const mangaSvg = mangaVientoSvg(250, 60, anguloMangaViento(wsViento), wsViento !== null && wsViento >= 40);
+
                 const estacionesSvg = estacionesRowSvg();
                 const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 270" width="100%" role="img" aria-label="Tiempo actual: ${horaActualizado}, ${descripcion}" style="display:block;overflow:hidden;border-radius:0;">
@@ -3878,9 +3931,13 @@
     /* Luna: leve resplandor "respirando" */
     .mw-luna { animation: mw-luna-brillo 6s ease-in-out infinite; transform-origin: center; }
     @keyframes mw-luna-brillo { 0%,100% { opacity: 0.94; } 50% { opacity: 1; } }
+    /* Manga de viento: con viento fuerte, ligero vaivén continuo (rachas) */
+    .mw-manga-balance { animation: mw-manga-sway 2.4s ease-in-out infinite; transform-origin: 0 0; will-change: transform; }
+    @keyframes mw-manga-sway { 0%,100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
     @media (prefers-reduced-motion: reduce) { .mw-cloud, .mw-gota { animation: none; } .mw-gota { opacity: 0.5; } .mw-rayo { animation: none; }
       .mw-ave1, .mw-ave2, .mw-ala { animation: none; } .mw-ave { opacity: 0.7; } .mw-ave1 { transform: translate(430px,88px); } .mw-ave2 { transform: translate(300px,118px); }
       .mw-star, .mw-luna { animation: none; }
+      .mw-manga-balance { animation: none; }
       .mw-star { opacity: 0.6; } }
   </style>
   <defs>
@@ -3940,6 +3997,7 @@
   ${franja ? `<rect width="500" height="270" fill="url(#mw-crepusculo)" opacity="${(franja.intensidad * 0.85).toFixed(2)}"/>` : ''}
   <g id="fondo-animado" transform="translate(0 25)">${fondo}</g>
   ${pajaros}
+  ${mangaSvg}
   <g id="hora-titulo" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
     <text x="16" y="36" font-size="26" font-weight="800" letter-spacing="0.5" fill="${tema.txt}">${horaActualizado}</text>
   </g>
