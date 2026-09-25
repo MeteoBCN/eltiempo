@@ -3585,7 +3585,8 @@
             const chipW = 108, gap = 14, n = ESTACIONES_DEF.length;
             const totalW = n * chipW + (n - 1) * gap;
             const xStart = (500 - totalW) / 2;
-            const y = 268;
+            const chipH = 48;
+            const y = 172; // se superpone al skyline, dentro del alto original del widget
             let chips = '';
             ESTACIONES_DEF.forEach((e, i) => {
                 const x = xStart + i * (chipW + gap);
@@ -3594,16 +3595,15 @@
                 const lluvia = (typeof d.lluvia === 'number' && !Number.isNaN(d.lluvia)) ? d.lluvia.toFixed(1).replace('.', ',') + ' mm' : '-- mm';
                 chips += `
                 <g transform="translate(${x} ${y})">
-                    <rect width="${chipW}" height="60" rx="12" fill="rgba(255,255,255,0.20)" stroke="rgba(255,255,255,0.28)" stroke-width="1"/>
-                    <text id="mw-est-${e.key}-temp" x="${chipW / 2}" y="24" font-size="19" font-weight="800" fill="#ffffff" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="-0.5">${temp}</text>
-                    <text id="mw-est-${e.key}-precip" x="${chipW / 2}" y="36" font-size="8" font-weight="600" fill="#7DD3FC" text-anchor="middle" font-family="'Inter',sans-serif">${lluvia}</text>
-                    <text x="${chipW / 2}" y="51" font-size="9.5" font-weight="700" fill="#ffffff" opacity="0.9" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="0.3">${e.nombre.toUpperCase()}</text>
+                    <rect width="${chipW}" height="${chipH}" rx="11" fill="rgba(255,255,255,0.20)" stroke="rgba(255,255,255,0.28)" stroke-width="1"/>
+                    <text id="mw-est-${e.key}-temp" x="${chipW / 2}" y="19" font-size="16" font-weight="800" fill="#ffffff" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="-0.5">${temp}</text>
+                    <text id="mw-est-${e.key}-precip" x="${chipW / 2}" y="30" font-size="7.5" font-weight="600" fill="#7DD3FC" text-anchor="middle" font-family="'Inter',sans-serif">${lluvia}</text>
+                    <text x="${chipW / 2}" y="42" font-size="8.5" font-weight="700" fill="#ffffff" opacity="0.9" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="0.3">${e.nombre.toUpperCase()}</text>
                 </g>`;
             });
             return `
-            <g id="mw-estaciones" class="mw-txt">
-                <text x="250" y="242" font-size="10" font-weight="600" fill="#ffffff" opacity="0.65" text-anchor="middle" letter-spacing="1" font-family="'Inter',sans-serif">LAS ESTACIONES, EN DIRECTO</text>
-                <line x1="16" y1="250" x2="484" y2="250" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+            <g id="mw-estaciones" class="mw-txt" filter="url(#mw-sombra)">
+                <text x="250" y="164" font-size="9.5" font-weight="600" fill="#ffffff" opacity="0.8" text-anchor="middle" letter-spacing="1" font-family="'Inter',sans-serif">LAS ESTACIONES, EN DIRECTO</text>
                 ${chips}
             </g>`;
         }
@@ -3784,7 +3784,7 @@
 
                 const estacionesSvg = estacionesRowSvg();
                 const svg = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 336" width="100%" role="img" aria-label="Tiempo actual: ${horaActualizado}, ${descripcion}" style="display:block;overflow:hidden;border-radius:0;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 230" width="100%" role="img" aria-label="Tiempo actual: ${horaActualizado}, ${descripcion}" style="display:block;overflow:hidden;border-radius:0;">
   <style>
     .mw-txt { font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif; }
     .mw-sol   { opacity: 1; }
@@ -3874,7 +3874,7 @@
       <stop offset="100%" stop-color="#ffb347" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="500" height="336" fill="url(#mw-bg)"/>
+  <rect width="500" height="230" fill="url(#mw-bg)"/>
   <g id="fondo-animado" transform="translate(0 25)">${fondo}</g>
   ${pajaros}
   ${skyline}
