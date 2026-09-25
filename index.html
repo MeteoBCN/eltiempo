@@ -3703,7 +3703,7 @@
             const totalW = n * chipW + (n - 1) * gap;
             const xStart = (500 - totalW) / 2;
             const chipH = 88;
-            const y = 136; // se superpone a la ilustración, dentro del alto original del widget
+            const y = 197; // bajadas para dejar solo ~20px de aire respecto al borde inferior del widget
             let chips = '';
             ESTACIONES_DEF.forEach((e, i) => {
                 const x = xStart + i * (chipW + gap);
@@ -4027,12 +4027,12 @@
     ${pajaros}
     ${estacionesSvg}
   </g>
-  <g id="hora-titulo" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
-    <text x="16" y="26" fill="${tema.txt}"><tspan font-size="14" font-weight="600" letter-spacing="0.3" opacity="0.9">${fechaActualizada}</tspan><tspan dx="10" font-size="18" font-weight="800" letter-spacing="0.3">${horaActualizado}</tspan></text>
-    <text x="16" y="94" font-size="56" font-weight="800" letter-spacing="-1" fill="${tema.txt}">${tempActualWidget}</text>
-    <text x="${16 + tempActualWidget.length * 33 + 12}" y="50" font-size="13" font-weight="700" fill="${tema.txt}"><tspan opacity="0.75" font-weight="600">Sensación </tspan>${sensacionActualWidget}</text>
-    <text x="${16 + tempActualWidget.length * 33 + 12}" y="68" font-size="13" font-weight="700" fill="${tema.txt}"><tspan opacity="0.75" font-weight="600">Humedad </tspan>${humedadActualWidget}</text>
-    <text x="${16 + tempActualWidget.length * 33 + 12}" y="86" font-size="13" font-weight="700" fill="${tema.txt}"><tspan opacity="0.75" font-weight="600">Presión </tspan>${presionActualWidget}</text>
+  <g id="hora-titulo" class="mw-txt">
+    <text x="16" y="26" fill="#ffffff"><tspan font-size="14" font-weight="600" letter-spacing="0.3" opacity="0.9">${fechaActualizada}</tspan><tspan dx="10" font-size="18" font-weight="800" letter-spacing="0.3">${horaActualizado}</tspan></text>
+    <text x="16" y="94" font-size="56" font-weight="800" letter-spacing="-1" fill="#ffffff">${tempActualWidget}</text>
+    <text x="${16 + tempActualWidget.length * 33 + 12}" y="50" font-size="13" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">Sensación </tspan>${sensacionActualWidget}</text>
+    <text x="${16 + tempActualWidget.length * 33 + 12}" y="68" font-size="13" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">HUM </tspan>${humedadActualWidget}</text>
+    <text x="${16 + tempActualWidget.length * 33 + 12}" y="86" font-size="13" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">PRES </tspan>${presionActualWidget}</text>
   </g>
 </svg>`;
                 host.innerHTML = svg;
