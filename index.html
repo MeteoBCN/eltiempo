@@ -3757,9 +3757,8 @@
         // flota directamente sobre el mismo fondo animado del widget (cielo,
         // nubes, etc.), igual que el bloque de hora/temperatura de arriba.
         function aqiRowSvg(yTop) {
-            const boxH = 210;
+            const boxH = 175;
             const d = window.AQI_ULTIMO || {};
-            const value = d.value || '--';
             const badgeLabel = d.badgeLabel || '—';
             const badgeColor = d.badgeColor || '#123653';
             const badgeBg = d.badgeBg || '#f0f6fa';
@@ -3770,14 +3769,13 @@
                 height: boxH,
                 svg: `
             <g id="mw-aqi" class="mw-txt" filter="url(#mw-sombra)">
-                <text x="250" y="${yTop + 24}" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="1.8" opacity="0.9">CALIDAD DEL AIRE</text>
-                <text id="mw-aqi-value" x="250" y="${yTop + 72}" font-size="30" font-weight="900" fill="#ffffff" text-anchor="middle" font-family="monospace">${value}</text>
-                <rect id="mw-aqi-badge-bg" x="${badgeX}" y="${yTop + 90}" width="${badgeW}" height="26" rx="10" fill="${badgeBg}" stroke="${badgeColor}60" stroke-width="1"/>
-                <text id="mw-aqi-badge-text" x="250" y="${yTop + 107}" font-size="14" font-weight="800" fill="${badgeColor}" text-anchor="middle" font-family="'Inter',sans-serif">${badgeLabel}</text>
+                <text x="250" y="${yTop + 26}" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="1.8" opacity="0.9">CALIDAD DEL AIRE</text>
+                <rect id="mw-aqi-badge-bg" x="${badgeX}" y="${yTop + 46}" width="${badgeW}" height="28" rx="10" fill="${badgeBg}" stroke="${badgeColor}60" stroke-width="1"/>
+                <text id="mw-aqi-badge-text" x="250" y="${yTop + 65}" font-size="15" font-weight="800" fill="${badgeColor}" text-anchor="middle" font-family="'Inter',sans-serif">${badgeLabel}</text>
                 <text text-anchor="middle" font-family="'Inter',sans-serif" font-size="12.5" fill="#ffffff" opacity="0.92">
-                    <tspan id="mw-aqi-adv-1" x="250" y="${yTop + 142}">${lines[0] || ''}</tspan>
-                    <tspan id="mw-aqi-adv-2" x="250" y="${yTop + 163}">${lines[1] || ''}</tspan>
-                    <tspan id="mw-aqi-adv-3" x="250" y="${yTop + 184}">${lines[2] || ''}</tspan>
+                    <tspan id="mw-aqi-adv-1" x="250" y="${yTop + 104}">${lines[0] || ''}</tspan>
+                    <tspan id="mw-aqi-adv-2" x="250" y="${yTop + 127}">${lines[1] || ''}</tspan>
+                    <tspan id="mw-aqi-adv-3" x="250" y="${yTop + 150}">${lines[2] || ''}</tspan>
                 </text>
             </g>`
             };
@@ -3798,7 +3796,7 @@
                 advice: level.advice
             };
             const valEl = document.getElementById('mw-aqi-value');
-            if (valEl) valEl.textContent = window.AQI_ULTIMO.value;
+            if (valEl) valEl.textContent = window.AQI_ULTIMO.value; // (elemento ya no se pinta, pero se deja el dato por si se reutiliza)
             const badgeTextEl = document.getElementById('mw-aqi-badge-text');
             const badgeBgEl = document.getElementById('mw-aqi-badge-bg');
             if (badgeTextEl) { badgeTextEl.textContent = window.AQI_ULTIMO.badgeLabel; badgeTextEl.setAttribute('fill', window.AQI_ULTIMO.badgeColor); }
@@ -3816,6 +3814,39 @@
             }
         }
         // ══════ FIN Calidad del aire dentro del SVG ══════
+
+        // Próximo evento solar (amanecer o atardecer) para pintarlo en el
+        // widget "Ahora", debajo de PRESIÓN. Usa la misma lógica que el
+        // contador de "Tiempo actual" (updateSunCountdown): busca, entre
+        // todos los amaneceres/atardeceres cacheados, el primero que aún
+        // no ha pasado. Así, en cuanto pasa el atardecer de hoy, muestra
+        // automáticamente la hora del próximo amanecer, y así sucesivamente.
+        function proximoEventoSolWidget() {
+            const daily = window._dailyCache;
+            const now = new Date();
+            if (daily?.time && daily?.sunrise && daily?.sunset) {
+                const events = [];
+                for (let i = 0; i < daily.time.length; i++) {
+                    if (daily.sunrise[i]) events.push({ type: 'sunrise', t: new Date(daily.sunrise[i]) });
+                    if (daily.sunset[i])  events.push({ type: 'sunset',  t: new Date(daily.sunset[i]) });
+                }
+                events.sort((a, b) => a.t - b.t);
+                const next = events.find(e => e.t > now);
+                if (next) {
+                    return {
+                        label: next.type === 'sunset' ? 'ATARDECER' : 'AMANECER',
+                        hora: next.t.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+                    };
+                }
+            }
+            // Respaldo con los valores de hoy si aún no hay caché diaria completa
+            if (sunriseTime && sunsetTime) {
+                const sr = new Date(sunriseTime), ss = new Date(sunsetTime);
+                if (now < sr) return { label: 'AMANECER', hora: sr.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) };
+                if (now < ss) return { label: 'ATARDECER', hora: ss.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) };
+            }
+            return null;
+        }
 
         function updateMananaWidget(current) {
             const host = document.getElementById('manana-widget');
@@ -3859,6 +3890,7 @@
                     ? Math.round(current.relative_humidity_2m) + '%' : '--%';
                 const presionActualWidget = (typeof current.pressure_msl === 'number' && !Number.isNaN(current.pressure_msl))
                     ? Math.round(current.pressure_msl) + ' hPa' : '-- hPa';
+                const solProximoWidget = proximoEventoSolWidget();
 
                 // ── Capa de fondo animado (opacidad siempre entre 0.10 y 0.25) ──
                 const durNube = { 'mw-c1': 38, 'mw-c2': 54, 'mw-c3': 30, 'mw-c4': 46 };
@@ -4116,11 +4148,12 @@
     ${aqiSvg}
   </g>
   <g id="hora-titulo" class="mw-txt">
-    <text x="16" y="26" fill="#ffffff"><tspan font-size="14" font-weight="600" letter-spacing="0.3" opacity="0.9">${fechaActualizada}</tspan><tspan dx="10" font-size="18" font-weight="800" letter-spacing="0.3">${horaActualizado}</tspan></text>
-    <text x="16" y="94" font-size="56" font-weight="800" letter-spacing="-1" fill="#ffffff">${tempActualWidget}</text>
-    <text x="${16 + tempActualWidget.length * 33 + 10}" y="94" font-size="24" font-weight="700" fill="#ffffff" opacity="0.85">${sensacionActualWidget}</text>
-    <text x="16" y="116" font-size="13" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">HUM </tspan>${humedadActualWidget}</text>
-    <text x="16" y="134" font-size="13" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">PRES </tspan>${presionActualWidget}</text>
+    <text x="16" y="26" fill="#ffffff"><tspan font-size="14" font-weight="600" letter-spacing="0.3" opacity="0.9">${fechaActualizada.toUpperCase()}</tspan><tspan dx="10" font-size="18" font-weight="800" letter-spacing="0.3">${horaActualizado}</tspan></text>
+    <text x="16" y="100" font-size="66" font-weight="800" letter-spacing="-1" fill="#ffffff">${tempActualWidget}</text>
+    <text x="${16 + tempActualWidget.length * 39 + 10}" y="100" font-size="24" font-weight="700" fill="#ffffff" opacity="0.85">(${sensacionActualWidget})</text>
+    <text x="16" y="122" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">HUMEDAD </tspan>${humedadActualWidget}</text>
+    <text x="16" y="142" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">PRESION </tspan>${presionActualWidget}</text>
+    ${solProximoWidget ? `<text x="16" y="162" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">${solProximoWidget.label} </tspan>${solProximoWidget.hora}</text>` : ''}
   </g>
 </svg>`;
                 host.innerHTML = svg;
