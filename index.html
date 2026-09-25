@@ -1566,23 +1566,10 @@
                         <div id="proximas-5h-rain-text" style="text-align:center;font-size:13px !important;font-weight:400 !important;-webkit-text-stroke:0;color:#ffffff;line-height:1.3;margin-top:8px;padding:0 8px;letter-spacing:0.4px;text-transform:uppercase;text-shadow:0 0 5px rgba(96,190,255,0.5),0 0 10px rgba(56,160,240,0.25);"></div>
                     </div>
 
-                    <!-- Widget "Ahora" (SVG animado, estado actual) -->
+                    <!-- Widget "Ahora" (SVG animado, estado actual). La calidad del aire
+                         ahora vive DENTRO del propio SVG, en una franja debajo de las
+                         4 tarjetas de estaciones (ver aqiRowSvg / pintarAqiEnSvg). -->
                     <div id="manana-widget" style="display:none;margin-top:28px;"></div>
-
-                    <!-- Calidad del aire: movida aquí, debajo de las 4 tarjetas de estaciones -->
-                    <div id="aqi-mini-widget" style="margin-top:24px;padding:12px 14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:12px;">
-                        <div style="font-size:12px;font-weight:700;color:#ffffff;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;text-align:center;opacity:0.92;">Calidad del aire</div>
-                        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
-                            <div style="flex-shrink:0;text-align:center;">
-                                <div style="display:flex;align-items:baseline;gap:4px;justify-content:center;">
-                                    <span id="aqi-mini-value" style="font-size:24px;font-weight:900;color:#ffffff;font-family:monospace;line-height:1;">--</span>
-                                    <span style="font-size:8px;color:#ffffff;opacity:0.7;">ICA</span>
-                                </div>
-                                <div id="aqi-mini-badge" style="display:inline-block;margin-top:6px;font-size:15px;font-weight:800;color:#123653;background:#f0f6fa;border:1px solid rgba(44,74,110,0.2);border-radius:9px;padding:4px 12px;">—</div>
-                            </div>
-                            <div id="aqi-mini-advice" style="width:100%;text-align:center;font-size:12px;color:#ffffff;opacity:0.92;line-height:1.4;"></div>
-                        </div>
-                    </div>
 
                     <div id="sport-section-wrap" style="margin-top:56px;">
                         <div style="font-family:'Fraunces',serif;font-style:italic;font-size:19px;font-weight:500;color:#ffffff;text-align:center;margin-bottom:2px;letter-spacing:0.2px;">¿Vas a correr por Barcelona?</div>
@@ -3743,6 +3730,93 @@
             }
         }
 
+        // ══════ Calidad del aire · integrada DENTRO del SVG del widget "Ahora" ══════
+        // Igual que las tarjetas de estaciones: ya no vive en un <div> aparte,
+        // se dibuja como <text>/<rect> dentro del propio SVG, en una franja
+        // propia con más aire respecto a las tarjetas de estaciones. El último
+        // dato calculado se guarda en window.AQI_ULTIMO para que, aunque el
+        // SVG se regenere entero (cada 10 min), el valor mostrado no vuelva a "--".
+        window.AQI_ULTIMO = window.AQI_ULTIMO || null;
+
+        // Reparte un texto largo en varias líneas (SVG no envuelve texto solo).
+        function wrapTextSvg(text, maxChars) {
+            const words = String(text || '').split(' ');
+            const lines = [];
+            let cur = '';
+            words.forEach(w => {
+                const test = cur ? cur + ' ' + w : w;
+                if (test.length > maxChars && cur) { lines.push(cur); cur = w; }
+                else cur = test;
+            });
+            if (cur) lines.push(cur);
+            return lines;
+        }
+
+        // Dibuja la franja de calidad del aire empezando en yTop (coordenadas
+        // del grupo de contenido del SVG). Sin panel/tarjeta propia: el texto
+        // flota directamente sobre el mismo fondo animado del widget (cielo,
+        // nubes, etc.), igual que el bloque de hora/temperatura de arriba.
+        function aqiRowSvg(yTop) {
+            const boxH = 210;
+            const d = window.AQI_ULTIMO || {};
+            const value = d.value || '--';
+            const badgeLabel = d.badgeLabel || '—';
+            const badgeColor = d.badgeColor || '#123653';
+            const badgeBg = d.badgeBg || '#f0f6fa';
+            const lines = d.advice ? wrapTextSvg(d.advice, 58).slice(0, 3) : [];
+            const badgeW = Math.max(76, badgeLabel.length * 8.5 + 30);
+            const badgeX = 250 - badgeW / 2;
+            return {
+                height: boxH,
+                svg: `
+            <g id="mw-aqi" class="mw-txt" filter="url(#mw-sombra)">
+                <text x="250" y="${yTop + 24}" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="1.8" opacity="0.9">CALIDAD DEL AIRE</text>
+                <text id="mw-aqi-value" x="250" y="${yTop + 72}" font-size="30" font-weight="900" fill="#ffffff" text-anchor="middle" font-family="monospace">${value}</text>
+                <rect id="mw-aqi-badge-bg" x="${badgeX}" y="${yTop + 90}" width="${badgeW}" height="26" rx="10" fill="${badgeBg}" stroke="${badgeColor}60" stroke-width="1"/>
+                <text id="mw-aqi-badge-text" x="250" y="${yTop + 107}" font-size="14" font-weight="800" fill="${badgeColor}" text-anchor="middle" font-family="'Inter',sans-serif">${badgeLabel}</text>
+                <text text-anchor="middle" font-family="'Inter',sans-serif" font-size="12.5" fill="#ffffff" opacity="0.92">
+                    <tspan id="mw-aqi-adv-1" x="250" y="${yTop + 142}">${lines[0] || ''}</tspan>
+                    <tspan id="mw-aqi-adv-2" x="250" y="${yTop + 163}">${lines[1] || ''}</tspan>
+                    <tspan id="mw-aqi-adv-3" x="250" y="${yTop + 184}">${lines[2] || ''}</tspan>
+                </text>
+            </g>`
+            };
+        }
+
+        // Actualiza la franja ya pintada en el DOM del SVG sin regenerar el
+        // widget entero (igual que pintarEstacionEnSvg). Se llama cuando
+        // termina el cálculo del ICA nacional (ver ÍNDICE NACIONAL DE CALIDAD
+        // DEL AIRE, más abajo en el archivo).
+        function pintarAqiEnSvg(ica) {
+            if (!ica || !window.ICA_LEVELS) return;
+            const level = window.ICA_LEVELS[ica.levelIdx] || window.ICA_LEVELS[window.ICA_LEVELS.length - 1];
+            window.AQI_ULTIMO = {
+                value: ica.dominant ? ica.dominant.item.label : '—',
+                badgeLabel: level.label,
+                badgeColor: level.color,
+                badgeBg: level.bg,
+                advice: level.advice
+            };
+            const valEl = document.getElementById('mw-aqi-value');
+            if (valEl) valEl.textContent = window.AQI_ULTIMO.value;
+            const badgeTextEl = document.getElementById('mw-aqi-badge-text');
+            const badgeBgEl = document.getElementById('mw-aqi-badge-bg');
+            if (badgeTextEl) { badgeTextEl.textContent = window.AQI_ULTIMO.badgeLabel; badgeTextEl.setAttribute('fill', window.AQI_ULTIMO.badgeColor); }
+            if (badgeBgEl) {
+                const badgeW = Math.max(76, window.AQI_ULTIMO.badgeLabel.length * 8.5 + 30);
+                badgeBgEl.setAttribute('width', badgeW);
+                badgeBgEl.setAttribute('x', 250 - badgeW / 2);
+                badgeBgEl.setAttribute('fill', window.AQI_ULTIMO.badgeBg);
+                badgeBgEl.setAttribute('stroke', window.AQI_ULTIMO.badgeColor + '60');
+            }
+            const lines = wrapTextSvg(window.AQI_ULTIMO.advice, 58).slice(0, 3);
+            for (let i = 1; i <= 3; i++) {
+                const el = document.getElementById('mw-aqi-adv-' + i);
+                if (el) el.textContent = lines[i - 1] || '';
+            }
+        }
+        // ══════ FIN Calidad del aire dentro del SVG ══════
+
         function updateMananaWidget(current) {
             const host = document.getElementById('manana-widget');
             if (!host) return;
@@ -3898,16 +3972,27 @@
                 const estacionesSvg = estacionesRowSvg();
                 // Espacio extra reservado ARRIBA del widget para el nuevo bloque
                 // de titular (fecha + hora + temperatura grande). Todo el resto
-                // del contenido (cielo animado, pájaros, manga de viento y
-                // estaciones) se desplaza hacia abajo esa misma cantidad.
+                // del contenido (cielo animado, pájaros, manga de viento,
+                // estaciones y calidad del aire) se desplaza hacia abajo esa
+                // misma cantidad.
                 const MW_OFFSET_TOP = 120;
-                const MW_ALTO = 270 + MW_OFFSET_TOP;
                 // Desplazamiento vertical del bloque de contenido (cielo animado,
                 // sol/luna, nubes, pájaros, manga de viento y tarjetas de estaciones)
                 // DENTRO del espacio reservado bajo el titular. Un valor menor que
                 // MW_OFFSET_TOP sube visualmente todo este bloque (antes quedaba
                 // centrado más abajo); el alto total del SVG (MW_ALTO) no cambia.
                 const MW_CONTENT_TOP = MW_OFFSET_TOP - 35;
+                // Franja de calidad del aire: se coloca debajo de las 4 tarjetas
+                // de estaciones (que terminan en y=197+88=285 dentro del grupo
+                // de contenido), dejando más aire (AQI_GAP) que el que tenían
+                // antes las estaciones respecto al borde del widget.
+                const CHIPS_BOTTOM = 285;
+                const AQI_GAP = 26;
+                const AQI_Y = CHIPS_BOTTOM + AQI_GAP;
+                const aqi = aqiRowSvg(AQI_Y);
+                const aqiSvg = aqi.svg;
+                const AQI_BOTTOM_MARGIN = 20;
+                const MW_ALTO = MW_CONTENT_TOP + AQI_Y + aqi.height + AQI_BOTTOM_MARGIN;
                 const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 ${MW_ALTO}" width="100%" role="img" aria-label="${fechaActualizada}, ${horaActualizado}, ${tempActualWidget}, ${descripcion}" style="display:block;overflow:hidden;border-radius:0;">
   <style>
@@ -4028,6 +4113,7 @@
     <g id="fondo-animado" transform="translate(0 -15)">${fondo}</g>
     <g transform="translate(0 -15)">${pajaros}</g>
     ${estacionesSvg}
+    ${aqiSvg}
   </g>
   <g id="hora-titulo" class="mw-txt">
     <text x="16" y="26" fill="#ffffff"><tspan font-size="14" font-weight="600" letter-spacing="0.3" opacity="0.9">${fechaActualizada}</tspan><tspan dx="10" font-size="18" font-weight="800" letter-spacing="0.3">${horaActualizado}</tspan></text>
@@ -11889,13 +11975,10 @@
 
             function updateMiniWidget(ica) {
                 if (!ica) return;
-                const level = ICA_LEVELS[ica.levelIdx] || ICA_LEVELS[ICA_LEVELS.length-1];
-                const miniValEl = document.getElementById('aqi-mini-value');
-                if (miniValEl) miniValEl.textContent = ica.dominant ? ica.dominant.item.label : '—';
-                const miniBadgeEl = document.getElementById('aqi-mini-badge');
-                if (miniBadgeEl) { miniBadgeEl.textContent = level.label; miniBadgeEl.style.color = level.color; miniBadgeEl.style.background = level.bg; miniBadgeEl.style.borderColor = level.color+'60'; }
-                const miniAdvEl = document.getElementById('aqi-mini-advice');
-                if (miniAdvEl) { miniAdvEl.textContent = level.advice; miniAdvEl.style.borderLeftColor = level.color; }
+                // La calidad del aire ahora se pinta DENTRO del SVG del widget
+                // "Ahora" (ver aqiRowSvg / pintarAqiEnSvg, junto a las tarjetas
+                // de estaciones), no en un widget HTML aparte.
+                if (typeof pintarAqiEnSvg === 'function') pintarAqiEnSvg(ica);
             }
 
             async function loadAQI() {
