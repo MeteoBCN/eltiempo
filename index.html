@@ -976,7 +976,7 @@
             }
         }
 
-        /* Widget "Mañana" (SVG animado, justo encima de "¿Vas a correr por
+        /* Widget "Ahora" (SVG animado, justo encima de "¿Vas a correr por
            Barcelona?"): rompe el padding lateral fijo (16px) del panel
            Meteoflash que lo contiene para llegar a los mismos bordes que la
            imagen "titular.jpg" de debajo — ancho completo, sin aire. */
@@ -1580,7 +1580,7 @@
                         <div id="proximas-5h-rain-text" style="text-align:center;font-size:13px !important;font-weight:400 !important;-webkit-text-stroke:0;color:#ffffff;line-height:1.3;margin-top:8px;padding:0 8px;letter-spacing:0.4px;text-transform:uppercase;text-shadow:0 0 5px rgba(96,190,255,0.5),0 0 10px rgba(56,160,240,0.25);"></div>
                     </div>
 
-                    <!-- Widget "Mañana" (SVG animado) -->
+                    <!-- Widget "Ahora" (SVG animado, estado actual) -->
                     <div id="manana-widget" style="display:none;margin-top:28px;"></div>
 
                     <div id="sport-section-wrap" style="margin-top:56px;">
@@ -3699,66 +3699,23 @@
             </svg>`;
         }
 
-        // ══════ WIDGET "MAÑANA" (SVG + CSS animado) ══════
-        // Procesa el JSON de Open-Meteo (hourly.weather_code + daily.temperature_2m_max/min)
-        // y pinta un único <svg> dentro de #manana-widget.
-        //  · Estado predominante = moda de weather_code entre las 08:00 y las 20:00 de mañana
-        //    (13 horas). En caso de empate gana el código más significativo (el mayor).
-        //  · Tendencia = máxima de mañana vs. máxima de hoy (valores enteros).
+        // ══════ WIDGET "AHORA" (SVG + CSS animado) ══════
+        // Procesa el bloque "current" de Open-Meteo (temperature_2m + weather_code)
+        // y pinta un único <svg> dentro de #manana-widget, mostrando el estado
+        // meteorológico ACTUAL (no una previsión). Se vuelve a llamar cada vez que
+        // se refresca el dato en vivo (cada 10 minutos), así que la fecha y la
+        // hora de "Actualizado" quedan siempre al día.
         //  · Animaciones solo con transform/opacity (aceleradas por GPU), sin librerías.
-        function updateMananaWidget(hourly, daily) {
+        function updateMananaWidget(current) {
             const host = document.getElementById('manana-widget');
             if (!host) return;
             try {
-                if (!hourly?.time || !hourly?.weather_code || !daily?.time) { host.style.display = 'none'; return; }
+                if (!current || current.temperature_2m == null || current.weather_code == null) { host.style.display = 'none'; return; }
 
-                // Fechas "hoy" y "mañana" en hora de Barcelona (YYYY-MM-DD)
-                const hoyStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
-                const [yy, mm, dd] = hoyStr.split('-').map(Number);
-                const mananaStr = new Date(Date.UTC(yy, mm - 1, dd + 1)).toISOString().slice(0, 10);
+                const modo = Number(current.weather_code);
+                const tActual = Math.round(current.temperature_2m);
 
-                // 1) Filtrado horario 08:00–20:00 de mañana
-                const codes = [];
-                hourly.time.forEach((t, i) => {
-                    if (t.slice(0, 10) !== mananaStr) return;
-                    const h = parseInt(t.slice(11, 13), 10);
-                    const c = hourly.weather_code[i];
-                    if (h >= 8 && h <= 20 && c !== null && c !== undefined) codes.push(Number(c));
-                });
-
-                // 3) Extremas de mañana y de hoy
-                const iHoy = daily.time.indexOf(hoyStr);
-                const iMan = daily.time.indexOf(mananaStr);
-                const maxMan = daily.temperature_2m_max?.[iMan];
-                const minMan = daily.temperature_2m_min?.[iMan];
-                const maxHoy = daily.temperature_2m_max?.[iHoy];
-                const minHoy = daily.temperature_2m_min?.[iHoy];
-                if (!codes.length || iMan === -1 || maxMan == null || minMan == null) { host.style.display = 'none'; return; }
-
-                // 2) Moda estadística (empate → código mayor)
-                const freq = {};
-                codes.forEach(c => { freq[c] = (freq[c] || 0) + 1; });
-                let modo = codes[0], best = 0;
-                Object.keys(freq).forEach(k => {
-                    const n = freq[k], kc = Number(k);
-                    if (n > best || (n === best && kc > modo)) { best = n; modo = kc; }
-                });
-
-                const tMax = Math.round(maxMan), tMin = Math.round(minMan);
-                const tHoy = (maxHoy == null) ? null : Math.round(maxHoy);
-                const tHoyMin = (minHoy == null) ? null : Math.round(minHoy);
-
-                // 4) Tendencia (máxima y mínima de mañana frente a hoy): solo se
-                //    muestra flecha ("↑" sube / "↓" baja) cuando la diferencia es
-                //    de 2 grados o más (en cualquiera de los dos sentidos). Si el
-                //    cambio es menor, o no hay dato de referencia de hoy, no se
-                //    muestra nada (sin símbolo "=").
-                const deltaMax = (tHoy !== null) ? (tMax - tHoy) : 0;
-                const deltaMaxTxt = deltaMax >= 2 ? '↑' : (deltaMax <= -2 ? '↓' : '');
-                const deltaMin = (tHoyMin !== null) ? (tMin - tHoyMin) : 0;
-                const deltaMinTxt = deltaMin >= 2 ? '↑' : (deltaMin <= -2 ? '↓' : '');
-
-                // Categoría visual y texto del estado predominante
+                // Categoría visual y texto del estado actual
                 let categoria, descripcion;
                 if (modo === 0)                 { categoria = 'sol';    descripcion = 'Despejado'; }
                 else if (modo === 1)            { categoria = 'sol';    descripcion = 'Poco nuboso'; }
@@ -3773,9 +3730,17 @@
                 else if (modo >= 95)                 { categoria = 'lluvia'; descripcion = 'Tormenta'; }
                 else                                 { categoria = 'nubes';  descripcion = 'Variable'; }
 
-                const fechaTxt = new Date(Date.UTC(yy, mm - 1, dd + 1))
+                // Fecha de HOY en hora de Barcelona
+                const hoyStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
+                const [yy, mm, dd] = hoyStr.split('-').map(Number);
+                const fechaTxt = new Date(Date.UTC(yy, mm - 1, dd))
                     .toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', timeZone: 'UTC' })
                     .replace(',', '');
+
+                // Hora de la última actualización (la del propio dato "current" si
+                // viene informada; si no, la hora local en el momento de pintar).
+                const instanteDato = current.time ? new Date(current.time) : new Date();
+                const horaActualizado = instanteDato.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
 
                 // ── Capa de fondo animado (opacidad siempre entre 0.10 y 0.25) ──
                 const durNube = { 'mw-c1': 38, 'mw-c2': 54, 'mw-c3': 30, 'mw-c4': 46 };
@@ -3796,11 +3761,11 @@
 
                 // Degradado del fondo completo del widget + colores de texto legibles
                 const temas = {
-                    sol:     { g: ['#1e88e5', '#5db8ff', '#bfe6ff'], min: '#9ccbee', max: '#f2948b', txt: '#123653', sub: '#123653', claro: true },
-                    mayor:   { g: ['#1e88e5', '#5db8ff', '#bfe6ff'], min: '#9ccbee', max: '#f2948b', txt: '#123653', sub: '#123653', claro: true },
-                    parcial: { g: ['#2f8fe0', '#6fbdf5', '#c6e4f8'], min: '#9ccbee', max: '#f2948b', txt: '#123653', sub: '#123653', claro: true },
-                    nublado: { g: ['#5f6f80', '#8a97a5', '#b9c2cc'], min: '#9ccbee', max: '#f2948b', txt: '#ffffff', sub: '#eef2f6' },
-                    lluvia:  { g: ['#2b3642', '#46586a', '#6b7d8f'], min: '#9ccbee', max: '#f2948b', txt: '#ffffff', sub: '#dbe6f0' }
+                    sol:     { g: ['#1e88e5', '#5db8ff', '#bfe6ff'], txt: '#123653', sub: '#123653', num: '#123653', claro: true },
+                    mayor:   { g: ['#1e88e5', '#5db8ff', '#bfe6ff'], txt: '#123653', sub: '#123653', num: '#123653', claro: true },
+                    parcial: { g: ['#2f8fe0', '#6fbdf5', '#c6e4f8'], txt: '#123653', sub: '#123653', num: '#123653', claro: true },
+                    nublado: { g: ['#5f6f80', '#8a97a5', '#b9c2cc'], txt: '#ffffff', sub: '#eef2f6', num: '#ffffff' },
+                    lluvia:  { g: ['#2b3642', '#46586a', '#6b7d8f'], txt: '#ffffff', sub: '#dbe6f0', num: '#ffffff' }
                 };
                 const tema = temas[tipoFondo];
 
@@ -3861,16 +3826,10 @@
                     ? `<g id="pajaros" aria-hidden="true">${pajaro('mw-ave1', 0.8)}${pajaro('mw-ave2', 0.55)}</g>`
                     : '';
 
-                const numMaxTxt = tMax + '°';
-                const numMinTxt = tMin + '°';
-                const numMaxWidth = Math.round(numMaxTxt.length * 23);
-                const numMinWidth = Math.round(numMinTxt.length * 23);
-                const numMinX = 16 + numMaxWidth + 14;
-                const maxCenterX = 16 + numMaxWidth / 2;
-                const minCenterX = numMinX + numMinWidth / 2;
+                const numTxt = tActual + '°';
 
                 const svg = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 178" width="100%" role="img" aria-label="Previsión de mañana: ${fechaTxt}, ${descripcion}, máxima ${tMax} grados${deltaMaxTxt ? ' (tendencia: ' + deltaMaxTxt + ')' : ''}, mínima ${tMin} grados${deltaMinTxt ? ' (tendencia: ' + deltaMinTxt + ')' : ''}" style="display:block;overflow:hidden;border-radius:0;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 230" width="100%" role="img" aria-label="Tiempo actual: ${fechaTxt}, ${descripcion}, ${tActual} grados, actualizado a las ${horaActualizado}" style="display:block;overflow:hidden;border-radius:0;">
   <style>
     .mw-txt { font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif; }
     .mw-sol   { opacity: 1; }
@@ -3960,7 +3919,7 @@
       <stop offset="100%" stop-color="#ffb347" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="500" height="178" fill="url(#mw-bg)"/>
+  <rect width="500" height="230" fill="url(#mw-bg)"/>
   <g id="fondo-animado" transform="translate(0 25)">${fondo}</g>
   ${pajaros}
   <g id="fecha-titulo" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
@@ -3969,11 +3928,11 @@
   <g id="textos-y-datos" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
     <text x="16" y="64" font-size="22" font-weight="700" fill="${tema.sub}" letter-spacing="0.5">${descripcion.toUpperCase()}</text>
   </g>
-  <g id="temps-halo" class="mw-txt" filter="url(#mw-halo-temp)">
-    <text x="16" y="114" font-size="40" font-weight="800" fill="${tema.max}">${numMaxTxt}</text>
-    <text x="${numMinX}" y="114" font-size="40" font-weight="800" fill="${tema.min}">${numMinTxt}</text>
-    ${deltaMaxTxt ? `<text x="${maxCenterX}" y="142" text-anchor="middle" font-size="24" font-weight="800" fill="${tema.max}">${deltaMaxTxt}</text>` : ''}
-    ${deltaMinTxt ? `<text x="${minCenterX}" y="142" text-anchor="middle" font-size="24" font-weight="800" fill="${tema.min}">${deltaMinTxt}</text>` : ''}
+  <g id="temp-actual-halo" class="mw-txt" filter="url(#mw-halo-temp)">
+    <text x="16" y="160" font-size="72" font-weight="800" fill="${tema.num}">${numTxt}</text>
+  </g>
+  <g id="actualizado" class="mw-txt" filter="url(#${tema.claro ? 'mw-sombra-clara' : 'mw-sombra'})">
+    <text x="16" y="212" font-size="14" font-weight="600" fill="${tema.sub}" opacity="0.85">Actualizado ${horaActualizado}</text>
   </g>
 </svg>`;
                 host.innerHTML = svg;
@@ -3983,7 +3942,8 @@
                 host.style.display = 'none';
             }
         }
-        // ══════ FIN WIDGET MAÑANA ══════
+        // ══════ FIN WIDGET AHORA ══════
+
 
         // ── Franja "Próximas horas": hora, icono de cielo, y gráfica de temperatura ──
         function updateProximas5h(hourly) {
@@ -9627,6 +9587,7 @@
                 // Reutiliza el horario ya cacheado (para la flecha de dirección
                 // del viento por hora); no hace falta volver a pedirlo.
                 updateCurrentWeather(live.current, live.current.weather_code, window._hourlyCache);
+                updateMananaWidget(live.current);
                 console.log('Tiempo actual actualizado en vivo:', live.current.time);
             } catch (e) {
                 console.warn('loadCurrentWeatherLive error (se mantiene el último dato mostrado):', e);
@@ -9739,7 +9700,7 @@
                 updateRunningIndex(data.current, data.hourly, data.daily, aqData?.hourly ?? null);
                 updateSportSection(data.current, data.hourly, aqData?.hourly ?? null);
                 updateProximas5h(data.hourly);
-                updateMananaWidget(data.hourly, data.daily);
+                updateMananaWidget(data.current);
                 drawParaguasHourlyChart(data.hourly);
                 loadGhostTrendChart(data.daily);
                 _hourlyCache = data.hourly;
