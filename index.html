@@ -3632,8 +3632,6 @@
         // el valor mostrado siga siendo el más reciente y no vuelva a "--".
         const ESTACIONES_DEF = [
             { key: 'tibidabo', nombre: 'Tibidabo',     altitud: 510 },
-            { key: 'lescorts', nombre: 'Les Corts',     altitud: 70 },
-            { key: 'gracia',   nombre: 'Gràcia',        altitud: 40 },
             { key: 'costa',    nombre: 'Port Olímpic',  altitud: 5 }
         ];
         window.ESTACIONES_ULTIMAS = window.ESTACIONES_ULTIMAS || {};
@@ -3688,9 +3686,8 @@
 
         function estacionesRowSvg() {
             const datos = window.ESTACIONES_ULTIMAS || {};
-            const chipW = 108, gap = 14, n = ESTACIONES_DEF.length;
-            const totalW = n * chipW + (n - 1) * gap;
-            const xStart = (500 - totalW) / 2;
+            const chipW = 108, gap = 14;
+            const xStart = 13; // alineadas a la izquierda (posiciones 1 y 2), mismo margen que antes usaba la fila de 4
             const chipH = 88;
             const y = 197; // bajadas para dejar solo ~20px de aire respecto al borde inferior del widget
             let chips = '';
@@ -4153,7 +4150,7 @@
     <text x="${16 + tempActualWidget.length * 39 + 2}" y="100" fill="#ffffff" opacity="0.85"><tspan font-size="13" font-weight="600">(sensación </tspan><tspan font-size="24" font-weight="700">${sensacionActualWidget}</tspan><tspan font-size="13" font-weight="600">)</tspan></text>
     <text x="16" y="132" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">HUMEDAD </tspan>${humedadActualWidget}</text>
     <text x="16" y="152" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">PRESION </tspan>${presionActualWidget}</text>
-    ${solProximoWidget ? `<text x="16" y="172" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">${solProximoWidget.label} </tspan>${solProximoWidget.hora}</text>` : ''}
+    ${solProximoWidget ? `<text x="16" y="182" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">${solProximoWidget.label} </tspan>${solProximoWidget.hora}</text>` : ''}
   </g>
 </svg>`;
                 host.innerHTML = svg;
