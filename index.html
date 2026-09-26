@@ -1558,6 +1558,15 @@
                          4 tarjetas de estaciones (ver aqiRowSvg / pintarAqiEnSvg). -->
                     <div id="manana-widget" style="display:none;margin-top:28px;"></div>
 
+                    <div id="proximos-5dias-widget" style="margin-top:28px;">
+                        <div id="proximos-5dias-content" style="position:relative;">
+                            <div id="proximos-5dias-dividers" style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;"></div>
+                            <div id="proximos-5dias-row" style="display:flex;align-items:stretch;justify-content:space-between;gap:6px;position:relative;">
+                                <div style="flex:1;text-align:center;padding:10px 6px;color:rgba(255,255,255,0.6);font-size:11px;">Cargando…</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="sport-section-wrap" style="margin-top:56px;">
                         <div style="font-family:'Fraunces',serif;font-style:italic;font-size:19px;font-weight:500;color:#ffffff;text-align:center;margin-bottom:2px;letter-spacing:0.2px;">¿Vas a correr por Barcelona?</div>
                         <div id="sport-section-subtitle" style="font-size:10px;font-weight:600;color:#ffffff;opacity:0.75;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:10px;margin-bottom:6px;">Elige la hora perfecta para tu plan</div>
@@ -4283,6 +4292,51 @@
             // horaria, desde la fila de horas/iconos hasta el final del bloque
             // (un overlay a parte que cubre todo el bloque).
             const dividersWrap = document.getElementById('proximas-5h-dividers');
+            if (dividersWrap) {
+                const nDiv = points.length;
+                let divHtml = '';
+                for (let i = 1; i < nDiv; i++) {
+                    const pct = (i * 100 / nDiv).toFixed(3);
+                    divHtml += `<div style="position:absolute;top:0;bottom:0;left:${pct}%;width:0;border-left:1px dashed rgba(255,255,255,0.18);"></div>`;
+                }
+                dividersWrap.innerHTML = divHtml;
+            }
+        }
+
+        // Igual que updateProximas5h pero a nivel diario: hoy + los 4 días
+        // siguientes, con el resumen (icono representativo del día y
+        // máxima/mínima) en vez de la hora.
+        function updateProximos5Dias(daily) {
+            const row = document.getElementById('proximos-5dias-row');
+            if (!row || !daily?.time) return;
+            const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+            const hoyStr = new Date().toISOString().slice(0, 10);
+
+            let html = '';
+            const points = []; // {label}
+            for (let k = 0; k < 5; k++) {
+                if (k >= daily.time.length) break;
+                const dt = new Date(daily.time[k]);
+                const isHoy = daily.time[k] === hoyStr;
+                const label = isHoy ? 'Hoy' : DIAS[dt.getDay()];
+                const wmo = daily.weather_code?.[k] ?? 0;
+                const icon = (typeof getRealisticWeatherIcon === 'function') ? getRealisticWeatherIcon(wmo, 50, false) : '';
+                const tmax = daily.temperature_2m_max?.[k];
+                const tmin = daily.temperature_2m_min?.[k];
+                const tempTxt = (tmax !== undefined && tmax !== null && tmin !== undefined && tmin !== null)
+                    ? Math.round(tmax) + '°/' + Math.round(tmin) + '°'
+                    : '--°/--°';
+                points.push({ label });
+                html += `
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                        <div style="font-size:13px;font-weight:600;color:#ffffff;white-space:nowrap;">${label}</div>
+                        <div style="line-height:1;">${icon}</div>
+                        <div style="font-size:14px;font-weight:600;color:#ffffff;white-space:nowrap;">${tempTxt}</div>
+                    </div>`;
+            }
+            row.innerHTML = html;
+
+            const dividersWrap = document.getElementById('proximos-5dias-dividers');
             if (dividersWrap) {
                 const nDiv = points.length;
                 let divHtml = '';
@@ -9947,6 +10001,7 @@
                 updateRunningIndex(data.current, data.hourly, data.daily, aqData?.hourly ?? null);
                 updateSportSection(data.current, data.hourly, aqData?.hourly ?? null);
                 updateProximas5h(data.hourly);
+                updateProximos5Dias(data.daily);
                 updateMananaWidget(data.current, data.hourly);
                 drawParaguasHourlyChart(data.hourly);
                 loadGhostTrendChart(data.daily);
