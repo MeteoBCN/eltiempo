@@ -1564,10 +1564,9 @@
                             <div id="proximos-5dias-row" style="display:flex;align-items:stretch;justify-content:space-between;gap:6px;position:relative;">
                                 <div style="flex:1;text-align:center;padding:10px 6px;color:rgba(255,255,255,0.6);font-size:11px;">Cargando…</div>
                             </div>
-                            <div id="proximos-5dias-trend-wrap" style="margin-top:2px;">
+                            <div id="proximos-5dias-trend-wrap" style="margin-top:4px;">
                                 <canvas id="proximos-5dias-trend-canvas" style="width:100%;display:block;"></canvas>
                             </div>
-                            <div id="proximos-5dias-temps-row" style="display:flex;align-items:stretch;justify-content:space-between;gap:6px;position:relative;margin-top:2px;"></div>
                         </div>
                     </div>
 
@@ -4304,13 +4303,11 @@
         // máxima/mínima) en vez de la hora.
         function updateProximos5Dias(daily) {
             const row = document.getElementById('proximos-5dias-row');
-            const tempsRow = document.getElementById('proximos-5dias-temps-row');
             if (!row || !daily?.time) return;
             const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
             const hoyStr = new Date().toISOString().slice(0, 10);
 
             let html = '';
-            let tempsHtml = '';
             const points = []; // {label}
             for (let k = 0; k < 5; k++) {
                 if (k >= daily.time.length) break;
@@ -4319,24 +4316,14 @@
                 const label = isHoy ? 'Hoy' : DIAS[dt.getDay()];
                 const wmo = daily.weather_code?.[k] ?? 0;
                 const icon = (typeof getRealisticWeatherIcon === 'function') ? getRealisticWeatherIcon(wmo, 50, false) : '';
-                const tmax = daily.temperature_2m_max?.[k];
-                const tmin = daily.temperature_2m_min?.[k];
-                const tempTxt = (tmax !== undefined && tmax !== null && tmin !== undefined && tmin !== null)
-                    ? Math.round(tmax) + '°/' + Math.round(tmin) + '°'
-                    : '--°/--°';
                 points.push({ label });
                 html += `
                     <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;">
                         <div style="font-size:13px;font-weight:600;color:#ffffff;white-space:nowrap;">${label}</div>
                         <div style="line-height:1;">${icon}</div>
                     </div>`;
-                tempsHtml += `
-                    <div style="flex:1;min-width:0;text-align:center;">
-                        <div style="font-size:14px;font-weight:600;color:#ffffff;white-space:nowrap;">${tempTxt}</div>
-                    </div>`;
             }
             row.innerHTML = html;
-            if (tempsRow) tempsRow.innerHTML = tempsHtml;
 
             const dividersWrap = document.getElementById('proximos-5dias-dividers');
             if (dividersWrap) {
@@ -4377,7 +4364,7 @@
 
             const dpr = window.devicePixelRatio || 1;
             const W = canvas.parentElement.offsetWidth;
-            const H = 150;
+            const H = 118;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -4387,7 +4374,9 @@
             ctx.scale(dpr, dpr);
             ctx.clearRect(0, 0, W, H);
 
-            const PAD = { t: 26, r: 14, b: 24, l: 14 };
+            // Más margen arriba/abajo: aquí viven las etiquetas numéricas,
+            // que además pueden separarse más si las curvas se acercan.
+            const PAD = { t: 28, r: 14, b: 26, l: 14 };
             const cw = W - PAD.l - PAD.r;
             const ch = H - PAD.t - PAD.b;
 
@@ -4460,8 +4449,11 @@
             strokeLine(xArr, yMaxArr, TREND_COLOR_MAX);
             strokeLine(xArr, yMinArr, TREND_COLOR_MIN);
 
-            // ── Nodos + valores ──
-            const drawNode = (x, y, value, color, labelAbove) => {
+            // ── Nodos + valor numérico, con anticolisión: cuando la curva
+            //    máx y la mín se acercan (p. ej. un día más fresco entre dos
+            //    más cálidos), separamos las dos etiquetas más de lo normal
+            //    para que nunca lleguen a tocarse ni superponerse ──
+            const drawNode = (x, y, color) => {
                 ctx.beginPath();
                 ctx.arc(x, y, 5, 0, Math.PI * 2);
                 const h = color.replace('#', '');
@@ -4476,15 +4468,31 @@
                 ctx.lineWidth = 1.3;
                 ctx.strokeStyle = '#123653';
                 ctx.stroke();
-
+            };
+            const drawLabel = (x, y, value) => {
                 ctx.textAlign = 'center';
                 ctx.font = '700 11px Inter,sans-serif';
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText(Math.round(value) + '°', x, labelAbove ? y - 10 : y + 18);
+                ctx.fillText(Math.round(value) + '°', x, y);
             };
+
+            const MIN_LABEL_GAP = 26; // separación mínima entre las dos etiquetas, en px
             labels.forEach((lbl, i) => {
-                drawNode(xArr[i], yMaxArr[i], maxs[i], TREND_COLOR_MAX, true);
-                drawNode(xArr[i], yMinArr[i], mins[i], TREND_COLOR_MIN, false);
+                const x = xArr[i];
+                const yMax = yMaxArr[i], yMin = yMinArr[i];
+                drawNode(x, yMax, TREND_COLOR_MAX);
+                drawNode(x, yMin, TREND_COLOR_MIN);
+
+                let maxLabelY = yMax - 10;
+                let minLabelY = yMin + 16;
+                const gap = minLabelY - maxLabelY;
+                if (gap < MIN_LABEL_GAP) {
+                    const extra = (MIN_LABEL_GAP - gap) / 2;
+                    maxLabelY -= extra;
+                    minLabelY += extra;
+                }
+                drawLabel(x, maxLabelY, maxs[i]);
+                drawLabel(x, minLabelY, mins[i]);
             });
         }
 
