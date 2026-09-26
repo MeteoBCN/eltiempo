@@ -306,7 +306,7 @@
         .current-weather { text-align: center !important; }
         #current-icon-temp-row { justify-content: center; }
         .content-section { background: #FFFFFF; padding: 0; --gutter: 0px; }
-        .hero-zone { background: #ffffff; padding: 20px 24px 16px 24px; }
+        .hero-zone { background: #ffffff; padding: 0 24px 16px 24px; }
         .content-below { padding: 24px; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
@@ -1507,8 +1507,18 @@
 <div class="content-section">
 
             <div class="hero-zone">
-                <div class="current-weather" style="text-align:left;padding:20px 20px 18px;background:#ffffff;">
-                <div id="current-datetime" style="font-size:13px;font-weight:400;color:#123653;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px;">--</div>
+                <div class="current-weather" style="text-align:left;padding:0 20px 18px;background:#ffffff;">
+                <!-- ── BLOQUE "TIEMPO ACTUAL" (icono, temperatura y redondas) ──
+                     Oculto a propósito con display:none, NO eliminado del HTML:
+                     updateCurrentWeather() sigue escribiendo en estos mismos ids
+                     sin comprobar si existen, y se llama justo antes que
+                     updateMananaWidget() (el SVG animado de Meteoflash) tanto en
+                     la carga inicial como en la actualización en vivo cada 10 min.
+                     Si se borrara este bloque del DOM, esas escrituras lanzarían
+                     un error y cortarían la ejecución antes de llegar a pintar el
+                     widget de Meteoflash. Ocultándolo así, todo sigue
+                     actualizándose con normalidad, simplemente no se ve. -->
+                <div id="tiempo-actual-bloque" style="display:none;">
                 <div id="current-icon-temp-row" style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
                     <span id="icono-clima-principal">
                         <div class="icon-large" id="current-icon" style="font-size:2em;margin:0;line-height:1;">🌧️</div>
@@ -1554,9 +1564,9 @@
                         <div class="wc-label" id="sun-label" style="text-align:center;">Amanecer</div>
                     </div>
                 </div>
+                </div><!-- fin tiempo-actual-bloque -->
 
-                <div id="proximas-5h-widget" style="width:calc(100% + (2 * var(--gutter)) + 96px);margin:16px calc((-1 * var(--gutter)) - 48px) 0 calc((-1 * var(--gutter)) - 48px);padding:20px 16px 32px;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);border-radius:0;overflow:hidden;">
-                    <div style="font-size:20px;font-weight:300;color:#ffffff;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:24px;">Meteo<span style="font-weight:900;">flash</span></div>
+                <div id="proximas-5h-widget" style="width:calc(100% + (2 * var(--gutter)) + 96px);margin:0 calc((-1 * var(--gutter)) - 48px) 0 calc((-1 * var(--gutter)) - 48px);padding:20px 16px 32px;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);border-radius:0;overflow:hidden;">
                     <div id="proximas-5h-content" style="position:relative;">
                         <div id="proximas-5h-dividers" style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;"></div>
                         <div id="proximas-5h-row" style="display:flex;align-items:stretch;justify-content:space-between;gap:6px;position:relative;">
