@@ -277,27 +277,6 @@
             display: block;
         }
 
-        /* ANIMACIÓN DE RELÁMPAGOS */
-        .efecto-tormenta {
-            animation: relampago-banner 10s infinite;
-        }
-
-        @keyframes relampago-banner {
-            0%, 100% { filter: brightness(1) contrast(1); }
-            17.5% { filter: brightness(1) contrast(1); }
-            18% { filter: brightness(1.8) contrast(1.1); }
-            18.5% { filter: brightness(1.15); }
-            18.9% { filter: brightness(1) contrast(1); }
-            38.5% { filter: brightness(1) contrast(1); }
-            39% { filter: brightness(2) contrast(1.12); }
-            39.5% { filter: brightness(1.15); }
-            40% { filter: brightness(2.2) contrast(1.15); }
-            40.7% { filter: brightness(1) contrast(1); }
-            63.5% { filter: brightness(1) contrast(1); }
-            64% { filter: brightness(1.8) contrast(1.1) hue-rotate(60deg) saturate(1.6); }
-            64.6% { filter: brightness(1) contrast(1); }
-        }
-
         @media (min-width: 768px) {
             .bloque-marca { max-width: 260px; }
             .texto-meteo { font-size: 22px; letter-spacing: 6px; padding-left: 15px; margin-top: -27px; }
@@ -1430,7 +1409,7 @@
 <body>
     <div class="container">
 
-        <header id="banner-meteo" class="banner-base efecto-tormenta">
+        <header id="banner-meteo" class="banner-base">
             <!-- Capa de nubes animadas por detrás -->
             <div class="nube-top-white">
                 <svg viewBox="0 0 1200 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -4287,7 +4266,7 @@
                 const label = String(dt.getHours()).padStart(2, '0') + 'h';
                 const isNight = (typeof isNightTime === 'function') ? isNightTime(dt) : false;
                 const wmo = hourly.weather_code?.[idx] ?? 0;
-                const icon = (typeof getRealisticWeatherIcon === 'function') ? getRealisticWeatherIcon(wmo, 36, isNight) : '';
+                const icon = (typeof getRealisticWeatherIcon === 'function') ? getRealisticWeatherIcon(wmo, 44, isNight) : '';
                 const temp = hourly.temperature_2m?.[idx];
                 const tempTxt = (temp !== undefined && temp !== null) ? Math.round(temp) + '°' : '--°';
                 points.push({ label, temp });
