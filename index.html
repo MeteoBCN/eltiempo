@@ -949,7 +949,7 @@
 
         @media (max-width: 480px) {
             .header-section { padding: 0; min-height: 80px; }
-            .content-section { padding: 16px; --gutter: 16px; }
+            .content-section { padding: 0 16px 16px 16px; --gutter: 16px; }
             body { overflow-x: hidden; max-width: 100vw; }
             .temperature { font-size: 64px; }
             .icon-large { font-size: 1.8em; }
@@ -1572,8 +1572,6 @@
                         <div id="proximas-5h-row" style="display:flex;align-items:stretch;justify-content:space-between;gap:6px;position:relative;">
                             <div style="flex:1;text-align:center;padding:10px 6px;color:rgba(255,255,255,0.6);font-size:11px;">Cargando…</div>
                         </div>
-                        <div id="proximas-5h-chart" style="margin-top:18px;position:relative;"></div>
-                        <div id="proximas-5h-rain-text" style="text-align:center;font-size:13px !important;font-weight:400 !important;-webkit-text-stroke:0;color:#ffffff;line-height:1.3;margin-top:8px;padding:0 8px;letter-spacing:0.4px;text-transform:uppercase;text-shadow:0 0 5px rgba(96,190,255,0.5),0 0 10px rgba(56,160,240,0.25);"></div>
                     </div>
 
                     <!-- Widget "Ahora" (SVG animado, estado actual). La calidad del aire
@@ -4272,7 +4270,6 @@
         // ── Franja "Próximas horas": hora, icono de cielo, y gráfica de temperatura ──
         function updateProximas5h(hourly) {
             const row = document.getElementById('proximas-5h-row');
-            const chartWrap = document.getElementById('proximas-5h-chart');
             if (!row || !hourly?.time) return;
             const now = new Date();
             // Empezamos en la próxima hora completa (no en la hora actual, que
@@ -4283,7 +4280,6 @@
 
             let html = '';
             const points = []; // {label, temp}
-            const pprobs = []; // probabilidad de lluvia por franja, para el texto de lluvia
             for (let k = 0; k < 5; k++) {
                 const idx = startIdx + k;
                 if (idx >= hourly.time.length) break;
@@ -4293,38 +4289,20 @@
                 const wmo = hourly.weather_code?.[idx] ?? 0;
                 const icon = (typeof getRealisticWeatherIcon === 'function') ? getRealisticWeatherIcon(wmo, 36, isNight) : '';
                 const temp = hourly.temperature_2m?.[idx];
+                const tempTxt = (temp !== undefined && temp !== null) ? Math.round(temp) + '°' : '--°';
                 points.push({ label, temp });
-                pprobs.push(hourly.precipitation_probability?.[idx] ?? 0);
                 html += `
                     <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;">
                         <div style="font-size:13px;font-weight:600;color:#ffffff;white-space:nowrap;">${label}</div>
                         <div style="line-height:1;">${icon}</div>
+                        <div style="font-size:14px;font-weight:600;color:#ffffff;white-space:nowrap;">${tempTxt}</div>
                     </div>`;
             }
             row.innerHTML = html;
 
-            // Texto resumen: distingue riesgo alto (≥60%, "se espera") de
-            // riesgo moderado (40-59%, "posibilidad") y ausencia de riesgo.
-            const rainTextEl = document.getElementById('proximas-5h-rain-text');
-            if (rainTextEl) {
-                const highHours = points.filter((p, i) => pprobs[i] >= 60).map(p => p.label);
-                const midHours = points.filter((p, i) => pprobs[i] >= 40 && pprobs[i] < 60).map(p => p.label);
-                let text;
-                if (highHours.length && midHours.length) {
-                    text = `Se espera lluvia a las ${highHours.join(', ')}, con posibilidad también a las ${midHours.join(', ')}`;
-                } else if (highHours.length) {
-                    text = `Se espera lluvia a las ${highHours.join(', ')}`;
-                } else if (midHours.length) {
-                    text = `Posibilidad de lluvia a las ${midHours.join(', ')}`;
-                } else {
-                    text = 'No se espera lluvia';
-                }
-                rainTextEl.textContent = text;
-            }
-
             // Líneas verticales discontinuas y sutiles que separan cada franja
-            // horaria, desde la fila de horas/iconos hasta el final de la
-            // gráfica (un overlay a parte que cubre todo el bloque).
+            // horaria, desde la fila de horas/iconos hasta el final del bloque
+            // (un overlay a parte que cubre todo el bloque).
             const dividersWrap = document.getElementById('proximas-5h-dividers');
             if (dividersWrap) {
                 const nDiv = points.length;
@@ -4334,72 +4312,6 @@
                     divHtml += `<div style="position:absolute;top:0;bottom:0;left:${pct}%;width:0;border-left:1px dashed rgba(255,255,255,0.18);"></div>`;
                 }
                 dividersWrap.innerHTML = divHtml;
-            }
-
-            // Gráfica de temperatura: línea curva con degradado rojo (máxima) /
-            // azul (mínima). Los números de temperatura van todos alineados en
-            // una misma línea (no encima de cada punto), en blanco, estilo
-            // "Meteoflash". Se usa la temperatura YA REDONDEADA (la misma que
-            // se muestra en el texto) para la altura y el color del punto, así
-            // dos horas con el mismo "23°" quedan exactamente a la misma altura.
-            if (chartWrap && points.length) {
-                const rTemps = points.map(p => (p.temp !== undefined && p.temp !== null) ? Math.round(p.temp) : null);
-                const validTemps = rTemps.filter(t => t !== null);
-                const maxT = Math.max(...validTemps);
-                const minT = Math.min(...validTemps);
-                const W = 300, H = 84, padX = 30, padTop = 30, padBottom = 14;
-                const n = points.length;
-                const xAt = i => (n === 1) ? W / 2 : padX + (i * (W - 2 * padX) / (n - 1));
-                const yAt = t => {
-                    if (t === null) return H - padBottom;
-                    if (maxT === minT) return (H - padBottom + padTop) / 2;
-                    return padTop + (1 - (t - minT) / (maxT - minT)) * (H - padTop - padBottom);
-                };
-                // Color intermedio del degradado rojo→azul según dónde cae la
-                // temperatura entre el mínimo (azul) y el máximo (rojo).
-                const colorAt = t => {
-                    if (t === null) return '#ffffff';
-                    const ratio = (maxT === minT) ? 1 : (t - minT) / (maxT - minT); // 1=máxima(rojo), 0=mínima(azul)
-                    const c1 = [78, 155, 255];  // azul (mínima)
-                    const c2 = [255, 90, 78];   // rojo (máxima)
-                    const mix = c1.map((c, i) => Math.round(c + (c2[i] - c) * ratio));
-                    return `rgb(${mix[0]},${mix[1]},${mix[2]})`;
-                };
-                const coords = rTemps.map((t, i) => ({ x: xAt(i), y: yAt(t), temp: t }));
-                // Curva suave (Catmull-Rom → Bézier) en vez de segmentos rectos
-                const smoothPath = (pts) => {
-                    if (pts.length < 2) return '';
-                    let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
-                    for (let i = 0; i < pts.length - 1; i++) {
-                        const p0 = pts[i === 0 ? 0 : i - 1];
-                        const p1 = pts[i];
-                        const p2 = pts[i + 1];
-                        const p3 = pts[i + 2 < pts.length ? i + 2 : i + 1];
-                        const c1x = p1.x + (p2.x - p0.x) / 6;
-                        const c1y = p1.y + (p2.y - p0.y) / 6;
-                        const c2x = p2.x - (p3.x - p1.x) / 6;
-                        const c2y = p2.y - (p3.y - p1.y) / 6;
-                        d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
-                    }
-                    return d;
-                };
-                const path = smoothPath(coords);
-                // Todas las temperaturas alineadas en la misma línea horizontal
-                const labelY = 14;
-                const labelsSvg = coords.map(c =>
-                    `<text x="${c.x.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-size="16" font-weight="300" fill="#ffffff">${c.temp !== null ? c.temp + '°' : '--'}</text>`
-                ).join('');
-                chartWrap.innerHTML = `
-                    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;">
-                        <defs>
-                            <linearGradient id="proximas5hTempGrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="${H}">
-                                <stop offset="0%" stop-color="#ff5a4e"/>
-                                <stop offset="100%" stop-color="#4e9bff"/>
-                            </linearGradient>
-                        </defs>
-                        <path d="${path}" fill="none" stroke="url(#proximas5hTempGrad)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        ${labelsSvg}
-                    </svg>`;
             }
         }
 
