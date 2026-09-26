@@ -277,6 +277,27 @@
             display: block;
         }
 
+        /* ANIMACIÓN DE RELÁMPAGOS */
+        .efecto-tormenta {
+            animation: relampago-banner 10s infinite;
+        }
+
+        @keyframes relampago-banner {
+            0%, 100% { filter: brightness(1) contrast(1); }
+            17.5% { filter: brightness(1) contrast(1); }
+            18% { filter: brightness(1.8) contrast(1.1); }
+            18.5% { filter: brightness(1.15); }
+            18.9% { filter: brightness(1) contrast(1); }
+            38.5% { filter: brightness(1) contrast(1); }
+            39% { filter: brightness(2) contrast(1.12); }
+            39.5% { filter: brightness(1.15); }
+            40% { filter: brightness(2.2) contrast(1.15); }
+            40.7% { filter: brightness(1) contrast(1); }
+            63.5% { filter: brightness(1) contrast(1); }
+            64% { filter: brightness(1.8) contrast(1.1) hue-rotate(60deg) saturate(1.6); }
+            64.6% { filter: brightness(1) contrast(1); }
+        }
+
         @media (min-width: 768px) {
             .bloque-marca { max-width: 260px; }
             .texto-meteo { font-size: 22px; letter-spacing: 6px; padding-left: 15px; margin-top: -27px; }
@@ -1409,7 +1430,7 @@
 <body>
     <div class="container">
 
-        <header id="banner-meteo" class="banner-base">
+        <header id="banner-meteo" class="banner-base efecto-tormenta">
             <!-- Capa de nubes animadas por detrás -->
             <div class="nube-top-white">
                 <svg viewBox="0 0 1200 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -1557,18 +1578,6 @@
                          ahora vive DENTRO del propio SVG, en una franja debajo de las
                          4 tarjetas de estaciones (ver aqiRowSvg / pintarAqiEnSvg). -->
                     <div id="manana-widget" style="display:none;margin-top:28px;"></div>
-
-                    <div id="proximos-5dias-widget" style="margin-top:28px;">
-                        <div id="proximos-5dias-content" style="position:relative;">
-                            <div id="proximos-5dias-dividers" style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;"></div>
-                            <div id="proximos-5dias-row" style="display:flex;align-items:stretch;justify-content:space-between;gap:6px;position:relative;">
-                                <div style="flex:1;text-align:center;padding:10px 6px;color:rgba(255,255,255,0.6);font-size:11px;">Cargando…</div>
-                            </div>
-                        </div>
-                        <div id="proximos-5dias-trend-wrap" style="margin-top:6px;">
-                            <canvas id="proximos-5dias-trend-canvas" style="width:100%;display:block;"></canvas>
-                        </div>
-                    </div>
 
                     <div id="sport-section-wrap" style="margin-top:56px;">
                         <div style="font-family:'Fraunces',serif;font-style:italic;font-size:19px;font-weight:500;color:#ffffff;text-align:center;margin-bottom:2px;letter-spacing:0.2px;">¿Vas a correr por Barcelona?</div>
@@ -1877,6 +1886,14 @@
                         </div>
                     </div>
                     <div class="bbc-sun-uvi" id="bbc-sun-uvi-48h"></div>
+
+                    <!-- ═══ GRÁFICA TENDENCIA · DOBLE LÍNEA MÁX/MÍN (Hoy → Mañana → Pasado) ═══ -->
+                    <div id="ghost-trend-wrap" style="width:100%;margin:0;background:linear-gradient(180deg, #1c4f78 0%, #123653 100%);padding:16px 16px 14px;border-top:1px solid rgba(255,255,255,0.14);">
+                        <div style="text-align:center;font-size:10px;font-weight:700;color:#ffffff;letter-spacing:1px;text-transform:uppercase;opacity:0.75;margin-bottom:2px;">Tendencia temperatura</div>
+                        <div style="text-align:center;font-size:9.5px;font-weight:500;color:#ffffff;letter-spacing:0.2px;text-transform:none;opacity:0.55;margin-bottom:10px;">(Diferencia de temperatura respecto a ayer)</div>
+                        <canvas id="ghost-trend-canvas" style="width:100%;display:block;"></canvas>
+                    </div>
+                    <!-- ═══ FIN GRÁFICA TENDENCIA MÁX/MÍN ═══ -->
 
                 </div>
 
@@ -4270,7 +4287,7 @@
                 const label = String(dt.getHours()).padStart(2, '0') + 'h';
                 const isNight = (typeof isNightTime === 'function') ? isNightTime(dt) : false;
                 const wmo = hourly.weather_code?.[idx] ?? 0;
-                const icon = (typeof getRealisticWeatherIcon === 'function') ? getRealisticWeatherIcon(wmo, 50, isNight) : '';
+                const icon = (typeof getRealisticWeatherIcon === 'function') ? getRealisticWeatherIcon(wmo, 36, isNight) : '';
                 const temp = hourly.temperature_2m?.[idx];
                 const tempTxt = (temp !== undefined && temp !== null) ? Math.round(temp) + '°' : '--°';
                 points.push({ label, temp });
@@ -4297,194 +4314,6 @@
                 dividersWrap.innerHTML = divHtml;
             }
         }
-
-        // Igual que updateProximas5h pero a nivel diario: hoy + los 4 días
-        // siguientes, con el resumen (icono representativo del día y
-        // máxima/mínima) en vez de la hora.
-        function updateProximos5Dias(daily) {
-            const row = document.getElementById('proximos-5dias-row');
-            if (!row || !daily?.time) return;
-            const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-            const hoyStr = new Date().toISOString().slice(0, 10);
-
-            let html = '';
-            const points = []; // {label}
-            for (let k = 0; k < 5; k++) {
-                if (k >= daily.time.length) break;
-                const dt = new Date(daily.time[k]);
-                const isHoy = daily.time[k] === hoyStr;
-                const label = isHoy ? 'Hoy' : DIAS[dt.getDay()];
-                const wmo = daily.weather_code?.[k] ?? 0;
-                const icon = (typeof getRealisticWeatherIcon === 'function') ? getRealisticWeatherIcon(wmo, 50, false) : '';
-                const tmax = daily.temperature_2m_max?.[k];
-                const tmin = daily.temperature_2m_min?.[k];
-                const tempTxt = (tmax !== undefined && tmax !== null && tmin !== undefined && tmin !== null)
-                    ? Math.round(tmax) + '°/' + Math.round(tmin) + '°'
-                    : '--°/--°';
-                points.push({ label });
-                html += `
-                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;">
-                        <div style="font-size:13px;font-weight:600;color:#ffffff;white-space:nowrap;">${label}</div>
-                        <div style="line-height:1;">${icon}</div>
-                        <div style="font-size:14px;font-weight:600;color:#ffffff;white-space:nowrap;">${tempTxt}</div>
-                    </div>`;
-            }
-            row.innerHTML = html;
-
-            const dividersWrap = document.getElementById('proximos-5dias-dividers');
-            if (dividersWrap) {
-                const nDiv = points.length;
-                let divHtml = '';
-                for (let i = 1; i < nDiv; i++) {
-                    const pct = (i * 100 / nDiv).toFixed(3);
-                    divHtml += `<div style="position:absolute;top:0;bottom:0;left:${pct}%;width:0;border-left:1px dashed rgba(255,255,255,0.18);"></div>`;
-                }
-                dividersWrap.innerHTML = divHtml;
-            }
-
-            // Gráfica de tendencia (máxima/mínima con curvas) justo debajo,
-            // misma lógica que la gráfica de tendencia de 3 días pero con
-            // los 5 días de esta sección y separadores punteados por día.
-            _proximos5DiasTrendVals = { labels: points.map(p => p.label), maxs: [], mins: [] };
-            for (let k = 0; k < points.length; k++) {
-                _proximos5DiasTrendVals.maxs.push(daily.temperature_2m_max?.[k]);
-                _proximos5DiasTrendVals.mins.push(daily.temperature_2m_min?.[k]);
-            }
-            drawProximos5DiasTrendChart(_proximos5DiasTrendVals);
-        }
-
-        let _proximos5DiasTrendVals = null;
-
-        // Gráfica de tendencia máx/mín para los 5 días de "Próximos 5 días":
-        // curvas Bezier suaves y banda térmica degradada entre máxima y
-        // mínima, más una línea vertical punteada por cada día que separa
-        // visualmente cada tramo (mismo estilo que los separadores de la fila
-        // de iconos justo encima).
-        function drawProximos5DiasTrendChart(vals) {
-            const canvas = document.getElementById('proximos-5dias-trend-canvas');
-            if (!canvas || !vals) return;
-            const { labels, maxs, mins } = vals;
-            const n = labels.length;
-            if (n < 2) return;
-            if (maxs.some(v => v == null || isNaN(v)) || mins.some(v => v == null || isNaN(v))) return;
-
-            const dpr = window.devicePixelRatio || 1;
-            const W = canvas.parentElement.offsetWidth;
-            const H = 150;
-            canvas.width  = W * dpr;
-            canvas.height = H * dpr;
-            canvas.style.width  = W + 'px';
-            canvas.style.height = H + 'px';
-            const ctx = canvas.getContext('2d');
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.scale(dpr, dpr);
-            ctx.clearRect(0, 0, W, H);
-
-            const PAD = { t: 26, r: 14, b: 24, l: 14 };
-            const cw = W - PAD.l - PAD.r;
-            const ch = H - PAD.t - PAD.b;
-
-            const totalUnits = n - 1;
-            const xAt = i => PAD.l + (totalUnits === 0 ? cw / 2 : (i / totalUnits) * cw);
-            const xArr = labels.map((_, i) => xAt(i));
-
-            let minT = Math.min(...mins);
-            let maxT = Math.max(...maxs);
-            if (maxT - minT < 4) { const mid = (maxT + minT) / 2; minT = mid - 2; maxT = mid + 2; }
-            minT -= 2; maxT += 2;
-            const yAt = t => PAD.t + ch - ((t - minT) / (maxT - minT)) * ch;
-            const yMaxArr = maxs.map(yAt);
-            const yMinArr = mins.map(yAt);
-
-            const midX = (x0, x1) => (x0 + x1) / 2;
-            const buildSmoothPath = (xs, ys) => {
-                ctx.moveTo(xs[0], ys[0]);
-                for (let i = 0; i < xs.length - 1; i++) {
-                    const xc = midX(xs[i], xs[i + 1]);
-                    ctx.bezierCurveTo(xc, ys[i], xc, ys[i + 1], xs[i + 1], ys[i + 1]);
-                }
-            };
-
-            // ── Separadores punteados por día (mismo estilo que la fila de
-            //    iconos justo encima: línea vertical fina y discontinua) ──
-            ctx.save();
-            ctx.setLineDash([3, 3]);
-            ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-            ctx.lineWidth = 1;
-            for (let i = 1; i < n; i++) {
-                const xLine = PAD.l + (i * cw / n);
-                ctx.beginPath();
-                ctx.moveTo(xLine, PAD.t - 4);
-                ctx.lineTo(xLine, H - PAD.b + 4);
-                ctx.stroke();
-            }
-            ctx.restore();
-
-            // ── Banda térmica degradada entre máxima y mínima ──
-            ctx.save();
-            ctx.beginPath();
-            buildSmoothPath(xArr, yMaxArr);
-            const xArrRev = [...xArr].reverse();
-            const yMinArrRev = [...yMinArr].reverse();
-            ctx.lineTo(xArrRev[0], yMinArrRev[0]);
-            for (let i = 0; i < xArrRev.length - 1; i++) {
-                const xc = midX(xArrRev[i], xArrRev[i + 1]);
-                ctx.bezierCurveTo(xc, yMinArrRev[i], xc, yMinArrRev[i + 1], xArrRev[i + 1], yMinArrRev[i + 1]);
-            }
-            ctx.closePath();
-            const bandGrad = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ch);
-            bandGrad.addColorStop(0,   'rgba(255,138,101,0.16)');
-            bandGrad.addColorStop(0.5, 'rgba(255,255,255,0.05)');
-            bandGrad.addColorStop(1,   'rgba(125,211,252,0.16)');
-            ctx.fillStyle = bandGrad;
-            ctx.fill();
-            ctx.restore();
-
-            // ── Líneas de máxima (cálida) y mínima (fría), suavizadas ──
-            const strokeLine = (xs, ys, color) => {
-                ctx.beginPath();
-                buildSmoothPath(xs, ys);
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 2.4;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.stroke();
-            };
-            strokeLine(xArr, yMaxArr, TREND_COLOR_MAX);
-            strokeLine(xArr, yMinArr, TREND_COLOR_MIN);
-
-            // ── Nodos + valores ──
-            const drawNode = (x, y, value, color, labelAbove) => {
-                ctx.beginPath();
-                ctx.arc(x, y, 5, 0, Math.PI * 2);
-                const h = color.replace('#', '');
-                const r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
-                ctx.fillStyle = `rgba(${r},${g},${b},0.22)`;
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.arc(x, y, 3, 0, Math.PI * 2);
-                ctx.fillStyle = color;
-                ctx.fill();
-                ctx.lineWidth = 1.3;
-                ctx.strokeStyle = '#123653';
-                ctx.stroke();
-
-                ctx.textAlign = 'center';
-                ctx.font = '700 11px Inter,sans-serif';
-                ctx.fillStyle = '#ffffff';
-                ctx.fillText(Math.round(value) + '°', x, labelAbove ? y - 10 : y + 18);
-            };
-            labels.forEach((lbl, i) => {
-                drawNode(xArr[i], yMaxArr[i], maxs[i], TREND_COLOR_MAX, true);
-                drawNode(xArr[i], yMinArr[i], mins[i], TREND_COLOR_MIN, false);
-            });
-        }
-
-        window.addEventListener('resize', () => {
-            clearTimeout(window._proximos5DiasTrendResizeT);
-            window._proximos5DiasTrendResizeT = setTimeout(() => { if (_proximos5DiasTrendVals) drawProximos5DiasTrendChart(_proximos5DiasTrendVals); }, 150);
-        });
 
         // Icono de paraguas en miniatura dibujado directo en canvas (evita rasterizar el SVG)
         function drawMiniUmbrella(ctx, cx, cy, s, color, alpha) {
@@ -5155,6 +4984,276 @@
         // coherentes con la paleta ya usada en el resto de la app.
         const TREND_COLOR_MAX = '#FF8A65'; // coral/naranja cálido
         const TREND_COLOR_MIN = '#7DD3FC'; // azul claro/cian frío
+
+        function drawGhostTrendChart(vals) {
+            // vals = { hoyMax, hoyMin, mananaMax, mananaMin, pasadoMax, pasadoMin,
+            //          ayerMax, ayerMin, mananaLabel, pasadoLabel }
+            const canvas = document.getElementById('ghost-trend-canvas');
+            if (!canvas || vals == null) return;
+            const requiredKeys = ['hoyMax','hoyMin','mananaMax','mananaMin','pasadoMax','pasadoMin'];
+            if (requiredKeys.some(k => vals[k] == null || isNaN(vals[k]))) return;
+
+            const dpr = window.devicePixelRatio || 1;
+            const W = canvas.parentElement.offsetWidth - 32; // menos el padding lateral del wrap
+            const H = 160;
+            canvas.width  = W * dpr;
+            canvas.height = H * dpr;
+            canvas.style.width  = W + 'px';
+            canvas.style.height = H + 'px';
+            const ctx = canvas.getContext('2d');
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, W, H);
+
+            // ── Padding del lienzo ──
+            // Arriba cabe el valor de la máxima (+ su delta en HOY);
+            // abajo cabe el valor de la mínima (+ su delta en HOY) y la etiqueta del día.
+            const PAD = { t: 30, r: 20, b: 34, l: 20 };
+            const cw = W - PAD.l - PAD.r;
+            const ch = H - PAD.t - PAD.b;
+
+            // ── 1. Posiciones X: 3 puntos EQUIDISTANTES (Hoy/Mañana/Pasado) ──
+            //    Sin "Ayer": el espacio que antes ocupaba se redistribuye aquí.
+            const totalUnits = 2; // 3 puntos → 2 intervalos iguales
+            const xAt = u => PAD.l + (u / totalUnits) * cw;
+            const xs = { hoy: xAt(0), manana: xAt(1), pasado: xAt(2) };
+
+            // ── 2. Escala Y común para ambas líneas (máx y mín de los 3 días) ──
+            const maxVals = [vals.hoyMax, vals.mananaMax, vals.pasadoMax];
+            const minVals = [vals.hoyMin, vals.mananaMin, vals.pasadoMin];
+            let minT = Math.min(...minVals);
+            let maxT = Math.max(...maxVals);
+            if (maxT - minT < 4) { const mid = (maxT + minT) / 2; minT = mid - 2; maxT = mid + 2; }
+            minT -= 2; maxT += 2; // aire extra arriba/abajo para nodos y etiquetas
+
+            const yAt = t => PAD.t + ch - ((t - minT) / (maxT - minT)) * ch;
+            const yMax = { hoy: yAt(vals.hoyMax), manana: yAt(vals.mananaMax), pasado: yAt(vals.pasadoMax) };
+            const yMin = { hoy: yAt(vals.hoyMin), manana: yAt(vals.mananaMin), pasado: yAt(vals.pasadoMin) };
+
+            const midX = (x0, x1) => (x0 + x1) / 2;
+
+            // Traza un segmento suavizado (Bezier) entre dos puntos de una serie.
+            function strokeSmoothSegment(x0, y0, x1, y1, color, lineWidth) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(x0, y0);
+                const xc = midX(x0, x1);
+                // Control points en la vertical de cada extremo → transición
+                // "monotone" orgánica, sin overshoot entre días.
+                ctx.bezierCurveTo(xc, y0, xc, y1, x1, y1);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = lineWidth;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Construye el path Bezier de una serie completa (3 puntos) y lo
+            // reutiliza tanto para el trazo como para recortar el área de relleno.
+            function buildSmoothPath(xArr, yArr) {
+                ctx.moveTo(xArr[0], yArr[0]);
+                for (let i = 0; i < xArr.length - 1; i++) {
+                    const xc = midX(xArr[i], xArr[i + 1]);
+                    ctx.bezierCurveTo(xc, yArr[i], xc, yArr[i + 1], xArr[i + 1], yArr[i + 1]);
+                }
+            }
+
+            const xArr = [xs.hoy, xs.manana, xs.pasado];
+            const yMaxArr = [yMax.hoy, yMax.manana, yMax.pasado];
+            const yMinArr = [yMin.hoy, yMin.manana, yMin.pasado];
+
+            // ── 3. Banda térmica: relleno degradado entre la línea de máximas
+            //    y la de mínimas (fondo general se mantiene azul oscuro) ──
+            ctx.save();
+            ctx.beginPath();
+            buildSmoothPath(xArr, yMaxArr);
+            // Vuelve por la línea de mínimas en sentido inverso para cerrar el área.
+            const xArrRev = [...xArr].reverse();
+            const yMinArrRev = [...yMinArr].reverse();
+            ctx.lineTo(xArrRev[0], yMinArrRev[0]);
+            for (let i = 0; i < xArrRev.length - 1; i++) {
+                const xc = midX(xArrRev[i], xArrRev[i + 1]);
+                ctx.bezierCurveTo(xc, yMinArrRev[i], xc, yMinArrRev[i + 1], xArrRev[i + 1], yMinArrRev[i + 1]);
+            }
+            ctx.closePath();
+            const bandGrad = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ch);
+            bandGrad.addColorStop(0,   'rgba(255,138,101,0.16)'); // cálido arriba
+            bandGrad.addColorStop(0.5, 'rgba(255,255,255,0.05)');
+            bandGrad.addColorStop(1,   'rgba(125,211,252,0.16)'); // frío abajo
+            ctx.fillStyle = bandGrad;
+            ctx.fill();
+            ctx.restore();
+
+            // ── 4. Línea de MÁXIMAS (cálida) ──
+            strokeSmoothSegment(xs.hoy, yMax.hoy, xs.manana, yMax.manana, TREND_COLOR_MAX, 3);
+            strokeSmoothSegment(xs.manana, yMax.manana, xs.pasado, yMax.pasado, TREND_COLOR_MAX, 3);
+
+            // ── 5. Línea de MÍNIMAS (fría) ──
+            strokeSmoothSegment(xs.hoy, yMin.hoy, xs.manana, yMin.manana, TREND_COLOR_MIN, 3);
+            strokeSmoothSegment(xs.manana, yMin.manana, xs.pasado, yMin.pasado, TREND_COLOR_MIN, 3);
+
+            // Dibuja un nodo + su valor numérico, arriba (para máximas) o abajo
+            // (para mínimas) del punto, evitando que el texto invada la banda.
+            // Si se pasa deltaText (solo ocurre en "HOY"), se añade pegado a la
+            // derecha del valor, con flecha ↑/↓/→ y color según suba o baje.
+            function drawNode(x, y, value, color, labelAbove, deltaText, deltaColor) {
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = hexToRgba(color, 0.22); // halo suave alrededor del nodo
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = '#123653';
+                ctx.stroke();
+
+                const textY = labelAbove ? y - 12 : y + 20;
+                const mainText = Math.round(value) + '°';
+
+                if (!deltaText) {
+                    ctx.textAlign = 'center';
+                    ctx.font = '700 12px Inter,sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(mainText, x, textY);
+                    return;
+                }
+
+                // Con delta: centramos el conjunto "18° (+1º)" sobre el nodo,
+                // calculando el ancho de cada parte para colocarlas en fila.
+                // Si el nodo está muy cerca del borde (p. ej. "HOY" a la izquierda),
+                // se recorta el desplazamiento para que el texto no quede cortado
+                // fuera del canvas.
+                const gap = 4;
+                ctx.font = '700 12px Inter,sans-serif';
+                const mainW = ctx.measureText(mainText).width;
+                ctx.font = '700 10px Inter,sans-serif';
+                const deltaW = ctx.measureText(deltaText).width;
+                const totalW = mainW + gap + deltaW;
+                const edgeMargin = 4;
+                let cursorX = x - totalW / 2;
+                cursorX = Math.max(edgeMargin, Math.min(cursorX, W - totalW - edgeMargin));
+
+                ctx.textAlign = 'left';
+                ctx.font = '700 12px Inter,sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(mainText, cursorX, textY);
+                cursorX += mainW + gap;
+
+                ctx.font = '700 10px Inter,sans-serif';
+                ctx.fillStyle = deltaColor;
+                ctx.fillText(deltaText, cursorX, textY);
+            }
+
+            function hexToRgba(hex, alpha) {
+                const h = hex.replace('#', '');
+                const r = parseInt(h.substring(0, 2), 16);
+                const g = parseInt(h.substring(2, 4), 16);
+                const b = parseInt(h.substring(4, 6), 16);
+                return `rgba(${r},${g},${b},${alpha})`;
+            }
+
+            // ── 6. Delta vs. ayer, solo en "HOY": se calcula antes de dibujar
+            //    los nodos para poder pasarlo directamente a drawNode() y que
+            //    aparezca pegado al valor, en vez de como galleta flotante.
+            function buildDelta(hoyVal, ayerVal) {
+                if (ayerVal == null || isNaN(ayerVal)) return null;
+                const diff = Math.round(hoyVal - ayerVal);
+                if (diff === 0) return { text: '(+0º)', color: '#e2e8f0' };
+                const sign = diff > 0 ? '+' : '-';
+                const color = diff > 0 ? TREND_COLOR_MAX : TREND_COLOR_MIN;
+                return { text: `(${sign}${Math.abs(diff)}º)`, color };
+            }
+            const deltaMax = buildDelta(vals.hoyMax, vals.ayerMax);
+            const deltaMin = buildDelta(vals.hoyMin, vals.ayerMin);
+
+            const dayPoints = [
+                { key: 'hoy',    label: 'HOY' },
+                { key: 'manana', label: vals.mananaLabel || 'MAÑANA' },
+                { key: 'pasado', label: vals.pasadoLabel || 'PASADO MAÑANA' }
+            ];
+            dayPoints.forEach(pt => {
+                const isHoy = pt.key === 'hoy';
+                drawNode(xs[pt.key], yMax[pt.key], vals[pt.key + 'Max'], TREND_COLOR_MAX, true,
+                         isHoy && deltaMax ? deltaMax.text : null, isHoy && deltaMax ? deltaMax.color : null);
+                drawNode(xs[pt.key], yMin[pt.key], vals[pt.key + 'Min'], TREND_COLOR_MIN, false,
+                         isHoy && deltaMin ? deltaMin.text : null, isHoy && deltaMin ? deltaMin.color : null);
+
+                ctx.textAlign = 'center';
+                ctx.font = '600 9px Inter,sans-serif';
+                ctx.fillStyle = pt.key === 'hoy' ? '#ffffff' : 'rgba(255,255,255,0.65)';
+                ctx.fillText(pt.label, xs[pt.key], H - PAD.b + 30);
+            });
+        }
+
+        let _ghostTrendVals = null; // último dato calculado, para poder redibujar en resize
+
+        // Nombre real del día para "Mañana" y "Pasado mañana" (p. ej. si hoy es
+        // sábado: mañana="DOMINGO", pasado mañana="LUNES"). Se recalcula cada vez
+        // que se cargan datos nuevos, así que avanza solo día a día sin tocar código.
+        function ghostTrendDayLabels() {
+            const DIAS_ES = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+            const hoy = new Date();
+            const manana = new Date(hoy); manana.setDate(hoy.getDate() + 1);
+            const pasado = new Date(hoy); pasado.setDate(hoy.getDate() + 2);
+            return {
+                mananaLabel: DIAS_ES[manana.getDay()],
+                pasadoLabel: DIAS_ES[pasado.getDay()]
+            };
+        }
+
+        // Calcula las máximas/mínimas de Hoy/Mañana/Pasado a partir de
+        // daily.temperature_2m_max/min ya cargados (sin peticiones extra), y pide
+        // aparte, con una única llamada ligera, la máxima y mínima de AYER
+        // (no vienen en la previsión estándar de Open-Meteo) para las "galletas".
+        async function loadGhostTrendChart(daily) {
+            try {
+                if (!daily?.temperature_2m_max || !daily?.temperature_2m_min || daily.temperature_2m_max.length < 3) return;
+
+                const hoyMax    = daily.temperature_2m_max[0];
+                const hoyMin    = daily.temperature_2m_min[0];
+                const mananaMax = daily.temperature_2m_max[1];
+                const mananaMin = daily.temperature_2m_min[1];
+                const pasadoMax = daily.temperature_2m_max[2];
+                const pasadoMin = daily.temperature_2m_min[2];
+
+                // Ayer: única llamada extra, ligera (solo daily, 1 día hacia atrás).
+                let ayerMax = null, ayerMin = null;
+                try {
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), 8000);
+                    const urlAyer = `${LIVE_PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&daily=temperature_2m_max,temperature_2m_min&past_days=1&forecast_days=1&timezone=Europe/Madrid`;
+                    const r = await fetch(urlAyer, { cache: 'no-store', signal: controller.signal });
+                    clearTimeout(timer);
+                    if (r.ok) {
+                        const j = await r.json();
+                        // Con past_days=1&forecast_days=1, el índice 0 del daily devuelto es "ayer".
+                        if (j?.daily?.temperature_2m_max?.[0] != null && j?.daily?.temperature_2m_min?.[0] != null) {
+                            ayerMax = j.daily.temperature_2m_max[0];
+                            ayerMin = j.daily.temperature_2m_min[0];
+                        }
+                    }
+                } catch (e) {
+                    console.warn('[Tendencia Máx/Mín] No se pudo obtener máx/mín de ayer, se omiten las galletas comparativas:', e);
+                }
+
+                _ghostTrendVals = {
+                    hoyMax, hoyMin, mananaMax, mananaMin, pasadoMax, pasadoMin,
+                    ayerMax, ayerMin, ...ghostTrendDayLabels()
+                };
+                drawGhostTrendChart(_ghostTrendVals);
+            } catch (e) {
+                console.warn('[Tendencia Máx/Mín] Error calculando la tendencia de 3 días:', e);
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            clearTimeout(window._ghostTrendResizeT);
+            window._ghostTrendResizeT = setTimeout(() => { if (_ghostTrendVals) drawGhostTrendChart(_ghostTrendVals); }, 150);
+        });
 
         function getWiIcon(code, dateTime, cloudData, size='1.6em', color='inherit') {
             if (cloudData && (code===1||code===2||code===3)) {
@@ -9727,18 +9826,9 @@
             const mid  = (current.cloud_cover_mid  || 0) * 0.6;
             const high = (current.cloud_cover_high || 0) * 0.2;
             const rc = low + mid + high;
-            let refinado;
-            if (rc < 10) refinado = 1;
-            else if (rc < 40) refinado = 2;
-            else refinado = 3;
-            // Esta corrección solo debe SUAVIZAR un código que Open-Meteo
-            // marcó más nublado de lo real por culpa de nubes altas finas
-            // (p.ej. code=3 con solo cirros → refinado=2). Nunca debe
-            // EMPEORARLO: si el dato bruto de Open-Meteo ya era "Parcialmente
-            // nublado" (2), no lo subimos a "Nublado" (3) aunque la nube baja
-            // por sí sola supere el umbral, porque en ese caso el código
-            // original de Open-Meteo ya es más fiable que esta heurística.
-            return Math.min(code, refinado);
+            if (rc < 10) return 1;
+            if (rc < 40) return 2;
+            return 3;
         }
 
         async function loadCurrentWeatherLive() {
@@ -9878,9 +9968,9 @@
                 updateRunningIndex(data.current, data.hourly, data.daily, aqData?.hourly ?? null);
                 updateSportSection(data.current, data.hourly, aqData?.hourly ?? null);
                 updateProximas5h(data.hourly);
-                updateProximos5Dias(data.daily);
                 updateMananaWidget(data.current, data.hourly);
                 drawParaguasHourlyChart(data.hourly);
+                loadGhostTrendChart(data.daily);
                 _hourlyCache = data.hourly;
                 window._hourlyCache = data.hourly;
                 window._dailyCache  = data.daily;
