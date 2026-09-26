@@ -3950,7 +3950,12 @@
                     lluvia:  { g: ['#2b3642', '#46586a', '#6b7d8f'], txt: '#ffffff', sub: '#dbe6f0', num: '#ffffff' }
                 };
                 // Degradado de "modo noche real": azul-marino / violeta oscuro.
+                // Se usa para despejado y poco nuboso (cielo limpio de noche).
                 const temaNoche = { g: ['#0b1128', '#1d1a46', '#3a2160'], txt: '#ffffff', sub: '#dcd6f5', num: '#ffffff' };
+                // "Parcialmente nublado" de noche mantiene un azul oscuro
+                // reconocible (en vez del negro-violeta de cielo despejado),
+                // para que no parezca un cielo totalmente cubierto.
+                const temaNocheParcial = { g: ['#0d2c4f', '#1c4d78', '#2f6e9d'], txt: '#ffffff', sub: '#dbe9f5', num: '#ffffff' };
 
                 // ── Modo noche real (entre ocaso y amanecer) ──────────────────
                 // Solo sustituye el sol por la luna en los estados donde
@@ -3959,7 +3964,8 @@
                 // degradado, ya oscuro de por sí.
                 const esNoche = isNightTime(instanteDato);
                 const esNocheVisual = esNoche && (tipoFondo === 'sol' || tipoFondo === 'mayor' || tipoFondo === 'parcial');
-                let tema = esNocheVisual ? temaNoche : temas[tipoFondo];
+                const temaNocheSegunEstado = (tipoFondo === 'parcial') ? temaNocheParcial : temaNoche;
+                let tema = esNocheVisual ? temaNocheSegunEstado : temas[tipoFondo];
 
                 // ── Franja de amanecer/atardecer: velo naranja-rosado en el
                 //    horizonte, con intensidad según cercanía al orto/ocaso.
