@@ -4373,11 +4373,12 @@
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.scale(dpr, dpr);
             ctx.clearRect(0, 0, W, H);
-            return; // Gráfica de líneas máx/mín desactivada: se deja el espacio reservado (canvas dimensionado) pero sin dibujar nada.
 
-            // Más margen arriba/abajo: aquí viven las etiquetas numéricas,
-            // que además pueden separarse más si las curvas se acercan.
-            const PAD = { t: 28, r: 14, b: 26, l: 14 };
+            // ── Geometría: dos líneas rectas independientes (máxima y
+            //    mínima), cada una con su propia etiqueta numérica pegada
+            //    a su punto — la máxima siempre arriba de su línea y la
+            //    mínima siempre debajo de la suya, sin banda ni relleno. ──
+            const PAD = { t: 22, r: 14, b: 22, l: 14 };
             const cw = W - PAD.l - PAD.r;
             const ch = H - PAD.t - PAD.b;
 
@@ -4393,17 +4394,7 @@
             const yMaxArr = maxs.map(yAt);
             const yMinArr = mins.map(yAt);
 
-            const midX = (x0, x1) => (x0 + x1) / 2;
-            const buildSmoothPath = (xs, ys) => {
-                ctx.moveTo(xs[0], ys[0]);
-                for (let i = 0; i < xs.length - 1; i++) {
-                    const xc = midX(xs[i], xs[i + 1]);
-                    ctx.bezierCurveTo(xc, ys[i], xc, ys[i + 1], xs[i + 1], ys[i + 1]);
-                }
-            };
-
-            // ── Separadores punteados por día (mismo estilo que la fila de
-            //    iconos justo encima: línea vertical fina y discontinua) ──
+            // ── Separadores punteados por día ──
             ctx.save();
             ctx.setLineDash([3, 3]);
             ctx.strokeStyle = 'rgba(255,255,255,0.18)';
@@ -4411,36 +4402,17 @@
             for (let i = 1; i < n; i++) {
                 const xLine = PAD.l + (i * cw / n);
                 ctx.beginPath();
-                ctx.moveTo(xLine, PAD.t - 4);
-                ctx.lineTo(xLine, H - PAD.b + 4);
+                ctx.moveTo(xLine, 4);
+                ctx.lineTo(xLine, H - 4);
                 ctx.stroke();
             }
             ctx.restore();
 
-            // ── Banda térmica degradada entre máxima y mínima ──
-            ctx.save();
-            ctx.beginPath();
-            buildSmoothPath(xArr, yMaxArr);
-            const xArrRev = [...xArr].reverse();
-            const yMinArrRev = [...yMinArr].reverse();
-            ctx.lineTo(xArrRev[0], yMinArrRev[0]);
-            for (let i = 0; i < xArrRev.length - 1; i++) {
-                const xc = midX(xArrRev[i], xArrRev[i + 1]);
-                ctx.bezierCurveTo(xc, yMinArrRev[i], xc, yMinArrRev[i + 1], xArrRev[i + 1], yMinArrRev[i + 1]);
-            }
-            ctx.closePath();
-            const bandGrad = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ch);
-            bandGrad.addColorStop(0,   'rgba(255,138,101,0.16)');
-            bandGrad.addColorStop(0.5, 'rgba(255,255,255,0.05)');
-            bandGrad.addColorStop(1,   'rgba(125,211,252,0.16)');
-            ctx.fillStyle = bandGrad;
-            ctx.fill();
-            ctx.restore();
-
-            // ── Líneas de máxima (cálida) y mínima (fría), suavizadas ──
+            // ── Línea recta (una sola serie de segmentos) ──
             const strokeLine = (xs, ys, color) => {
                 ctx.beginPath();
-                buildSmoothPath(xs, ys);
+                ctx.moveTo(xs[0], ys[0]);
+                for (let i = 1; i < xs.length; i++) ctx.lineTo(xs[i], ys[i]);
                 ctx.strokeStyle = color;
                 ctx.lineWidth = 2.4;
                 ctx.lineCap = 'round';
@@ -4450,18 +4422,8 @@
             strokeLine(xArr, yMaxArr, TREND_COLOR_MAX);
             strokeLine(xArr, yMinArr, TREND_COLOR_MIN);
 
-            // ── Nodos + valor numérico, con anticolisión: cuando la curva
-            //    máx y la mín se acercan (p. ej. un día más fresco entre dos
-            //    más cálidos), separamos las dos etiquetas más de lo normal
-            //    para que nunca lleguen a tocarse ni superponerse ──
+            // ── Puntos ──
             const drawNode = (x, y, color) => {
-                ctx.beginPath();
-                ctx.arc(x, y, 5, 0, Math.PI * 2);
-                const h = color.replace('#', '');
-                const r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
-                ctx.fillStyle = `rgba(${r},${g},${b},0.22)`;
-                ctx.fill();
-
                 ctx.beginPath();
                 ctx.arc(x, y, 3, 0, Math.PI * 2);
                 ctx.fillStyle = color;
@@ -4470,30 +4432,22 @@
                 ctx.strokeStyle = '#123653';
                 ctx.stroke();
             };
-            const drawLabel = (x, y, value) => {
+            const drawLabel = (x, y, value, color) => {
                 ctx.textAlign = 'center';
                 ctx.font = '700 11px Inter,sans-serif';
-                ctx.fillStyle = '#ffffff';
+                ctx.fillStyle = color;
                 ctx.fillText(Math.round(value) + '°', x, y);
             };
 
-            const MIN_LABEL_GAP = 26; // separación mínima entre las dos etiquetas, en px
             labels.forEach((lbl, i) => {
                 const x = xArr[i];
                 const yMax = yMaxArr[i], yMin = yMinArr[i];
                 drawNode(x, yMax, TREND_COLOR_MAX);
                 drawNode(x, yMin, TREND_COLOR_MIN);
-
-                let maxLabelY = yMax - 10;
-                let minLabelY = yMin + 16;
-                const gap = minLabelY - maxLabelY;
-                if (gap < MIN_LABEL_GAP) {
-                    const extra = (MIN_LABEL_GAP - gap) / 2;
-                    maxLabelY -= extra;
-                    minLabelY += extra;
-                }
-                drawLabel(x, maxLabelY, maxs[i]);
-                drawLabel(x, minLabelY, mins[i]);
+                // Máxima: número SIEMPRE por encima de su línea.
+                drawLabel(x, yMax - 10, maxs[i], TREND_COLOR_MAX);
+                // Mínima: número SIEMPRE por debajo de su línea.
+                drawLabel(x, yMin + 16, mins[i], TREND_COLOR_MIN);
             });
         }
 
