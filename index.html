@@ -4374,16 +4374,15 @@
             ctx.scale(dpr, dpr);
             ctx.clearRect(0, 0, W, H);
 
-            // ── Geometría: dos líneas rectas independientes (máxima y
-            //    mínima), cada una con su propia etiqueta numérica pegada
-            //    a su punto — la máxima siempre arriba de su línea y la
-            //    mínima siempre debajo de la suya, sin banda ni relleno. ──
-            const PAD = { t: 22, r: 14, b: 22, l: 14 };
-            const cw = W - PAD.l - PAD.r;
+            // ── Geometría: cada punto se centra en la MISMA columna que su
+            //    icono de arriba (ancho total / n días), en vez de repartirse
+            //    borde a borde. No se dibujan separadores verticales aquí:
+            //    ya existen como overlay (#proximos-5dias-dividers) que cubre
+            //    toda la tarjeta, iconos y gráfico incluidos. ──
+            const PAD = { t: 22, b: 22 };
             const ch = H - PAD.t - PAD.b;
-
-            const totalUnits = n - 1;
-            const xAt = i => PAD.l + (totalUnits === 0 ? cw / 2 : (i / totalUnits) * cw);
+            const colW = W / n;
+            const xAt = i => (i + 0.5) * colW;
             const xArr = labels.map((_, i) => xAt(i));
 
             let minT = Math.min(...mins);
@@ -4394,25 +4393,18 @@
             const yMaxArr = maxs.map(yAt);
             const yMinArr = mins.map(yAt);
 
-            // ── Separadores punteados por día ──
-            ctx.save();
-            ctx.setLineDash([3, 3]);
-            ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-            ctx.lineWidth = 1;
-            for (let i = 1; i < n; i++) {
-                const xLine = PAD.l + (i * cw / n);
-                ctx.beginPath();
-                ctx.moveTo(xLine, 4);
-                ctx.lineTo(xLine, H - 4);
-                ctx.stroke();
-            }
-            ctx.restore();
-
-            // ── Línea recta (una sola serie de segmentos) ──
+            // ── Línea CURVA suavizada (Bezier), una serie continua ──
+            const midX = (x0, x1) => (x0 + x1) / 2;
+            const buildSmoothPath = (xs, ys) => {
+                ctx.moveTo(xs[0], ys[0]);
+                for (let i = 0; i < xs.length - 1; i++) {
+                    const xc = midX(xs[i], xs[i + 1]);
+                    ctx.bezierCurveTo(xc, ys[i], xc, ys[i + 1], xs[i + 1], ys[i + 1]);
+                }
+            };
             const strokeLine = (xs, ys, color) => {
                 ctx.beginPath();
-                ctx.moveTo(xs[0], ys[0]);
-                for (let i = 1; i < xs.length; i++) ctx.lineTo(xs[i], ys[i]);
+                buildSmoothPath(xs, ys);
                 ctx.strokeStyle = color;
                 ctx.lineWidth = 2.4;
                 ctx.lineCap = 'round';
