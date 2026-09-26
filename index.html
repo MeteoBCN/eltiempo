@@ -3708,51 +3708,16 @@
             return null;
         }
 
-        function vientoUviRowSvg(yTop, current, hourly, daily) {
-            const r = 42;
-            const cy = yTop + r;
-            const cx1 = 150, cx2 = 350;
-            const boxH = r * 2 + 14;
-
-            // ── Viento: dirección (rumbo de 16 puntos) + km/h, dentro del círculo ──
+        // Datos de viento listos para pintarse como línea de texto (mismo
+        // diseño que HUMEDAD / PRESIÓN) en el bloque "hora-titulo".
+        function vientoTextoWidget(current) {
             const wsNum = (typeof current?.wind_speed_10m === 'number' && !Number.isNaN(current.wind_speed_10m)) ? Math.round(current.wind_speed_10m) : null;
             const wdNum = (typeof current?.wind_direction_10m === 'number' && !Number.isNaN(current.wind_direction_10m)) ? current.wind_direction_10m : null;
             const dirLetras = (wdNum != null) ? MW_DIRS16[Math.round(wdNum / 22.5) % 16] : '--';
             const wsTxt = (wsNum != null) ? wsNum : '--';
-            // La flecha apunta hacia donde SOPLA el viento (rumbo + 180°),
-            // igual que las flechas de "Tiempo actual".
-            const anguloFlecha = (wdNum != null) ? (wdNum + 180) % 360 : 0;
-
-            const vientoSvg = `
-            <g transform="translate(${cx1} ${cy})">
-                <circle r="${r}" fill="rgba(18,54,83,0.24)" stroke="rgba(255,255,255,0.30)" stroke-width="1.5"/>
-                <g transform="rotate(${anguloFlecha.toFixed(1)})" opacity="${wdNum != null ? 1 : 0.35}">
-                    <path d="M0,-19 L6.5,-5.5 L1.8,-5.5 L1.8,9 L-1.8,9 L-1.8,-5.5 L-6.5,-5.5 Z" fill="#ffffff"/>
-                </g>
-                <text x="0" y="21" font-size="15" font-weight="800" fill="#ffffff" text-anchor="middle" font-family="'Inter',sans-serif">${wsTxt}<tspan font-size="9" font-weight="700" dx="1"> km/h</tspan></text>
-                <text x="0" y="34" font-size="9.5" font-weight="700" fill="#ffffff" opacity="0.85" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="0.6">${dirLetras}</text>
-            </g>
-            <text x="${cx1}" y="${cy + r + 18}" font-size="9.5" font-weight="700" fill="#ffffff" opacity="0.8" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="1.4">VIENTO</text>`;
-
-            // ── UVI: valor + nivel de riesgo, dentro del círculo ──
-            const uviVal = uviActualDesdeCache(hourly, daily);
-            const nivel = (uviVal != null && typeof uviLevel === 'function') ? uviLevel(uviVal) : { lbl: '--', color: '#ffffff' };
-            const uviTxt = (uviVal != null) ? Math.round(uviVal) : '--';
-
-            const uviSvg = `
-            <g transform="translate(${cx2} ${cy})">
-                <circle r="${r}" fill="rgba(18,54,83,0.24)" stroke="rgba(255,255,255,0.30)" stroke-width="1.5"/>
-                <text x="0" y="-11" font-size="10" font-weight="800" fill="#ffffff" opacity="0.85" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="1.2">UVI</text>
-                <text x="0" y="15" font-size="23" font-weight="800" fill="#ffffff" text-anchor="middle" font-family="'Inter',sans-serif">${uviTxt}</text>
-                <text x="0" y="31" font-size="9.5" font-weight="800" fill="${nivel.color}" text-anchor="middle" font-family="'Inter',sans-serif" letter-spacing="0.3">${nivel.lbl}</text>
-            </g>`;
-
-            return {
-                height: boxH,
-                svg: `<g id="mw-viento-uvi" class="mw-txt" filter="url(#mw-sombra)">${vientoSvg}${uviSvg}</g>`
-            };
+            return (wsNum != null || wdNum != null) ? `${dirLetras} ${wsTxt} km/h` : '--';
         }
-        // ══════ FIN Viento y UVI ══════
+        // ══════ FIN Viento ══════
 
         function estacionesRowSvg(yTop) {
             const datos = window.ESTACIONES_ULTIMAS || {};
@@ -4063,37 +4028,38 @@
                     ? `<g id="pajaros" aria-hidden="true">${pajaro('mw-ave1', 0.8)}${pajaro('mw-ave2', 0.55)}</g>`
                     : '';
 
-                // Viento + UVI, cada uno dentro de su círculo (ver
-                // vientoUviRowSvg más arriba), con el dato real de "current"
-                // (wind_speed_10m / wind_direction_10m) y el UVI más cercano
-                // a "ahora" leído del horario cacheado (window._hourlyCache).
+                // Viento: ya no va en círculo; se calcula aquí como texto y se
+                // pinta en el bloque "hora-titulo", encima de PRESIÓN (ver más
+                // abajo), con el mismo diseño que HUMEDAD / PRESIÓN.
+                const vientoTextoActual = vientoTextoWidget(current);
+
+                // UVI: tampoco va en círculo; se calcula aquí y se pinta como
+                // otra línea de texto en el bloque "hora-titulo", justo
+                // encima de AMANECER/ATARDECER (ver más abajo).
                 const hourlySrcUvi = (typeof hourlyForUvi !== 'undefined' && hourlyForUvi) ? hourlyForUvi : window._hourlyCache;
                 const dailySrcUvi = window._dailyCache;
-                const VU_Y = 108;
-                const vu = vientoUviRowSvg(VU_Y, current, hourlySrcUvi, dailySrcUvi);
-                const vientoUviSvg = vu.svg;
+                const uviValWidget = uviActualDesdeCache(hourlySrcUvi, dailySrcUvi);
+                const uviNivelWidget = (uviValWidget != null && typeof uviLevel === 'function') ? uviLevel(uviValWidget) : null;
+                const uviLineaWidget = (uviValWidget != null && uviNivelWidget)
+                    ? `${Math.round(uviValWidget)} · ${uviNivelWidget.lbl.toUpperCase()}`
+                    : '--';
 
-                // Espacio extra reservado ARRIBA del widget para el nuevo bloque
-                // de titular (fecha + hora + temperatura grande). Todo el resto
-                // del contenido (cielo animado, pájaros, círculos de viento/UVI,
-                // estaciones y calidad del aire) se desplaza hacia abajo esa
-                // misma cantidad.
+                // Espacio extra reservado ARRIBA del widget para el bloque de
+                // titular (fecha + hora + temperatura grande + datos en texto).
+                // Todo el resto del contenido (cielo animado, pájaros, estaciones
+                // y calidad del aire) se desplaza hacia abajo esa misma cantidad.
                 const MW_OFFSET_TOP = 120;
                 // Desplazamiento vertical del bloque de contenido (cielo animado,
-                // sol/luna, nubes, pájaros, círculos de viento/UVI y tarjetas de
-                // estaciones) DENTRO del espacio reservado bajo el titular. Un
-                // valor menor que MW_OFFSET_TOP sube visualmente todo este bloque
-                // (antes quedaba centrado más abajo); el alto total del SVG
-                // (MW_ALTO) no cambia.
+                // sol/luna, nubes, pájaros y tarjetas de estaciones) DENTRO del
+                // espacio reservado bajo el titular. Un valor menor que
+                // MW_OFFSET_TOP sube visualmente todo este bloque (antes quedaba
+                // centrado más abajo); el alto total del SVG (MW_ALTO) no cambia.
                 const MW_CONTENT_TOP = MW_OFFSET_TOP - 35;
-                // Las 4 tarjetas de estaciones ahora empiezan justo debajo del
-                // bloque de viento/UVI (antes empezaban en y=197 fijo).
-                const CHIPS_TOP = VU_Y + vu.height + 18;
-                const estacionesSvg = estacionesRowSvg(CHIPS_TOP);
+                const estacionesSvg = estacionesRowSvg();
                 // Franja de calidad del aire: se coloca debajo de las 4 tarjetas
                 // de estaciones, dejando más aire (AQI_GAP) que el que tenían
                 // antes las estaciones respecto al borde del widget.
-                const CHIPS_BOTTOM = CHIPS_TOP + 88;
+                const CHIPS_BOTTOM = 285;
                 const AQI_GAP = 26;
                 const AQI_Y = CHIPS_BOTTOM + AQI_GAP;
                 const aqi = aqiRowSvg(AQI_Y);
@@ -4219,17 +4185,18 @@
   <g transform="translate(0 ${MW_CONTENT_TOP})">
     <g id="fondo-animado" transform="translate(0 -15)">${fondo}</g>
     <g transform="translate(0 -15)">${pajaros}</g>
-    ${vientoUviSvg}
     ${estacionesSvg}
     ${aqiSvg}
   </g>
   <g id="hora-titulo" class="mw-txt">
     <text x="16" y="26" fill="#ffffff"><tspan font-size="14" font-weight="600" letter-spacing="0.3" opacity="0.9">${fechaActualizada.toUpperCase()}</tspan><tspan dx="10" font-size="18" font-weight="800" letter-spacing="0.3">${horaActualizado}</tspan></text>
     <text x="16" y="100" font-size="66" font-weight="800" letter-spacing="-1" fill="#ffffff">${tempActualWidget}</text>
-    <text x="${16 + tempActualWidget.length * 39 + 2}" y="100" fill="#ffffff" opacity="0.85"><tspan font-size="13" font-weight="600">(sensación </tspan><tspan font-size="24" font-weight="700">${sensacionActualWidget}</tspan><tspan font-size="13" font-weight="600">)</tspan></text>
-    <text x="16" y="132" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">HUMEDAD </tspan>${humedadActualWidget}</text>
-    <text x="16" y="152" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">PRESION </tspan>${presionActualWidget}</text>
-    ${solProximoWidget ? `<text x="16" y="182" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">${solProximoWidget.label} </tspan>${solProximoWidget.hora}</text>` : ''}
+    <text x="16" y="128" font-size="20" font-weight="700" fill="#ffffff" opacity="0.85"><tspan font-size="14" font-weight="600" opacity="0.75">SENSACIÓN </tspan>${sensacionActualWidget}</text>
+    <text x="16" y="154" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">HUMEDAD </tspan>${humedadActualWidget}</text>
+    <text x="16" y="176" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">VIENTO </tspan>${vientoTextoActual}</text>
+    <text x="16" y="198" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">PRESION </tspan>${presionActualWidget}</text>
+    <text x="16" y="220" font-size="15" font-weight="700" fill="#ffffff">UVI ${uviLineaWidget}</text>
+    ${solProximoWidget ? `<text x="16" y="242" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">${solProximoWidget.label} </tspan>${solProximoWidget.hora}</text>` : ''}
   </g>
 </svg>`;
                 host.innerHTML = svg;
