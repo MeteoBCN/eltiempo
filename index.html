@@ -4301,7 +4301,7 @@
         // Igual que updateProximas5h pero a nivel diario: hoy + los 4 días
         // siguientes, con el resumen (icono representativo del día y
         // máxima/mínima) en vez de la hora.
-        function updateProximos5Dias(daily, hourly) {
+        function updateProximos5Dias(daily, hourly, ayerMaxMin) {
             const row = document.getElementById('proximos-5dias-row');
             if (!row || !daily?.time) return;
             const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -4342,7 +4342,13 @@
             // Gráfica de tendencia (máxima/mínima con curvas) justo debajo,
             // misma lógica que la gráfica de tendencia de 3 días pero con
             // los 5 días de esta sección y separadores punteados por día.
-            _proximos5DiasTrendVals = { labels: points.map(p => p.label), maxs: [], mins: [] };
+            _proximos5DiasTrendVals = {
+                labels: points.map(p => p.label),
+                maxs: [],
+                mins: [],
+                ayerMax: ayerMaxMin?.max ?? null,
+                ayerMin: ayerMaxMin?.min ?? null
+            };
             for (let k = 0; k < points.length; k++) {
                 _proximos5DiasTrendVals.maxs.push(daily.temperature_2m_max?.[k]);
                 _proximos5DiasTrendVals.mins.push(daily.temperature_2m_min?.[k]);
@@ -4360,14 +4366,14 @@
         function drawProximos5DiasTrendChart(vals) {
             const canvas = document.getElementById('proximos-5dias-trend-canvas');
             if (!canvas || !vals) return;
-            const { labels, maxs, mins } = vals;
+            const { labels, maxs, mins, ayerMax, ayerMin } = vals;
             const n = labels.length;
             if (n < 2) return;
             if (maxs.some(v => v == null || isNaN(v)) || mins.some(v => v == null || isNaN(v))) return;
 
             const dpr = window.devicePixelRatio || 1;
             const W = canvas.parentElement.offsetWidth;
-            const H = 118;
+            const H = 150;
             canvas.width  = W * dpr;
             canvas.height = H * dpr;
             canvas.style.width  = W + 'px';
@@ -4382,7 +4388,7 @@
             //    borde a borde. No se dibujan separadores verticales aquí:
             //    ya existen como overlay (#proximos-5dias-dividers) que cubre
             //    toda la tarjeta, iconos y gráfico incluidos. ──
-            const PAD = { t: 28, b: 30 };
+            const PAD = { t: 34, b: 36 };
             const ch = H - PAD.t - PAD.b;
             const colW = W / n;
             const xAt = i => (i + 0.5) * colW;
@@ -4465,7 +4471,7 @@
                 }
             };
 
-            const ARROW_UMBRAL = 2; // grados mínimos de diferencia con el día anterior para mostrar flecha
+            const ARROW_UMBRAL = 2; // grados mínimos de diferencia con AYER para mostrar flecha
             const calcArrow = (curr, prev) => {
                 if (prev == null) return null;
                 const diff = curr - prev;
@@ -4478,8 +4484,10 @@
                 const x = xArr[i];
                 const yMax = yMaxArr[i], yMin = yMinArr[i];
                 const isHoy = i === 0;
-                const maxArrow = i > 0 ? calcArrow(maxs[i], maxs[i - 1]) : null;
-                const minArrow = i > 0 ? calcArrow(mins[i], mins[i - 1]) : null;
+                // Flecha SOLO en "Hoy", comparando con la máxima/mínima real
+                // de AYER (no con el resto de días de la lista).
+                const maxArrow = isHoy ? calcArrow(maxs[i], ayerMax) : null;
+                const minArrow = isHoy ? calcArrow(mins[i], ayerMin) : null;
                 // Máxima: número SIEMPRE por encima de su línea.
                 drawLabel(x, yMax - (isHoy ? 12 : 10), maxs[i], TREND_COLOR_MAX, isHoy, maxArrow, TREND_COLOR_MAX);
                 // Mínima: número SIEMPRE por debajo de su línea.
@@ -9830,6 +9838,25 @@
                 } catch(e) { console.warn('Fetch error:', u, e); return null; }
             };
 
+            // Máxima/mínima de AYER (llamada aparte y ligera, con past_days=1):
+            // sirve solo para calcular la flecha ▲/▼ de "Hoy" en la gráfica de
+            // "Próximos 5 días" sin tocar el resto de índices de daily/hourly
+            // que usa todo el resto de la web (que siguen empezando en HOY).
+            const obtenerAyerMaxMin = async () => {
+                try {
+                    const url = `${PROXY_BASE}/forecast?latitude=${LAT}&longitude=${LON}&daily=temperature_2m_max,temperature_2m_min&timezone=Europe/Madrid&past_days=1&forecast_days=1`;
+                    const d = await safeFetch(url);
+                    const hoyStr = new Date().toISOString().slice(0, 10);
+                    if (!d?.daily?.time?.length) return null;
+                    const idxAyer = d.daily.time.findIndex(t => t !== hoyStr);
+                    if (idxAyer === -1) return null;
+                    return {
+                        max: d.daily.temperature_2m_max?.[idxAyer] ?? null,
+                        min: d.daily.temperature_2m_min?.[idxAyer] ?? null
+                    };
+                } catch(e) { console.warn('No se pudo obtener la máx/mín de ayer:', e); return null; }
+            };
+
             let data, aqData, marineData;
 
             const cache = FORZAR_LIVE ? null : await safeFetch(DATOS_URL);
@@ -9907,7 +9934,8 @@
                 updateRunningIndex(data.current, data.hourly, data.daily, aqData?.hourly ?? null);
                 updateSportSection(data.current, data.hourly, aqData?.hourly ?? null);
                 updateProximas5h(data.hourly);
-                updateProximos5Dias(data.daily, data.hourly);
+                const ayerMaxMin = await obtenerAyerMaxMin();
+                updateProximos5Dias(data.daily, data.hourly, ayerMaxMin);
                 updateMananaWidget(data.current, data.hourly);
                 drawParaguasHourlyChart(data.hourly);
                 _hourlyCache = data.hourly;
