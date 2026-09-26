@@ -4379,7 +4379,7 @@
             //    borde a borde. No se dibujan separadores verticales aquí:
             //    ya existen como overlay (#proximos-5dias-dividers) que cubre
             //    toda la tarjeta, iconos y gráfico incluidos. ──
-            const PAD = { t: 22, b: 22 };
+            const PAD = { t: 26, b: 28 };
             const ch = H - PAD.t - PAD.b;
             const colW = W / n;
             const xAt = i => (i + 0.5) * colW;
@@ -4402,6 +4402,27 @@
                     ctx.bezierCurveTo(xc, ys[i], xc, ys[i + 1], xs[i + 1], ys[i + 1]);
                 }
             };
+
+            // ── Degradado sutil entre la curva máxima y la mínima ──
+            ctx.save();
+            ctx.beginPath();
+            buildSmoothPath(xArr, yMaxArr);
+            const xArrRev = [...xArr].reverse();
+            const yMinArrRev = [...yMinArr].reverse();
+            ctx.lineTo(xArrRev[0], yMinArrRev[0]);
+            for (let i = 0; i < xArrRev.length - 1; i++) {
+                const xc = midX(xArrRev[i], xArrRev[i + 1]);
+                ctx.bezierCurveTo(xc, yMinArrRev[i], xc, yMinArrRev[i + 1], xArrRev[i + 1], yMinArrRev[i + 1]);
+            }
+            ctx.closePath();
+            const bandGrad = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ch);
+            bandGrad.addColorStop(0,   'rgba(255,138,101,0.14)');
+            bandGrad.addColorStop(0.5, 'rgba(255,255,255,0.04)');
+            bandGrad.addColorStop(1,   'rgba(125,211,252,0.14)');
+            ctx.fillStyle = bandGrad;
+            ctx.fill();
+            ctx.restore();
+
             const strokeLine = (xs, ys, color) => {
                 ctx.beginPath();
                 buildSmoothPath(xs, ys);
@@ -4424,22 +4445,26 @@
                 ctx.strokeStyle = '#123653';
                 ctx.stroke();
             };
-            const drawLabel = (x, y, value, color) => {
+            // Etiquetas: en blanco y más grandes para todos los días, salvo
+            // "Hoy" (índice 0), que conserva su color propio (naranja/azul)
+            // y se dibuja aún más grande que el resto para destacar.
+            const drawLabel = (x, y, value, color, isHoy) => {
                 ctx.textAlign = 'center';
-                ctx.font = '700 11px Inter,sans-serif';
-                ctx.fillStyle = color;
+                ctx.font = isHoy ? '800 15px Inter,sans-serif' : '700 13px Inter,sans-serif';
+                ctx.fillStyle = isHoy ? color : '#ffffff';
                 ctx.fillText(Math.round(value) + '°', x, y);
             };
 
             labels.forEach((lbl, i) => {
                 const x = xArr[i];
                 const yMax = yMaxArr[i], yMin = yMinArr[i];
+                const isHoy = i === 0;
                 drawNode(x, yMax, TREND_COLOR_MAX);
                 drawNode(x, yMin, TREND_COLOR_MIN);
                 // Máxima: número SIEMPRE por encima de su línea.
-                drawLabel(x, yMax - 10, maxs[i], TREND_COLOR_MAX);
+                drawLabel(x, yMax - (isHoy ? 12 : 10), maxs[i], TREND_COLOR_MAX, isHoy);
                 // Mínima: número SIEMPRE por debajo de su línea.
-                drawLabel(x, yMin + 16, mins[i], TREND_COLOR_MIN);
+                drawLabel(x, yMin + (isHoy ? 19 : 17), mins[i], TREND_COLOR_MIN, isHoy);
             });
         }
 
