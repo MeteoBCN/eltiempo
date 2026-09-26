@@ -4071,7 +4071,11 @@
                 const aqi = aqiRowSvg(AQI_Y);
                 const aqiSvg = aqi.svg;
                 const AQI_BOTTOM_MARGIN = 20;
-                const MW_ALTO = MW_CONTENT_TOP + AQI_Y + aqi.height + AQI_BOTTOM_MARGIN;
+                // Franja final del widget: silueta de Barcelona, ya fuera de
+                // cualquier contenido (tarjetas de estaciones / calidad del
+                // aire), pegada al borde inferior del SVG.
+                const MW_SKYLINE_HEIGHT = 130;
+                const MW_ALTO = MW_CONTENT_TOP + AQI_Y + aqi.height + AQI_BOTTOM_MARGIN + MW_SKYLINE_HEIGHT;
                 const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 ${MW_ALTO}" width="100%" role="img" aria-label="${fechaActualizada}, ${horaActualizado}, ${tempActualWidget}, ${descripcion}" style="display:block;overflow:hidden;border-radius:0;">
   <style>
@@ -4190,7 +4194,6 @@
   ${franja ? `<rect width="500" height="${MW_ALTO}" fill="url(#mw-crepusculo)" opacity="${(franja.intensidad * 0.85).toFixed(2)}"/>` : ''}
   <g transform="translate(0 ${MW_CONTENT_TOP})">
     <g id="fondo-animado" transform="translate(0 -15)">${fondo}</g>
-    <image href="${MW_SKYLINE_BCN}" x="0" y="57" width="500" height="140" preserveAspectRatio="xMidYMax slice" style="pointer-events:none;"/>
     <g transform="translate(0 -15)">${pajaros}</g>
     ${estacionesSvg}
     ${aqiSvg}
@@ -4206,6 +4209,7 @@
     <text x="16" y="226" font-size="15" font-weight="700" fill="#ffffff">UVI ${uviLineaWidget}</text>
     ${solProximoWidget ? `<text x="16" y="248" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">${solProximoWidget.label} </tspan>${solProximoWidget.hora}</text>` : ''}
   </g>
+  <image href="${MW_SKYLINE_BCN}" x="0" y="${MW_ALTO - MW_SKYLINE_HEIGHT}" width="500" height="${MW_SKYLINE_HEIGHT}" preserveAspectRatio="xMidYMax slice" style="pointer-events:none;"/>
 </svg>`;
                 host.innerHTML = svg;
                 host.style.display = 'block';
