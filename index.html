@@ -9859,6 +9859,7 @@
             const mid  = (current.cloud_cover_mid  || 0) * 0.6;
             const high = (current.cloud_cover_high || 0) * 0.2;
             const rc = low + mid + high;
+            console.log('[DEBUG nubes] low:', current.cloud_cover_low, 'mid:', current.cloud_cover_mid, 'high:', current.cloud_cover_high, '→ rc ponderado:', rc, '(code original:', code + ')');
             if (rc < 10) return 1;
             if (rc < 40) return 2;
             return 3;
