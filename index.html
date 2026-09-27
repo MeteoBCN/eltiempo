@@ -3441,7 +3441,7 @@
                 const mid = (cloudData.cloud_cover_mid||0)*0.6;
                 const high = (cloudData.cloud_cover_high||0)*0.2;
                 const rc = low + mid + high;
-                if (rc<10) code=1; else if (rc<40) code=2; else code=3;
+                if (rc<10) code=1; else if (rc<60) code=2; else code=3;
             }
             if (dateTime && isNightTime(dateTime)) return weatherIconsNight[code]||'🌙';
             return weatherIcons[code]||'☀️';
@@ -5260,7 +5260,7 @@
                 const mid = (cloudData.cloud_cover_mid||0)*0.6;
                 const high = (cloudData.cloud_cover_high||0)*0.2;
                 const rc = low + mid + high;
-                if (rc<10) code=1; else if (rc<40) code=2; else code=3;
+                if (rc<10) code=1; else if (rc<60) code=2; else code=3;
             }
             const night = dateTime && isNightTime(dateTime);
             const cls = (night ? WI_NIGHT[code] : WI_DAY[code]) || (night ? 'wi-night-alt-cloudy' : 'wi-day-sunny');
