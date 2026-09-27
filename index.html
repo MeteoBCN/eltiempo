@@ -3367,6 +3367,33 @@
         // Campo de estrellas parpadeantes. Posiciones pseudoaleatorias pero
         // deterministas (sin Math.random) para que el patrón no "salte" cada
         // vez que se repinta el widget.
+        // Farolas a lo largo de la franja del skyline: el poste siempre se
+        // dibuja, pero la luz ámbar (halo + parpadeo) solo se enciende de
+        // noche (esNoche). yBase = borde inferior del SVG donde se apoyan.
+        function farolasSvg(esNoche, yBase) {
+            const posiciones = [34, 148, 262, 376, 466];
+            const poleColor = '#2b2b2b';
+            let out = '';
+            posiciones.forEach((x, i) => {
+                const alturaPolo = 58 + (i % 3) * 9;
+                const yTop = yBase - 4 - alturaPolo;
+                const yLuz = yTop - 7;
+                const dur = (3.1 + (i % 3) * 0.7).toFixed(1);
+                const delay = (-(i % 4) * 0.85).toFixed(1);
+                out += `<g>
+                    <line x1="${x}" y1="${yBase - 4}" x2="${x}" y2="${yTop}" stroke="${poleColor}" stroke-width="2.2" stroke-linecap="round"/>
+                    <path d="M${x} ${yTop} q0 -6 6 -7" stroke="${poleColor}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+                    ${esNoche
+                        ? `<g class="mw-farola-luz" style="animation-duration:${dur}s;animation-delay:${delay}s">
+                            <circle cx="${x + 6}" cy="${yLuz}" r="13" fill="url(#mw-farola-halo)"/>
+                            <circle cx="${x + 6}" cy="${yLuz}" r="3.1" fill="url(#mw-farola-bulbo)"/>
+                        </g>`
+                        : `<circle cx="${x + 6}" cy="${yLuz}" r="2.4" fill="#4a4a4a"/>`}
+                </g>`;
+            });
+            return `<g id="mw-farolas">${out}</g>`;
+        }
+
         function estrellasSvg(n = 26) {
             let out = '';
             for (let i = 0; i < n; i++) {
@@ -4125,6 +4152,12 @@
     /* Estrellas parpadeantes (modo noche real) */
     .mw-star { opacity: 0.15; animation: mw-parpadeo 3.2s ease-in-out infinite; will-change: opacity; }
     @keyframes mw-parpadeo { 0%,100% { opacity: 0.15; } 50% { opacity: 0.95; } }
+    /* Farolas: parpadeo suave e irregular de la luz ámbar (solo de noche) */
+    .mw-farola-luz { animation: mw-farola-flicker 3.4s ease-in-out infinite; transform-origin: center; will-change: opacity; }
+    @keyframes mw-farola-flicker {
+      0%, 17%, 21%, 24%, 53%, 57%, 100% { opacity: 1; }
+      19%, 23%, 55% { opacity: 0.55; }
+    }
     /* Luna: leve resplandor "respirando" */
     .mw-luna { animation: mw-luna-brillo 6s ease-in-out infinite; transform-origin: center; }
     @keyframes mw-luna-brillo { 0%,100% { opacity: 0.94; } 50% { opacity: 1; } }
@@ -4135,6 +4168,7 @@
       .mw-ave1, .mw-ave2, .mw-ala { animation: none; } .mw-ave { opacity: 0.7; } .mw-ave1 { transform: translate(430px,88px); } .mw-ave2 { transform: translate(300px,118px); }
       .mw-star, .mw-luna { animation: none; }
       .mw-manga-balance { animation: none; }
+      .mw-farola-luz { animation: none; opacity: 1; }
       .mw-star { opacity: 0.6; } }
   </style>
   <defs>
@@ -4189,6 +4223,16 @@
       <stop offset="70%" stop-color="#ffb199" stop-opacity="0.12"/>
       <stop offset="100%" stop-color="#ffb199" stop-opacity="0"/>
     </linearGradient>
+    <radialGradient id="mw-farola-halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffcc66" stop-opacity="0.85"/>
+      <stop offset="45%" stop-color="#ffb347" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#ffb347" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="mw-farola-bulbo" cx="45%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#fff6d8"/>
+      <stop offset="55%" stop-color="#ffc94d"/>
+      <stop offset="100%" stop-color="#ff9f1a"/>
+    </radialGradient>
   </defs>
   <rect width="500" height="${MW_ALTO}" fill="url(#mw-bg)"/>
   ${franja ? `<rect width="500" height="${MW_ALTO}" fill="url(#mw-crepusculo)" opacity="${(franja.intensidad * 0.85).toFixed(2)}"/>` : ''}
@@ -4210,6 +4254,7 @@
     ${solProximoWidget ? `<text x="16" y="248" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">${solProximoWidget.label} </tspan>${solProximoWidget.hora}</text>` : ''}
   </g>
   <image href="${MW_SKYLINE_BCN}" x="0" y="${MW_ALTO - MW_SKYLINE_HEIGHT}" width="500" height="${MW_SKYLINE_HEIGHT}" preserveAspectRatio="xMidYMax slice" style="pointer-events:none;"/>
+  ${farolasSvg(esNoche, MW_ALTO)}
 </svg>`;
                 host.innerHTML = svg;
                 host.style.display = 'block';
