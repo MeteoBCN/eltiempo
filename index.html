@@ -3373,12 +3373,12 @@
         function farolasSvg(esNoche, yBase) {
             const posiciones = [34, 148, 262, 376, 466];
             const poleColor = '#2b2b2b';
+            const alturaPolo = 36;
             let out = '';
             posiciones.forEach((x, i) => {
-                const alturaPolo = 58 + (i % 3) * 9;
                 const yTop = yBase - 4 - alturaPolo;
                 const yLuz = yTop - 7;
-                const dur = (3.1 + (i % 3) * 0.7).toFixed(1);
+                const dur = (3.6 + (i % 3) * 0.7).toFixed(1);
                 const delay = (-(i % 4) * 0.85).toFixed(1);
                 out += `<g>
                     <line x1="${x}" y1="${yBase - 4}" x2="${x}" y2="${yTop}" stroke="${poleColor}" stroke-width="2.2" stroke-linecap="round"/>
@@ -3392,6 +3392,24 @@
                 </g>`;
             });
             return `<g id="mw-farolas">${out}</g>`;
+        }
+
+        // Ventanas iluminadas sobre la silueta del skyline: puntos fijos,
+        // calculados sobre zonas "macizas" de la imagen (fachadas anchas,
+        // no agujas ni cúpulas), convertidos a coordenadas del recorte
+        // "xMidYMax slice" que usa la imagen dentro del widget. Solo de noche.
+        function ventanasSkylineSvg(esNoche, yBoxTop) {
+            if (!esNoche) return '';
+            // [x, y] ya en coordenadas de la caja de 500×130 del skyline
+            const puntos = [
+                [6.7, 27.5], [46.9, 77.7], [140.8, 77.7], [201.1, 81.1],
+                [388.7, 104.5], [422.3, 97.8], [462.5, 114.6], [485.9, 116.6]
+            ];
+            const out = puntos.map((p, i) => {
+                const op = (0.45 + (i % 3) * 0.13).toFixed(2);
+                return `<rect x="${(p[0] - 1.1).toFixed(1)}" y="${(yBoxTop + p[1] - 1.5).toFixed(1)}" width="2.2" height="3" rx="0.5" fill="#fff3d6" opacity="${op}"/>`;
+            }).join('');
+            return `<g id="mw-ventanas-skyline">${out}</g>`;
         }
 
         function estrellasSvg(n = 26) {
@@ -4153,10 +4171,10 @@
     .mw-star { opacity: 0.15; animation: mw-parpadeo 3.2s ease-in-out infinite; will-change: opacity; }
     @keyframes mw-parpadeo { 0%,100% { opacity: 0.15; } 50% { opacity: 0.95; } }
     /* Farolas: parpadeo suave e irregular de la luz ámbar (solo de noche) */
-    .mw-farola-luz { animation: mw-farola-flicker 3.4s ease-in-out infinite; transform-origin: center; will-change: opacity; }
+    .mw-farola-luz { animation: mw-farola-flicker 4.2s ease-in-out infinite; transform-origin: center; will-change: opacity; }
     @keyframes mw-farola-flicker {
       0%, 17%, 21%, 24%, 53%, 57%, 100% { opacity: 1; }
-      19%, 23%, 55% { opacity: 0.55; }
+      19%, 23%, 55% { opacity: 0.86; }
     }
     /* Luna: leve resplandor "respirando" */
     .mw-luna { animation: mw-luna-brillo 6s ease-in-out infinite; transform-origin: center; }
@@ -4254,6 +4272,7 @@
     ${solProximoWidget ? `<text x="16" y="248" font-size="15" font-weight="700" fill="#ffffff"><tspan opacity="0.75" font-weight="600">${solProximoWidget.label} </tspan>${solProximoWidget.hora}</text>` : ''}
   </g>
   <image href="${MW_SKYLINE_BCN}" x="0" y="${MW_ALTO - MW_SKYLINE_HEIGHT}" width="500" height="${MW_SKYLINE_HEIGHT}" preserveAspectRatio="xMidYMax slice" style="pointer-events:none;"/>
+  ${ventanasSkylineSvg(esNoche, MW_ALTO - MW_SKYLINE_HEIGHT)}
   ${farolasSvg(esNoche, MW_ALTO)}
 </svg>`;
                 host.innerHTML = svg;
